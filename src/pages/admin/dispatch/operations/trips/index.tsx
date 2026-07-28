@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Plus, Edit, Trash2, Eye, Search, X, File, Download, MessageCircle } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck, FaUser, FaTrailer } from "react-icons/fa";
 import NewTripSidebar from "./NewTripSidebar";
-import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, approveTripCompletion, approveTripDocuments, listDriver, listVehicle, getTripDocumentSignedUrl, updateTrip } from "../../../../../axios/api/distapcher";
+import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, approveTripCompletion, approveTripDocuments, rejectTripDocuments, listDriver, listVehicle, getTripDocumentSignedUrl, updateTrip } from "../../../../../axios/api/distapcher";
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 import { FLEET_COLORS, getFocusStyles } from "../../../fleetMaintenance/colorUtils";
 import { getUnreadMessageCount } from "../../../../../axios/api/chat";
@@ -75,6 +75,14 @@ interface Trip {
   };
   documentsApprovedAt?: string;
   approvedWithoutDocuments?: boolean;
+  completionRejectionReason?: string;
+  rejectionHistory?: Array<{
+    _id?: string;
+    rejectedBy?: { _id: string; name: string; email?: string };
+    rejectedAt?: string;
+    reason?: string;
+    documentsCount?: number;
+  }>;
   plannedStartDate?: string | null | undefined;
   plannedEndDate?: string;
   actualStartDate?: string;
@@ -354,6 +362,16 @@ const Trips = () => {
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
   const [viewingTrip, setViewingTrip] = useState<Trip | null>(null);
   const [showChat, setShowChat] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState<{ url: string; fileName: string; mimeType: string } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [showApprovalChecklist, setShowApprovalChecklist] = useState(false);
+  const [approvalChecked, setApprovalChecked] = useState(false);
+  const [approvalChecklistLoading, setApprovalChecklistLoading] = useState(false);
+  const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectionLoading, setRejectionLoading] = useState(false);
+  const [selectedTripIds, setSelectedTripIds] = useState<Set<string>>(new Set());
+  const [bulkApproveLoading, setBulkApproveLoading] = useState(false);
   const [, setIsOrderChat] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [startConfirm, setStartConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
@@ -557,6 +575,22 @@ const Trips = () => {
 
     socketService.onTripAcceptanceUpdated(handleTripAcceptanceUpdated);
     return () => socketService.offTripAcceptanceUpdated();
+  }, [addNotification]);
+
+  // Real-time trip document upload notifications
+  useEffect(() => {
+    socketService.onDocumentUploadNotification((notification: any) => {
+      const tripLabel = notification.tripNumber ? `Trip ${notification.tripNumber}` : (notification.orderNumber ? `Order #${notification.orderNumber}` : 'A trip');
+      const uploader = notification.driverName || 'A driver';
+      addNotification('document_upload', `${uploader} uploaded a document for ${tripLabel}`, {
+        tripId: notification.tripId,
+        tripNumber: notification.tripNumber,
+        driverName: notification.driverName,
+        orderId: notification.orderId,
+        orderNumber: notification.orderNumber
+      });
+    });
+    return () => socketService.offDocumentUploadNotification?.();
   }, [addNotification]);
 
   // Refs for scrollbar synchronization
@@ -1221,6 +1255,41 @@ const Trips = () => {
         </button>
       </div>
 
+      {/* Document Approval Analytics */}
+      {trips.length > 0 && (() => {
+        const completedTrips = trips.filter(t => t.status === 'completed' || t.status === 'in-progress');
+        const approvedTrips = trips.filter(t => t.documentsApproved);
+        const pendingDocTrips = trips.filter(t => !t.documentsApproved && (t.documents?.length ?? 0) > 0);
+        const rejectedTrips = trips.filter(t => t.rejectionHistory && t.rejectionHistory.length > 0 && !t.documentsApproved);
+        const approvalRate = completedTrips.length > 0
+          ? Math.round((approvedTrips.filter(t => t.status === 'completed' || t.status === 'in-progress').length / completedTrips.length) * 100)
+          : 0;
+        return (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div className="bg-card rounded-lg p-3 border border-theme">
+              <div className="text-xs text-secondary font-medium uppercase mb-1">Approval Rate</div>
+              <div className="text-2xl font-bold text-green-600">{approvalRate}%</div>
+              <div className="text-xs text-secondary mt-0.5">of in-progress/completed trips</div>
+            </div>
+            <div className="bg-card rounded-lg p-3 border border-theme">
+              <div className="text-xs text-secondary font-medium uppercase mb-1">Docs Approved</div>
+              <div className="text-2xl font-bold text-primary">{approvedTrips.length}</div>
+              <div className="text-xs text-secondary mt-0.5">of {trips.length} trips total</div>
+            </div>
+            <div className="bg-card rounded-lg p-3 border border-theme">
+              <div className="text-xs text-secondary font-medium uppercase mb-1">Pending Review</div>
+              <div className="text-2xl font-bold text-amber-600">{pendingDocTrips.length}</div>
+              <div className="text-xs text-secondary mt-0.5">have docs, not yet approved</div>
+            </div>
+            <div className="bg-card rounded-lg p-3 border border-theme">
+              <div className="text-xs text-secondary font-medium uppercase mb-1">Rejected</div>
+              <div className="text-2xl font-bold text-red-600">{rejectedTrips.length}</div>
+              <div className="text-xs text-secondary mt-0.5">awaiting re-upload</div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Search and Filters */}
       <div className="bg-card rounded-lg shadow-md p-4 mb-4">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -1359,6 +1428,45 @@ const Trips = () => {
             >
               <div className="top-scroll-content" style={{ height: '1px', minWidth: '100%' }}></div>
             </div>
+            {/* Bulk approve toolbar */}
+            {selectedTripIds.size > 0 && (
+              <div className="flex items-center gap-3 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg mb-2">
+                <span className="text-sm text-blue-800 font-medium">{selectedTripIds.size} trip(s) selected</span>
+                <button
+                  disabled={bulkApproveLoading}
+                  onClick={async () => {
+                    if (!window.confirm(`Approve documents for ${selectedTripIds.size} selected trip(s)?`)) return;
+                    setBulkApproveLoading(true);
+                    let successCount = 0;
+                    let failCount = 0;
+                    for (const tripId of Array.from(selectedTripIds)) {
+                      try {
+                        const res = await approveTripDocuments(tripId, false);
+                        if (res?.success) successCount++;
+                        else failCount++;
+                      } catch {
+                        failCount++;
+                      }
+                    }
+                    setBulkApproveLoading(false);
+                    setSelectedTripIds(new Set());
+                    if (successCount > 0) addNotification('success', `${successCount} trip(s) approved successfully.${failCount > 0 ? ` ${failCount} failed.` : ''}`);
+                    else addNotification('error', 'Failed to approve selected trips.');
+                    fetchTrips();
+                  }}
+                  className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+                >
+                  {bulkApproveLoading ? 'Approving...' : 'Bulk Approve Documents'}
+                </button>
+                <button
+                  onClick={() => setSelectedTripIds(new Set())}
+                  className="px-3 py-1.5 text-sm border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  Clear Selection
+                </button>
+              </div>
+            )}
+
             {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
             <div
               ref={bottomScrollRef}
@@ -1367,6 +1475,18 @@ const Trips = () => {
               <table className="w-full text-sm">
                 <thead className="bg-card border-b border-theme">
                   <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase w-10">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 rounded accent-blue-600"
+                        checked={trips.length > 0 && trips.every(t => selectedTripIds.has(t._id))}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedTripIds(new Set(trips.map(t => t._id)));
+                          else setSelectedTripIds(new Set());
+                        }}
+                        title="Select all"
+                      />
+                    </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase">Trip #</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase">Driver</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase">Co-Driver</th>
@@ -1383,7 +1503,20 @@ const Trips = () => {
                 </thead>
                 <tbody className="bg-card divide-y divide-theme">
                   {trips.map((trip) => (
-                    <tr key={trip._id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                    <tr key={trip._id} className={`hover:bg-[rgba(255,255,255,0.03)] ${selectedTripIds.has(trip._id) ? 'bg-blue-50/30' : ''}`}>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded accent-blue-600"
+                          checked={selectedTripIds.has(trip._id)}
+                          onChange={(e) => {
+                            const next = new Set(selectedTripIds);
+                            if (e.target.checked) next.add(trip._id);
+                            else next.delete(trip._id);
+                            setSelectedTripIds(next);
+                          }}
+                        />
+                      </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <button
                           type="button"
@@ -2032,34 +2165,56 @@ const Trips = () => {
                                     )}
                                   </div>
                                 </div>
-                                <button
-                                  onClick={async () => {
-                                    if (!viewingTrip?._id || !doc._id) {
-                                      if (doc.fileUrl) {
-                                        window.open(doc.fileUrl, '_blank');
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <button
+                                    onClick={async () => {
+                                      if (!viewingTrip?._id || !doc._id) {
+                                        if (doc.fileUrl) setPreviewDoc({ url: doc.fileUrl, fileName: doc.fileName || 'Document', mimeType: doc.mimeType || '' });
+                                        return;
                                       }
-                                      return;
-                                    }
-                                    try {
-                                      const response = await getTripDocumentSignedUrl(viewingTrip._id, doc._id, 'inline');
-                                      if (response?.success && response?.url) {
-                                        window.open(response.url, '_blank');
-                                      } else if (doc.fileUrl) {
-                                        window.open(doc.fileUrl, '_blank');
+                                      setPreviewLoading(true);
+                                      try {
+                                        const response = await getTripDocumentSignedUrl(viewingTrip._id, doc._id, 'inline');
+                                        const url = (response?.success && response?.url) ? response.url : doc.fileUrl;
+                                        if (url) setPreviewDoc({ url, fileName: doc.fileName || 'Document', mimeType: doc.mimeType || '' });
+                                      } catch {
+                                        if (doc.fileUrl) setPreviewDoc({ url: doc.fileUrl, fileName: doc.fileName || 'Document', mimeType: doc.mimeType || '' });
+                                      } finally {
+                                        setPreviewLoading(false);
                                       }
-                                    } catch (error) {
-                                      console.error('Error getting signed URL:', error);
-                                      if (doc.fileUrl) {
-                                        window.open(doc.fileUrl, '_blank');
+                                    }}
+                                    disabled={previewLoading}
+                                    className="px-3 py-1.5 text-xs font-medium text-[#A855F7] hover:text-purple-700 hover:bg-purple-50 rounded border border-purple-200 transition-colors flex items-center gap-1"
+                                    title="Preview Document"
+                                  >
+                                    <Eye className="w-3 h-3" />
+                                    Preview
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      if (!viewingTrip?._id || !doc._id) {
+                                        if (doc.fileUrl) window.open(doc.fileUrl, '_blank');
+                                        return;
                                       }
-                                    }
-                                  }}
-                                  className="px-3 py-1.5 text-xs font-medium text-[#00D1FF] hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 flex-shrink-0"
-                                  title="View Document"
-                                >
-                                  <Download className="w-3 h-3" />
-                                  View
-                                </button>
+                                      try {
+                                        const response = await getTripDocumentSignedUrl(viewingTrip._id, doc._id, 'inline');
+                                        if (response?.success && response?.url) {
+                                          window.open(response.url, '_blank');
+                                        } else if (doc.fileUrl) {
+                                          window.open(doc.fileUrl, '_blank');
+                                        }
+                                      } catch (error) {
+                                        console.error('Error getting signed URL:', error);
+                                        if (doc.fileUrl) window.open(doc.fileUrl, '_blank');
+                                      }
+                                    }}
+                                    className="px-3 py-1.5 text-xs font-medium text-[#00D1FF] hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1"
+                                    title="Open in new tab"
+                                  >
+                                    <Download className="w-3 h-3" />
+                                    View
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           );
@@ -2110,30 +2265,26 @@ const Trips = () => {
                         <div className="text-sm font-semibold text-primary mb-3">Document Approval</div>
                         <div className="flex flex-col gap-2">
                           {hasDocuments && (
-                            <button
-                              onClick={async () => {
-                                if (!viewingTrip?._id) return;
-                                try {
-                                  const response = await approveTripDocuments(viewingTrip._id, false);
-                                  if (response?.success) {
-                                    addNotification('success', 'Documents approved successfully. Trip can now be completed.');
-                                    // Refresh trip data
-                                    const updatedTrip = await getTripById(viewingTrip._id);
-                                    if (updatedTrip?.success && updatedTrip?.data) {
-                                      setViewingTrip(updatedTrip.data);
-                                    }
-                                    fetchTrips();
-                                  } else {
-                                    addNotification('error', response?.message || 'Failed to approve documents');
-                                  }
-                                } catch (error: any) {
-                                  addNotification('error', error?.message || 'An error occurred while approving documents');
-                                }
-                              }}
-                              className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium transition-all hover:bg-green-700 hover:shadow-md text-sm"
-                            >
-                              Approve Documents
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  setApprovalChecked(false);
+                                  setShowApprovalChecklist(true);
+                                }}
+                                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-medium transition-all hover:bg-green-700 hover:shadow-md text-sm"
+                              >
+                                Approve Documents
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setRejectionReason('');
+                                  setShowRejectionModal(true);
+                                }}
+                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium transition-all hover:bg-red-700 hover:shadow-md text-sm"
+                              >
+                                Reject Documents
+                              </button>
+                            </div>
                           )}
                           <button
                             onClick={async () => {
@@ -2184,6 +2335,24 @@ const Trips = () => {
                           )}
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {/* Rejection history */}
+                  {viewingTrip.rejectionHistory && viewingTrip.rejectionHistory.length > 0 && (
+                    <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="text-sm font-semibold text-red-800 mb-2">Rejection History ({viewingTrip.rejectionHistory.length})</div>
+                      <div className="space-y-2">
+                        {viewingTrip.rejectionHistory.map((entry, idx) => (
+                          <div key={entry._id || idx} className="text-xs text-red-700 border-t border-red-200 pt-1 first:border-0 first:pt-0">
+                            <div className="font-medium">"{entry.reason}"</div>
+                            <div className="text-red-500 mt-0.5">
+                              By {entry.rejectedBy?.name || 'Dispatcher'}{entry.rejectedAt ? ` · ${new Date(entry.rejectedAt).toLocaleDateString()}` : ''}
+                              {entry.documentsCount !== undefined && ` · ${entry.documentsCount} doc(s) at time of rejection`}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -2267,6 +2436,223 @@ const Trips = () => {
         cancelText="Cancel"
         type="info"
       />
+
+      {/* Document Preview Modal */}
+      {previewDoc && (
+        <div
+          className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/75 p-4"
+          onClick={() => setPreviewDoc(null)}
+        >
+          <div
+            className="bg-card rounded-xl shadow-2xl w-full max-w-4xl flex flex-col"
+            style={{ maxHeight: '90vh' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-theme flex-shrink-0">
+              <span className="font-semibold text-primary text-sm truncate max-w-[80%]">{previewDoc.fileName}</span>
+              <button onClick={() => setPreviewDoc(null)} className="text-secondary hover:text-primary transition-colors ml-2">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-2 min-h-0">
+              {previewDoc.mimeType?.startsWith('image/') ? (
+                <img
+                  src={previewDoc.url}
+                  alt={previewDoc.fileName}
+                  className="max-w-full mx-auto rounded object-contain"
+                  style={{ maxHeight: '75vh' }}
+                />
+              ) : (
+                <iframe
+                  src={previewDoc.url}
+                  title={previewDoc.fileName}
+                  className="w-full rounded border-0"
+                  style={{ height: '75vh' }}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Rejection Modal */}
+      {showRejectionModal && viewingTrip && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/75 p-4">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-md">
+            <div className="flex items-center justify-between p-4 border-b border-theme">
+              <h3 className="font-semibold text-primary">Reject Documents</h3>
+              <button
+                onClick={() => { setShowRejectionModal(false); setRejectionReason(''); }}
+                className="text-secondary hover:text-primary transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              <p className="text-sm text-secondary">Select a reason or type a custom message. The driver will be notified to re-upload.</p>
+              <div className="space-y-2">
+                {[
+                  'POD signature not visible or missing',
+                  'Border manifest missing or invalid',
+                  'Document quality too low (blurry/unreadable)',
+                  'Document date mismatch',
+                  'Wrong document type uploaded'
+                ].map((template) => (
+                  <button
+                    key={template}
+                    onClick={() => setRejectionReason(template)}
+                    className={`w-full text-left px-3 py-2 text-sm rounded-lg border transition-colors ${
+                      rejectionReason === template
+                        ? 'border-red-500 bg-red-50 text-red-800'
+                        : 'border-theme text-secondary hover:border-red-300 hover:bg-red-50/50'
+                    }`}
+                  >
+                    {template}
+                  </button>
+                ))}
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1">Custom reason</label>
+                <textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="Or type a custom rejection reason..."
+                  rows={2}
+                  className="w-full text-sm border border-theme rounded-lg px-3 py-2 bg-card text-primary focus:outline-none focus:border-red-400 resize-none"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 p-4 border-t border-theme">
+              <button
+                onClick={() => { setShowRejectionModal(false); setRejectionReason(''); }}
+                className="flex-1 px-4 py-2 text-sm border border-theme rounded-lg text-secondary hover:bg-card transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={!rejectionReason.trim() || rejectionLoading}
+                onClick={async () => {
+                  if (!viewingTrip?._id || !rejectionReason.trim()) return;
+                  setRejectionLoading(true);
+                  try {
+                    const response = await rejectTripDocuments(viewingTrip._id, rejectionReason.trim());
+                    if (response?.success) {
+                      addNotification('success', 'Documents rejected. Driver notified to re-upload.');
+                      setShowRejectionModal(false);
+                      setRejectionReason('');
+                      const updatedTrip = await getTripById(viewingTrip._id);
+                      if (updatedTrip?.success && updatedTrip?.data) setViewingTrip(updatedTrip.data);
+                      fetchTrips();
+                    } else {
+                      addNotification('error', response?.message || 'Failed to reject documents');
+                    }
+                  } catch (error: any) {
+                    addNotification('error', error?.message || 'An error occurred');
+                  } finally {
+                    setRejectionLoading(false);
+                  }
+                }}
+                className="flex-1 px-4 py-2 text-sm bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {rejectionLoading ? 'Rejecting...' : 'Confirm Rejection'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Approval Checklist Modal */}
+      {showApprovalChecklist && viewingTrip && (() => {
+        const docStatus = getDocumentStatus(viewingTrip);
+        return (
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/75 p-4">
+            <div className="bg-card rounded-xl shadow-2xl w-full max-w-md">
+              <div className="flex items-center justify-between p-4 border-b border-theme">
+                <h3 className="font-semibold text-primary">Confirm Document Approval</h3>
+                <button
+                  onClick={() => { setShowApprovalChecklist(false); setApprovalChecked(false); }}
+                  className="text-secondary hover:text-primary transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-4 space-y-4">
+                <p className="text-sm text-secondary">Review the checklist below before approving.</p>
+
+                <div className="space-y-2">
+                  <div className={`flex items-center gap-2 text-sm p-2 rounded-lg ${docStatus.hasPOD ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-700'}`}>
+                    {docStatus.hasPOD
+                      ? <FaCheckCircle className="text-green-600 flex-shrink-0" />
+                      : <FaTimes className="text-red-500 flex-shrink-0" />}
+                    POD (Proof of Delivery) — {docStatus.hasPOD ? 'Uploaded' : 'Missing'}
+                  </div>
+                  {docStatus.isCanada && (
+                    <div className={`flex items-center gap-2 text-sm p-2 rounded-lg ${docStatus.hasBorderManifest ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-700'}`}>
+                      {docStatus.hasBorderManifest
+                        ? <FaCheckCircle className="text-green-600 flex-shrink-0" />
+                        : <FaTimes className="text-red-500 flex-shrink-0" />}
+                      Border Manifest — {docStatus.hasBorderManifest ? 'Uploaded' : 'Missing'}
+                    </div>
+                  )}
+                </div>
+
+                {(!docStatus.hasPOD || (docStatus.isCanada && !docStatus.hasBorderManifest)) && (
+                  <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">
+                    ⚠️ Some required documents are missing. You may still approve after review.
+                  </div>
+                )}
+
+                <label className="flex items-start gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={approvalChecked}
+                    onChange={(e) => setApprovalChecked(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded accent-green-600"
+                  />
+                  <span className="text-sm text-primary">I confirm I have reviewed and verified all uploaded documents.</span>
+                </label>
+              </div>
+
+              <div className="flex gap-3 p-4 border-t border-theme">
+                <button
+                  onClick={() => { setShowApprovalChecklist(false); setApprovalChecked(false); }}
+                  className="flex-1 px-4 py-2 text-sm border border-theme rounded-lg text-secondary hover:bg-card transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={!approvalChecked || approvalChecklistLoading}
+                  onClick={async () => {
+                    if (!viewingTrip?._id) return;
+                    setApprovalChecklistLoading(true);
+                    try {
+                      const response = await approveTripDocuments(viewingTrip._id, false);
+                      if (response?.success) {
+                        addNotification('success', 'Documents approved successfully. Trip can now be completed.');
+                        setShowApprovalChecklist(false);
+                        setApprovalChecked(false);
+                        const updatedTrip = await getTripById(viewingTrip._id);
+                        if (updatedTrip?.success && updatedTrip?.data) setViewingTrip(updatedTrip.data);
+                        fetchTrips();
+                      } else {
+                        addNotification('error', response?.message || 'Failed to approve documents');
+                      }
+                    } catch (error: any) {
+                      addNotification('error', error?.message || 'An error occurred while approving documents');
+                    } finally {
+                      setApprovalChecklistLoading(false);
+                    }
+                  }}
+                  className="flex-1 px-4 py-2 text-sm bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {approvalChecklistLoading ? 'Approving...' : 'Confirm Approval'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Upload, ChevronUp, ChevronDown, HelpCircle, Clock, X, Image as ImageIcon, Edit, Trash2, Calendar, ChevronLeft, ChevronRight, FileText, FileDown } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { getAllTrailers, createTrailer, updateTrailer, deleteTrailer, getTrailerById } from '../../../../axios/api/trailer';
+import { importTrailersFromFile } from '../../../../axios/api/distapcher';
+import ImportButton from '../../../../components/common/ImportButton';
 import { getAllDrivers, type Driver } from '../../../../axios/api/driver';
 import { createVehicleDocument, updateVehicleDocument } from '../../../../axios/api/compilance.vehicledoc';
 import { getAllYards, type Yard } from '../../../../axios/api/fleet.yards';
@@ -1450,6 +1452,23 @@ const TrailersPage: React.FC = () => {
                             >
                                 <Plus className="w-5 h-5" />
                             </button>
+                            <ImportButton
+                              onImport={async (file) => {
+                                const res = await importTrailersFromFile(file);
+                                return res;
+                              }}
+                              templateFileName="trailers_template.csv"
+                              templateColumns={[
+                                { header: 'trailer_number', example: 'TRL-001', required: true },
+                                { header: 'plate_number', example: 'XYZ-9876', required: true },
+                                { header: 'make', example: 'Utility', required: false },
+                                { header: 'model', example: 'Reefer 53ft', required: false },
+                                { header: 'year', example: '2021', required: false },
+                                { header: 'type', example: 'Dry Van', required: false },
+                                { header: 'status', example: 'In Service', required: false },
+                              ]}
+                              label="Import Trailers"
+                            />
                         </div>
                     </div>
                 </div>

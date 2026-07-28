@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, Upload, ChevronUp, ChevronDown, Clock, X, Image as ImageIcon, Calendar, ChevronLeft, ChevronRight, Edit, Trash2, FileText, Check, FileDown } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { getAllVehicles, createVehicle, updateVehicle, deleteVehicle, getVehicleById } from '../../../../axios/api/vehicle';
+import { importVehiclesFromFile } from '../../../../axios/api/distapcher';
+import ImportButton from '../../../../components/common/ImportButton';
 import { getAllDrivers, type Driver } from '../../../../axios/api/driver';
 import { createVehicleDocument, updateVehicleDocument, getVehicleDocument } from '../../../../axios/api/compilance.vehicledoc';
 import { getAllTrailers } from '../../../../axios/api/trailer';
@@ -1699,6 +1701,24 @@ const Trucks: React.FC = () => {
                             >
                                 <Plus className="w-5 h-5" />
                             </button>
+                            <ImportButton
+                              onImport={async (file) => {
+                                const res = await importVehiclesFromFile(file);
+                                return res;
+                              }}
+                              templateFileName="trucks_template.csv"
+                              templateColumns={[
+                                { header: 'plate_number', example: 'ABC-1234', required: true },
+                                { header: 'make', example: 'Freightliner', required: false },
+                                { header: 'model', example: 'Cascadia', required: false },
+                                { header: 'year', example: '2022', required: false },
+                                { header: 'vin', example: '1FUJHHDR0CLBP8795', required: false },
+                                { header: 'type', example: 'Semi-Truck', required: false },
+                                { header: 'status', example: 'In Service', required: false },
+                                { header: 'internal_id', example: 'TRK-001', required: false },
+                              ]}
+                              label="Import Trucks"
+                            />
                         </div>
                     </div>
                 </div>

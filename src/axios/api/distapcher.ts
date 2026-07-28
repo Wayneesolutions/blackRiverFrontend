@@ -1006,6 +1006,16 @@ export const approveTripDocuments = async (id: string, approveWithoutDocuments: 
   }
 };
 
+export const rejectTripDocuments = async (id: string, reason: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/trip/${id}/reject-documents`, { reason });
+    return res.data;
+  } catch (error: any) {
+    console.error('rejectTripDocuments API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
 export const uploadTripDocument = async (tripId: string, file: File, description?: string, documentType?: string) => {
   try {
     const formData = new FormData();
@@ -1087,3 +1097,41 @@ export const getOrderSuggestions = async (field: string, value: string, customer
     return { success: false, data: [] };
   }
 }
+export const importDriversFromFile = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  try {
+    const res: AxiosResponse = await apiClient.post('dispatcher/driver/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return res.data;
+  } catch (error: any) {
+    return error?.response?.data || { success: false, message: error?.message };
+  }
+};
+
+export const importVehiclesFromFile = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  try {
+    const res: AxiosResponse = await apiClient.post('dispatcher/vehicle/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return res.data;
+  } catch (error: any) {
+    return error?.response?.data || { success: false, message: error?.message };
+  }
+};
+
+export const importTrailersFromFile = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  try {
+    const res: AxiosResponse = await apiClient.post('dispatcher/trailer/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return res.data;
+  } catch (error: any) {
+    return error?.response?.data || { success: false, message: error?.message };
+  }
+};

@@ -4,7 +4,8 @@ import ExcelJS from 'exceljs';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import * as driverApi from '../../../../axios/api/driver';
 import { getTestResults, approveTestResult, rejectTestResult, getDriverTicketSignedUrl, verifyDrugTestPassword } from '../../../../axios/api/driver';
-import { listDriver } from '../../../../axios/api/distapcher';
+import { listDriver, importDriversFromFile } from '../../../../axios/api/distapcher';
+import ImportButton from '../../../../components/common/ImportButton';
 import { getSignedEmployeeDocumentUrl, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
 import type { EmployeeDocument } from '../../../../axios/api/employeeDocument';
 import { deleteViolation } from '../../../../axios/api/violations';
@@ -3629,6 +3630,20 @@ const DriverManagement = () => {
               >
                 <FileDown className="w-5 h-5" />
               </button>
+              <ImportButton
+                onImport={async (file) => { const res = await importDriversFromFile(file); await fetchDrivers(); return res; }}
+                templateFileName="drivers_template.csv"
+                templateColumns={[
+                  { header: 'first_name', example: 'John', required: true },
+                  { header: 'last_name', example: 'Smith', required: true },
+                  { header: 'email', example: 'john.smith@company.com', required: true },
+                  { header: 'phone', example: '555-123-4567', required: false },
+                  { header: 'country', example: 'Canada', required: false },
+                  { header: 'driver_id', example: 'DRV-0001', required: false },
+                  { header: 'status', example: 'active', required: false },
+                ]}
+                label="Import Drivers"
+              />
               <button
                 onClick={() => {
                   setEditingId(null);

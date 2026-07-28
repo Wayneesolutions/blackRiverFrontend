@@ -3,6 +3,8 @@ import { Plus, Info, ChevronUp, ChevronDown, X, User, FileText, Upload, Edit, Tr
 import ExcelJS from 'exceljs';
 import { FaTimes, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import * as employeeApi from '../../../../axios/api/employee';
+import { importEmployeesFromFile } from '../../../../axios/api/employee';
+import ImportButton from '../../../../components/common/ImportButton';
 import { getDocumentsByEmployee, updateEmployeeDocument, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
 import { deleteDeductionAddition } from '../../../../axios/api/account.settlement';
 import AddressSearch from '../../../../components/common/AddressSearch';
@@ -1173,6 +1175,18 @@ const EmployeesPage = () => {
               >
                 <FileDown className="w-5 h-5" />
               </button>
+              <ImportButton
+                onImport={async (file) => { const res = await importEmployeesFromFile(file); fetchEmployees(); return res; }}
+                templateFileName="employees_template.csv"
+                templateColumns={[
+                  { header: 'name', example: 'Jane Doe', required: true },
+                  { header: 'email', example: 'jane@example.com', required: true },
+                  { header: 'role', example: 'dispatcher', required: true },
+                  { header: 'phone', example: '555-987-6543', required: false },
+                  { header: 'department', example: 'Operations', required: false },
+                ]}
+                label="Import Employees"
+              />
               <button
                 onClick={() => setShowNewEmployeeModal(true)}
                 className="w-10 h-10 bg-[var(--accent-navyblue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-navyblue)]/80 transition-colors shadow-md"
