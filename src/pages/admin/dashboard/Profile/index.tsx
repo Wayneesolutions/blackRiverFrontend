@@ -17,6 +17,9 @@ import {
   changePassword
 } from '../../../../axios/api/auth';
 import { getFocusStyles } from '../../fleetMaintenance/colorUtils';
+import { useDispatch, useSelector } from 'react-redux';
+import { setUserCredentials } from '../../../../redux/slices/userSlice';
+import type { RootState } from '../../../../redux/store';
 interface UserProfile {
   _id?: string;
   name?: string;
@@ -82,6 +85,8 @@ const ToastNotificationComponent = ({ notifications, removeNotification }: { not
 };
 
 const ProfilePage = () => {
+  const dispatch = useDispatch();
+  const { userInfo } = useSelector((state: RootState) => state.userAuth);
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -189,6 +194,10 @@ const ProfilePage = () => {
         setProfile(response.data);
         setIsEditing(false);
         addNotification('success', 'Profile updated successfully!');
+
+        // Sync updated name/email into Redux + localStorage so sidebar reflects immediately
+        const updatedUserData = { ...userInfo?.userData, ...response.data };
+        dispatch(setUserCredentials({ userData: updatedUserData }));
       } else {
         addNotification('error', response?.message || 'Failed to update profile');
       }

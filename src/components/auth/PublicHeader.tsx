@@ -22,7 +22,7 @@ export function PublicHeader() {
         borderColor: "rgba(17, 131, 224, 0.2)",
       }}
     >
-    
+     
 
       <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
         {/* Logo */}
@@ -105,8 +105,11 @@ export function PublicHeader() {
             Start free trial
           </a>
           <div className="mt-3 pt-3 border-t space-y-2" style={{ borderColor: "rgba(17,131,224,0.2)" }}>
-            <a href="tel:+12048815366" className="flex items-center gap-2 text-xs py-1" style={{ color: "var(--text-secondary)" }}>
-              <span>📞</span><span>+1 (204) 881-536</span>
+            <a href="tel:+14319990339" className="flex items-center gap-2 text-xs py-1" style={{ color: "var(--text-secondary)" }}>
+              <span>📞</span><span>CAN: +1 (431) 999-0339</span>
+            </a>
+            <a href="tel:+16264797965" className="flex items-center gap-2 text-xs py-1" style={{ color: "var(--text-secondary)" }}>
+              <span>📞</span><span>US: +1 (626) 479-7965</span>
             </a>
             <a href="mailto:sales@logistiqinnovations.ca" className="flex items-center gap-2 text-xs py-1" style={{ color: "var(--text-secondary)" }}>
               <span>✉️</span><span>sales@logistiqinnovations.ca</span>

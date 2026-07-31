@@ -79,18 +79,28 @@ export function PublicFooter() {
           </h4>
           <ul className="space-y-3 text-sm" style={{ color: "var(--text-secondary)" }}>
             <li className="flex items-start gap-2">
-              <span>UNIT-1016, 1750 Pembina Hwy,<br />Winnipeg, MB, Canada, R3T 4J5</span>
+              <span>39 Fuga Bay, Winnipeg, MB R2R 1H7</span>
             </li>
             <li>
               <a
-                href="tel:+12048815366"
+                href="tel:+14319990339"
                 style={{ color: "var(--text-secondary)" }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
                 onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
                 className="flex items-center gap-2"
               >
-               
-                <span>+1 (204) 881-536</span>
+                <span>CAN: +1 (431) 999-0339</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="tel:+16264797965"
+                style={{ color: "var(--text-secondary)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+                className="flex items-center gap-2"
+              >
+              <span>US: +1 (626) 479-7965</span>
               </a>
             </li>
             <li>
