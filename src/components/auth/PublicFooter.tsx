@@ -105,14 +105,14 @@ export function PublicFooter() {
             </li>
             <li>
               <a
-                href="mailto:sales@logistiqinnovations.ca"
+                href="mailto:info@logistiqinnovations.ca"
                 style={{ color: "var(--text-secondary)" }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
                 onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
                 className="flex items-center gap-2"
               >
                 
-                <span>sales@logistiqinnovations.ca</span>
+                <span>info@logistiqinnovations.ca</span>
               </a>
             </li>
           </ul>
