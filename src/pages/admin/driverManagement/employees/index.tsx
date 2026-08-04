@@ -1824,10 +1824,21 @@ const EmployeesPage = () => {
                           onChange={(e) => setPersonalData({ ...personalData, payType: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option className="form-option" value="">Select</option>
-                          <option className="form-option" value="Hourly">Hourly</option>
-                          <option className="form-option" value="Salary">Weekly</option>
-                          <option className="form-option" value="Commission">Monthly</option>
+                          <option className="form-option" value="">
+                            Select
+                          </option>
+                          <option className="form-option" value="Hourly">
+                            Hourly
+                          </option>
+                          <option className="form-option" value="Biweekly">
+                            Biweekly
+                          </option>
+                          <option className="form-option" value="SemiMonthly">
+                            Semi Monthly
+                          </option>
+                          <option className="form-option" value="Monthly">
+                            Monthly
+                          </option>
                         </select>
                       </div>
                       <div>
