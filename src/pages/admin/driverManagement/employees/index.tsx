@@ -66,19 +66,15 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
   );
 };
 
-// Current roles from the system
-const roleBadges = [
-  'DISPATCH',
-  'HR',
-  'FLEET MAINTENANCE MANAGER',
-  'COMPLIANCE MANAGER',
-  'SAFETY OFFICER',
-  'REPORTER',
-  'MAINTENANCE CREW (MECHANICS)',
-  'OPERATOR',
-  'ACCOUNTANT',
-  'SALESPERSON'
-];
+// Country selector data for the phone field, cached at module scope so navigating
+// away from and back to this page doesn't re-hit the public restcountries.com API.
+interface Country {
+  name: string;
+  code: string;
+  flag: string;
+  dialCode: string;
+}
+let cachedCountries: Country[] | null = null;
 
 const EmployeesPage = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -120,6 +116,15 @@ const EmployeesPage = () => {
     status: '',
     role: ''
   });
+
+  // Inline field errors shown under each input, in addition to the summary toast
+  const [formErrors, setFormErrors] = useState<{
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    sinNo?: string;
+  }>({});
 
   // Form state for Personal Information
   const [personalData, setPersonalData] = useState({
@@ -176,15 +181,8 @@ const EmployeesPage = () => {
   });
   const [editingAdditionId, setEditingAdditionId] = useState<string | null>(null);
 
-  // Country selector state for phone
-  interface Country {
-    name: string;
-    code: string;
-    flag: string;
-    dialCode: string;
-  }
-
-  const [countries, setCountries] = useState<Country[]>([]);
+  // Country selector state for phone (Country type + fetch cache declared at module scope above)
+  const [countries, setCountries] = useState<Country[]>(cachedCountries || []);
   const [phoneCountry, setPhoneCountry] = useState<string>('US');
   const [phoneCountryDropdownOpen, setPhoneCountryDropdownOpen] = useState(false);
   const [phoneCountrySearch, setPhoneCountrySearch] = useState('');
@@ -209,8 +207,10 @@ const EmployeesPage = () => {
     return { countryCode: 'US', phoneNumber: cleanPhone.replace(/^\+1/, '').trim() };
   };
 
-  // Fetch countries data
+  // Fetch countries data (skip the network call entirely if we already cached it this session)
   useEffect(() => {
+    if (cachedCountries) return;
+
     fetch('https://restcountries.com/v3.1/all?fields=name,flag,idd,cca2')
       .then(res => res.json())
       .then(data => {
@@ -224,6 +224,7 @@ const EmployeesPage = () => {
           }))
           .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
 
+        cachedCountries = sortedCountries;
         setCountries(sortedCountries);
         const defaultCountry = sortedCountries.find((c: Country) => c.code === 'US');
         if (defaultCountry) {
@@ -238,6 +239,7 @@ const EmployeesPage = () => {
           { name: 'United Kingdom', code: 'GB', flag: '🇬🇧', dialCode: '+44' },
           { name: 'Australia', code: 'AU', flag: '🇦🇺', dialCode: '+61' },
         ];
+        cachedCountries = fallback;
         setCountries(fallback);
         setPhoneCountry('US');
       });
@@ -433,15 +435,15 @@ const EmployeesPage = () => {
 
   const getRoleDisplayName = (role?: string) => {
     if (!role) return 'No Role';
-    // Map current roles to display names
+    // Map current roles to display names (keys lowercased so lookup is case-insensitive)
     const roleMap: { [key: string]: string } = {
       'dispatcher': 'Dispatch',
       'hr': 'HR',
-      'Fleet Maintenance Manager': 'Fleet Maintenance Manager',
-      'Compliance Manager': 'Compliance Manager',
+      'fleet maintenance manager': 'Fleet Maintenance Manager',
+      'compliance manager': 'Compliance Manager',
       'safety officer': 'Safety Officer',
       'reporter': 'Reporter',
-      'Maintenance Crew (Mechanics)': 'Maintenance Crew (Mechanics)',
+      'maintenance crew (mechanics)': 'Maintenance Crew (Mechanics)',
       'operator': 'Operator',
       'accountant': 'Accountant',
       'salesperson': 'Salesperson'
@@ -449,41 +451,56 @@ const EmployeesPage = () => {
     return roleMap[role.toLowerCase()] || role;
   };
 
+  // Badges shown in the "User Roles & Permissions" info panel — derived from the
+  // same `roles` list used by the role dropdown so the two can never drift apart.
+  const roleBadges = roles.map(r => getRoleDisplayName(r).toUpperCase());
+
   // Handle save employee
   const handleSaveEmployee = async () => {
-    // Client-side validation
-    if (!basicData.firstName || !basicData.lastName || !basicData.email) {
-      showNotification('error', 'Please fill in all required fields (First Name, Last Name, Email)');
-      return;
-    }
-
-    // Validate name format (only letters and spaces)
-    const fullName = `${basicData.firstName} ${basicData.lastName}`.trim();
+    // Client-side validation — collect every field error at once so the form can
+    // show inline messages under each field instead of one toast per attempt.
+    const errors: typeof formErrors = {};
     const nameRegex = /^[a-zA-Z\s]+$/;
-    if (!nameRegex.test(fullName)) {
-      showNotification('error', 'Name can only contain letters and spaces (no numbers or special characters)');
-      return;
-    }
-
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(basicData.email)) {
-      showNotification('error', 'Please provide a valid email address');
-      return;
+
+    if (!basicData.firstName.trim()) {
+      errors.firstName = 'First name is required';
+    } else if (!nameRegex.test(basicData.firstName)) {
+      errors.firstName = 'Only letters and spaces are allowed';
     }
 
-    // Validate phone number if provided (minimum 10 digits)
+    if (!basicData.lastName.trim()) {
+      errors.lastName = 'Last name is required';
+    } else if (!nameRegex.test(basicData.lastName)) {
+      errors.lastName = 'Only letters and spaces are allowed';
+    }
+
+    if (!basicData.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!emailRegex.test(basicData.email)) {
+      errors.email = 'Please provide a valid email address';
+    }
+
     if (personalData.phone && personalData.phone.trim()) {
       const phoneDigits = personalData.phone.replace(/\D/g, '');
       if (phoneDigits.length < 10) {
-        showNotification('error', 'Please provide a valid phone number (minimum 10 digits)');
-        return;
+        errors.phone = 'Phone number must have at least 10 digits';
       }
     }
 
-    // Validate SIN number (required)
     if (!personalData.sinNo || !personalData.sinNo.trim()) {
-      showNotification('error', 'SIN number is required');
+      errors.sinNo = 'SIN number is required';
+    }
+
+    setFormErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      showNotification('error', 'Please fix the highlighted fields before saving');
+      if (errors.firstName || errors.lastName || errors.email) {
+        setActiveFormTab('basic');
+      } else {
+        setActiveFormTab('personal');
+      }
       return;
     }
 
@@ -619,6 +636,11 @@ const EmployeesPage = () => {
         if (hasChanged(currentPayRate, originalPayRate)) {
           formData.append('payRate', currentPayRate);
         }
+        // Payroll reads details.hourlyRate, not details.payRate — always send it in sync whenever
+        // pay type is Hourly, regardless of whether payRate itself just changed.
+        if (currentPayType === 'Hourly' && currentPayRate) {
+          formData.append('hourlyRate', currentPayRate);
+        }
 
         const currentVacationPay = personalData.vacationPay || '';
         const originalVacationPay = originalEmployeeData.details?.vacationPay || originalEmployeeData.vacationPay || '';
@@ -726,6 +748,10 @@ const EmployeesPage = () => {
         }
         if (personalData.payRate) {
           formData.append('payRate', personalData.payRate);
+        }
+        // Payroll reads details.hourlyRate, not details.payRate — keep them in sync when Hourly.
+        if (personalData.payType === 'Hourly' && personalData.payRate) {
+          formData.append('hourlyRate', personalData.payRate);
         }
         if (personalData.vacationPay) {
           formData.append('vacationPay', personalData.vacationPay);
@@ -914,6 +940,7 @@ const EmployeesPage = () => {
   const resetForm = () => {
     setPasswordIsExisting(false);
     setShowPassword(false);
+    setFormErrors({});
     setBasicData({
       firstName: '',
       lastName: '',
@@ -1023,7 +1050,9 @@ const EmployeesPage = () => {
         const personalDataToSet = {
           title: emp.details?.title || emp.title || '',
           payType: emp.details?.payType || emp.payType || '',
-          payRate: emp.details?.payRate || emp.payRate || '',
+          // Fall back to hourlyRate (set by the separate Driver-management form) so a rate set there
+          // still displays correctly here instead of showing blank.
+          payRate: emp.details?.payRate || emp.payRate || emp.details?.hourlyRate || emp.hourlyRate || '',
           vacationPay: emp.details?.vacationPay || emp.vacationPay || '',
           department: emp.details?.department || emp.department || '',
           employmentType: (emp.details?.employmentType || emp.details?.jobTime || emp.employmentType || emp.jobTime || 'FULL-TIME') as 'FULL-TIME' | 'PART-TIME' | 'CONTRACT BASIS',
@@ -1683,9 +1712,10 @@ const EmployeesPage = () => {
                           type="text"
                           placeholder="First Name"
                           value={basicData.firstName}
-                          onChange={(e) => setBasicData({ ...basicData, firstName: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                          onChange={(e) => { setBasicData({ ...basicData, firstName: e.target.value }); if (formErrors.firstName) setFormErrors({ ...formErrors, firstName: undefined }); }}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${formErrors.firstName ? 'border-[var(--accent-red)] focus:ring-[var(--accent-red)]' : 'border-theme focus:ring-[var(--accent-navyblue)]'}`}
                         />
+                        {formErrors.firstName && <p className="mt-1 text-xs text-[var(--accent-red)]">{formErrors.firstName}</p>}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">
@@ -1695,9 +1725,10 @@ const EmployeesPage = () => {
                           type="text"
                           placeholder="Last Name"
                           value={basicData.lastName}
-                          onChange={(e) => setBasicData({ ...basicData, lastName: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                          onChange={(e) => { setBasicData({ ...basicData, lastName: e.target.value }); if (formErrors.lastName) setFormErrors({ ...formErrors, lastName: undefined }); }}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${formErrors.lastName ? 'border-[var(--accent-red)] focus:ring-[var(--accent-red)]' : 'border-theme focus:ring-[var(--accent-navyblue)]'}`}
                         />
+                        {formErrors.lastName && <p className="mt-1 text-xs text-[var(--accent-red)]">{formErrors.lastName}</p>}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">
@@ -1707,9 +1738,10 @@ const EmployeesPage = () => {
                           type="email"
                           placeholder="Email"
                           value={basicData.email}
-                          onChange={(e) => setBasicData({ ...basicData, email: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                          onChange={(e) => { setBasicData({ ...basicData, email: e.target.value }); if (formErrors.email) setFormErrors({ ...formErrors, email: undefined }); }}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${formErrors.email ? 'border-[var(--accent-red)] focus:ring-[var(--accent-red)]' : 'border-theme focus:ring-[var(--accent-navyblue)]'}`}
                         />
+                        {formErrors.email && <p className="mt-1 text-xs text-[var(--accent-red)]">{formErrors.email}</p>}
                       </div>
                       {/* Only show password field for roles that require sign-in (mechanics need password) */}
                       {!['reporter', 'operator', 'salesperson'].includes(basicData.role) && (
@@ -1824,10 +1856,21 @@ const EmployeesPage = () => {
                           onChange={(e) => setPersonalData({ ...personalData, payType: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option className="form-option" value="">Select</option>
-                          <option className="form-option" value="Hourly">Hourly</option>
-                          <option className="form-option" value="Salary">Weekly</option>
-                          <option className="form-option" value="Commission">Monthly</option>
+                          <option className="form-option" value="">
+                            Select
+                          </option>
+                          <option className="form-option" value="Hourly">
+                            Hourly
+                          </option>
+                          <option className="form-option" value="Biweekly">
+                            Biweekly
+                          </option>
+                          <option className="form-option" value="SemiMonthly">
+                            Semi Monthly
+                          </option>
+                          <option className="form-option" value="Monthly">
+                            Monthly
+                          </option>
                         </select>
                       </div>
                       <div>
@@ -1894,7 +1937,7 @@ const EmployeesPage = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">Phone #</label>
-                        <div className="flex items-center border border-theme rounded-lg focus-within:ring-2 focus-within:ring-[var(--accent-navyblue)] focus-within:border-transparent">
+                        <div className={`flex items-center border rounded-lg focus-within:ring-2 focus-within:border-transparent ${formErrors.phone ? 'border-[var(--accent-red)] focus-within:ring-[var(--accent-red)]' : 'border-theme focus-within:ring-[var(--accent-navyblue)]'}`}>
                           <div className="relative" ref={phoneCountryDropdownRef}>
                             <button
                               type="button"
@@ -1982,10 +2025,12 @@ const EmployeesPage = () => {
                             onChange={(e) => {
                               const value = e.target.value.replace(/\D/g, '');
                               setPersonalData({ ...personalData, phone: value });
+                              if (formErrors.phone) setFormErrors({ ...formErrors, phone: undefined });
                             }}
                             className="flex-1 px-3 py-2 text-sm border-none outline-none focus:outline-none"
                           />
                         </div>
+                        {formErrors.phone && <p className="mt-1 text-xs text-[var(--accent-red)]">{formErrors.phone}</p>}
                       </div>
                     </div>
 
@@ -2116,10 +2161,11 @@ const EmployeesPage = () => {
                           type="text"
                           placeholder="SIN Number"
                           value={personalData.sinNo}
-                          onChange={(e) => setPersonalData({ ...personalData, sinNo: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                          onChange={(e) => { setPersonalData({ ...personalData, sinNo: e.target.value }); if (formErrors.sinNo) setFormErrors({ ...formErrors, sinNo: undefined }); }}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${formErrors.sinNo ? 'border-[var(--accent-red)] focus:ring-[var(--accent-red)]' : 'border-theme focus:ring-[var(--accent-navyblue)]'}`}
                           required
                         />
+                        {formErrors.sinNo && <p className="mt-1 text-xs text-[var(--accent-red)]">{formErrors.sinNo}</p>}
                       </div>
                     </div>
 

@@ -151,7 +151,7 @@ export default function RegistrationPage() {
 
         // Show success message
         message.success({
-          content: response.message || 'Account created successfully! Your 7-day free trial has started.',
+          content: response.message || 'Account created successfully! Your 1-month free trial has started.',
           duration: 3,
         });
 
@@ -197,11 +197,11 @@ export default function RegistrationPage() {
             <div className="text-center lg:text-left">
               {/* <img src={Logo} alt="FleetGo Logo" className="w-32 h-auto mb-6 mx-auto lg:mx-0" style={{ width: 'calc(8rem * 0.98)', marginBottom: 'calc(1.5rem * 0.98)' }} /> */}
               
-              {/* Highlighted 7-day free trial badge */}
+              {/* Highlighted 1-month free trial badge */}
               <div className="mb-4 flex items-center justify-center lg:justify-start">
                 <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white shadow-md" style={{ backgroundColor: 'var(--accent-navyblue)', fontSize: 'calc(0.875rem * 0.98)' }}>
                   <CheckCircle className="w-4 h-4" style={{ width: 'calc(1rem * 0.98)', height: 'calc(1rem * 0.98)' }} />
-                  7-Day Free Trial
+                  1-Month Free Trial
                 </span>
               </div>
 
@@ -310,7 +310,7 @@ export default function RegistrationPage() {
               <p className="text-xs text-primary leading-relaxed flex items-center gap-2" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-white" style={{ backgroundColor: 'var(--accent-navyblue)', fontSize: 'calc(0.75rem * 0.98)' }}>
                 
-                  <span>7-Day Free Trial</span>
+                  <span>1-Month Free Trial</span>
                 </span>
                 <span className="text-secondary">No credit card required</span>
               </p>

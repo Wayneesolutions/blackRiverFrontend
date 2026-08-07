@@ -1,6 +1,6 @@
 import  { useState, useEffect } from 'react';
-import { 
-  Settings, 
+import {
+  Settings,
   Save,
   Eye,
   EyeOff,
@@ -10,7 +10,8 @@ import {
   MapPin,
   Globe,
   FileText,
-  Lock
+  Lock,
+  Clock
 } from 'lucide-react';
 import { message } from 'antd';
 import { getSuperAdminSettings, updateSuperAdminSettings } from '../../../axios/api/superadmin';
@@ -30,7 +31,8 @@ const SystemSettings = () => {
     address: '',
     policies: '',
     password: '',
-    newPassword: ''
+    newPassword: '',
+    defaultTrialDays: ''
   });
 
   useEffect(() => {
@@ -53,7 +55,8 @@ const SystemSettings = () => {
           address: response.data.address || '',
           policies: response.data.policies || '',
           password: '',
-          newPassword: ''
+          newPassword: '',
+          defaultTrialDays: response.data.defaultTrialDays != null ? String(response.data.defaultTrialDays) : ''
         });
       } else {
         message.error(response?.message || 'Failed to load settings');
@@ -93,6 +96,12 @@ const SystemSettings = () => {
         return;
       }
 
+      // Validate default trial days
+      if (settings.defaultTrialDays !== '' && (isNaN(Number(settings.defaultTrialDays)) || Number(settings.defaultTrialDays) < 1)) {
+        message.error('Default trial length must be a positive number of days');
+        return;
+      }
+
       setSaving(true);
       
       const updateData: any = {
@@ -104,6 +113,7 @@ const SystemSettings = () => {
         city: settings.city || undefined,
         address: settings.address || undefined,
         policies: settings.policies || undefined,
+        defaultTrialDays: settings.defaultTrialDays === '' ? null : Number(settings.defaultTrialDays),
       };
 
       // Only include password fields if new password is provided
@@ -325,6 +335,34 @@ const SystemSettings = () => {
               className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               placeholder="Enter policies or terms"
             />
+          </div>
+        </div>
+
+        {/* Trial Settings */}
+        <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
+          <div className="flex items-center mb-6">
+            <div className="bg-blue-100 p-2 rounded-lg mr-3">
+              <Clock className="w-5 h-5 text-[#00D1FF]" />
+            </div>
+            <h2 className="text-lg font-semibold text-primary">Trial Settings</h2>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-primary mb-2">
+              Default Trial Length (days)
+            </label>
+            <input
+              type="number"
+              min={1}
+              value={settings.defaultTrialDays}
+              onChange={(e) => updateSetting('defaultTrialDays', e.target.value)}
+              className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              placeholder="e.g. 30"
+            />
+            <p className="text-xs text-secondary mt-1">
+              Applied to new customer signups by default. You can still set a different trial length for
+              an individual customer when creating their account.
+            </p>
           </div>
         </div>
 

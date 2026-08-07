@@ -66,28 +66,62 @@ export function PublicFooter() {
                 onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
                 onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
               >
-                Customer login
+                Customer Login
               </a>
             </li>
           </ul>
         </div>
 
-        {/* Get started */}
+        {/* Contact info */}
         <div>
           <h4 className="font-semibold text-sm mb-4" style={{ color: "var(--text-primary)" }}>
-            Get started
+            Contact Us
           </h4>
-          <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
-            Ready to modernize your fleet?
-          </p>
+          <ul className="space-y-3 text-sm" style={{ color: "var(--text-secondary)" }}>
+            <li className="flex items-start gap-2">
+              <span>39 Fuga Bay, Winnipeg, MB R2R 1H7</span>
+            </li>
+            <li>
+              <a
+                href="tel:+14319990339"
+                style={{ color: "var(--text-secondary)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+                className="flex items-center gap-2"
+              >
+                <span>CAN: +1 (431) 999-0339</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="tel:+16264797965"
+                style={{ color: "var(--text-secondary)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+                className="flex items-center gap-2"
+              >
+              <span>US: +1 (626) 479-7965</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="mailto:info@logistiqinnovations.ca"
+                style={{ color: "var(--text-secondary)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+                className="flex items-center gap-2"
+              >
+                
+                <span>info@logistiqinnovations.ca</span>
+              </a>
+            </li>
+          </ul>
           <a
             href="https://logistiqinnovations.ca/contact"
-            className="inline-block px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-200"
+            className="inline-block mt-4 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-200"
             style={{ backgroundColor: "var(--accent-navyblue)" }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0d6fc7")}
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--accent-navyblue)")
-            }
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--accent-navyblue)")}
           >
             Start free trial
           </a>

@@ -53,6 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
 
   const getLinkTo = (link: any) => {
     if (link.key === 'compilance-summary') return basePath;
+    if (link.key.startsWith('/')) return link.key; // absolute path (e.g. shared GPS dashboard)
     return `${basePath}/${link.key}`;
   };
 

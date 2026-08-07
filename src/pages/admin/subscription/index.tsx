@@ -96,6 +96,11 @@ interface TrialStatus {
   message?: string;
 }
 
+// Self-service plan browsing/checkout/cancel is disabled by client request — all plan changes now
+// go through the Super Admin. Left in place (not deleted) behind this flag so it's easy to
+// re-enable later; flip to `true` to restore the old self-service UI.
+const SELF_SERVICE_PLAN_UI_ENABLED = false;
+
 const SubscriptionPage = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [activeSubscription, setActiveSubscription] = useState<Subscription | null>(null);
@@ -350,11 +355,11 @@ const SubscriptionPage = () => {
               </div>
               <div>
                 <h1 className="text-4xl font-bold text-primary">
-                  Subscription & Plans
+                  My Subscription
                 </h1>
                 <p className="text-secondary mt-1 flex items-center gap-2">
                   <Sparkles className="w-4 h-4" />
-                  Manage your subscription and choose from available plans
+                  View your current plan status and renewal date
                 </p>
               </div>
             </div>
@@ -434,7 +439,7 @@ const SubscriptionPage = () => {
                       </h2>
                       <p className="text-white/90 mt-1">
                         {trialStatus.isTrialExpired
-                          ? 'Your 7-day free trial has ended. Subscribe now to continue using the platform.'
+                          ? 'Your 1-month free trial has ended. Subscribe now to continue using the platform.'
                           : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2
                             ? `⚠️ Your free trial is expiring soon! Only ${trialStatus.daysRemaining} day${trialStatus.daysRemaining === 1 ? '' : 's'} remaining.`
                             : `You have ${trialStatus.daysRemaining || 0} days remaining in your free trial.`
@@ -450,7 +455,7 @@ const SubscriptionPage = () => {
                         <span className="text-white/80 text-sm font-medium">Days Used</span>
                       </div>
                       <p className="text-white text-2xl font-bold">
-                        {trialStatus.daysUsed || 0} / 7
+                        {trialStatus.daysUsed || 0} / {(trialStatus.daysUsed || 0) + (trialStatus.daysRemaining || 0) || 30}
                       </p>
                     </div>
 
@@ -483,39 +488,40 @@ const SubscriptionPage = () => {
 
                   {trialStatus.daysRemaining !== undefined && trialStatus.daysRemaining > 0 && (
                     <div className="mb-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-white/80 text-sm font-medium">Trial Progress</span>
-                        <span className="text-white text-sm font-bold">
-                          {Math.round(((7 - (trialStatus.daysRemaining || 0)) / 7) * 100)}%
-                        </span>
-                      </div>
-                      <Progress
-                        percent={Math.round(((7 - (trialStatus.daysRemaining || 0)) / 7) * 100)}
-                        strokeColor={
-                          trialStatus.isTrialExpired ? '#F43F5E'
-                          : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2 ? '#F59E0B'
-                          : '#1183e0'
-                        }
-                        trailColor={
-                          trialStatus.isTrialExpired ? 'rgba(244,63,94,0.15)'
-                          : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2 ? 'rgba(245,158,11,0.15)'
-                          : 'rgba(17,131,224,0.15)'
-                        }
-                        showInfo={false}
-                      />
+                      {(() => {
+                        const trialLengthDays = (trialStatus.daysUsed || 0) + (trialStatus.daysRemaining || 0) || 30;
+                        const progressPercent = Math.round(((trialLengthDays - (trialStatus.daysRemaining || 0)) / trialLengthDays) * 100);
+                        return (
+                          <>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-white/80 text-sm font-medium">Trial Progress</span>
+                              <span className="text-white text-sm font-bold">
+                                {progressPercent}%
+                              </span>
+                            </div>
+                            <Progress
+                              percent={progressPercent}
+                              strokeColor={
+                                trialStatus.isTrialExpired ? '#F43F5E'
+                                : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2 ? '#F59E0B'
+                                : '#1183e0'
+                              }
+                              trailColor={
+                                trialStatus.isTrialExpired ? 'rgba(244,63,94,0.15)'
+                                : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2 ? 'rgba(245,158,11,0.15)'
+                                : 'rgba(17,131,224,0.15)'
+                              }
+                              showInfo={false}
+                            />
+                          </>
+                        );
+                      })()}
                     </div>
                   )}
 
-                  <div className="flex gap-4">
-                    <Button
-                      type="primary"
-                      size="large"
-                      style={primaryButtonStyle}
-                      onClick={() => setActiveTab('plans')}
-                    >
-                      <ArrowRight className="w-4 h-4 mr-2" />
-                      {trialStatus.isTrialExpired ? 'Subscribe Now' : 'View Plans'}
-                    </Button>
+                  <div className="flex items-center gap-2 text-white/80 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>Contact your account manager to subscribe or change your plan.</span>
                   </div>
                 </div>
               </div>
@@ -648,13 +654,16 @@ const SubscriptionPage = () => {
                   </div>
                 </div>
 
-                {activeSubscription.status === 'active' && (
+                {/* Cancelling is plan management — kept out of the customer-facing UI per client
+                    request (contact your account manager instead). Not deleted: gated behind
+                    SELF_SERVICE_PLAN_UI_ENABLED so it's easy to re-enable. */}
+                {SELF_SERVICE_PLAN_UI_ENABLED && activeSubscription!.status === 'active' && (
                   <div className="lg:self-start">
                     <Button
                       danger
                       size="large"
                       icon={<X className="w-4 h-4" />}
-                      onClick={(e) => handleCancelSubscription(activeSubscription._id, e)}
+                      onClick={(e) => handleCancelSubscription(activeSubscription!._id, e)}
                       className="
       !bg-red-500 !hover:bg-red-600 !border-red-500 hover:border-red-600
       !dark:bg-red-700 dark:hover:bg-red-800 dark:border-red-700 dark:hover:border-red-800
@@ -671,13 +680,18 @@ const SubscriptionPage = () => {
           </div>
         )}
 
+        {/* Self-service plan browsing/checkout/add-trucks is disabled by client request — customers
+            only see their read-only subscription status now; all plan changes go through Super Admin.
+            Left in place (not deleted) behind SELF_SERVICE_PLAN_UI_ENABLED so it can be re-enabled easily later. */}
+        {SELF_SERVICE_PLAN_UI_ENABLED && (
+        <>
         {/* ── Add More Trucks (active subscription only) ── */}
-        {activeSubscription && activeSubscription.status === 'active' && (() => {
-          const activePlan = typeof activeSubscription.plan === 'object' ? activeSubscription.plan as Plan : null;
+        {activeSubscription && activeSubscription!.status === 'active' && (() => {
+          const activePlan = typeof activeSubscription!.plan === 'object' ? activeSubscription!.plan as Plan : null;
           const extraTruckPrice = activePlan?.monthly?.truckPricing?.extraTruckPrice ?? 0;
           const extraTruckCurrency = activePlan?.monthly?.truckPricing?.extraTruckCurrency ?? 'CAD';
-          const currentMaxTrucks = activeSubscription.maxTrucks ?? activeSubscription.truckCount ?? 0;
-          const extraAlreadyPurchased = activeSubscription.extraTrucksPurchased ?? 0;
+          const currentMaxTrucks = activeSubscription!.maxTrucks ?? activeSubscription!.truckCount ?? 0;
+          const extraAlreadyPurchased = activeSubscription!.extraTrucksPurchased ?? 0;
           if (extraTruckPrice <= 0) return null;
           return (
             <div className="mb-8 bg-card rounded-2xl shadow-lg border-2 border-[rgba(245,158,11,0.3)] overflow-hidden">
@@ -1171,6 +1185,8 @@ const SubscriptionPage = () => {
             </div>
           )}
         </div>
+        </>
+        )}
       </div>
 
       {/* Enhanced Subscribe Confirmation Modal */}

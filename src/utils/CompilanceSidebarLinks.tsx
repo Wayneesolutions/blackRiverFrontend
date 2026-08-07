@@ -2,7 +2,7 @@ import {
     MdDashboard,
 } from "react-icons/md";
 import { RiBillLine } from "react-icons/ri";
-import { FaClipboardCheck, FaChartBar, FaTicketAlt, FaExclamationTriangle, FaShieldAlt, FaGraduationCap } from "react-icons/fa";
+import { FaClipboardCheck, FaChartBar, FaTicketAlt, FaExclamationTriangle, FaShieldAlt, FaGraduationCap, FaSatelliteDish } from "react-icons/fa";
 
 type CompilanceSidebarLink = {
     key: string;
@@ -52,5 +52,10 @@ export const CompilanceSidebarLinks: CompilanceSidebarLink[] = [
         key: "training",
         icon: <FaGraduationCap />,
         label: "Training Content",
+    },
+    {
+        key: "/gps-dashboard",
+        icon: <FaSatelliteDish />,
+        label: "GPS Dashboard",
     }
 ];

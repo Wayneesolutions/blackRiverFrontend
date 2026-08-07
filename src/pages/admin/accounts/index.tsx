@@ -19,7 +19,9 @@ import {
   Clock,
   UserCheck,
   UserX,
-  Truck
+  Truck,
+  Container,
+  IdCard
 } from 'lucide-react';
 
 interface Invoice {
@@ -77,7 +79,8 @@ const Dashboard = () => {
     employeePaidCount: 0,
     employeeUnpaidCount: 0,
     driverPaidCount: 0,
-    driverUnpaidCount: 0
+    driverUnpaidCount: 0,
+    fleetCounts: { drivers: 0, employees: 0, trucks: 0, trailers: 0 }
   });
 
   useEffect(() => {
@@ -130,6 +133,7 @@ const Dashboard = () => {
           employeeUnpaidCount: apiData.employeeUnpaidCount ?? 0,
           driverPaidCount: apiData.driverPaidCount ?? 0,
           driverUnpaidCount: apiData.driverUnpaidCount ?? 0,
+          fleetCounts: apiData.fleetCounts ?? { drivers: 0, employees: 0, trucks: 0, trailers: 0 },
         });
       }
     } catch (error) {
@@ -251,6 +255,46 @@ const Dashboard = () => {
       bgColor: '',
       iconColor: 'text-[var(--accent-navyblue)]',
       cardBg: 'bg-card'
+    }
+  ];
+
+  // Row 5: Fleet & Staff totals (Drivers, Employees, Trucks, Trailers)
+  const fleetCards = [
+    {
+      id: 'fleet-drivers',
+      title: 'Drivers',
+      value: dashboardStats.fleetCounts.drivers,
+      subtitle: 'Total drivers',
+      icon: IdCard,
+      iconColor: 'text-[var(--accent-navyblue)]',
+      path: `${routePrefix}/driverpayroll`
+    },
+    {
+      id: 'fleet-employees',
+      title: 'Employees',
+      value: dashboardStats.fleetCounts.employees,
+      subtitle: 'Total employees',
+      icon: Users,
+      iconColor: 'text-[var(--accent-blue)]',
+      path: `${routePrefix}/payroll`
+    },
+    {
+      id: 'fleet-trucks',
+      title: 'Trucks',
+      value: dashboardStats.fleetCounts.trucks,
+      subtitle: 'Total trucks',
+      icon: Truck,
+      iconColor: 'text-[var(--accent-green)]',
+      path: `${routePrefix}/fleet-maintenance`
+    },
+    {
+      id: 'fleet-trailers',
+      title: 'Trailers',
+      value: dashboardStats.fleetCounts.trailers,
+      subtitle: 'Total trailers',
+      icon: Container,
+      iconColor: 'text-[var(--accent-purple)]',
+      path: `${routePrefix}/fleet-maintenance`
     }
   ];
 
@@ -494,6 +538,31 @@ const Dashboard = () => {
                         </div>
                         <div className="rounded-lg p-2">
                           <Icon className={feature.iconColor} size={20} strokeWidth={1.8} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Row 5: Fleet & Staff Totals */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {fleetCards.map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div
+                      key={card.id}
+                      onClick={() => navigate(card.path)}
+                      className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-[rgba(255,255,255,0.04)] hover:border-[rgba(0,209,255,0.15)] hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <p className="text-xs text-secondary font-medium mb-1 uppercase tracking-wide">{card.title}</p>
+                          <span className="text-xl font-bold text-[var(--text-primary)]">{card.value}</span>
+                          <p className="text-xs text-secondary mt-1">{card.subtitle}</p>
+                        </div>
+                        <div className="rounded-lg p-2">
+                          <Icon className={card.iconColor} size={20} strokeWidth={1.8} />
                         </div>
                       </div>
                     </div>

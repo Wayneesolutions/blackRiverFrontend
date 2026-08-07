@@ -43,6 +43,13 @@ export interface FleetOperational {
   vehiclesWithPendingService: number;
 }
 
+export interface ComplianceAssetCounts {
+  trucks: number;
+  trailers: number;
+  drivers: number;
+  gpsOnline: number;
+}
+
 export interface ComplianceDocument {
   _id: string;
   documentType: string;
@@ -70,6 +77,7 @@ export interface ComplianceDashboardResponse {
     };
     inactiveUnits: number;
     fleetOperational: FleetOperational;
+    assetCounts?: ComplianceAssetCounts;
     complianceDocuments: ComplianceDocument[];
     pendingServicesByType?: { [serviceName: string]: number }; // Pending services grouped by service type
     overdueServicesCount?: number; // Count of overdue services from scheduled-services-log

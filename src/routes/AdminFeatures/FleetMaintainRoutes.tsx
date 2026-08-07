@@ -23,6 +23,7 @@ const TruckProfile = lazy(() => import("../../pages/admin/fleetMaintenance/truck
 const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"))
 const Issues = lazy(() => import("../../pages/admin/dispatch/resources/issues/index"))
 const TrainingContent = lazy(() => import("../../pages/admin/training/TrainingContentView"))
+const MaintenanceSettings = lazy(() => import("../../pages/admin/fleetMaintenance/maintenanceSettings/index"))
 
 function FleetMaintainRoutes() {
     return (
@@ -50,6 +51,7 @@ function FleetMaintainRoutes() {
                     <Route path="/truck-profile" element={<TruckProfile />} />
                     <Route path="/issues" element={<Issues />} />
                     <Route path="/training" element={<TrainingContent />} />
+                    <Route path="/maintenance-settings" element={<MaintenanceSettings />} />
                 </Route>
             </Routes>
         </Suspense>

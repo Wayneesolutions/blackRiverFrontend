@@ -9,8 +9,13 @@ import {
   FaClipboardCheck,
   FaCarCrash,
   FaChartLine,
+  FaTruck,
+  FaTrailer,
+  FaIdCard,
+  FaSatelliteDish,
 } from "react-icons/fa";
 import { getCvsaInspectionStats, getTicketStats, getIncidentStats } from "../../../axios/api/admin";
+import { fetchComplianceDashboard, type ComplianceAssetCounts } from "../../../axios/api/complianceDashboard";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 
@@ -67,16 +72,23 @@ function Dashboard() {
     underReview: 0,
     closed: 0,
   });
+  const [assetCounts, setAssetCounts] = useState<ComplianceAssetCounts>({
+    trucks: 0,
+    trailers: 0,
+    drivers: 0,
+    gpsOnline: 0,
+  });
   const [loading, setLoading] = useState(true);
 
 
   const fetchComplianceData = async () => {
     setLoading(true);
     try {
-      const [cvsaRes, ticketRes, incidentRes] = await Promise.all([
+      const [cvsaRes, ticketRes, incidentRes, dashboardRes] = await Promise.all([
         getCvsaInspectionStats(),
         getTicketStats(),
         getIncidentStats(),
+        fetchComplianceDashboard(),
       ]);
 
       if (cvsaRes?.success) {
@@ -89,6 +101,10 @@ function Dashboard() {
 
       if (incidentRes?.success) {
         setIncidentStats(incidentRes.data || { total: 0, open: 0, underReview: 0, closed: 0 });
+      }
+
+      if (dashboardRes?.success && dashboardRes.data?.assetCounts) {
+        setAssetCounts(dashboardRes.data.assetCounts);
       }
 
 
@@ -217,6 +233,50 @@ function Dashboard() {
 
                 </div>
               </div>
+            </div>
+
+            {/* Fleet Asset Stats - Trucks / Trailers / Drivers / GPS */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              <StatCard
+                title="Trucks"
+                value={assetCounts.trucks}
+                subtitle="Total trucks in fleet"
+                icon={FaTruck}
+                bgColor=""
+                iconColor="text-[var(--accent-blue)]"
+                cardBg="bg-[var(--accent-blue)]/20"
+                onClick={() => navigate("/admin/fleetmaintenance/trucks")}
+              />
+              <StatCard
+                title="Trailers"
+                value={assetCounts.trailers}
+                subtitle="Total trailers in fleet"
+                icon={FaTrailer}
+                bgColor=""
+                iconColor="text-[var(--accent-purple)]"
+                cardBg="bg-[var(--accent-purple)]/20"
+                onClick={() => navigate("/admin/fleetmaintenance/trailers")}
+              />
+              <StatCard
+                title="Drivers"
+                value={assetCounts.drivers}
+                subtitle="Total active drivers"
+                icon={FaIdCard}
+                bgColor=""
+                iconColor="text-[var(--accent-orange)]"
+                cardBg="bg-[var(--accent-orange)]/20"
+                onClick={() => navigate("/admin/gpsvehicle/drivers")}
+              />
+              <StatCard
+                title="GPS"
+                value={assetCounts.gpsOnline}
+                subtitle="Units reporting location (24h)"
+                icon={FaSatelliteDish}
+                bgColor=""
+                iconColor="text-green-600"
+                cardBg="bg-green-600/20"
+                onClick={() => navigate("/admin/gpsvehicle/livetracking/truck")}
+              />
             </div>
 
             {/* Stats Cards - Matching Dispatch Grid */}

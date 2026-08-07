@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
     Users, Search, Filter, Plus, Edit, Trash2, Eye, EyeOff,
-    Building2, Mail, Phone, Lock, AlertCircle,
+    Building2, Mail, Phone, Lock, AlertCircle, Tag,
 } from 'lucide-react';
-import { message, Modal, Switch } from 'antd';
-import { getAllAdmins, createAdmin, updateAdmin, deleteAdmin } from '../../../axios/api/superadmin';
+import { message, Modal, Switch, Select } from 'antd';
+import { getAllAdmins, createAdmin, updateAdmin, deleteAdmin, getAllPlans, assignPlanToAdmin } from '../../../axios/api/superadmin';
 
 interface Admin {
     _id: string;
@@ -30,7 +30,44 @@ interface Admin {
     country?: string;
     state?: string;
     city?: string;
+    currentSubscription?: {
+        _id: string;
+        subscriptionType: string;
+        status: 'pending' | 'active' | 'cancelled' | 'expired' | 'past_due';
+        maxTrucks?: number;
+        endDate?: string;
+        plan?: {
+            _id: string;
+            planName: string;
+            planType: 'lifetime' | 'monthly';
+        };
+    } | null;
 }
+
+interface PlanOption {
+    _id: string;
+    planName: string;
+    planType: 'lifetime' | 'monthly';
+    status: 'active' | 'inactive';
+    allowedRoles?: string[];
+    lifetime?: {
+        installments?: {
+            threeMonths?: { enabled?: boolean };
+            sixMonths?: { enabled?: boolean };
+        };
+    };
+    monthly?: {
+        fullApp?: { enabled?: boolean };
+        truckPricing?: { tiers?: unknown[] };
+    };
+}
+
+// Mirrors Plan.allowedRoles enum in backend/models/planModel.js — the staff roles a
+// customer's plan can permit them to create.
+const ASSIGNABLE_PLAN_ROLES = [
+    'driver', 'dispatcher', 'hr', 'contact', 'customer', 'reporter',
+    'Maintenance Crew (Mechanics)', 'Fleet Maintenance Manager', 'Compliance Manager', 'safety officer'
+];
 
 const ViewAllAccounts = () => {
     const [admins, setAdmins] = useState<Admin[]>([]);
@@ -46,9 +83,123 @@ const ViewAllAccounts = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showViewModal, setShowViewModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showAssignPlanModal, setShowAssignPlanModal] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [statusUpdating, setStatusUpdating] = useState<string | null>(null); // Track which admin's status is being updated
     const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+
+    // Assign Plan state
+    const [plans, setPlans] = useState<PlanOption[]>([]);
+    const [plansLoading, setPlansLoading] = useState(false);
+    const [assignForm, setAssignForm] = useState<{ planId: string; subscriptionType: string; truckCount: string; customAmount: string }>({
+        planId: '', subscriptionType: '', truckCount: '1', customAmount: ''
+    });
+    const [assignSelectedRoles, setAssignSelectedRoles] = useState<string[]>(ASSIGNABLE_PLAN_ROLES);
+    const [assignLoading, setAssignLoading] = useState(false);
+
+    const selectedAssignPlan = plans.find(p => p._id === assignForm.planId) || null;
+
+    const subscriptionTypeOptions = (() => {
+        if (!selectedAssignPlan) return [];
+        if (selectedAssignPlan.planType === 'lifetime') {
+            const opts = [{ value: 'one-time', label: 'One-Time Payment' }];
+            if (selectedAssignPlan.lifetime?.installments?.threeMonths?.enabled) {
+                opts.push({ value: '3-months', label: '3-Month Installments' });
+            }
+            if (selectedAssignPlan.lifetime?.installments?.sixMonths?.enabled) {
+                opts.push({ value: '6-months', label: '6-Month Installments' });
+            }
+            return opts;
+        }
+        // monthly
+        const opts: { value: string; label: string }[] = [];
+        if (selectedAssignPlan.monthly?.fullApp?.enabled) {
+            opts.push({ value: 'full-app', label: 'Full App (Monthly)' });
+        }
+        if (selectedAssignPlan.monthly?.truckPricing?.tiers?.length) {
+            opts.push({ value: '1-month', label: '1 Month (Truck-based)' });
+            opts.push({ value: '6-months', label: '6 Months (Truck-based)' });
+            opts.push({ value: '1-year', label: '1 Year (Truck-based)' });
+        }
+        return opts;
+    })();
+
+    const needsTruckCount = ['1-month', '6-months', '1-year'].includes(assignForm.subscriptionType);
+
+    const fetchPlansForAssign = async () => {
+        setPlansLoading(true);
+        try {
+            const response = await getAllPlans();
+            if (response?.success) {
+                setPlans(response.data || []);
+            }
+        } catch (error) {
+            console.error('Error fetching plans:', error);
+        } finally {
+            setPlansLoading(false);
+        }
+    };
+
+    const handleOpenAssignPlan = (admin: Admin) => {
+        setSelectedAdmin(admin);
+        setAssignForm({ planId: '', subscriptionType: '', truckCount: '1', customAmount: '' });
+        setAssignSelectedRoles(ASSIGNABLE_PLAN_ROLES);
+        if (plans.length === 0) fetchPlansForAssign();
+        setShowAssignPlanModal(true);
+    };
+
+    const handleSelectAssignPlan = (planId: string) => {
+        setAssignForm({ planId, subscriptionType: '', truckCount: '1', customAmount: '' });
+        const plan = plans.find(p => p._id === planId);
+        // Pre-fill the module checklist from the template plan's own restrictions (undefined = all allowed)
+        setAssignSelectedRoles(plan?.allowedRoles?.length ? plan.allowedRoles : ASSIGNABLE_PLAN_ROLES);
+    };
+
+    const toggleAssignRole = (role: string) => {
+        setAssignSelectedRoles(prev =>
+            prev.includes(role) ? prev.filter(r => r !== role) : [...prev, role]
+        );
+    };
+
+    const handleAssignPlan = async () => {
+        if (!selectedAdmin) return;
+        if (!assignForm.planId || !assignForm.subscriptionType) {
+            message.error('Please select a plan and a billing option');
+            return;
+        }
+        if (needsTruckCount && (!assignForm.truckCount || Number(assignForm.truckCount) < 1)) {
+            message.error('Please enter a valid truck count');
+            return;
+        }
+        if (assignForm.customAmount !== '' && (isNaN(Number(assignForm.customAmount)) || Number(assignForm.customAmount) < 0)) {
+            message.error('Custom price must be a non-negative number');
+            return;
+        }
+
+        setAssignLoading(true);
+        try {
+            const response = await assignPlanToAdmin(selectedAdmin._id, {
+                planId: assignForm.planId,
+                subscriptionType: assignForm.subscriptionType,
+                truckCount: needsTruckCount ? Number(assignForm.truckCount) : undefined,
+                customAmount: assignForm.customAmount !== '' ? Number(assignForm.customAmount) : undefined,
+                // Only sent when it differs from "everything allowed" so plans with no restriction stay that way
+                allowedRoles: assignSelectedRoles.length < ASSIGNABLE_PLAN_ROLES.length ? assignSelectedRoles : undefined
+            });
+            if (response?.success) {
+                message.success(response.message || 'Plan assigned successfully');
+                setShowAssignPlanModal(false);
+                fetchAdmins();
+            } else {
+                message.error(response?.message || 'Failed to assign plan');
+            }
+        } catch (error: any) {
+            console.error('Error assigning plan:', error);
+            message.error(error?.message || 'Failed to assign plan');
+        } finally {
+            setAssignLoading(false);
+        }
+    };
 
     // Form data
     const [formData, setFormData] = useState({
@@ -63,7 +214,8 @@ const ViewAllAccounts = () => {
         internalId: '',
         status: 'active' as 'active' | 'inactive',
         policies: '',
-        company: ''
+        company: '',
+        trialDays: '' // Create-only: overrides the Super Admin's default trial length for this customer
     });
 
     // Fetch admins
@@ -144,7 +296,8 @@ const ViewAllAccounts = () => {
             internalId: '',
             status: 'active',
             policies: '',
-            company: ''
+            company: '',
+            trialDays: ''
         });
         setSelectedAdmin(null);
     };
@@ -156,7 +309,11 @@ const ViewAllAccounts = () => {
                 return;
             }
 
-            const response = await createAdmin(formData);
+            const payload = {
+                ...formData,
+                trialDays: formData.trialDays ? Number(formData.trialDays) : undefined
+            };
+            const response = await createAdmin(payload);
             if (response?.success) {
                 message.success(response.message || 'Admin created successfully');
                 setShowCreateModal(false);
@@ -185,7 +342,8 @@ const ViewAllAccounts = () => {
             internalId: admin.internalId || '',
             status: admin.status || 'active',
             policies: '',
-            company: admin.company?._id || ''
+            company: admin.company?._id || '',
+            trialDays: '' // not applicable when editing an existing account
         });
         setShowEditModal(true);
     };
@@ -440,6 +598,10 @@ const ViewAllAccounts = () => {
                                         Contact Info
                                     </th>
 
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-[160px]">
+                                        Plan
+                                    </th>
+
                                     <th
                                         className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-[rgba(255,255,255,0.03)] min-w-[120px]"
                                         onClick={() => handleSort('revenue')}
@@ -467,14 +629,14 @@ const ViewAllAccounts = () => {
                             <tbody className="bg-card divide-theme">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-12 text-center">
+                                        <td colSpan={6} className="px-6 py-12 text-center">
                                             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-navyblue)]"></div>
                                             <p className="mt-2 text-secondary">Loading admins...</p>
                                         </td>
                                     </tr>
                                 ) : filteredAdmins.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-12 text-center">
+                                        <td colSpan={6} className="px-6 py-12 text-center">
                                             <Users className="w-12 h-12 text-secondary mx-auto mb-4" />
                                             <h3 className="text-lg font-medium text-primary mb-2">No admins found</h3>
                                             <p className="text-secondary">
@@ -518,6 +680,33 @@ const ViewAllAccounts = () => {
                                                         </div>
                                                     )}
                                                 </div>
+                                            </td>
+
+                                            <td className="px-6 py-4 whitespace-nowrap min-w-[160px]">
+                                                {admin.currentSubscription?.plan ? (
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-1.5 text-sm font-medium text-primary">
+                                                            <Tag className="w-3.5 h-3.5" style={{ color: 'var(--accent-navyblue)' }} />
+                                                            {admin.currentSubscription.plan.planName}
+                                                        </div>
+                                                        <span className="text-xs px-2 py-0.5 rounded-full font-medium inline-block"
+                                                            style={{
+                                                                backgroundColor: admin.currentSubscription.status === 'active' ? 'rgba(0,255,163,0.1)' : 'rgba(244,63,94,0.1)',
+                                                                color: admin.currentSubscription.status === 'active' ? '#00FFA3' : 'var(--accent-red)',
+                                                            }}>
+                                                            {admin.currentSubscription.status}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-sm text-secondary">No plan</span>
+                                                )}
+                                                <button
+                                                    onClick={() => handleOpenAssignPlan(admin)}
+                                                    className="mt-2 text-xs font-medium hover:underline block"
+                                                    style={{ color: 'var(--accent-navyblue)' }}
+                                                >
+                                                    Assign Plan
+                                                </button>
                                             </td>
 
                                             <td className="px-6 py-4 whitespace-nowrap min-w-[120px]">
@@ -731,6 +920,12 @@ const ViewAllAccounts = () => {
                                 <option value="inactive" style={{ backgroundColor: 'var(--bg-card)' }}>Inactive</option>
                             </select>
                         </div>
+                        {/* Trial Length */}
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-secondary">Trial Length (days) <span className="text-secondary font-normal">(optional — defaults to the configured trial length)</span></label>
+                            <input type="number" min={1} name="trialDays" value={formData.trialDays} onChange={handleInputChange}
+                                placeholder="e.g. 30" className={iCls} style={iStyle} onFocus={iFocus} onBlur={iBlur} />
+                        </div>
                     </div>
                     {/* Footer */}
                     <div className="px-6 pb-5 pt-4 flex justify-end gap-3 border-t" style={divider}>
@@ -943,6 +1138,125 @@ const ViewAllAccounts = () => {
                             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#0d6fc7'; }}
                             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--accent-navyblue)'; }}>
                             <Edit className="w-3.5 h-3.5" /> Edit Admin
+                        </button>
+                    </div>
+                </Modal>
+            )}
+
+            {/* Assign Plan Modal */}
+            {showAssignPlanModal && selectedAdmin && (
+                <Modal open={showAssignPlanModal} onCancel={() => setShowAssignPlanModal(false)}
+                    footer={null} width={560} title={null} styles={mStyles}>
+                    {/* Header */}
+                    <div className="px-6 pt-5 pb-4 flex items-center gap-3 border-b" style={divider}>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(17,131,224,0.12)' }}>
+                            <Tag className="w-4 h-4" style={{ color: 'var(--accent-navyblue)' }} />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-primary">Assign Plan</h3>
+                            <p className="text-xs text-secondary truncate max-w-xs">{selectedAdmin.company?.companyName || selectedAdmin.name}</p>
+                        </div>
+                    </div>
+                    {/* Body */}
+                    <div className="px-6 py-5 space-y-4">
+                        <div className="rounded-lg p-3 border flex items-start gap-2.5" style={{ backgroundColor: 'rgba(17,131,224,0.06)', borderColor: 'rgba(17,131,224,0.15)' }}>
+                            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent-navyblue)' }} />
+                            <p className="text-xs text-secondary">
+                                This activates the plan immediately for this client without collecting payment through Stripe. Any existing active subscription will be superseded.
+                            </p>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-secondary">Plan</label>
+                            <Select
+                                className="w-full"
+                                size="large"
+                                loading={plansLoading}
+                                value={assignForm.planId || undefined}
+                                placeholder="Select a plan"
+                                onChange={handleSelectAssignPlan}
+                                options={plans.map(p => ({ value: p._id, label: `${p.planName} (${p.planType === 'lifetime' ? 'Lifetime' : 'Monthly'})${p.status === 'inactive' ? ' — inactive' : ''}` }))}
+                            />
+                        </div>
+
+                        {selectedAssignPlan && (
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-secondary">Billing Option</label>
+                                <Select
+                                    className="w-full"
+                                    size="large"
+                                    value={assignForm.subscriptionType || undefined}
+                                    placeholder="Select a billing option"
+                                    onChange={(value) => setAssignForm(prev => ({ ...prev, subscriptionType: value }))}
+                                    options={subscriptionTypeOptions}
+                                    notFoundContent="No billing options configured for this plan"
+                                />
+                            </div>
+                        )}
+
+                        {needsTruckCount && (
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-secondary">Truck Count</label>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={assignForm.truckCount}
+                                    onChange={(e) => setAssignForm(prev => ({ ...prev, truckCount: e.target.value }))}
+                                    className={iCls} style={iStyle} onFocus={iFocus} onBlur={iBlur}
+                                />
+                            </div>
+                        )}
+
+                        {selectedAssignPlan && (
+                            <div className="pt-2 border-t" style={divider}>
+                                <p className="text-xs font-semibold text-secondary uppercase tracking-wider mb-3 mt-3">
+                                    Customize for this customer
+                                </p>
+
+                                <div className="space-y-1.5 mb-4">
+                                    <label className="text-xs font-medium text-secondary">
+                                        Custom Price <span className="text-secondary font-normal">(optional — leave blank to use the plan's standard price)</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        step="0.01"
+                                        placeholder="Auto-calculated from plan"
+                                        value={assignForm.customAmount}
+                                        onChange={(e) => setAssignForm(prev => ({ ...prev, customAmount: e.target.value }))}
+                                        className={iCls} style={iStyle} onFocus={iFocus} onBlur={iBlur}
+                                    />
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-medium text-secondary">Modules / Roles Included</label>
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-2 p-3 rounded-lg border" style={{ borderColor: 'rgba(17,131,224,0.15)' }}>
+                                        {ASSIGNABLE_PLAN_ROLES.map(role => (
+                                            <label key={role} className="flex items-center gap-2 text-xs text-primary cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={assignSelectedRoles.includes(role)}
+                                                    onChange={() => toggleAssignRole(role)}
+                                                    className="w-3.5 h-3.5"
+                                                />
+                                                {role}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    {/* Footer */}
+                    <div className="px-6 pb-5 pt-4 flex justify-end gap-3 border-t" style={divider}>
+                        <button onClick={() => setShowAssignPlanModal(false)} disabled={assignLoading}
+                            className="px-4 py-2 rounded-lg text-sm font-medium text-secondary border border-theme hover:text-primary transition-colors disabled:opacity-50">
+                            Cancel
+                        </button>
+                        <button onClick={handleAssignPlan} disabled={assignLoading}
+                            className="px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:-translate-y-0.5 transform disabled:opacity-60"
+                            style={{ backgroundColor: 'var(--accent-navyblue)' }}>
+                            {assignLoading ? 'Assigning...' : 'Assign Plan'}
                         </button>
                     </div>
                 </Modal>
