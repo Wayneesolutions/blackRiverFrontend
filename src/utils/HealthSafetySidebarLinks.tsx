@@ -12,7 +12,8 @@ import {
     FaTruck, // For Trucking Operations
 
     FaAmbulance, // For Emergency Procedures
-    FaGraduationCap // For Training Content
+    FaGraduationCap, // For Training Content
+    FaSatelliteDish // For GPS Dashboard
 } from "react-icons/fa";
 
 type HealthSafetySidebarLink = {
@@ -90,5 +91,10 @@ export const HealthSafetySidebarLinks: HealthSafetySidebarLink[] = [
         key: "training",
         icon: <FaGraduationCap />,
         label: "Training Content",
+    },
+    {
+        key: "/gps-dashboard",
+        icon: <FaSatelliteDish />,
+        label: "GPS Dashboard",
     }
 ];

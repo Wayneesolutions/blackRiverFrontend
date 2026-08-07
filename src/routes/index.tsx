@@ -14,6 +14,7 @@ const FleetMaintenanceRoute = lazy(() => import("./FleetMaintenanceRoute"));
 const ComplianceRoute = lazy(() => import("./ComplianceRoute"));
 const SafetyOfficerRoute = lazy(() => import("./SafetyOfficerRoute"));
 const MechanicsRoute = lazy(() => import("./MechanicsRoute"));
+const GpsDashboardRoute = lazy(() => import("./GpsDashboardRoute"));
 const InvoicePayment = lazy(() => import("../pages/customer/InvoicePayment"));
 
 const Login = lazy(() => import("../pages/admin/auth/Login"));
@@ -74,6 +75,9 @@ const AppRoutes = () => {
 
         {/* Mechanics routes (without /admin prefix) - for Maintenance Crew (Mechanics) role */}
         <Route path='/mechanics/*' element={<MechanicsRoute />} />
+
+        {/* Shared read-only GPS dashboard (Drivers & Employees) — available to every department */}
+        <Route path='/gps-dashboard/*' element={<GpsDashboardRoute />} />
 
         {/* Password reset routes (public — no auth required) */}
         <Route

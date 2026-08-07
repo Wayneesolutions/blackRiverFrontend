@@ -79,6 +79,27 @@ export const deleteAdmin = async (id: string) => {
   }
 };
 
+// ✅ Assign a plan to a client (manual, no Stripe checkout)
+export const assignPlanToAdmin = async (
+  adminId: string,
+  data: {
+    planId: string;
+    subscriptionType: string;
+    truckCount?: number;
+    customAmount?: number;
+    allowedRoles?: string[];
+    blockedRoles?: string[];
+  }
+) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`superadmin/admin/${adminId}/assign-plan`, data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
 // ============ PLAN MANAGEMENT ============
 
 // ✅ Get All Plans

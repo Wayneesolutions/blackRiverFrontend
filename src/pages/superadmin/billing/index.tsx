@@ -3,6 +3,7 @@ import {
   CreditCard, Plus, Edit, Trash2, Eye, Search, Calendar,
   CheckCircle, XCircle, Zap, BarChart3, Grid3x3, List,
   Star, Copy, ArrowUpDown, Sparkles, TrendingUp, AlertCircle,
+  ToggleLeft, ToggleRight,
 } from 'lucide-react';
 import { message, Modal, Input, Select, Button, Switch, Tag, Tooltip, Dropdown } from 'antd';
 import { getAllPlans, createPlan, updatePlan, deletePlan } from '../../../axios/api/superadmin';
@@ -81,6 +82,7 @@ const Billing = () => {
   const [deletePlanId, setDeletePlanId] = useState<string | null>(null);
   const [deletePlanName, setDeletePlanName] = useState<string>('');
   const [deleting, setDeleting] = useState(false);
+  const [statusTogglingId, setStatusTogglingId] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [selectedPlans, setSelectedPlans] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -247,6 +249,24 @@ const Billing = () => {
       }
     } catch (error: any) {
       message.error(error?.message || 'Failed to update plan');
+    }
+  };
+
+  const handleToggleStatus = async (plan: Plan) => {
+    const newStatus = plan.status === 'active' ? 'inactive' : 'active';
+    setStatusTogglingId(plan._id);
+    try {
+      const response = await updatePlan(plan._id, { status: newStatus });
+      if (response?.success) {
+        message.success(`Plan is now ${newStatus}`);
+        fetchPlans();
+      } else {
+        message.error(response?.message || 'Failed to update plan status');
+      }
+    } catch (error: any) {
+      message.error(error?.message || 'Failed to update plan status');
+    } finally {
+      setStatusTogglingId(null);
     }
   };
 
@@ -952,6 +972,17 @@ const Billing = () => {
                         <Tooltip title="Edit Description">
                           <Button size="small" icon={<Edit className="w-3.5 h-3.5" />} onClick={() => handleEdit(plan)} className="bg-card/20 border-white/30 text-white hover:bg-card/30">Edit</Button>
                         </Tooltip>
+                        <Tooltip title={plan.status === 'active' ? 'Deactivate (hide from portal)' : 'Activate (show on portal)'}>
+                          <Button
+                            size="small"
+                            loading={statusTogglingId === plan._id}
+                            icon={plan.status === 'active' ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5" />}
+                            onClick={() => handleToggleStatus(plan)}
+                            className="bg-card/20 border-white/30 text-white hover:bg-card/30"
+                          >
+                            {plan.status === 'active' ? 'Active' : 'Inactive'}
+                          </Button>
+                        </Tooltip>
                         <Tooltip title="Duplicate Plan">
                           <Button size="small" icon={<Copy className="w-3.5 h-3.5" />} onClick={() => handleDuplicate(plan)} className="bg-card/20 border-white/30 text-white hover:bg-card/30" />
                         </Tooltip>
@@ -1231,6 +1262,16 @@ const Billing = () => {
                         onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'; }}
                         onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'; }}>
                         <Edit className="w-3.5 h-3.5" /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleToggleStatus(plan)}
+                        disabled={statusTogglingId === plan._id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors text-primary disabled:opacity-50"
+                        style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'; }}>
+                        {plan.status === 'active' ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5" />}
+                        {plan.status === 'active' ? 'Deactivate' : 'Activate'}
                       </button>
                       <button onClick={() => handleDuplicate(plan)}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors text-primary"

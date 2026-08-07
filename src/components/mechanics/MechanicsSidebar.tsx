@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { FaClipboardList, FaTachometerAlt, FaUser, FaCheckCircle, FaWrench } from "react-icons/fa";
+import { FaClipboardList, FaTachometerAlt, FaUser, FaCheckCircle, FaWrench, FaSatelliteDish } from "react-icons/fa";
 import Logo from "../../assets/images/LI.png";
 import FullLogo from "../../assets/FleetGo.png";
 import { getDashboardRoute } from "../../utils/auth";
@@ -37,6 +37,11 @@ const getSidebarLinks = (basePath: string) => [
     key: `${basePath}/profile`,
     label: "Profile",
     icon: <FaUser />,
+  },
+  {
+    key: "/gps-dashboard",
+    label: "GPS Dashboard",
+    icon: <FaSatelliteDish />,
   },
 ];
 
