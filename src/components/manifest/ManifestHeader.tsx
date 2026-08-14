@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { FaSignOutAlt, FaBars } from "react-icons/fa";
 import { LogOut, Search, X, ArrowRight, ArrowLeft, LayoutDashboard, Truck, Package, Users } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
+import PortalSwitcher from '../common/PortalSwitcher';
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "../../hooks/usePageTitle";
 
@@ -167,6 +168,9 @@ const ManifestHeader: React.FC<ManifestHeaderProps> = ({
             <span className="text-sm hidden sm:block">Search...</span>
             <kbd className="text-xs bg-[rgba(255,255,255,0.06)] px-2 py-0.5 rounded text-secondary font-mono hidden sm:block">Ctrl K</kbd>
           </button>
+
+          {/* Portal Switcher */}
+          <PortalSwitcher />
 
           {/* Logout */}
           <button onClick={handleLogoutClick} className="header-btn" title="Logout">

@@ -180,6 +180,55 @@ export const getUserId = (): string | null => {
 };
 
 /**
+ * Get portals granted to the current user via Advanced Permissions
+ * @returns string[] - array of portal keys
+ */
+export const getUserPortals = (): string[] => {
+  try {
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      const parsed = JSON.parse(userInfo);
+      return parsed?.userData?.portals || [];
+    }
+  } catch (e) {
+    // ignore
+  }
+  return [];
+};
+
+/**
+ * Check if user has access to a specific portal (by role or explicit grant)
+ */
+export const hasPortalAccess = (portalKey: string, requiredRole: string): boolean => {
+  const role = getUserRole();
+  if (role === 'admin' || role === 'superadmin') return true;
+  if (role === requiredRole) return true;
+  return getUserPortals().includes(portalKey);
+};
+
+/**
+ * Get all portals the current user can access (combines role portal + granted portals)
+ */
+export const getAccessiblePortals = (): string[] => {
+  const role = getUserRole();
+  const granted = getUserPortals();
+
+  const rolePortalMap: Record<string, string> = {
+    dispatcher: 'dispatch_load',
+    hr: 'human_resource',
+    accountant: 'accounts',
+    'Fleet Maintenance Manager': 'fleet_maintenance',
+    'Compliance Manager': 'compliance',
+    'safety officer': 'health_safety',
+    'Maintenance Crew (Mechanics)': 'mechanic',
+  };
+
+  const all = new Set(granted);
+  if (role && rolePortalMap[role]) all.add(rolePortalMap[role]);
+  return Array.from(all);
+};
+
+/**
  * Get dashboard route based on user role
  * @returns string - dashboard route path
  */

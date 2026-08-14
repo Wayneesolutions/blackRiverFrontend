@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     Users, Search, Filter, Plus, Edit, Trash2, Eye, EyeOff,
     Building2, Mail, Phone, Lock, AlertCircle, Tag,
+    Bell, AlertTriangle, Clock, Calendar, CheckCircle2, XCircle, TimerOff,
 } from 'lucide-react';
 import { message, Modal, Switch, Select } from 'antd';
 import { getAllAdmins, createAdmin, updateAdmin, deleteAdmin, getAllPlans, assignPlanToAdmin } from '../../../axios/api/superadmin';
@@ -42,6 +43,8 @@ interface Admin {
             planType: 'lifetime' | 'monthly';
         };
     } | null;
+    trialStartDate?: string;
+    trialEndDate?: string;
 }
 
 interface PlanOption {
@@ -96,6 +99,20 @@ const ViewAllAccounts = () => {
     });
     const [assignSelectedRoles, setAssignSelectedRoles] = useState<string[]>(ASSIGNABLE_PLAN_ROLES);
     const [assignLoading, setAssignLoading] = useState(false);
+
+    const [trialFilter, setTrialFilter] = useState<'all' | 'active' | 'expiring' | 'expired' | 'none'>('all');
+
+    const getTrialInfo = (admin: Admin) => {
+        if (!admin.trialEndDate) return { status: 'none' as const, daysRemaining: 0, endDate: null };
+        const now = new Date();
+        const endDate = new Date(admin.trialEndDate);
+        const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+        const endUTC = new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate()));
+        const daysRemaining = Math.ceil((endUTC.getTime() - nowUTC.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysRemaining < 0) return { status: 'expired' as const, daysRemaining: 0, endDate };
+        if (daysRemaining <= 7) return { status: 'expiring' as const, daysRemaining, endDate };
+        return { status: 'active' as const, daysRemaining, endDate };
+    };
 
     const selectedAssignPlan = plans.find(p => p._id === assignForm.planId) || null;
 
@@ -272,7 +289,9 @@ const ViewAllAccounts = () => {
 
         const matchesStatus = selectedFilter === 'all' || admin.status === selectedFilter;
 
-        return matchesSearch && matchesStatus;
+        const matchesTrial = trialFilter === 'all' || getTrialInfo(admin).status === trialFilter;
+
+        return matchesSearch && matchesStatus && matchesTrial;
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -541,6 +560,64 @@ const ViewAllAccounts = () => {
             </div>
 
             <div className="p-6">
+                {/* Trial Notifications */}
+                {(() => {
+                    const expiredNoSub = admins.filter(a => !a.currentSubscription && getTrialInfo(a).status === 'expired');
+                    const expiringSoon = admins.filter(a => !a.currentSubscription && getTrialInfo(a).status === 'expiring');
+                    if (expiredNoSub.length === 0 && expiringSoon.length === 0) return null;
+                    return (
+                        <div className="mb-6 space-y-3">
+                            {expiredNoSub.length > 0 && (
+                                <div className="rounded-xl border p-4 flex items-start gap-3" style={{ backgroundColor: 'rgba(244,63,94,0.08)', borderColor: 'rgba(244,63,94,0.3)' }}>
+                                    <TimerOff className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: 'var(--accent-red)' }} />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold mb-1" style={{ color: 'var(--accent-red)' }}>
+                                            {expiredNoSub.length} customer{expiredNoSub.length > 1 ? 's' : ''} need{expiredNoSub.length === 1 ? 's' : ''} a plan — trial expired
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {expiredNoSub.slice(0, 5).map(a => (
+                                                <button key={a._id} onClick={() => handleOpenAssignPlan(a)}
+                                                    className="text-xs px-2 py-0.5 rounded-full font-medium hover:opacity-80 transition-opacity"
+                                                    style={{ backgroundColor: 'rgba(244,63,94,0.15)', color: 'var(--accent-red)' }}>
+                                                    {a.company?.companyName || a.name} — Assign Plan
+                                                </button>
+                                            ))}
+                                            {expiredNoSub.length > 5 && (
+                                                <span className="text-xs text-secondary self-center">+{expiredNoSub.length - 5} more</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            {expiringSoon.length > 0 && (
+                                <div className="rounded-xl border p-4 flex items-start gap-3" style={{ backgroundColor: 'rgba(245,158,11,0.08)', borderColor: 'rgba(245,158,11,0.3)' }}>
+                                    <Bell className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: '#f59e0b' }} />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold mb-1" style={{ color: '#f59e0b' }}>
+                                            {expiringSoon.length} customer{expiringSoon.length > 1 ? 's' : ''} expiring within 7 days — reach out proactively
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {expiringSoon.slice(0, 5).map(a => {
+                                                const t = getTrialInfo(a);
+                                                return (
+                                                    <button key={a._id} onClick={() => handleOpenAssignPlan(a)}
+                                                        className="text-xs px-2 py-0.5 rounded-full font-medium hover:opacity-80 transition-opacity"
+                                                        style={{ backgroundColor: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>
+                                                        {a.company?.companyName || a.name} ({t.daysRemaining}d left)
+                                                    </button>
+                                                );
+                                            })}
+                                            {expiringSoon.length > 5 && (
+                                                <span className="text-xs text-secondary self-center">+{expiringSoon.length - 5} more</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })()}
+
                 {/* Filters and Search */}
                 <div className="bg-card rounded-xl shadow-sm border border-theme p-6 mb-6">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-4">
@@ -567,6 +644,21 @@ const ViewAllAccounts = () => {
                                 <option value="all">All</option>
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        {/* Trial Filter */}
+                        <div className="flex items-center space-x-2">
+                            <label className="text-sm font-medium text-primary">Trial:</label>
+                            <select
+                                value={trialFilter}
+                                onChange={(e) => setTrialFilter(e.target.value as typeof trialFilter)}
+                                className="w-36 bg-slate-900 text-slate-200 border border-slate-700 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="all">All</option>
+                                <option value="active">Trial Active</option>
+                                <option value="expiring">Expiring Soon</option>
+                                <option value="expired">Trial Expired</option>
+                                <option value="none">No Trial</option>
                             </select>
                         </div>
                     </div>
@@ -602,6 +694,10 @@ const ViewAllAccounts = () => {
                                         Plan
                                     </th>
 
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-[180px]">
+                                        Trial
+                                    </th>
+
                                     <th
                                         className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-[rgba(255,255,255,0.03)] min-w-[120px]"
                                         onClick={() => handleSort('revenue')}
@@ -629,14 +725,14 @@ const ViewAllAccounts = () => {
                             <tbody className="bg-card divide-theme">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-12 text-center">
+                                        <td colSpan={7} className="px-6 py-12 text-center">
                                             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-navyblue)]"></div>
                                             <p className="mt-2 text-secondary">Loading admins...</p>
                                         </td>
                                     </tr>
                                 ) : filteredAdmins.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-12 text-center">
+                                        <td colSpan={7} className="px-6 py-12 text-center">
                                             <Users className="w-12 h-12 text-secondary mx-auto mb-4" />
                                             <h3 className="text-lg font-medium text-primary mb-2">No admins found</h3>
                                             <p className="text-secondary">
@@ -707,6 +803,41 @@ const ViewAllAccounts = () => {
                                                 >
                                                     Assign Plan
                                                 </button>
+                                            </td>
+
+                                            {/* Trial column */}
+                                            <td className="px-6 py-4 whitespace-nowrap min-w-[180px]">
+                                                {(() => {
+                                                    const trial = getTrialInfo(admin);
+                                                    if (trial.status === 'none') {
+                                                        return <span className="text-xs text-secondary">No trial</span>;
+                                                    }
+                                                    const badgeStyles: Record<string, { bg: string; color: string; icon: React.ReactNode }> = {
+                                                        active:   { bg: 'rgba(0,255,163,0.1)',   color: '#00FFA3',              icon: <CheckCircle2 className="w-3 h-3" /> },
+                                                        expiring: { bg: 'rgba(245,158,11,0.1)',  color: '#f59e0b',              icon: <AlertTriangle className="w-3 h-3" /> },
+                                                        expired:  { bg: 'rgba(244,63,94,0.1)',   color: 'var(--accent-red)',    icon: <XCircle className="w-3 h-3" /> },
+                                                    };
+                                                    const s = badgeStyles[trial.status];
+                                                    return (
+                                                        <div className="space-y-1.5">
+                                                            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
+                                                                style={{ backgroundColor: s.bg, color: s.color }}>
+                                                                {s.icon}
+                                                                {trial.status === 'active' ? 'Active' : trial.status === 'expiring' ? 'Expiring' : 'Expired'}
+                                                            </span>
+                                                            <div className="flex items-center gap-1 text-xs text-secondary">
+                                                                <Calendar className="w-3 h-3 flex-shrink-0" />
+                                                                {trial.endDate ? trial.endDate.toLocaleDateString() : '—'}
+                                                            </div>
+                                                            {trial.status !== 'expired' && (
+                                                                <div className="flex items-center gap-1 text-xs" style={{ color: trial.status === 'expiring' ? '#f59e0b' : 'var(--text-secondary)' }}>
+                                                                    <Clock className="w-3 h-3 flex-shrink-0" />
+                                                                    {trial.daysRemaining}d remaining
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })()}
                                             </td>
 
                                             <td className="px-6 py-4 whitespace-nowrap min-w-[120px]">

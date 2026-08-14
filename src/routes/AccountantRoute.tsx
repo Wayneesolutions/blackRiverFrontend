@@ -3,7 +3,7 @@ import { Suspense, lazy } from "react";
 import React from "react";
 import Loading from "../components/common/Loading";
 import ErrorBoundary from "../components/common/ErrorBoundary";
-import { getUserRole } from "../utils/auth";
+import { getUserRole, hasPortalAccess } from "../utils/auth";
 
 const AccountsRoutes = lazy(() => import("./AdminFeatures/AccountsRoutes"));
 
@@ -19,8 +19,8 @@ function AccountantRoute() {
   // Check if user is accountant
   const userRole = getUserRole();
   
-  // If not accountant, redirect to login
-  if (userRole !== 'accountant') {
+  // Allow if accountant by role OR granted accounts portal
+  if (!hasPortalAccess('accounts', 'accountant')) {
     return <Navigate to="/" replace />;
   }
 

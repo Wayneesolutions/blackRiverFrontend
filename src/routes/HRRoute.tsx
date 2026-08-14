@@ -3,7 +3,7 @@ import { Suspense, lazy } from "react";
 import React from "react";
 import Loading from "../components/common/Loading";
 import ErrorBoundary from "../components/common/ErrorBoundary";
-import { getUserRole } from "../utils/auth";
+import { getUserRole, hasPortalAccess } from "../utils/auth";
 
 const HRManagementRoutes = lazy(() => import("./AdminFeatures/HRManagementRoutes"));
 
@@ -19,8 +19,8 @@ function HRRoute() {
   // Check if user is HR
   const userRole = getUserRole();
   
-  // If not HR, redirect to login
-  if (userRole !== 'hr') {
+  // Allow if HR by role OR granted human_resource portal
+  if (!hasPortalAccess('human_resource', 'hr')) {
     return <Navigate to="/" replace />;
   }
 

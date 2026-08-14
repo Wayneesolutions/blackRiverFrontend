@@ -20,7 +20,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
   const isSafetyOfficer = userRole === "safety officer";
   const { userInfo } = useSelector((state: RootState) => state.userAuth, shallowEqual);
 
-  const basePath = isSafetyOfficer ? "/healthandsafety" : "/admin/healthandsafety";
+  // Detect mount point from URL — works for any role with health_safety portal access
+  const isNonAdminMount = location.pathname.startsWith('/healthandsafety');
+  const basePath = isNonAdminMount ? "/healthandsafety" : "/admin/healthandsafety";
 
   // Build transformed sidebar links with full paths
   const sidebarLinks = useMemo(() => {
@@ -33,7 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
       return updated;
     };
     return HealthSafetySidebarLinks.map(mapLink);
-  }, [isSafetyOfficer]);
+  }, [isNonAdminMount]);
 
   // Parent menu toggle
   const toggleMenu = useCallback((key: string) => {

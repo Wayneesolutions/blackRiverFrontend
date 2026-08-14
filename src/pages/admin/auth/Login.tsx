@@ -181,6 +181,7 @@ export default function LoginPage() {
           role: userData.role,
           status: userStatus, // Use the checked status
           company: normalizedCompany,
+          portals: userData.portals || [],
         };
 
         const userInfoPayload = {
@@ -205,22 +206,43 @@ export default function LoginPage() {
         // before the user has visited their dashboard first
         sessionStorage.setItem('showDashboardFirst', 'true');
 
-        // Navigate based on user role
+        // Navigate based on user role + portal permissions
         const userRole = normalizedUserData.role || userData.role;
-        if (userRole === 'dispatcher') {
-          navigate('/dispatch', { replace: true });
-        } else if (userRole === 'hr') {
-          navigate('/Management', { replace: true });
-        } else if (userRole === 'accountant') {
-          navigate('/accounts', { replace: true });
-        } else if (userRole === 'Fleet Maintenance Manager') {
-          navigate('/fleetmaintenance', { replace: true });
-        } else if (userRole === 'Compliance Manager') {
-          navigate('/compliance', { replace: true });
-        } else if (userRole === 'safety officer') {
-          navigate('/healthandsafety', { replace: true });
-        } else if (userRole === 'Maintenance Crew (Mechanics)') {
-          navigate('/admin/mechanics/orders', { replace: true });
+        const grantedPortals: string[] = userData.portals || [];
+
+        const rolePortalMap: Record<string, string> = {
+          dispatcher: 'dispatch_load',
+          hr: 'human_resource',
+          accountant: 'accounts',
+          'Fleet Maintenance Manager': 'fleet_maintenance',
+          'Compliance Manager': 'compliance',
+          'safety officer': 'health_safety',
+          'Maintenance Crew (Mechanics)': 'mechanic',
+        };
+        const portalRouteMap: Record<string, string> = {
+          dispatch_load: '/dispatch',
+          gps: '/gpsvehicle',
+          human_resource: '/Management',
+          fleet_maintenance: '/fleetmaintenance',
+          mechanic: '/mechanics/dashboard',
+          compliance: '/compliance',
+          accounts: '/accounts',
+          health_safety: '/healthandsafety',
+          manifest: '/manifest',
+        };
+
+        const allPortals = new Set(grantedPortals);
+        if (rolePortalMap[userRole]) allPortals.add(rolePortalMap[userRole]);
+        const accessiblePortals = Array.from(allPortals);
+
+        if (userRole === 'admin' || userRole === 'superadmin') {
+          navigate('/admin/dashboard', { replace: true });
+        } else if (accessiblePortals.length > 1) {
+          // Multiple portals — go to portal selection screen
+          navigate('/portal-select', { replace: true });
+        } else if (accessiblePortals.length === 1) {
+          // Single portal — go directly
+          navigate(portalRouteMap[accessiblePortals[0]] || '/admin/dashboard', { replace: true });
         } else {
           navigate('/admin/dashboard', { replace: true });
         }

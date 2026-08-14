@@ -3,7 +3,7 @@ import { Suspense, lazy } from "react";
 import React from "react";
 import Loading from "../components/common/Loading";
 import ErrorBoundary from "../components/common/ErrorBoundary";
-import { getUserRole } from "../utils/auth";
+import { getUserRole, hasPortalAccess } from "../utils/auth";
 
 const FleetMaintainRoutes = lazy(() => import("./AdminFeatures/FleetMaintainRoutes"));
 
@@ -19,8 +19,8 @@ function FleetMaintenanceRoute() {
   // Check if user is Fleet Maintenance Manager
   const userRole = getUserRole();
   
-  // If not Fleet Maintenance Manager, redirect to login
-  if (userRole !== 'Fleet Maintenance Manager') {
+  // Allow if Fleet Maintenance Manager by role OR granted fleet_maintenance portal
+  if (!hasPortalAccess('fleet_maintenance', 'Fleet Maintenance Manager')) {
     return <Navigate to="/" replace />;
   }
 

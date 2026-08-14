@@ -20,11 +20,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
   const isFleetMaintenanceManager = userRole === "Fleet Maintenance Manager";
   const { userInfo } = useSelector((state: RootState) => state.userAuth, shallowEqual);
 
-  const basePath = isFleetMaintenanceManager ? '/fleetmaintenance' : '/admin/fleetmaintenance';
+  // Detect mount point from URL — works for any role with fleet_maintenance portal access
+  const isNonAdminMount = location.pathname.startsWith('/fleetmaintenance');
+  const basePath = isNonAdminMount ? '/fleetmaintenance' : '/admin/fleetmaintenance';
 
-  // Role-based path transformer
   const transformPath = (path: string): string => {
-    if (isFleetMaintenanceManager) {
+    if (isNonAdminMount) {
       return path.replace(/^\/admin\//, '/');
     }
     return path;
@@ -41,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
       return updated;
     };
     return FleetMaintainSidebarlinks.map(mapLink);
-  }, [isFleetMaintenanceManager]);
+  }, [isNonAdminMount]);
 
   // Parent menu toggle
   const toggleMenu = useCallback((key: string) => {

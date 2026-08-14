@@ -8,6 +8,7 @@ import { useQuickActions } from "../common/QuickAction";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNotifications } from "../../hooks/useNotifications";
 import { NotificationBell } from "../common/NotificationPanel";
+import PortalSwitcher from '../common/PortalSwitcher';
 
 function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -144,6 +145,9 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
             <span className="text-sm hidden sm:block">Search...</span>
             <kbd className="text-xs bg-[rgba(255,255,255,0.06)] px-2 py-0.5 rounded text-secondary font-mono hidden sm:block">Ctrl K</kbd>
           </button>
+
+          {/* Portal Switcher */}
+          <PortalSwitcher />
 
           {/* Logout */}
           <button onClick={handleLogoutClick} className="header-btn" title="Logout">

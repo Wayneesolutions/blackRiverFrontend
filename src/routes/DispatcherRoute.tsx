@@ -3,7 +3,7 @@ import { Suspense, lazy } from "react";
 import React from "react";
 import Loading from "../components/common/Loading";
 import ErrorBoundary from "../components/common/ErrorBoundary";
-import { getUserRole } from "../utils/auth";
+import { getUserRole, hasPortalAccess } from "../utils/auth";
 
 const DispatchRoutes = lazy(() => import("./AdminFeatures/DispatchRoutes"));
 const GpsVehicleRoutes = lazy(() => import("./AdminFeatures/GpsVehicleRoutes"));
@@ -18,16 +18,17 @@ const RouteDebugger = ({ children }: { children: React.ReactNode }) => {
 
 function DispatcherRoute() {
   const location = useLocation();
-  // Check if user is dispatcher
   const userRole = getUserRole();
-  
-  // If not dispatcher, redirect to login
-  if (userRole !== 'dispatcher') {
+
+  const isGpsVehicleRoute = location.pathname.startsWith('/gpsvehicle');
+  const hasDispatchAccess = hasPortalAccess('dispatch_load', 'dispatcher');
+  const hasGpsAccess = hasPortalAccess('gps', 'dispatcher');
+
+  // GPS route: allow if user has gps portal OR dispatch_load (dispatchers include GPS)
+  // Dispatch route: require dispatch_load access
+  if (isGpsVehicleRoute ? (!hasDispatchAccess && !hasGpsAccess) : !hasDispatchAccess) {
     return <Navigate to="/" replace />;
   }
-
-  // Determine which route component to render based on pathname
-  const isGpsVehicleRoute = location.pathname.startsWith('/gpsvehicle');
 
   return (
     <Suspense fallback={<Loading />}>

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, memo } from 'react'
 import { FaSignOutAlt, FaBars } from "react-icons/fa";
 import { Search, X, LogOut, ArrowRight, ArrowLeft } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
+import PortalSwitcher from '../common/PortalSwitcher';
 import { useNavigate } from "react-router-dom";
 import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
@@ -144,6 +145,9 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                         <span className="text-sm hidden sm:block">Search...</span>
                         <kbd className="text-xs bg-[rgba(255,255,255,0.06)] px-2 py-0.5 rounded text-secondary font-mono hidden sm:block">Ctrl K</kbd>
                     </button>
+
+                    {/* Portal Switcher */}
+                    <PortalSwitcher />
 
                     {/* Logout */}
                     <button

@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Info, ChevronUp, ChevronDown, X, User, FileText, Upload, Edit, Trash2, Save, Calendar, Eye, EyeOff, FileDown } from 'lucide-react';
+import { Plus, Info, ChevronUp, ChevronDown, X, User, FileText, Upload, Edit, Trash2, Save, Calendar, Eye, EyeOff, FileDown, ShieldCheck } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { FaTimes, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import * as employeeApi from '../../../../axios/api/employee';
-import { importEmployeesFromFile } from '../../../../axios/api/employee';
+import { importEmployeesFromFile, updateEmployeePortals } from '../../../../axios/api/employee';
 import ImportButton from '../../../../components/common/ImportButton';
 import { getDocumentsByEmployee, updateEmployeeDocument, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
 import { deleteDeductionAddition } from '../../../../axios/api/account.settlement';
 import AddressSearch from '../../../../components/common/AddressSearch';
+
+type PortalKey = 'dispatch_load' | 'gps' | 'human_resource' | 'fleet_maintenance' | 'mechanic' | 'compliance' | 'accounts' | 'health_safety' | 'manifest';
 
 interface Employee {
   _id?: string;
@@ -22,6 +24,7 @@ interface Employee {
   profileImage?: string; // Alternative field name
   createdAt?: string;
   updatedAt?: string;
+  portals?: PortalKey[];
 }
 
 interface ToastNotification {
@@ -87,6 +90,44 @@ const EmployeesPage = () => {
     key: null,
     direction: 'asc'
   });
+
+  // Portal permissions modal state
+  const PORTAL_LIST: { key: PortalKey; label: string }[] = [
+    { key: 'dispatch_load', label: 'Dispatch Load' },
+    { key: 'gps', label: 'GPS' },
+    { key: 'human_resource', label: 'Human Resource' },
+    { key: 'fleet_maintenance', label: 'Fleet Maintenance' },
+    { key: 'mechanic', label: 'Mechanic' },
+    { key: 'compliance', label: 'Compliance' },
+    { key: 'accounts', label: 'Accounts' },
+    { key: 'health_safety', label: 'Health & Safety' },
+    { key: 'manifest', label: 'Manifest' },
+  ];
+  const [portalModalEmployee, setPortalModalEmployee] = useState<Employee | null>(null);
+  const [portalToggles, setPortalToggles] = useState<PortalKey[]>([]);
+  const [savingPortals, setSavingPortals] = useState(false);
+
+  const openPortalModal = (emp: Employee) => {
+    setPortalModalEmployee(emp);
+    setPortalToggles(emp.portals || []);
+  };
+
+  const togglePortal = (key: PortalKey) => {
+    setPortalToggles(prev =>
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    );
+  };
+
+  const savePortals = async () => {
+    if (!portalModalEmployee?._id) return;
+    setSavingPortals(true);
+    const res = await updateEmployeePortals(portalModalEmployee._id, portalToggles);
+    setSavingPortals(false);
+    if (res?.success) {
+      setEmployees(prev => prev.map(e => e._id === portalModalEmployee._id ? { ...e, portals: portalToggles } : e));
+      setPortalModalEmployee(null);
+    }
+  };
 
   // Modal state
   const [showNewEmployeeModal, setShowNewEmployeeModal] = useState(false);
@@ -1497,21 +1538,34 @@ const EmployeesPage = () => {
                       </td>
                       <td className="px-4 py-3 print-hide">
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent row click from triggering
-                              if (employee._id) {
-                                setEditingId(employee._id);
-                                // Load employee data for editing
-                                loadEmployeeForEdit(employee._id);
-                                setShowNewEmployeeModal(true);
-                              }
-                            }}
-                            className="p-2 text-accent hover:bg-[rgba(255,255,255,0.05)] rounded-lg transition-colors"
-                            title="Edit Employee"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
+                          {activeTab === 'advanced' ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openPortalModal(employee);
+                              }}
+                              className="p-2 text-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.1)] rounded-lg transition-colors"
+                              title="Manage Portal Access"
+                            >
+                              <ShieldCheck className="w-4 h-4" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent row click from triggering
+                                if (employee._id) {
+                                  setEditingId(employee._id);
+                                  // Load employee data for editing
+                                  loadEmployeeForEdit(employee._id);
+                                  setShowNewEmployeeModal(true);
+                                }
+                              }}
+                              className="p-2 text-accent hover:bg-[rgba(255,255,255,0.05)] rounded-lg transition-colors"
+                              title="Edit Employee"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                          )}
                           <button
                             onClick={(e) => {
                               e.stopPropagation(); // Prevent row click from triggering
@@ -1538,8 +1592,68 @@ const EmployeesPage = () => {
           </div>
         </div>
 
-        {/* Non Signin Employees and Advanced Permissions use the same table */}
+        {/* Advanced Permissions description */}
+        {activeTab === 'advanced' && (
+          <div className="mb-4 flex items-start gap-2 p-3 rounded-lg bg-[var(--accent-blue)]/5 border border-[var(--accent-blue)]/20">
+            <ShieldCheck className="w-4 h-4 text-[var(--accent-blue)] mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-secondary">
+              Click the <span className="text-primary font-medium">shield icon</span> next to any employee to grant or revoke access to specific portals, independent of their role.
+            </p>
+          </div>
+        )}
       </div>
+
+      {/* Portal Permissions Modal */}
+      {portalModalEmployee && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-theme">
+            <div className="p-5 border-b border-theme flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-primary">Portal Access</h3>
+                <p className="text-sm text-secondary mt-0.5">
+                  {portalModalEmployee.firstName || ''} {portalModalEmployee.lastName || portalModalEmployee.email}
+                </p>
+              </div>
+              <button onClick={() => setPortalModalEmployee(null)} className="p-1.5 hover:bg-[rgba(255,255,255,0.05)] rounded-lg transition-colors">
+                <X className="w-5 h-5 text-secondary" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-3">
+              {PORTAL_LIST.map(({ key, label }) => {
+                const isOn = portalToggles.includes(key);
+                return (
+                  <div key={key} className="flex items-center justify-between py-2 border-b border-theme last:border-0">
+                    <span className="text-sm font-medium text-primary">{label}</span>
+                    <button
+                      onClick={() => togglePortal(key)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isOn ? 'bg-[var(--accent-blue)]' : 'bg-[rgba(255,255,255,0.1)]'}`}
+                    >
+                      <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${isOn ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="p-5 border-t border-theme flex items-center justify-end gap-3">
+              <button
+                onClick={() => setPortalModalEmployee(null)}
+                className="px-5 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors text-sm font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={savePortals}
+                disabled={savingPortals}
+                className="px-5 py-2 bg-[var(--accent-blue)] !text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-60"
+              >
+                {savingPortals ? 'Saving...' : 'Save Access'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmation.show && (
@@ -1816,7 +1930,7 @@ const EmployeesPage = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">
-                          Role<span className="text-[var(--accent-red)]">*</span>
+                          Permission<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <select
                           value={basicData.role}

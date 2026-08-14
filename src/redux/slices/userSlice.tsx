@@ -1,11 +1,14 @@
 import {createSlice} from '@reduxjs/toolkit';
 
+export type PortalKey = 'dispatch_load' | 'gps' | 'human_resource' | 'fleet_maintenance' | 'mechanic' | 'compliance' | 'accounts' | 'health_safety' | 'manifest';
+
 export interface UserInfo{
     _id : string;
   name : string;
   email: string;
   role: string;
   status?: string;
+  portals?: PortalKey[];
 }
 
 interface InitialState{

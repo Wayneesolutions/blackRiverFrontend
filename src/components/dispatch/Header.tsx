@@ -7,6 +7,7 @@ import { usePageTitle } from "../../hooks/usePageTitle";
 import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
 import { useChat } from "../../contexts/ChatContext";
+import PortalSwitcher from '../common/PortalSwitcher';
 
 const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -149,6 +150,9 @@ const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
                         <span className="text-sm hidden sm:block">Search...</span>
                         <kbd className="text-xs bg-[rgba(255,255,255,0.06)] px-2 py-0.5 rounded text-secondary font-mono hidden sm:block">Ctrl K</kbd>
                     </button>
+
+                    {/* Portal Switcher */}
+                    <PortalSwitcher />
 
                     {/* Logout */}
                     <button

@@ -24,8 +24,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   const isAccountant = userRole === 'accountant';
   const { userInfo } = useSelector((state: RootState) => state.userAuth, shallowEqual);
 
+  // Detect mount point from URL — works for any role with accounts portal access
+  const isNonAdminMount = location.pathname.startsWith('/accounts');
+
   const transformPath = (path: string): string => {
-    if (isHR || isAccountant) {
+    if (isNonAdminMount) {
       return path.replace(/^\/admin\//, '/');
     }
     return path;
@@ -43,7 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       return transformed;
     };
     return AccountSidebarlinks.map(transformLink);
-  }, [isHR, isAccountant]);
+  }, [isNonAdminMount]);
 
   const toggleMenu = useCallback((key: string) => {
     setOpenMenus(prev =>
@@ -58,14 +61,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   };
 
   const isActiveLink = (linkKey: string, isActive: boolean, pathname: string) => {
-    const basePath = (isHR || isAccountant) ? "/accounts" : "/admin/accounts";
+    const basePath = isNonAdminMount ? "/accounts" : "/admin/accounts";
     if (linkKey === basePath) {
       return pathname === basePath || pathname === `${basePath}/dashboard`;
     }
     return isActive;
   };
 
-  const profilePath = (isHR || isAccountant) ? '/accounts/profile' : '/admin/accounts/profile';
+  const profilePath = isNonAdminMount ? '/accounts/profile' : '/admin/accounts/profile';
 
   return (
     <>

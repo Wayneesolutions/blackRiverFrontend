@@ -1,0 +1,122 @@
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { LayoutGrid } from 'lucide-react';
+import { getAccessiblePortals, getUserRole } from '../../utils/auth';
+import { getCurrentUserProfile } from '../../axios/api/auth';
+
+const PORTAL_LABELS: Record<string, string> = {
+  dispatch_load: 'Dispatch Load',
+  gps: 'GPS',
+  human_resource: 'Human Resource',
+  fleet_maintenance: 'Fleet Maintenance',
+  mechanic: 'Mechanic',
+  compliance: 'Compliance',
+  accounts: 'Accounts',
+  health_safety: 'Health & Safety',
+  manifest: 'Manifest',
+};
+
+const PORTAL_ROUTES: Record<string, string> = {
+  dispatch_load: '/dispatch',
+  gps: '/gpsvehicle',
+  human_resource: '/Management',
+  fleet_maintenance: '/fleetmaintenance',
+  mechanic: '/mechanics/dashboard',
+  compliance: '/compliance',
+  accounts: '/accounts',
+  health_safety: '/healthandsafety',
+  manifest: '/manifest',
+};
+
+const ROLE_PORTAL_MAP: Record<string, string> = {
+  dispatcher: 'dispatch_load',
+  hr: 'human_resource',
+  accountant: 'accounts',
+  'Fleet Maintenance Manager': 'fleet_maintenance',
+  'Compliance Manager': 'compliance',
+  'safety officer': 'health_safety',
+  'Maintenance Crew (Mechanics)': 'mechanic',
+};
+
+export default function PortalSwitcher() {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const [portals, setPortals] = useState<string[]>(() => getAccessiblePortals());
+
+  // Fetch fresh portals from server on mount — no re-login needed
+  useEffect(() => {
+    getCurrentUserProfile().then((res) => {
+      if (res?.success && res?.data) {
+        const freshPortals: string[] = res.data.portals || [];
+
+        // Sync into localStorage so auth utils stay consistent
+        try {
+          const stored = localStorage.getItem('userInfo');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed?.userData) {
+              parsed.userData.portals = freshPortals;
+              localStorage.setItem('userInfo', JSON.stringify(parsed));
+            }
+          }
+        } catch (_) {}
+
+        // Combine with role portal
+        const role = getUserRole();
+        const all = new Set(freshPortals);
+        if (role && ROLE_PORTAL_MAP[role]) all.add(ROLE_PORTAL_MAP[role]);
+        setPortals(Array.from(all));
+      }
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  // Only render if user has 2+ portals
+  if (portals.length < 2) return null;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(prev => !prev)}
+        className="header-btn flex items-center gap-1.5 text-sm"
+        title="Switch Portal"
+      >
+        <LayoutGrid size={18} />
+        <span className="hidden sm:inline text-secondary">Switch Portal</span>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-52 bg-card border border-theme rounded-xl shadow-2xl z-[200] overflow-hidden py-1">
+          {portals.map((key) => (
+            <button
+              key={key}
+              onClick={() => {
+                setOpen(false);
+                navigate(PORTAL_ROUTES[key] || '/');
+              }}
+              className="w-full text-left px-4 py-2.5 text-sm text-primary hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+            >
+              {PORTAL_LABELS[key] || key}
+            </button>
+          ))}
+          <div className="border-t border-theme mt-1 pt-1">
+            <button
+              onClick={() => { setOpen(false); navigate('/portal-select'); }}
+              className="w-full text-left px-4 py-2.5 text-sm text-[var(--accent-blue)] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+            >
+              View all portals
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

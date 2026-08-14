@@ -16,6 +16,7 @@ const SafetyOfficerRoute = lazy(() => import("./SafetyOfficerRoute"));
 const MechanicsRoute = lazy(() => import("./MechanicsRoute"));
 const GpsDashboardRoute = lazy(() => import("./GpsDashboardRoute"));
 const InvoicePayment = lazy(() => import("../pages/customer/InvoicePayment"));
+const PortalSelectScreen = lazy(() => import("../pages/PortalSelectScreen"));
 
 const Login = lazy(() => import("../pages/admin/auth/Login"));
 const Register = lazy(() => import("../pages/admin/auth/Register"));
@@ -90,6 +91,9 @@ const AppRoutes = () => {
         />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/accept-invite/:token" element={<AcceptInvite />} />
+
+        {/* Portal selection screen — shown when user has access to multiple portals */}
+        <Route path='/portal-select' element={<PortalSelectScreen />} />
 
         {/* Public customer routes */}
         <Route path='/invoice/:invoiceId' element={<InvoicePayment />} />

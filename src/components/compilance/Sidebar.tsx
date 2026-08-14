@@ -22,7 +22,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   const isComplianceManager = userRole === 'Compliance Manager';
   const { userInfo } = useSelector((state: RootState) => state.userAuth, shallowEqual);
 
-  const basePath = isComplianceManager ? '/compliance' : '/admin/compliance';
+  // Detect mount point from URL — works for any role with compliance portal access
+  const isNonAdminMount = location.pathname.startsWith('/compliance');
+  const basePath = isNonAdminMount ? '/compliance' : '/admin/compliance';
 
   const transformedLinks = useMemo(() => {
     return CompilanceSidebarLinks;

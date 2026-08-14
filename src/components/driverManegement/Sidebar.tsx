@@ -20,9 +20,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   const isHR = userRole === 'hr';
   const { userInfo } = useSelector((state: RootState) => state.userAuth, shallowEqual);
 
-  // Transform paths based on user role
+  // Detect mount point from URL — works for any role with human_resource portal access
+  const isNonAdminMount = location.pathname.startsWith('/Management');
+
   const transformPath = (path: string): string => {
-    if (isHR) {
+    if (isNonAdminMount) {
       return path.replace(/^\/admin\//, '/');
     }
     return path;
@@ -41,7 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     };
 
     return DriverSidebarLinks.map(transformLink);
-  }, [isHR]);
+  }, [isNonAdminMount]);
 
   const toggleMenu = useCallback((key: string) => {
     setOpenMenus((prev) =>
@@ -50,7 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   }, []);
 
   const isActiveLink = (linkKey: string, isActive: boolean, pathname: string) => {
-    const basePath = isHR ? "/Management" : "/admin/Management";
+    const basePath = isNonAdminMount ? "/Management" : "/admin/Management";
     if (linkKey === basePath) {
       return pathname === basePath || pathname === `${basePath}/dashboard`;
     }
@@ -201,7 +203,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
           {isCollapsed ? (
             <div className="flex flex-col items-center gap-2 py-3 px-2">
               <button
-                onClick={() => navigate(isHR ? '/Management/profile' : '/admin/Management/profile')}
+                onClick={() => navigate(isNonAdminMount ? '/Management/profile' : '/admin/Management/profile')}
                 className="w-9 h-9 rounded-full bg-[#42aeec]/20 flex items-center justify-center text-[#42aeec] hover:bg-[#42aeec]/30 transition-all"
                 title={userInfo?.userData?.name || 'Profile'}
               >
@@ -214,7 +216,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                 <FaUser size={14} />
               </div>
               <button
-                onClick={() => navigate(isHR ? '/Management/profile' : '/admin/Management/profile')}
+                onClick={() => navigate(isNonAdminMount ? '/Management/profile' : '/admin/Management/profile')}
                 className="flex-1 text-left min-w-0 hover:opacity-80 transition-opacity"
               >
                 <p className="text-sm font-semibold text-primary truncate">

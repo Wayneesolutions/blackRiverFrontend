@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { FaSignOutAlt, FaBars, FaUser } from "react-icons/fa";
 import { Search, X, LogOut, ArrowRight, ArrowLeft, LayoutDashboard, ClipboardList, UserCheck } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
+import PortalSwitcher from '../common/PortalSwitcher';
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
@@ -203,6 +204,9 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
               {userInfo?.userData?.name?.split(" ")[0] || "Profile"}
             </span>
           </button>
+
+          {/* Portal Switcher */}
+          <PortalSwitcher />
 
           {/* Logout */}
           <button onClick={handleLogoutClick} className="header-btn" title="Logout">

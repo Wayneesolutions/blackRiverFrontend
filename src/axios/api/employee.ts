@@ -117,6 +117,16 @@ export const resetEmployeePassword = async (id: string, password: string) => {
   }
 };
 
+// Update employee portal permissions (Advanced Permissions)
+export const updateEmployeePortals = async (id: string, portals: string[]) => {
+  try {
+    const res: AxiosResponse = await apiClient.patch(`employee/${id}/portals`, { portals });
+    return res.data;
+  } catch (error) {
+    return (error as any).response?.data;
+  }
+};
+
 export const importEmployeesFromFile = async (file: File, fieldMap: Record<string, string> = {}) => {
   const formData = new FormData();
   formData.append('file', file);

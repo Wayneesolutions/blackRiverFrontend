@@ -355,8 +355,8 @@ const DriverManagement = () => {
     hourlyRate: '0',
     // Daily Rate (for PAID PER DAY)
     dailyRate: '0',
-    // Driver Type
-    driverTypeSolo: true, // true = SOLO, false = TEAM
+    // Driver Type: 'SOLO' | 'TEAM' | 'BOTH'
+    driverTypeSolo: 'SOLO' as 'SOLO' | 'TEAM' | 'BOTH',
     // Cross-border eligibility
     cross_border_eligible: false,
     // Exemptions
@@ -364,6 +364,8 @@ const DriverManagement = () => {
     payrollTaxExempt: false,
     // Custom HST
     customHst: '',
+    // Safety Bonus
+    safetyBonus: '0',
     // Additional fields
     gender: '',
     citizenship: ''
@@ -407,8 +409,6 @@ const DriverManagement = () => {
     fastCardNumber: '',
     fastCardExpiry: '',
     fastCardValid: false,
-    // SIN Number (mandatory)
-    sinNumber: '',
     // Canadian Worker Status
     canadianWorkerStatus: 'PERMANENT RESIDENT' as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
     // Permanent Residence Expiry
@@ -585,6 +585,7 @@ const DriverManagement = () => {
     startDate: string;
     description: string;
     amount: string;
+    amountType: 'flat' | 'percentage';
     interval: string;
     currency: string;
   }>>([]);
@@ -592,6 +593,7 @@ const DriverManagement = () => {
     startDate: '',
     description: '',
     amount: '0',
+    amountType: 'flat' as 'flat' | 'percentage',
     interval: '',
     currency: 'CAD'
   });
@@ -603,6 +605,7 @@ const DriverManagement = () => {
     startDate: string;
     description: string;
     amount: string;
+    amountType: 'flat' | 'percentage';
     interval: string;
     currency: string;
   }>>([]);
@@ -610,6 +613,7 @@ const DriverManagement = () => {
     startDate: '',
     description: '',
     amount: '0',
+    amountType: 'flat' as 'flat' | 'percentage',
     interval: '',
     currency: 'CAD'
   });
@@ -1091,11 +1095,18 @@ const DriverManagement = () => {
             perTripAmount: '0',
             hourlyRate: String(driver.hourlyRate || driver.details?.hourlyRate || 0),
             dailyRate: '0',
-            driverTypeSolo: driver.details?.driverTypeSolo !== undefined ? driver.details.driverTypeSolo : (driver.driverTypeSolo !== undefined ? driver.driverTypeSolo : (driver.solo !== undefined ? driver.solo : true)),
+            driverTypeSolo: (() => {
+              const raw = driver.details?.driverTypeSolo ?? driver.driverTypeSolo ?? driver.solo;
+              if (raw === true || raw === 'SOLO') return 'SOLO';
+              if (raw === false || raw === 'TEAM') return 'TEAM';
+              if (raw === 'BOTH') return 'BOTH';
+              return 'SOLO';
+            })() as 'SOLO' | 'TEAM' | 'BOTH',
             cross_border_eligible: driver.details?.cross_border_eligible !== undefined ? driver.details.cross_border_eligible : (driver.cross_border_eligible !== undefined ? driver.cross_border_eligible : false),
             cppExempt: driver.details?.cppQppExempt || driver.cppQppExempt || false,
             payrollTaxExempt: driver.details?.provTaxExempt || driver.provTaxExempt || false,
             customHst: driver.details?.customHst || driver.customHst || '',
+            safetyBonus: String(driver.details?.safetyBonus ?? driver.safetyBonus ?? 0),
             gender: driver.details?.gender || driver.gender || '',
             citizenship: driver.details?.citizenship || driver.citizenship || ''
           });
@@ -1120,7 +1131,6 @@ const DriverManagement = () => {
               return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
             })(),
             fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
-            sinNumber: driver.sinNo || driver.details?.sinNo || driver.socialInsuranceNumber || '',
             canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
             permanentResidenceExpiry: (() => {
               const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
@@ -1306,6 +1316,7 @@ const DriverManagement = () => {
                 startDate: ded.startDate ? new Date(ded.startDate).toISOString().split('T')[0] : '',
                 description: ded.name || ded.description || '',
                 amount: ded.amount?.toString() || '0',
+                amountType: (ded.amountType || 'flat') as 'flat' | 'percentage',
                 interval: ded.recurrence || ded.interval || '',
                 currency: ded.currency || 'CAD' // Use currency from API response
               }));
@@ -1328,6 +1339,7 @@ const DriverManagement = () => {
                 startDate: add.startDate ? new Date(add.startDate).toISOString().split('T')[0] : '',
                 description: add.name || add.description || '',
                 amount: add.amount?.toString() || '0',
+                amountType: (add.amountType || 'flat') as 'flat' | 'percentage',
                 interval: add.recurrence || add.interval || '',
                 currency: add.currency || 'CAD' // Use currency from API response
               }));
@@ -1502,7 +1514,14 @@ const DriverManagement = () => {
                 perTripAmount: '0',
                 hourlyRate: String(driver.hourlyRate || driver.details?.hourlyRate || 0),
                 dailyRate: '0',
-                driverTypeSolo: driver.details?.driverTypeSolo !== undefined ? driver.details.driverTypeSolo : (driver.driverTypeSolo !== undefined ? driver.driverTypeSolo : (driver.solo !== undefined ? driver.solo : true)),
+                driverTypeSolo: (() => {
+                  const raw = driver.details?.driverTypeSolo ?? driver.driverTypeSolo ?? driver.solo;
+                  if (raw === true || raw === 'SOLO') return 'SOLO';
+                  if (raw === false || raw === 'TEAM') return 'TEAM';
+                  if (raw === 'BOTH') return 'BOTH';
+                  return 'SOLO';
+                })() as 'SOLO' | 'TEAM' | 'BOTH',
+                safetyBonus: String(driver.details?.safetyBonus ?? driver.safetyBonus ?? 0),
                 cross_border_eligible: driver.details?.cross_border_eligible !== undefined ? driver.details.cross_border_eligible : (driver.cross_border_eligible !== undefined ? driver.cross_border_eligible : false),
                 cppExempt: driver.details?.cppQppExempt || driver.cppQppExempt || false,
                 payrollTaxExempt: driver.details?.provTaxExempt || driver.provTaxExempt || false,
@@ -1529,7 +1548,6 @@ const DriverManagement = () => {
                   return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
                 })(),
                 fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
-                sinNumber: driver.sinNo || driver.details?.sinNo || driver.socialInsuranceNumber || '',
                 canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
                 permanentResidenceExpiry: (() => {
                   const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
@@ -1627,11 +1645,12 @@ const DriverManagement = () => {
         perTripAmount: '0',
         hourlyRate: '0',
         dailyRate: '0',
-        driverTypeSolo: true,
+        driverTypeSolo: 'SOLO' as 'SOLO' | 'TEAM' | 'BOTH',
         cross_border_eligible: false,
         cppExempt: false,
         payrollTaxExempt: false,
         customHst: '',
+        safetyBonus: '0',
         gender: '',
         citizenship: ''
       });
@@ -1645,7 +1664,6 @@ const DriverManagement = () => {
         fastCardNumber: '',
         fastCardExpiry: '',
         fastCardValid: false,
-        sinNumber: '',
         canadianWorkerStatus: 'PERMANENT RESIDENT',
         permanentResidenceExpiry: '',
         workPermitExpiry: '',
@@ -1869,6 +1887,9 @@ const DriverManagement = () => {
     if (!personalData.status) {
       errors.status = 'Status is required';
     }
+    if (!personalData.socialInsuranceNumber || !personalData.socialInsuranceNumber.trim()) {
+      errors.socialInsuranceNumber = 'Social Insurance Number is required';
+    }
 
     // Travel Information Tab Validation
     if (!travelData.driversLicenseNumber || !travelData.driversLicenseNumber.trim()) {
@@ -1885,11 +1906,6 @@ const DriverManagement = () => {
 
     if (!travelData.passportExpiry) {
       errors.passportExpiry = 'Passport Expiry Date is required';
-    }
-
-    // SIN Number Validation (mandatory)
-    if (!travelData.sinNumber || !travelData.sinNumber.trim()) {
-      errors.sinNumber = 'SIN Number is required';
     }
 
     // Document Validation based on Canadian Worker Status
@@ -1929,6 +1945,7 @@ const DriverManagement = () => {
       if (errors.country) errorFields.push('Country');
       if (errors.stateProvince) errorFields.push('Province/State');
       if (errors.status) errorFields.push('Status');
+      if (errors.socialInsuranceNumber) errorFields.push('Social Insurance Number');
       if (errors.driversLicenseNumber) errorFields.push('Drivers License Number');
       if (errors.driversLicenseExpiry) errorFields.push('Drivers License Expiry Date');
       if (errors.passportNumber) errorFields.push('Passport Number');
@@ -2115,6 +2132,7 @@ const DriverManagement = () => {
       if (personalData.paymentSearchAddress) driverFormData.append('paymentSearchAddress', personalData.paymentSearchAddress);
       if (personalData.gstNo) driverFormData.append('gstNo', personalData.gstNo);
       if (personalData.vacationPercent) driverFormData.append('vacationPay', personalData.vacationPercent);
+      if (personalData.safetyBonus && personalData.safetyBonus !== '0') driverFormData.append('safetyBonus', personalData.safetyBonus);
 
 
       // Driver Type - Send companyFlag: true for OWNER OPERATOR, false for COMPANY DRIVER
@@ -2123,10 +2141,8 @@ const DriverManagement = () => {
         driverFormData.append('companyFlag', String(companyFlagValue));
       }
 
-      // Driver Type (SOLO/TEAM) - driverTypeSolo: true = SOLO, false = TEAM
-      driverFormData.append('driverTypeSolo', String(personalData.driverTypeSolo !== undefined ? personalData.driverTypeSolo : true));
-      // Also send as solo for backward compatibility
-      driverFormData.append('solo', String(personalData.driverTypeSolo !== undefined ? personalData.driverTypeSolo : true));
+      // Driver Type (SOLO/TEAM/BOTH)
+      driverFormData.append('driverTypeSolo', personalData.driverTypeSolo || 'SOLO');
       // Cross-border eligibility
       driverFormData.append('cross_border_eligible', String(personalData.cross_border_eligible !== undefined ? personalData.cross_border_eligible : false));
 
@@ -2178,8 +2194,7 @@ const DriverManagement = () => {
         driverFormData.append('fastCardValid', String(travelData.fastCardValid));
       }
 
-      // Travel Information - SIN Number (mandatory, send from travel section)
-      if (travelData.sinNumber) driverFormData.append('sinNo', travelData.sinNumber);
+      // SIN sent from personalData.socialInsuranceNumber above
 
       // Travel Information - Canadian Worker Status
       // Note: createDriver doesn't accept these fields, but we'll send them for consistency
@@ -2341,6 +2356,7 @@ const DriverManagement = () => {
           startDate: ded.startDate || '',
           description: ded.description || '',
           amount: ded.amount || '0',
+          amountType: ded.amountType || 'flat',
           interval: ded.interval || '',
           currency: ded.currency || 'CAD'
         }));
@@ -2354,6 +2370,7 @@ const DriverManagement = () => {
           startDate: add.startDate || '',
           description: add.description || '',
           amount: add.amount || '0',
+          amountType: add.amountType || 'flat',
           interval: add.interval || '',
           currency: add.currency || 'CAD'
         }));
@@ -2436,11 +2453,12 @@ const DriverManagement = () => {
           perTripAmount: '0',
           hourlyRate: '0',
           dailyRate: '0',
-          driverTypeSolo: true,
+          driverTypeSolo: 'SOLO' as 'SOLO' | 'TEAM' | 'BOTH',
           cross_border_eligible: false,
           cppExempt: false,
           payrollTaxExempt: false,
           customHst: '',
+          safetyBonus: '0',
           gender: '',
           citizenship: ''
         });
@@ -2454,7 +2472,6 @@ const DriverManagement = () => {
           fastCardNumber: '',
           fastCardExpiry: '',
           fastCardValid: false,
-          sinNumber: '',
           canadianWorkerStatus: 'PERMANENT RESIDENT',
           permanentResidenceExpiry: '',
           workPermitExpiry: '',
@@ -2602,11 +2619,12 @@ const DriverManagement = () => {
       perTripAmount: '0',
       hourlyRate: '0',
       dailyRate: '0',
-      driverTypeSolo: true,
+      driverTypeSolo: 'SOLO' as 'SOLO' | 'TEAM' | 'BOTH',
       cross_border_eligible: false,
       cppExempt: false,
       payrollTaxExempt: false,
       customHst: '',
+      safetyBonus: '0',
       gender: '',
       citizenship: ''
     });
@@ -2622,7 +2640,6 @@ const DriverManagement = () => {
       fastCardNumber: '',
       fastCardExpiry: '',
       fastCardValid: false,
-      sinNumber: '',
       canadianWorkerStatus: 'PERMANENT RESIDENT',
       permanentResidenceExpiry: '',
       workPermitExpiry: '',
@@ -2696,6 +2713,7 @@ const DriverManagement = () => {
       startDate: '',
       description: '',
       amount: '0',
+      amountType: 'flat',
       interval: '',
       currency: 'CAD'
     });
@@ -2707,6 +2725,7 @@ const DriverManagement = () => {
       startDate: '',
       description: '',
       amount: '0',
+      amountType: 'flat',
       interval: '',
       currency: 'CAD'
     });
@@ -2917,11 +2936,12 @@ const DriverManagement = () => {
         const companyFlagValue = personalData.driverType === 'OWNER OPERATOR';
         driverFormData.append('companyFlag', String(companyFlagValue));
       }
-      // Driver Type (SOLO/TEAM) - driverTypeSolo: true = SOLO, false = TEAM
+      // Driver Type (SOLO/TEAM/BOTH)
       if (hasValueChanged(personalData.driverTypeSolo, original.personalData.driverTypeSolo)) {
-        driverFormData.append('driverTypeSolo', String(personalData.driverTypeSolo));
-        // Also send as solo for backward compatibility
-        driverFormData.append('solo', String(personalData.driverTypeSolo));
+        driverFormData.append('driverTypeSolo', personalData.driverTypeSolo || 'SOLO');
+      }
+      if (hasValueChanged(personalData.safetyBonus, original.personalData.safetyBonus)) {
+        driverFormData.append('safetyBonus', personalData.safetyBonus || '0');
       }
       // Cross-border eligibility
       if (hasValueChanged(personalData.cross_border_eligible, original.personalData.cross_border_eligible)) {
@@ -3044,10 +3064,7 @@ const DriverManagement = () => {
         driverFormData.append('fastCardValid', String(travelData.fastCardValid));
       }
 
-      // Travel Information - SIN Number (mandatory, send from travel section)
-      if (hasValueChanged(travelData.sinNumber, original.travelData.sinNumber)) {
-        driverFormData.append('sinNo', travelData.sinNumber || '');
-      }
+      // SIN sent from personalData.socialInsuranceNumber above
 
       // Travel Information - Canadian Worker Status (always send if changed)
       if (hasValueChanged(travelData.canadianWorkerStatus, original.travelData.canadianWorkerStatus)) {
@@ -3237,6 +3254,7 @@ const DriverManagement = () => {
           startDate: ded.startDate || '',
           description: ded.description || '',
           amount: ded.amount || '0',
+          amountType: ded.amountType || 'flat',
           interval: ded.interval || '',
           currency: ded.currency || 'CAD'
         }));
@@ -3251,6 +3269,7 @@ const DriverManagement = () => {
           startDate: add.startDate || '',
           description: add.description || '',
           amount: add.amount || '0',
+          amountType: add.amountType || 'flat',
           interval: add.interval || '',
           currency: add.currency || 'CAD'
         }));
@@ -3382,6 +3401,7 @@ const DriverManagement = () => {
                   startDate: ded.startDate ? new Date(ded.startDate).toISOString().split('T')[0] : '',
                   description: ded.name || ded.description || '',
                   amount: ded.amount?.toString() || '0',
+                  amountType: (ded.amountType || 'flat') as 'flat' | 'percentage',
                   interval: ded.recurrence || ded.interval || '',
                   currency: ded.currency || 'CAD' // Use currency from API response
                 }));
@@ -3395,6 +3415,7 @@ const DriverManagement = () => {
                   startDate: add.startDate ? new Date(add.startDate).toISOString().split('T')[0] : '',
                   description: add.name || add.description || '',
                   amount: add.amount?.toString() || '0',
+                  amountType: (add.amountType || 'flat') as 'flat' | 'percentage',
                   interval: add.recurrence || add.interval || '',
                   currency: add.currency || 'CAD' // Use currency from API response
                 }));
@@ -3421,7 +3442,6 @@ const DriverManagement = () => {
                   return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
                 })(),
                 fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
-                sinNumber: driver.details?.sinNumber || travelData.sinNumber || '',
                 canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
                 permanentResidenceExpiry: (() => {
                   const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
@@ -5090,14 +5110,24 @@ const DriverManagement = () => {
                     {/* Personal Information Section */}
                     <div className="grid grid-cols-5 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-1">Social Insurance Number</label>
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Social Insurance Number <span className="text-[var(--accent-red)]">*</span>
+                        </label>
                         <input
                           type="text"
-                          placeholder="Social Insurance Nu"
+                          placeholder="Social Insurance Number"
                           value={personalData.socialInsuranceNumber}
-                          onChange={(e) => setPersonalData({ ...personalData, socialInsuranceNumber: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                          onChange={(e) => {
+                            setPersonalData({ ...personalData, socialInsuranceNumber: e.target.value });
+                            if (validationErrors.socialInsuranceNumber) {
+                              setValidationErrors({ ...validationErrors, socialInsuranceNumber: '' });
+                            }
+                          }}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.socialInsuranceNumber ? 'border-[var(--accent-red)]' : 'border-theme'}`}
                         />
+                        {validationErrors.socialInsuranceNumber && (
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.socialInsuranceNumber}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">
@@ -5547,7 +5577,7 @@ const DriverManagement = () => {
                         <div className="grid grid-cols-4 gap-4 mt-4">
                           <div>
                             <label className="block text-sm font-medium text-primary mb-1">
-                              ALONE<span className="text-[var(--accent-red)]">*</span>
+                              SOLO<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
@@ -5608,7 +5638,7 @@ const DriverManagement = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-primary mb-1">BONUS/LAYOVER</label>
+                            <label className="block text-sm font-medium text-primary mb-1">LAYOVER ($/hr)</label>
                             <input
                               type="text"
                               value={personalData.bonusLayover}
@@ -5696,26 +5726,35 @@ const DriverManagement = () => {
                     <div className="mt-6">
                       <h4 className="text-md font-bold text-primary mb-4">Driver Type</h4>
                       <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setPersonalData({ ...personalData, driverTypeSolo: true })}
-                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${personalData.driverTypeSolo
-                            ? 'bg-[var(--accent-navyblue)] !text-white'
-                            : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
-                            }`}
-                        >
-                          SOLO
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setPersonalData({ ...personalData, driverTypeSolo: false })}
-                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${!personalData.driverTypeSolo
-                            ? 'bg-[var(--accent-navyblue)] !text-white'
-                            : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
-                            }`}
-                        >
-                          TEAM
-                        </button>
+                        {(['SOLO', 'TEAM', 'BOTH'] as const).map((type) => (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => setPersonalData({ ...personalData, driverTypeSolo: type })}
+                            className={`px-6 py-2 rounded-sm font-medium transition-colors ${personalData.driverTypeSolo === type
+                              ? 'bg-[var(--accent-navyblue)] !text-white'
+                              : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
+                              }`}
+                          >
+                            {type}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Safety Bonus */}
+                    <div className="mt-6">
+                      <h4 className="text-md font-bold text-primary mb-4">Safety Bonus</h4>
+                      <div className="max-w-xs">
+                        <label className="block text-sm font-medium text-primary mb-1">Safety Bonus ($)</label>
+                        <input
+                          type="text"
+                          placeholder="0"
+                          value={personalData.safetyBonus}
+                          onChange={(e) => setPersonalData({ ...personalData, safetyBonus: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                        />
+                        <p className="text-xs text-secondary mt-1">Added to payroll when applicable</p>
                       </div>
                     </div>
 
@@ -6151,30 +6190,6 @@ const DriverManagement = () => {
                         onChange={(e) => setTravelData({ ...travelData, wcbNumber: e.target.value })}
                         className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent max-w-md"
                       />
-                    </div>
-
-                    {/* SIN Number - Mandatory */}
-                    <div className="mt-6">
-                      <label className="block text-sm font-medium text-primary mb-1">
-                        SIN Number <span className="text-[var(--accent-red)]">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="SIN Number"
-                        value={travelData.sinNumber}
-                        onChange={(e) => {
-                          setTravelData({ ...travelData, sinNumber: e.target.value });
-                          if (validationErrors.sinNumber) {
-                            setValidationErrors({ ...validationErrors, sinNumber: '' });
-                          }
-                        }}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent max-w-md ${validationErrors.sinNumber ? 'border-[var(--accent-red)]' : 'border-theme'
-                          }`}
-                        required
-                      />
-                      {validationErrors.sinNumber && (
-                        <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.sinNumber}</p>
-                      )}
                     </div>
 
                     {/* Work Permit Document Upload */}
@@ -6874,7 +6889,7 @@ const DriverManagement = () => {
                 {activeFormTab === 'tickets' && (
                   <div className="space-y-6 relative">
                     <h3 className="text-lg font-bold text-primary mb-4">Tickets & Fines</h3>
-                    <p className="text-sm text-secondary mb-4">Record driver tickets, fines, and citations. Static only — not sent to backend.</p>
+                    <p className="text-sm text-secondary mb-4">Record driver tickets, fines, and citations.</p>
 
                     {/* Tickets Table with Input Row */}
                     <div className="border border-theme rounded-lg overflow-hidden overflow-x-auto">
@@ -6958,7 +6973,34 @@ const DriverManagement = () => {
                                 </select>
 
                                 {/* Action */}
-                                <button className="bg-[var(--accent-navyblue)] text-white rounded-lg px-2 hover:opacity-90">
+                                <button
+                                  onClick={() => {
+                                    if (newTicket.date || newTicket.title || newTicket.description || newTicket.amount) {
+                                      if (editingTicketId) {
+                                        setTickets(tickets.map(t =>
+                                          t.id === editingTicketId
+                                            ? { ...t, date: newTicket.date, title: newTicket.title, description: newTicket.description, amount: newTicket.amount, currency: newTicket.currency, status: newTicket.status, file: newTicket.file || t.file }
+                                            : t
+                                        ));
+                                        setEditingTicketId(null);
+                                      } else {
+                                        setTickets([...tickets, {
+                                          id: Date.now().toString(),
+                                          date: newTicket.date,
+                                          title: newTicket.title,
+                                          description: newTicket.description,
+                                          amount: newTicket.amount,
+                                          currency: newTicket.currency,
+                                          status: newTicket.status,
+                                          file: newTicket.file
+                                        }]);
+                                      }
+                                      setNewTicket({ date: '', title: '', description: '', amount: '', currency: 'CAD', status: 'Unpaid', file: null });
+                                      setTicketFile(null);
+                                    }
+                                  }}
+                                  className="bg-[var(--accent-navyblue)] text-white rounded-lg px-2 py-2 hover:opacity-90 whitespace-nowrap"
+                                >
                                   {editingTicketId ? "Save" : "Add"}
                                 </button>
                               </div>
@@ -7833,7 +7875,20 @@ const DriverManagement = () => {
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-primary mb-1">Amount</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Amount Type</label>
+                        <select
+                          value={newDeduction.amountType}
+                          onChange={(e) => setNewDeduction({ ...newDeduction, amountType: e.target.value as 'flat' | 'percentage' })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                        >
+                          <option className="form-option" value="flat">Flat ($)</option>
+                          <option className="form-option" value="percentage">Percentage (%)</option>
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Amount {newDeduction.amountType === 'percentage' ? '(%)' : '($)'}
+                        </label>
                         <input
                           type="text"
                           placeholder="0"
@@ -7881,6 +7936,7 @@ const DriverManagement = () => {
                                       startDate: newDeduction.startDate,
                                       description: newDeduction.description,
                                       amount: newDeduction.amount,
+                                      amountType: newDeduction.amountType,
                                       interval: newDeduction.interval,
                                       currency: newDeduction.currency
                                     }
@@ -7894,6 +7950,7 @@ const DriverManagement = () => {
                                   startDate: newDeduction.startDate,
                                   description: newDeduction.description,
                                   amount: newDeduction.amount,
+                                  amountType: newDeduction.amountType,
                                   interval: newDeduction.interval,
                                   currency: newDeduction.currency
                                 }]);
@@ -7902,6 +7959,7 @@ const DriverManagement = () => {
                                 startDate: '',
                                 description: '',
                                 amount: '0',
+                                amountType: 'flat',
                                 interval: '',
                                 currency: 'CAD'
                               });
@@ -7922,6 +7980,7 @@ const DriverManagement = () => {
                             <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Start Date</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Description</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Amount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Type</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Interval</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
@@ -7938,7 +7997,10 @@ const DriverManagement = () => {
                               <tr key={deduction.id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                 <td className="px-4 py-3 text-sm text-primary">{deduction.startDate || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-primary">{deduction.description || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-primary">{deduction.amount || '0'} {deduction.currency}</td>
+                                <td className="px-4 py-3 text-sm text-primary">
+                                  {deduction.amountType === 'percentage' ? `${deduction.amount || '0'}%` : `${deduction.amount || '0'} ${deduction.currency}`}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-primary capitalize">{deduction.amountType || 'flat'}</td>
                                 <td className="px-4 py-3 text-sm text-primary">{deduction.interval || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
@@ -7949,6 +8011,7 @@ const DriverManagement = () => {
                                           startDate: deduction.startDate || '',
                                           description: deduction.description || '',
                                           amount: deduction.amount || '0',
+                                          amountType: deduction.amountType || 'flat',
                                           interval: deduction.interval || '',
                                           currency: deduction.currency || 'CAD'
                                         });
@@ -7983,6 +8046,7 @@ const DriverManagement = () => {
                                                 startDate: '',
                                                 description: '',
                                                 amount: '0',
+                                                amountType: 'flat',
                                                 interval: '',
                                                 currency: 'CAD'
                                               });
@@ -8039,7 +8103,20 @@ const DriverManagement = () => {
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-primary mb-1">Amount</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Amount Type</label>
+                        <select
+                          value={newAddition.amountType}
+                          onChange={(e) => setNewAddition({ ...newAddition, amountType: e.target.value as 'flat' | 'percentage' })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                        >
+                          <option className="form-option" value="flat">Flat ($)</option>
+                          <option className="form-option" value="percentage">Percentage (%)</option>
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Amount {newAddition.amountType === 'percentage' ? '(%)' : '($)'}
+                        </label>
                         <input
                           type="text"
                           placeholder="0"
@@ -8087,6 +8164,7 @@ const DriverManagement = () => {
                                       startDate: newAddition.startDate,
                                       description: newAddition.description,
                                       amount: newAddition.amount,
+                                      amountType: newAddition.amountType,
                                       interval: newAddition.interval,
                                       currency: newAddition.currency
                                     }
@@ -8100,6 +8178,7 @@ const DriverManagement = () => {
                                   startDate: newAddition.startDate,
                                   description: newAddition.description,
                                   amount: newAddition.amount,
+                                  amountType: newAddition.amountType,
                                   interval: newAddition.interval,
                                   currency: newAddition.currency
                                 }]);
@@ -8108,6 +8187,7 @@ const DriverManagement = () => {
                                 startDate: '',
                                 description: '',
                                 amount: '0',
+                                amountType: 'flat',
                                 interval: '',
                                 currency: 'CAD'
                               });
@@ -8128,6 +8208,7 @@ const DriverManagement = () => {
                             <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Start Date</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Description</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Amount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Type</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Interval</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
@@ -8144,7 +8225,10 @@ const DriverManagement = () => {
                               <tr key={addition.id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                 <td className="px-4 py-3 text-sm text-primary">{addition.startDate || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-primary">{addition.description || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-primary">{addition.amount || '0'} {addition.currency}</td>
+                                <td className="px-4 py-3 text-sm text-primary">
+                                  {addition.amountType === 'percentage' ? `${addition.amount || '0'}%` : `${addition.amount || '0'} ${addition.currency}`}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-primary capitalize">{addition.amountType || 'flat'}</td>
                                 <td className="px-4 py-3 text-sm text-primary">{addition.interval || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
@@ -8155,6 +8239,7 @@ const DriverManagement = () => {
                                           startDate: addition.startDate || '',
                                           description: addition.description || '',
                                           amount: addition.amount || '0',
+                                          amountType: addition.amountType || 'flat',
                                           interval: addition.interval || '',
                                           currency: addition.currency || 'CAD'
                                         });
@@ -8189,6 +8274,7 @@ const DriverManagement = () => {
                                                 startDate: '',
                                                 description: '',
                                                 amount: '0',
+                                                amountType: 'flat',
                                                 interval: '',
                                                 currency: 'CAD'
                                               });

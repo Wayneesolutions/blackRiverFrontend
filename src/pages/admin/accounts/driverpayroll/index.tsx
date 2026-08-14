@@ -17,6 +17,8 @@ interface Driver {
     salaryPerMileHighTemp?: number;
     highTempThreshold?: number;
     companyFlag?: boolean;
+    bonusLayover?: number;
+    safetyBonus?: number;
   };
   companyFlag?: boolean; // Direct property for easier access
 }
@@ -345,6 +347,8 @@ interface FormData {
   payDate: string;
   startDate: string;
   endDate: string;
+  layoverHours: string;
+  safetyBonus: string;
   // Tax fields
   country: string;
   // Canada taxes
@@ -422,6 +426,8 @@ const DriverPayrollManagement = () => {
     payDate: '',
     startDate: '',
     endDate: '',
+    layoverHours: '0',
+    safetyBonus: '0',
     country: 'USA',
     // Canada taxes
     federalIncomeTaxCA: '0',
@@ -479,6 +485,8 @@ const DriverPayrollManagement = () => {
           const salaryPerMileSnow = driver.details?.salaryPerMileSnow ?? driver.salaryPerMileSnow ?? 0;
           const salaryPerMileHighTemp = driver.details?.salaryPerMileHighTemp ?? driver.salaryPerMileHighTemp ?? 0;
           const highTempThreshold = driver.details?.highTempThreshold ?? driver.highTempThreshold ?? 35;
+          const bonusLayover = driver.details?.bonusLayover ?? driver.bonusLayover ?? 0;
+          const safetyBonus = driver.details?.safetyBonus ?? driver.safetyBonus ?? 0;
 
           console.log('Driver data:', {
             name: driver.name,
@@ -498,7 +506,9 @@ const DriverPayrollManagement = () => {
               salaryPerMileSnow: Number(salaryPerMileSnow) || 0,
               salaryPerMileHighTemp: Number(salaryPerMileHighTemp) || 0,
               highTempThreshold: Number(highTempThreshold) || 35,
-              companyFlag: companyFlag
+              companyFlag: companyFlag,
+              bonusLayover: Number(bonusLayover) || 0,
+              safetyBonus: Number(safetyBonus) || 0
             }
           };
         });
@@ -751,7 +761,8 @@ const DriverPayrollManagement = () => {
         ...prev,
         [name]: value,
         startDate,
-        endDate
+        endDate,
+        safetyBonus: (selectedDrv?.details?.safetyBonus || 0).toString()
       }));
 
       if (value) {
@@ -1448,9 +1459,17 @@ const DriverPayrollManagement = () => {
       // Calculate additions and deductions using the helper function (respects edited amounts)
       const { totalAdditions, totalDeductions } = calculateAdditionsDeductions();
 
-      // Add calculated additions to bonus (or baseSalary)
+      // Calculate layover pay: hours entered × driver's per-hour layover rate
+      const layoverHours = parseFloat(formData.layoverHours) || 0;
+      const layoverRate = selectedDriver?.details?.bonusLayover || 0;
+      const layoverAmount = layoverHours * layoverRate;
+
+      // Safety bonus from form (pre-filled from driver, editable)
+      const safetyBonusAmount = parseFloat(formData.safetyBonus) || 0;
+
+      // Add calculated additions + layover + safety bonus to bonus
       const calculatedBonus = parseFloat(formData.bonus) || 0;
-      const finalBonus = calculatedBonus + totalAdditions;
+      const finalBonus = calculatedBonus + totalAdditions + layoverAmount + safetyBonusAmount;
 
       // Use only calculated deductions from backend (driver deductions)
       // No manual deductions field - all deductions come from driver deductions
@@ -1468,6 +1487,10 @@ const DriverPayrollManagement = () => {
         tripIds: selectedTrips.map(trip => trip._id).filter(id => id),
         totalMiles: selectedTotals.totalMiles,
         ratePerMile: parseFloat(((driverPayrollSummary?.ratePerMile || driverPayrollSummary?.baseRate || selectedDriver?.details?.salaryPerMile || 0).toFixed(2))),
+        layoverHours: layoverHours,
+        layoverRate: layoverRate,
+        layoverAmount: layoverAmount,
+        safetyBonus: safetyBonusAmount,
         country: formData.country || 'USA',
         // Canada taxes
         federalIncomeTaxCA: parseFloat(formData.federalIncomeTaxCA || '0'),
@@ -1518,18 +1541,30 @@ const DriverPayrollManagement = () => {
       // Calculate additions and deductions from driver profile (same as create, respects edited amounts)
       const { totalAdditions, totalDeductions: calculatedDeductions } = calculateAdditionsDeductions();
 
-      // Add calculated additions to bonus (same as create)
+      // Calculate layover pay: hours entered × driver's per-hour layover rate
+      const layoverHours = parseFloat(formData.layoverHours) || 0;
+      const layoverRate = selectedDriver?.details?.bonusLayover || 0;
+      const layoverAmount = layoverHours * layoverRate;
+
+      // Safety bonus from form (pre-filled from driver, editable)
+      const safetyBonusAmount = parseFloat(formData.safetyBonus) || 0;
+
+      // Add calculated additions + layover + safety bonus to bonus (same as create)
       const calculatedBonus = parseFloat(formData.bonus) || 0;
-      const finalBonus = calculatedBonus + totalAdditions;
+      const finalBonus = calculatedBonus + totalAdditions + layoverAmount + safetyBonusAmount;
 
       const payload: any = {
         userId: formData.userId,
         baseSalary: selectedPayroll.baseSalary, // Keep existing baseSalary
-        bonus: finalBonus, // Bonus + edited additions
+        bonus: finalBonus, // Bonus + edited additions + layover + safety bonus
         deductions: calculatedDeductions, // Use calculated deductions from backend (respects edited amounts)
         payDate: formData.payDate,
         startDate: formData.startDate,
         endDate: formData.endDate,
+        layoverHours: layoverHours,
+        layoverRate: layoverRate,
+        layoverAmount: layoverAmount,
+        safetyBonus: safetyBonusAmount,
         country: formData.country || 'USA',
         // Canada taxes
         federalIncomeTaxCA: parseFloat(formData.federalIncomeTaxCA || '0'),
@@ -1599,6 +1634,7 @@ const DriverPayrollManagement = () => {
   const openEditModal = (payroll: DriverPayroll) => {
     setSelectedPayroll(payroll);
     const payDateFormatted = payroll.payDate ? payroll.payDate.split('T')[0] : '';
+    const payrollAny = payroll as any;
 
     setFormData({
       userId: payroll.userId._id,
@@ -1607,6 +1643,8 @@ const DriverPayrollManagement = () => {
       payDate: payDateFormatted,
       startDate: payroll.startDate.split('T')[0],
       endDate: payroll.endDate.split('T')[0],
+      layoverHours: (payrollAny.layoverHours || 0).toString(),
+      safetyBonus: (payrollAny.safetyBonus || 0).toString(),
       country: payroll.country || 'USA',
       // Canada taxes
       federalIncomeTaxCA: (payroll.federalIncomeTaxCA || 0).toString(),
@@ -1622,6 +1660,9 @@ const DriverPayrollManagement = () => {
       stateDisabilityInsurance: (payroll.stateDisabilityInsurance || 0).toString(),
       localTax: (payroll.localTax || 0).toString()
     });
+    // Set selectedDriver so layover rate is available in UI
+    const editDriver = drivers.find(d => d._id === payroll.userId._id);
+    if (editDriver) setSelectedDriver(editDriver);
     setShowEditModal(true);
   };
 
@@ -2219,6 +2260,8 @@ const DriverPayrollManagement = () => {
       payDate: '',
       startDate: '',
       endDate: '',
+      layoverHours: '0',
+      safetyBonus: '0',
       country: 'USA',
       // Canada taxes
       federalIncomeTaxCA: '0',
@@ -3355,6 +3398,69 @@ const DriverPayrollManagement = () => {
                     </p>
                   </div>
 
+                  {/* Layover Section */}
+                  <div className="bg-card p-4 rounded-lg border border-theme">
+                    <h5 className="text-sm font-semibold text-primary mb-3">Layover Pay</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-primary mb-2">
+                          Layover Hours
+                        </label>
+                        <input
+                          type="number"
+                          name="layoverHours"
+                          value={formData.layoverHours}
+                          onChange={handleInputChange}
+                          min="0"
+                          step="0.5"
+                          placeholder="0"
+                          className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-card"
+                        />
+                        <p className="text-xs text-secondary mt-1">
+                          Driver layover rate: ${(selectedDriver?.details?.bonusLayover || 0).toFixed(2)}/hr
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-primary mb-2">
+                          Layover Amount ($)
+                        </label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={18} />
+                          <input
+                            type="text"
+                            readOnly
+                            value={((parseFloat(formData.layoverHours) || 0) * (selectedDriver?.details?.bonusLayover || 0)).toFixed(2)}
+                            className="w-full pl-10 pr-4 py-3 border border-theme rounded-lg bg-card/50 text-secondary cursor-not-allowed"
+                          />
+                        </div>
+                        <p className="text-xs text-secondary mt-1">Auto-calculated: hours × rate</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Safety Bonus */}
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-2">
+                      Safety Bonus ($)
+                    </label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={18} />
+                      <input
+                        type="number"
+                        name="safetyBonus"
+                        value={formData.safetyBonus}
+                        onChange={handleInputChange}
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="w-full pl-10 pr-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-card"
+                      />
+                    </div>
+                    <p className="text-xs text-secondary mt-1">
+                      Pre-filled from driver profile (${(selectedDriver?.details?.safetyBonus || 0).toFixed(2)}). Editable per payroll.
+                    </p>
+                  </div>
+
                   {/* Tax Section */}
                   <div className="bg-card  p-6 rounded-lg border border-theme">
                     <h5 className="text-lg font-semibold text-[var(--accent-navyblue)] mb-4 flex items-center gap-2">
@@ -3638,9 +3744,13 @@ const DriverPayrollManagement = () => {
                     const { totalAdditions, totalDeductions: calculatedDeductions } = calculateAdditionsDeductions();
                     const tripsTotals = getSelectedTripsTotals();
                     const manualBonus = parseFloat(formData.bonus || '0');
+                    const layoverHoursVal = parseFloat(formData.layoverHours || '0');
+                    const layoverRateVal = selectedDriver?.details?.bonusLayover || 0;
+                    const layoverAmountVal = layoverHoursVal * layoverRateVal;
+                    const safetyBonusVal = parseFloat(formData.safetyBonus || '0');
 
-                    // Gross Earnings = Trip Earnings + Manual Bonus + Calculated Additions
-                    const grossEarnings = tripsTotals.totalEarnings + manualBonus + totalAdditions;
+                    // Gross Earnings = Trip Earnings + Manual Bonus + Calculated Additions + Layover + Safety Bonus
+                    const grossEarnings = tripsTotals.totalEarnings + manualBonus + totalAdditions + layoverAmountVal + safetyBonusVal;
 
                     // Total Deductions = Only Calculated Deductions (from backend/driver deductions)
                     // No manual deductions - all deductions come from driver deductions
@@ -3677,7 +3787,7 @@ const DriverPayrollManagement = () => {
                               ${grossEarnings.toFixed(2)}
                             </p>
                           </div>
-                          {(totalAdditions > 0 || manualBonus > 0) && (
+                          {(totalAdditions > 0 || manualBonus > 0 || layoverAmountVal > 0 || safetyBonusVal > 0) && (
                             <div className="pl-4 text-xs text-white/60">
                               {tripsTotals.totalEarnings > 0 && (
                                 <div className="flex justify-between">
@@ -3695,6 +3805,18 @@ const DriverPayrollManagement = () => {
                                 <div className="flex justify-between">
                                   <span>Additions ({driverAdditions.length}):</span>
                                   <span>+${totalAdditions.toFixed(2)}</span>
+                                </div>
+                              )}
+                              {layoverAmountVal > 0 && (
+                                <div className="flex justify-between">
+                                  <span>Layover ({layoverHoursVal}h × ${layoverRateVal}/hr):</span>
+                                  <span>+${layoverAmountVal.toFixed(2)}</span>
+                                </div>
+                              )}
+                              {safetyBonusVal > 0 && (
+                                <div className="flex justify-between">
+                                  <span>Safety Bonus:</span>
+                                  <span>+${safetyBonusVal.toFixed(2)}</span>
                                 </div>
                               )}
                             </div>
