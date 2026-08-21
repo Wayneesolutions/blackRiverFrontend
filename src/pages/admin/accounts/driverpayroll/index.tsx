@@ -19,6 +19,7 @@ interface Driver {
     companyFlag?: boolean;
     bonusLayover?: number;
     safetyBonus?: number;
+    safetyBonusType?: 'flat' | 'percentage';
   };
   companyFlag?: boolean; // Direct property for easier access
 }
@@ -487,6 +488,7 @@ const DriverPayrollManagement = () => {
           const highTempThreshold = driver.details?.highTempThreshold ?? driver.highTempThreshold ?? 35;
           const bonusLayover = driver.details?.bonusLayover ?? driver.bonusLayover ?? 0;
           const safetyBonus = driver.details?.safetyBonus ?? driver.safetyBonus ?? 0;
+          const safetyBonusType = driver.details?.safetyBonusType ?? driver.safetyBonusType ?? 'flat';
 
           console.log('Driver data:', {
             name: driver.name,
@@ -508,7 +510,8 @@ const DriverPayrollManagement = () => {
               highTempThreshold: Number(highTempThreshold) || 35,
               companyFlag: companyFlag,
               bonusLayover: Number(bonusLayover) || 0,
-              safetyBonus: Number(safetyBonus) || 0
+              safetyBonus: Number(safetyBonus) || 0,
+              safetyBonusType: (safetyBonusType || 'flat') as 'flat' | 'percentage'
             }
           };
         });
@@ -1464,8 +1467,12 @@ const DriverPayrollManagement = () => {
       const layoverRate = selectedDriver?.details?.bonusLayover || 0;
       const layoverAmount = layoverHours * layoverRate;
 
-      // Safety bonus from form (pre-filled from driver, editable)
-      const safetyBonusAmount = parseFloat(formData.safetyBonus) || 0;
+      // Safety bonus from form — if percentage, apply to baseSalary
+      const safetyBonusRaw = parseFloat(formData.safetyBonus) || 0;
+      const safetyBonusType = selectedDriver?.details?.safetyBonusType || 'flat';
+      const safetyBonusAmount = safetyBonusType === 'percentage'
+        ? (baseSalary * safetyBonusRaw) / 100
+        : safetyBonusRaw;
 
       // Add calculated additions + layover + safety bonus to bonus
       const calculatedBonus = parseFloat(formData.bonus) || 0;
@@ -1546,8 +1553,12 @@ const DriverPayrollManagement = () => {
       const layoverRate = selectedDriver?.details?.bonusLayover || 0;
       const layoverAmount = layoverHours * layoverRate;
 
-      // Safety bonus from form (pre-filled from driver, editable)
-      const safetyBonusAmount = parseFloat(formData.safetyBonus) || 0;
+      // Safety bonus — if percentage, apply to existing baseSalary
+      const safetyBonusRaw = parseFloat(formData.safetyBonus) || 0;
+      const safetyBonusType = selectedDriver?.details?.safetyBonusType || 'flat';
+      const safetyBonusAmount = safetyBonusType === 'percentage'
+        ? ((selectedPayroll?.baseSalary || 0) * safetyBonusRaw) / 100
+        : safetyBonusRaw;
 
       // Add calculated additions + layover + safety bonus to bonus (same as create)
       const calculatedBonus = parseFloat(formData.bonus) || 0;
@@ -3441,10 +3452,12 @@ const DriverPayrollManagement = () => {
                   {/* Safety Bonus */}
                   <div>
                     <label className="block text-sm font-medium text-primary mb-2">
-                      Safety Bonus ($)
+                      Safety Bonus {selectedDriver?.details?.safetyBonusType === 'percentage' ? '(%)' : '($)'}
                     </label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={18} />
+                      {selectedDriver?.details?.safetyBonusType === 'percentage'
+                        ? <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary font-bold text-sm">%</span>
+                        : <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={18} />}
                       <input
                         type="number"
                         name="safetyBonus"
@@ -3457,7 +3470,9 @@ const DriverPayrollManagement = () => {
                       />
                     </div>
                     <p className="text-xs text-secondary mt-1">
-                      Pre-filled from driver profile (${(selectedDriver?.details?.safetyBonus || 0).toFixed(2)}). Editable per payroll.
+                      {selectedDriver?.details?.safetyBonusType === 'percentage'
+                        ? `Driver profile: ${(selectedDriver?.details?.safetyBonus || 0)}% of base salary = $${(((selectedDriver?.details?.safetyBonus || 0) / 100) * 0).toFixed(2)} (calculated at submit)`
+                        : `Pre-filled from driver profile ($${(selectedDriver?.details?.safetyBonus || 0).toFixed(2)}). Editable per payroll.`}
                     </p>
                   </div>
 
@@ -3747,7 +3762,11 @@ const DriverPayrollManagement = () => {
                     const layoverHoursVal = parseFloat(formData.layoverHours || '0');
                     const layoverRateVal = selectedDriver?.details?.bonusLayover || 0;
                     const layoverAmountVal = layoverHoursVal * layoverRateVal;
-                    const safetyBonusVal = parseFloat(formData.safetyBonus || '0');
+                    const safetyBonusRaw = parseFloat(formData.safetyBonus || '0');
+                    const safetyBonusTypeVal = selectedDriver?.details?.safetyBonusType || 'flat';
+                    const safetyBonusVal = safetyBonusTypeVal === 'percentage'
+                      ? (tripsTotals.totalEarnings * safetyBonusRaw) / 100
+                      : safetyBonusRaw;
 
                     // Gross Earnings = Trip Earnings + Manual Bonus + Calculated Additions + Layover + Safety Bonus
                     const grossEarnings = tripsTotals.totalEarnings + manualBonus + totalAdditions + layoverAmountVal + safetyBonusVal;
@@ -3815,7 +3834,7 @@ const DriverPayrollManagement = () => {
                               )}
                               {safetyBonusVal > 0 && (
                                 <div className="flex justify-between">
-                                  <span>Safety Bonus:</span>
+                                  <span>Safety Bonus{safetyBonusTypeVal === 'percentage' ? ` (${safetyBonusRaw}%)` : ''}:</span>
                                   <span>+${safetyBonusVal.toFixed(2)}</span>
                                 </div>
                               )}

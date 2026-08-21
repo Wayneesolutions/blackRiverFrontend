@@ -285,6 +285,7 @@ const OrderList = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+  const [sidebarInitialStep, setSidebarInitialStep] = useState<number>(1);
   const [, setActionMenuOpen] = useState<string | null>(null);
 
   // Order details sidebar state
@@ -987,6 +988,23 @@ const OrderList = () => {
     }
   };
 
+  const handleReassignDriver = async (order: Order) => {
+    try {
+      const response = await getOrderById(order.id);
+      if (response?.success && response?.data) {
+        setEditingOrder(response.data);
+        setSidebarInitialStep(5);
+        setSidebarOpen(true);
+        setActionMenuOpen(null);
+      } else {
+        addNotification('error', response?.message || "Failed to load order details");
+      }
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+      addNotification('error', "Failed to load order details. Please try again.");
+    }
+  };
+
 
   const confirmDeleteOrder = async () => {
     if (!deleteConfirm.orderId) return;
@@ -1594,7 +1612,8 @@ const OrderList = () => {
                             }}
                             onClick={(e) => e.stopPropagation()}
                             className={`appearance-none text-xs font-semibold rounded-full pl-3 pr-7 py-1.5 border cursor-pointer outline-none focus:ring-2 focus:ring-[var(--accent-blue)] transition-colors bg-card
-                              ${order.status?.toLowerCase() === 'quoted' ? 'text-yellow-400 border-yellow-400/40 bg-yellow-400/10' :
+                              ${order.status?.toLowerCase() === 'draft' ? 'text-gray-400 border-gray-400/40 bg-gray-400/10' :
+                                order.status?.toLowerCase() === 'quoted' ? 'text-yellow-400 border-yellow-400/40 bg-yellow-400/10' :
                                 order.status?.toLowerCase() === 'planned' ? 'text-blue-400 border-blue-400/40 bg-blue-400/10' :
                                   order.status?.toLowerCase() === 'completed' ? 'text-green-400 border-green-400/40 bg-green-400/10' :
                                     order.status?.toLowerCase() === 'delivered' ? 'text-purple-400 border-purple-400/40 bg-purple-400/10' :
@@ -1606,6 +1625,7 @@ const OrderList = () => {
                                             'text-primary border-theme'
                               }`}
                           >
+                            <option value="draft" className="bg-card text-primary">Draft</option>
                             <option value="planned" className="bg-card text-primary">Planned</option>
                             <option value="quoted" className="bg-card text-primary">Quoted</option>
                             <option value="in-delivery" className="bg-card text-primary">In Delivery</option>
@@ -1616,7 +1636,8 @@ const OrderList = () => {
                             <option value="canceled" className="bg-card text-red-400">Canceled</option>
                           </select>
                           <ChevronDown className={`pointer-events-none absolute right-2 w-3 h-3 opacity-60
-                            ${order.status?.toLowerCase() === 'quoted' ? 'text-yellow-400' :
+                            ${order.status?.toLowerCase() === 'draft' ? 'text-gray-400' :
+                              order.status?.toLowerCase() === 'quoted' ? 'text-yellow-400' :
                               order.status?.toLowerCase() === 'planned' ? 'text-blue-400' :
                                 order.status?.toLowerCase() === 'completed' ? 'text-green-400' :
                                   order.status?.toLowerCase() === 'canceled' ? 'text-red-400' :
@@ -1625,44 +1646,59 @@ const OrderList = () => {
                         </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="relative inline-flex items-center">
-                          <select
-                            value={order.accountingStatus || 'pending'}
-                            onChange={async (e) => {
-                              e.stopPropagation();
-                              const newStatus = e.target.value;
-                              try {
-                                const res = await updateOrder(order.id, { accountingStatus: newStatus });
-                                if (res?.success) {
-                                  addNotification('success', 'Payment status updated');
-                                  fetchOrders();
-                                } else {
-                                  addNotification('error', 'Failed to update payment status');
+                        {userInfo?.role === 'accountant' ? (
+                          <div className="relative inline-flex items-center">
+                            <select
+                              value={order.accountingStatus || 'pending'}
+                              onChange={async (e) => {
+                                e.stopPropagation();
+                                const newStatus = e.target.value;
+                                try {
+                                  const res = await updateOrder(order.id, { accountingStatus: newStatus });
+                                  if (res?.success) {
+                                    addNotification('success', 'Payment status updated');
+                                    fetchOrders();
+                                  } else {
+                                    addNotification('error', 'Failed to update payment status');
+                                  }
+                                } catch (err) {
+                                  console.error('Error updating payment status:', err);
+                                  addNotification('error', 'Error updating payment status');
                                 }
-                              } catch (err) {
-                                console.error('Error updating payment status:', err);
-                                addNotification('error', 'Error updating payment status');
-                              }
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            className={`appearance-none text-xs font-semibold rounded-full pl-3 pr-7 py-1.5 border cursor-pointer outline-none focus:ring-2 focus:ring-[var(--accent-blue)] transition-colors bg-card
-                              ${(order.accountingStatus || 'pending') === 'paid'
-                                ? 'text-green-400 border-green-400/40 bg-green-400/10'
-                                : (order.accountingStatus || 'pending') === 'unpaid'
-                                  ? 'text-red-400 border-red-400/40 bg-red-400/10'
-                                  : 'text-orange-400 border-orange-400/40 bg-orange-400/10'
-                              }`}
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className={`appearance-none text-xs font-semibold rounded-full pl-3 pr-7 py-1.5 border cursor-pointer outline-none focus:ring-2 focus:ring-[var(--accent-blue)] transition-colors bg-card
+                                ${(order.accountingStatus || 'pending') === 'paid'
+                                  ? 'text-green-400 border-green-400/40 bg-green-400/10'
+                                  : (order.accountingStatus || 'pending') === 'unpaid'
+                                    ? 'text-red-400 border-red-400/40 bg-red-400/10'
+                                    : 'text-orange-400 border-orange-400/40 bg-orange-400/10'
+                                }`}
+                            >
+                              <option value="pending" className="bg-card text-primary">Pending</option>
+                              <option value="paid" className="bg-card text-primary">Paid</option>
+                              <option value="unpaid" className="bg-card text-primary">Unpaid</option>
+                            </select>
+                            <ChevronDown className={`pointer-events-none absolute right-2 w-3 h-3 opacity-60
+                              ${(order.accountingStatus || 'pending') === 'paid' ? 'text-green-400' :
+                                (order.accountingStatus || 'pending') === 'unpaid' ? 'text-red-400' :
+                                  'text-orange-400'
+                              }`} />
+                          </div>
+                        ) : (
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border
+                            ${(order.accountingStatus || 'pending') === 'paid'
+                              ? 'text-green-400 border-green-400/40 bg-green-400/10'
+                              : (order.accountingStatus || 'pending') === 'unpaid'
+                                ? 'text-red-400 border-red-400/40 bg-red-400/10'
+                                : 'text-orange-400 border-orange-400/40 bg-orange-400/10'
+                            }`}
                           >
-                            <option value="pending" className="bg-card text-primary">Pending</option>
-                            <option value="paid" className="bg-card text-primary">Paid</option>
-                            <option value="unpaid" className="bg-card text-primary">Unpaid</option>
-                          </select>
-                          <ChevronDown className={`pointer-events-none absolute right-2 w-3 h-3 opacity-60
-                            ${(order.accountingStatus || 'pending') === 'paid' ? 'text-green-400' :
-                              (order.accountingStatus || 'pending') === 'unpaid' ? 'text-red-400' :
-                                'text-orange-400'
-                            }`} />
-                        </div>
+                            {(order.accountingStatus || 'pending') === 'paid' ? 'Paid'
+                              : (order.accountingStatus || 'pending') === 'unpaid' ? 'Unpaid'
+                              : 'Pending'}
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {truncateText(order.customerName || '-', 15)}
@@ -1727,12 +1763,20 @@ const OrderList = () => {
                             <FaCheckCircle size={10} /> Accepted
                           </span>
                         ) : (order as any).driverAcceptanceStatus === 'rejected' ? (
-                          <span
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 cursor-help"
-                            title={(order as any).driverRejectionReason ? `Reason: ${(order as any).driverRejectionReason}` : 'Driver rejected this assignment'}
-                          >
-                            <FaTimes size={10} /> Rejected
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 cursor-help"
+                              title={(order as any).driverRejectionReason ? `Reason: ${(order as any).driverRejectionReason}` : 'Driver rejected this assignment'}
+                            >
+                              <FaTimes size={10} /> Rejected
+                            </span>
+                            <button
+                              onClick={() => handleReassignDriver(order)}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+                            >
+                              <FaTruck size={10} /> Reassign
+                            </button>
+                          </div>
                         ) : (order as any).driver ? (
                           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700" title="Awaiting driver response">
                             <FaExclamationCircle size={10} /> Pending
@@ -2366,9 +2410,11 @@ const OrderList = () => {
             >
               <NewOrderSidebar
                 order={editingOrder}
+                initialStep={sidebarInitialStep}
                 onClose={() => {
                   setSidebarOpen(false);
                   setEditingOrder(null);
+                  setSidebarInitialStep(1);
                 }}
                 onSave={handleSaveOrder}
               />

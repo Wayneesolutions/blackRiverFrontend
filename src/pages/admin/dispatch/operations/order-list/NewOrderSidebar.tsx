@@ -86,11 +86,12 @@ interface Customer {
 
 interface NewOrderSidebarProps {
     order?: any;
+    initialStep?: number;
     onClose: () => void;
     onSave: () => void;
 }
 
-const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
+const NewOrderSidebar = ({ order, initialStep, onClose, onSave }: NewOrderSidebarProps) => {
     const [loading, setLoading] = useState(false);
     const [notifications, setNotifications] = useState<ToastNotification[]>([]);
     const [validationResults, setValidationResults] = useState<any>(null);
@@ -270,7 +271,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
 
     // Multi-step form state
-    const [currentStep, setCurrentStep] = useState(1); // 1: Customer, 2: Shipper, 3: Receiver, 4: Review, 5: Assignment, 6: Notes/Audit
+    const [currentStep, setCurrentStep] = useState(initialStep || 1); // 1: Customer, 2: Shipper, 3: Receiver, 4: Review, 5: Assignment, 6: Notes/Audit
 
     // Shipper Information states
     const [shipperName, setShipperName] = useState("");
@@ -1757,37 +1758,41 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         }
     };
 
-    const handleSaveOrder = async () => {
-        // Final validation
-        // Use the explicitly selected Customer (Step 1) as the order customer;
-        // only fall back to shipper/receiver if no customer was chosen
+    const handleSaveOrder = async (isDraft = false) => {
+        // For draft saves, only require a customer; skip the rest of field validation
         const orderCustomer = selectedCustomer || selectedShipperCustomer || selectedReceiverCustomer;
-        if (!orderCustomer) {
-            addNotification('error', "Please select a shipper or receiver customer");
+        if (!isDraft) {
+            // Final validation for full save
+            if (!orderCustomer) {
+                addNotification('error', "Please select a shipper or receiver customer");
+                return;
+            }
+            if (!selectedShipperCustomer) {
+                addNotification('error', "Please select a shipper customer");
+                return;
+            }
+            if (!pickupLocationAddress) {
+                addNotification('error', "Please select a shipper customer to set pickup location");
+                return;
+            }
+            if (!customerOrderNo) {
+                addNotification('error', "Please enter customer order number");
+                return;
+            }
+            if (!shipperName) {
+                addNotification('error', "Please enter shipper name");
+                return;
+            }
+            // Shipper phone is optional - not all customers have phone numbers
+            if (!receiverName) {
+                addNotification('error', "Please enter receiver name");
+                return;
+            }
+            // Receiver phone is also optional
+        } else if (!orderCustomer) {
+            addNotification('error', "Please select a customer to save a draft");
             return;
         }
-        if (!selectedShipperCustomer) {
-            addNotification('error', "Please select a shipper customer");
-            return;
-        }
-        if (!pickupLocationAddress) {
-            addNotification('error', "Please select a shipper customer to set pickup location");
-            return;
-        }
-        if (!customerOrderNo) {
-            addNotification('error', "Please enter customer order number");
-            return;
-        }
-        if (!shipperName) {
-            addNotification('error', "Please enter shipper name");
-            return;
-        }
-        // Shipper phone is optional - not all customers have phone numbers
-        if (!receiverName) {
-            addNotification('error', "Please enter receiver name");
-            return;
-        }
-        // Receiver phone is also optional
 
 
         setLoading(true);
@@ -1899,7 +1904,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 },
                 distance: distance ? parseFloat(distance) : 0,
                 additionalInfo: additionalInfo,
-                status: 'QUOTED',
+                status: isDraft ? 'draft' : 'QUOTED',
                 accountingStatus: 'pending',
                 totalAmount: valueOfGoods ? parseFloat(valueOfGoods) : 0,
                 currency: valueOfGoodsCurrency || 'CAD',
@@ -2065,7 +2070,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 // Update existing order
                 response = await updateOrder(order._id, formData);
                 if (response?.success) {
-                    let message = "Order updated successfully!";
+                    let message = isDraft ? "Draft saved!" : "Order updated successfully!";
 
                     // Check for validation results
                     if (response?.validation) {
@@ -2096,7 +2101,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     if (onSave) {
                         onSave();
                     }
-                    if (onClose) {
+                    if (isDraft) {
+                        setCurrentStep(5);
+                    } else if (onClose) {
                         onClose();
                     }
                 } else {
@@ -2114,7 +2121,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 // Create new order
                 response = await createOrder(formData);
                 if (response?.success) {
-                    let message = "Order created successfully!";
+                    let message = isDraft ? "Draft saved!" : "Order created successfully!";
 
                     // Check for validation results
                     if (response?.validation) {
@@ -2146,7 +2153,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     if (onSave) {
                         onSave();
                     }
-                    if (onClose) {
+                    if (isDraft) {
+                        setCurrentStep(5);
+                    } else if (onClose) {
                         onClose();
                     }
                 } else {
@@ -6739,17 +6748,30 @@ focus:outline-none focus:ring-2 focus:ring-[#00D1FF]"
                             Cancel
                         </button>
                         {currentStep < 6 ? (
-                            <button
-                                onClick={handleNextStep}
-                                className="px-6 py-2.5 !text-white font-medium rounded-lg transition-opacity flex items-center gap-2 shadow-md hover:shadow-lg hover:opacity-90"
-                                style={{ background: PRIMARY_GRADIENT }}
-                            >
-                                Next
-                                <ArrowRight className="w-4 h-4" />
-                            </button>
+                            <>
+                                {currentStep === 4 && (
+                                    <button
+                                        onClick={() => handleSaveOrder(true)}
+                                        disabled={loading}
+                                        className="px-6 py-2.5 !text-white font-medium rounded-lg transition-opacity flex items-center gap-2 shadow-md hover:shadow-lg hover:opacity-90"
+                                        style={{ background: 'linear-gradient(90deg, #4B5563 0%, #6B7280 100%)' }}
+                                    >
+                                        {loading ? "Saving..." : "Save Draft & Next"}
+                                        <ArrowRight className="w-4 h-4" />
+                                    </button>
+                                )}
+                                <button
+                                    onClick={handleNextStep}
+                                    className="px-6 py-2.5 !text-white font-medium rounded-lg transition-opacity flex items-center gap-2 shadow-md hover:shadow-lg hover:opacity-90"
+                                    style={{ background: PRIMARY_GRADIENT }}
+                                >
+                                    Next
+                                    <ArrowRight className="w-4 h-4" />
+                                </button>
+                            </>
                         ) : (
                             <button
-                                onClick={handleSaveOrder}
+                                onClick={() => handleSaveOrder()}
                                 disabled={loading}
                                 className="px-6 py-2.5 !text-white font-medium rounded-lg transition-opacity flex items-center gap-2 shadow-md hover:shadow-lg hover:opacity-90"
                                 style={{ background: PRIMARY_GRADIENT }}

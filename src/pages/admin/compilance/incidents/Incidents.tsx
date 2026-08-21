@@ -34,7 +34,8 @@ import { createIssue } from '../../../../axios/api/distapcher';
 import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { getAllTrailers } from '../../../../axios/api/trailer';
 import { listDriver } from '../../../../axios/api/distapcher';
-
+import AddressSearch from '../../../../components/common/AddressSearch';
+import { FaFileCsv } from 'react-icons/fa';
 
 
 
@@ -169,7 +170,7 @@ interface IncidentForm {
   fmcsaReportable?: boolean;
   fmcsaNotes?: string;
   notes?: string;
-  accidentReport?: File;
+  accidentReports?: File[];
   accidentPictures?: File[];
   accidentVideo?: File;
 }
@@ -540,7 +541,7 @@ const Incidents: React.FC = () => {
       alsoCreateAsAccident: false,
       incidentId: '',
       coDriver: '',
-      accidentReport: undefined,
+      accidentReports: [],
       accidentPictures: [],
       accidentVideo: undefined
     });
@@ -583,7 +584,7 @@ const Incidents: React.FC = () => {
       fmcsaReportable: incident.fmcsaReportable || false,
       fmcsaNotes: incident.fmcsaNotes || '',
       notes: incident.notes || '',
-      accidentReport: undefined, // File objects are not preserved when editing, user needs to re-upload
+      accidentReports: [], // File objects are not preserved when editing, user needs to re-upload
       accidentPictures: [],
       accidentVideo: typeof incident.accidentVideo === 'string' ? (incident.accidentVideo ? { name: incident.accidentVideo } as File : undefined) : (incident.accidentVideo?.fileName ? { name: incident.accidentVideo.fileName } as File : undefined)
     });
@@ -662,8 +663,10 @@ const Incidents: React.FC = () => {
       if (incidentForm.notes) formData.append('notes', incidentForm.notes);
 
       // Add files if they exist
-      if (incidentForm.accidentReport instanceof File) {
-        formData.append('accidentReport', incidentForm.accidentReport);
+      if (incidentForm.accidentReports && incidentForm.accidentReports.length > 0) {
+        incidentForm.accidentReports.forEach((file) => {
+          formData.append('accidentReport', file);
+        });
       }
       if (incidentForm.accidentPictures && incidentForm.accidentPictures.length > 0) {
         incidentForm.accidentPictures.forEach((file) => {
@@ -795,11 +798,10 @@ const Incidents: React.FC = () => {
       if (incidentForm.notes) formData.append('notes', incidentForm.notes);
 
       // Add files if they exist (only new files, existing file names are preserved)
-      if (incidentForm.accidentReport instanceof File) {
-        formData.append('accidentReport', incidentForm.accidentReport);
-      } else if (incidentForm.accidentReport) {
-        // Keep existing file name
-        formData.append('accidentReport', incidentForm.accidentReport);
+      if (incidentForm.accidentReports && incidentForm.accidentReports.length > 0) {
+        incidentForm.accidentReports.forEach((file) => {
+          formData.append('accidentReport', file);
+        });
       }
       if (incidentForm.accidentPictures && incidentForm.accidentPictures.length > 0) {
         incidentForm.accidentPictures.forEach((file) => {
@@ -878,6 +880,38 @@ const Incidents: React.FC = () => {
       .filter(Boolean)
   ));
 
+  const exportToCSV = () => {
+    const rows = incidents.map(i => ({
+      'Incident #': i.incidentNumber,
+      'Date/Time': i.incidentDateTime ? new Date(i.incidentDateTime).toLocaleString() : '',
+      Type: i.incidentType,
+      Status: i.incidentStatus,
+      Country: i.location?.country?.toUpperCase() ?? '',
+      State: i.location?.stateProvince ?? '',
+      City: i.location?.city ?? '',
+      Address: i.location?.streetAddress ?? '',
+      Driver: typeof i.driver === 'object' ? (i.driver as any).name ?? '' : i.driver,
+      'Unit #': i.unitNumber ?? '',
+      'Trailer #': i.trailerNumber ?? '',
+      'Police Report #': i.policeReportNumber ?? '',
+      'Damage Description': i.damageDescription ?? '',
+      Notes: i.notes ?? ''
+    }));
+    if (!rows.length) return;
+    const headers = Object.keys(rows[0]);
+    const csv = [
+      headers.join(','),
+      ...rows.map(r => headers.map(h => `"${String((r as any)[h] ?? '').replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'accidents.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const StatCard = ({
     title,
     value,
@@ -944,12 +978,20 @@ const Incidents: React.FC = () => {
                   <span className="text-xs">Manage and track all accidents</span>
                 </div>
               </div>
-              <button
-                onClick={handleAddIncident}
-                className="flex items-center gap-2 px-4 py-2 text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm bg-[var(--accent-navyblue)]"
-              >
-                <FaPlus /> Report Incident
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={exportToCSV}
+                  className="flex items-center gap-2 px-4 py-2 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] shadow-sm transition-all font-medium text-sm"
+                >
+                  <FaFileCsv className="text-green-500" /> Export CSV
+                </button>
+                <button
+                  onClick={handleAddIncident}
+                  className="flex items-center gap-2 px-4 py-2 text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm bg-[var(--accent-navyblue)]"
+                >
+                  <FaPlus /> Report Incident
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1524,16 +1566,24 @@ const Incidents: React.FC = () => {
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium text-primary mb-1">Full Street Address</label>
-                      <input
-                        type="text"
-                        placeholder="Complete street address (street number, street name, etc.)"
+                      <AddressSearch
+                        label="Full Street Address"
+                        placeholder="Search accident location..."
                         value={incidentForm.location?.streetAddress || ''}
-                        onChange={(e) => setIncidentForm(prev => ({
+                        onChange={(val) => setIncidentForm(prev => ({
                           ...prev,
-                          location: { ...prev.location, streetAddress: e.target.value }
+                          location: { ...prev.location, streetAddress: val }
                         }))}
-                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        onAddressSelect={(addr) => setIncidentForm(prev => ({
+                          ...prev,
+                          location: {
+                            ...prev.location,
+                            streetAddress: addr.fullAddress,
+                            city: addr.city || prev.location?.city || '',
+                            stateProvince: addr.state || prev.location?.stateProvince || '',
+                            country: (addr.country?.toLowerCase().includes('canada') ? 'canada' : 'usa') as 'usa' | 'canada'
+                          }
+                        }))}
                       />
                     </div>
                     <div>
@@ -1896,52 +1946,58 @@ const Incidents: React.FC = () => {
                     </div>
                     <div className="col-span-2">
                       <label className="block text-sm font-medium text-primary mb-1">
-                        <FaFileAlt className="inline mr-2" /> Accident Report
+                        <FaFileAlt className="inline mr-2" /> Accident Documents
                       </label>
                       <div className="mt-1">
                         <input
                           type="file"
-                          accept=".pdf,.doc,.docx,.txt"
+                          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                          multiple
                           onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              // Store the File object
-                              setIncidentForm(prev => ({ ...prev, accidentReport: file }));
-                            }
+                            const files = Array.from(e.target.files || []);
+                            setIncidentForm(prev => ({
+                              ...prev,
+                              accidentReports: [...(prev.accidentReports || []), ...files]
+                            }));
                           }}
                           className="hidden"
-                          id="accident-report-upload"
+                          id="accident-reports-upload"
                         />
                         <label
-                          htmlFor="accident-report-upload"
+                          htmlFor="accident-reports-upload"
                           className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-theme rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
                         >
                           <FaUpload className="text-secondary" size={18} />
                           <span className="text-sm text-secondary">
-                            {incidentForm.accidentReport
-                              ? incidentForm.accidentReport.name
-                              : 'Click to upload accident report (PDF, DOC, DOCX, TXT)'}
+                            {incidentForm.accidentReports && incidentForm.accidentReports.length > 0
+                              ? `${incidentForm.accidentReports.length} document(s) selected`
+                              : 'Click to upload documents (PDF, DOC, DOCX, images)'}
                           </span>
                         </label>
-                        {incidentForm.accidentReport && (
-                          <div className="mt-2 flex items-center justify-between bg-card px-3 py-2 rounded text-sm">
-                            <span className="text-primary flex items-center gap-2">
-                              <FaFileAlt className="text-green-500" size={14} />
-                              {incidentForm.accidentReport.name}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIncidentForm(prev => ({ ...prev, accidentReport: undefined }));
-                              }}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <FaTimes size={14} />
-                            </button>
+                        {incidentForm.accidentReports && incidentForm.accidentReports.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {incidentForm.accidentReports.map((file, index) => (
+                              <div key={index} className="flex items-center justify-between bg-card px-3 py-2 rounded text-sm">
+                                <span className="text-primary flex items-center gap-2">
+                                  <FaFileAlt className="text-green-500" size={14} />
+                                  {file.name}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setIncidentForm(prev => ({
+                                    ...prev,
+                                    accidentReports: prev.accidentReports?.filter((_, i) => i !== index) || []
+                                  }))}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <FaTimes size={14} />
+                                </button>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
-                      <p className="mt-1 text-xs text-secondary">Upload accident report document from safety system</p>
+                      <p className="mt-1 text-xs text-secondary">Upload accident report documents and supporting files</p>
                     </div>
                   </div>
                 </div>

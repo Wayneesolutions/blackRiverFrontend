@@ -36,6 +36,8 @@ import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { getAllTrailers } from '../../../../axios/api/trailer';
 import { listDriver } from '../../../../axios/api/distapcher';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
+import AddressSearch from '../../../../components/common/AddressSearch';
+import { FaFileCsv } from 'react-icons/fa';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
 const hexToRgba = (hex: string, alpha = 1) => {
@@ -125,6 +127,7 @@ interface LawyerDetails {
   caseNumber?: string;
   courtDate?: string;
   status: 'active' | 'closed' | 'pending';
+  lawyerPrice?: number;
 }
 
 interface TicketStats {
@@ -782,6 +785,40 @@ const Tickets: React.FC = () => {
     return basicValid;
   };
 
+  const exportToCSV = () => {
+    const rows = filteredTickets.map(t => ({
+      'Ticket #': t.ticketNumber,
+      Country: t.country?.toUpperCase(),
+      'Violation Type': t.violationType,
+      'Date Issued': t.dateIssued ? new Date(t.dateIssued).toLocaleDateString() : '',
+      'Due Date': t.dueDate ? new Date(t.dueDate).toLocaleDateString() : '',
+      Location: t.location,
+      Amount: t.amount,
+      'Final Amount': t.finalAmount ?? '',
+      'Lawyer Price': (t.lawyerDetails as any)?.lawyerPrice ?? '',
+      Status: t.status,
+      Outcome: t.outcome ?? '',
+      Driver: typeof t.driver === 'object' ? (t.driver as any).name ?? '' : t.driver,
+      Vehicle: typeof t.vehicle === 'object' ? ((t.vehicle as any).plateNumber ?? (t.vehicle as any).internalId ?? '') : t.vehicle,
+      'Officer Name': t.officerName,
+      'Fighting By': t.fightingBy ?? '',
+      Notes: t.notes ?? ''
+    }));
+    if (!rows.length) return;
+    const headers = Object.keys(rows[0]);
+    const csv = [
+      headers.join(','),
+      ...rows.map(r => headers.map(h => `"${String((r as any)[h] ?? '').replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'tickets.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const saveNewTicket = async () => {
     if (!validateForm()) {
       addNotification('error', 'Please fill all required fields');
@@ -810,8 +847,8 @@ const Tickets: React.FC = () => {
         notes: ticketForm.notes || ''
       };
 
-      // Add final amount if status is reduced
-      if (ticketForm.status === 'reduced' && ticketForm.finalAmount) {
+      // Add final amount if status is reduced or dismissed
+      if ((ticketForm.status === 'reduced' || ticketForm.status === 'dismissed') && ticketForm.finalAmount) {
         payload.finalAmount = ticketForm.finalAmount;
       }
 
@@ -872,8 +909,8 @@ const Tickets: React.FC = () => {
         notes: ticketForm.notes || ''
       };
 
-      // Add final amount if status is reduced
-      if (ticketForm.status === 'reduced' && ticketForm.finalAmount) {
+      // Add final amount if status is reduced or dismissed
+      if ((ticketForm.status === 'reduced' || ticketForm.status === 'dismissed') && ticketForm.finalAmount) {
         payload.finalAmount = ticketForm.finalAmount;
       } else {
         payload.finalAmount = undefined;
@@ -998,12 +1035,20 @@ const Tickets: React.FC = () => {
                   <span className="text-xs">Manage traffic violations and legal disputes for USA & Canada</span>
                 </div>
               </div>
-              <button
-                onClick={handleAddTicket}
-                className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
-              >
-                <FaPlus /> Add Ticket
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={exportToCSV}
+                  className="flex items-center gap-2 px-4 py-2 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] shadow-sm transition-all font-medium text-sm"
+                >
+                  <FaFileCsv className="text-green-500" /> Export CSV
+                </button>
+                <button
+                  onClick={handleAddTicket}
+                  className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
+                >
+                  <FaPlus /> Add Ticket
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1623,15 +1668,12 @@ const Tickets: React.FC = () => {
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-headings mb-1">
-                      {ticketForm.country === 'canada' ? 'Province' : 'State'} <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder={ticketForm.country === 'canada' ? 'Province (e.g., MB, AB, ON, BC, QC)' : 'State (e.g., California, Texas, New York)'}
+                    <AddressSearch
+                      label="Ticket Location / Address *"
+                      placeholder="Search address where ticket was issued..."
                       value={ticketForm.location || ''}
-                      onChange={(e) => setTicketForm(prev => ({ ...prev, location: e.target.value }))}
-                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      onChange={(val) => setTicketForm(prev => ({ ...prev, location: val }))}
+                      onAddressSelect={(addr) => setTicketForm(prev => ({ ...prev, location: addr.fullAddress }))}
                     />
                   </div>
                   <div>
@@ -1751,14 +1793,14 @@ const Tickets: React.FC = () => {
                       <option className='form-option' value="lawyer">Lawyer</option>
                     </select>
                   </div>
-                  {ticketForm.status === 'reduced' && (
+                  {(ticketForm.status === 'reduced' || ticketForm.status === 'dismissed') && (
                     <div>
-                      <label className="block text-sm font-medium text-headings mb-1">Final Amount</label>
+                      <label className="block text-sm font-medium text-headings mb-1">Final Amount (After Reduction/Dismissal)</label>
                       <input
                         type="number"
                         step="0.01"
                         min="0"
-                        placeholder="Final amount after reduction"
+                        placeholder="Final amount after reduction or dismissal"
                         value={ticketForm.finalAmount || ''}
                         onChange={(e) => setTicketForm(prev => ({ ...prev, finalAmount: parseFloat(e.target.value) || undefined }))}
                         className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
@@ -1980,6 +2022,30 @@ const Tickets: React.FC = () => {
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-primary mb-1">Lawyer Price</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="Legal fees/costs"
+                          value={ticketForm.lawyerDetails?.lawyerPrice || ''}
+                          onChange={(e) => setTicketForm(prev => ({
+                            ...prev,
+                            lawyerDetails: {
+                              ...prev.lawyerDetails,
+                              lawyerPrice: parseFloat(e.target.value) || undefined,
+                              name: prev.lawyerDetails?.name || '',
+                              firm: prev.lawyerDetails?.firm || '',
+                              phone: prev.lawyerDetails?.phone || '',
+                              email: prev.lawyerDetails?.email || '',
+                              address: prev.lawyerDetails?.address || '',
+                              status: prev.lawyerDetails?.status || 'active'
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -2094,15 +2160,12 @@ const Tickets: React.FC = () => {
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-headings mb-1">
-                      {ticketForm.country === 'canada' ? 'Province' : 'State'} <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder={ticketForm.country === 'canada' ? 'Province (e.g., MB, AB, ON, BC, QC)' : 'State (e.g., California, Texas, New York)'}
+                    <AddressSearch
+                      label="Ticket Location / Address *"
+                      placeholder="Search address where ticket was issued..."
                       value={ticketForm.location || ''}
-                      onChange={(e) => setTicketForm(prev => ({ ...prev, location: e.target.value }))}
-                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      onChange={(val) => setTicketForm(prev => ({ ...prev, location: val }))}
+                      onAddressSelect={(addr) => setTicketForm(prev => ({ ...prev, location: addr.fullAddress }))}
                     />
                   </div>
                   <div>
@@ -2361,14 +2424,14 @@ const Tickets: React.FC = () => {
                       </option>
                     </select>
                   </div>
-                  {ticketForm.status === 'reduced' && (
+                  {(ticketForm.status === 'reduced' || ticketForm.status === 'dismissed') && (
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-1">Final Amount</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Final Amount (After Reduction/Dismissal)</label>
                       <input
                         type="number"
                         step="0.01"
                         min="0"
-                        placeholder="Final amount after reduction"
+                        placeholder="Final amount after reduction or dismissal"
                         value={ticketForm.finalAmount || ''}
                         onChange={(e) => setTicketForm(prev => ({ ...prev, finalAmount: parseFloat(e.target.value) || undefined }))}
                         className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
@@ -2596,6 +2659,30 @@ const Tickets: React.FC = () => {
                               email: prev.lawyerDetails?.email || '',
                               address: prev.lawyerDetails?.address || '',
                               caseNumber: prev.lawyerDetails?.caseNumber || '',
+                              status: prev.lawyerDetails?.status || 'active'
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-primary mb-1">Lawyer Price</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="Legal fees/costs"
+                          value={ticketForm.lawyerDetails?.lawyerPrice || ''}
+                          onChange={(e) => setTicketForm(prev => ({
+                            ...prev,
+                            lawyerDetails: {
+                              ...prev.lawyerDetails,
+                              lawyerPrice: parseFloat(e.target.value) || undefined,
+                              name: prev.lawyerDetails?.name || '',
+                              firm: prev.lawyerDetails?.firm || '',
+                              phone: prev.lawyerDetails?.phone || '',
+                              email: prev.lawyerDetails?.email || '',
+                              address: prev.lawyerDetails?.address || '',
                               status: prev.lawyerDetails?.status || 'active'
                             }
                           }))}

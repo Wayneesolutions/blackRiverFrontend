@@ -366,6 +366,7 @@ const DriverManagement = () => {
     customHst: '',
     // Safety Bonus
     safetyBonus: '0',
+    safetyBonusType: 'flat' as 'flat' | 'percentage',
     // Additional fields
     gender: '',
     citizenship: ''
@@ -1107,6 +1108,7 @@ const DriverManagement = () => {
             payrollTaxExempt: driver.details?.provTaxExempt || driver.provTaxExempt || false,
             customHst: driver.details?.customHst || driver.customHst || '',
             safetyBonus: String(driver.details?.safetyBonus ?? driver.safetyBonus ?? 0),
+            safetyBonusType: (driver.details?.safetyBonusType || driver.safetyBonusType || 'flat') as 'flat' | 'percentage',
             gender: driver.details?.gender || driver.gender || '',
             citizenship: driver.details?.citizenship || driver.citizenship || ''
           });
@@ -1522,6 +1524,7 @@ const DriverManagement = () => {
                   return 'SOLO';
                 })() as 'SOLO' | 'TEAM' | 'BOTH',
                 safetyBonus: String(driver.details?.safetyBonus ?? driver.safetyBonus ?? 0),
+                safetyBonusType: (driver.details?.safetyBonusType || driver.safetyBonusType || 'flat') as 'flat' | 'percentage',
                 cross_border_eligible: driver.details?.cross_border_eligible !== undefined ? driver.details.cross_border_eligible : (driver.cross_border_eligible !== undefined ? driver.cross_border_eligible : false),
                 cppExempt: driver.details?.cppQppExempt || driver.cppQppExempt || false,
                 payrollTaxExempt: driver.details?.provTaxExempt || driver.provTaxExempt || false,
@@ -1651,6 +1654,7 @@ const DriverManagement = () => {
         payrollTaxExempt: false,
         customHst: '',
         safetyBonus: '0',
+        safetyBonusType: 'flat' as 'flat' | 'percentage',
         gender: '',
         citizenship: ''
       });
@@ -2133,6 +2137,7 @@ const DriverManagement = () => {
       if (personalData.gstNo) driverFormData.append('gstNo', personalData.gstNo);
       if (personalData.vacationPercent) driverFormData.append('vacationPay', personalData.vacationPercent);
       if (personalData.safetyBonus && personalData.safetyBonus !== '0') driverFormData.append('safetyBonus', personalData.safetyBonus);
+      driverFormData.append('safetyBonusType', personalData.safetyBonusType || 'flat');
 
 
       // Driver Type - Send companyFlag: true for OWNER OPERATOR, false for COMPANY DRIVER
@@ -2459,6 +2464,7 @@ const DriverManagement = () => {
           payrollTaxExempt: false,
           customHst: '',
           safetyBonus: '0',
+          safetyBonusType: 'flat' as 'flat' | 'percentage',
           gender: '',
           citizenship: ''
         });
@@ -2625,6 +2631,7 @@ const DriverManagement = () => {
       payrollTaxExempt: false,
       customHst: '',
       safetyBonus: '0',
+      safetyBonusType: 'flat' as 'flat' | 'percentage',
       gender: '',
       citizenship: ''
     });
@@ -2942,6 +2949,9 @@ const DriverManagement = () => {
       }
       if (hasValueChanged(personalData.safetyBonus, original.personalData.safetyBonus)) {
         driverFormData.append('safetyBonus', personalData.safetyBonus || '0');
+      }
+      if (hasValueChanged(personalData.safetyBonusType, original.personalData.safetyBonusType)) {
+        driverFormData.append('safetyBonusType', personalData.safetyBonusType || 'flat');
       }
       // Cross-border eligibility
       if (hasValueChanged(personalData.cross_border_eligible, original.personalData.cross_border_eligible)) {
@@ -5745,16 +5755,36 @@ const DriverManagement = () => {
                     {/* Safety Bonus */}
                     <div className="mt-6">
                       <h4 className="text-md font-bold text-primary mb-4">Safety Bonus</h4>
-                      <div className="max-w-xs">
-                        <label className="block text-sm font-medium text-primary mb-1">Safety Bonus ($)</label>
-                        <input
-                          type="text"
-                          placeholder="0"
-                          value={personalData.safetyBonus}
-                          onChange={(e) => setPersonalData({ ...personalData, safetyBonus: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
-                        />
-                        <p className="text-xs text-secondary mt-1">Added to payroll when applicable</p>
+                      <div className="max-w-sm">
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Safety Bonus {personalData.safetyBonusType === 'percentage' ? '(%)' : '($)'}
+                        </label>
+                        <div className="flex gap-2">
+                          <div className="flex rounded-lg overflow-hidden border border-theme text-sm">
+                            <button
+                              type="button"
+                              onClick={() => setPersonalData({ ...personalData, safetyBonusType: 'flat' })}
+                              className={`px-3 py-2 font-medium transition-colors ${personalData.safetyBonusType === 'flat' ? 'bg-[var(--accent-navyblue)] !text-white' : 'bg-[rgba(255,255,255,0.08)] text-secondary'}`}
+                            >$</button>
+                            <button
+                              type="button"
+                              onClick={() => setPersonalData({ ...personalData, safetyBonusType: 'percentage' })}
+                              className={`px-3 py-2 font-medium transition-colors ${personalData.safetyBonusType === 'percentage' ? 'bg-[var(--accent-navyblue)] !text-white' : 'bg-[rgba(255,255,255,0.08)] text-secondary'}`}
+                            >%</button>
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="0"
+                            value={personalData.safetyBonus}
+                            onChange={(e) => setPersonalData({ ...personalData, safetyBonus: e.target.value })}
+                            className="flex-1 px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                          />
+                        </div>
+                        <p className="text-xs text-secondary mt-1">
+                          {personalData.safetyBonusType === 'percentage'
+                            ? 'Percentage of base salary — calculated at payroll time'
+                            : 'Flat amount added to payroll when applicable'}
+                        </p>
                       </div>
                     </div>
 
