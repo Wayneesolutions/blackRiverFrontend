@@ -7,6 +7,7 @@ import { fetchUserProfiles, type UserProfileDto, type UserProfilesTimeRange } fr
 import { listOrder } from '../../../../axios/api/distapcher';
 import { getDriverById, uploadDriverDrugTest } from '../../../../axios/api/driver';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
+import TimelineNotes from '../../../../components/common/TimelineNotes';
 
 type TimePeriod = UserProfilesTimeRange;
 type ProfileTimePeriod = '1week' | '2weeks' | '1month' | '6months' | '1year' | '2years';
@@ -1575,6 +1576,9 @@ const DriverPortfolio: React.FC = () => {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Timeline & Notes */}
+                            <TimelineNotes entityType="drivers" entityId={selectedProfile._id} />
                         </div>
                     </div>
                 </>

@@ -1,5 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
-import { Plus, Info, ChevronUp, ChevronDown, X, User, FileText, Upload, Edit, Trash2, Save, Calendar, Eye, EyeOff, FileDown } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { Plus, Info, ChevronUp, ChevronDown, X, User, FileText, Upload, Edit, Trash2, Save, Calendar, Eye, EyeOff, FileDown, MessageSquare } from 'lucide-react';
+import TimelineNotes from '../../../../components/common/TimelineNotes';
+import { useAutoSaveDraft } from '../../../../customHooks/useAutoSaveDraft';
+import DraftRestoreBanner from '../../../../components/common/DraftRestoreBanner';
+import AutoSaveIndicator from '../../../../components/common/AutoSaveIndicator';
 import ExcelJS from 'exceljs';
 import { FaTimes, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import * as employeeApi from '../../../../axios/api/employee';
@@ -92,7 +96,7 @@ const EmployeesPage = () => {
   const [showNewEmployeeModal, setShowNewEmployeeModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [originalEmployeeData, setOriginalEmployeeData] = useState<any>(null);
-  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'personal' | 'documents' | 'notes' | 'deductions' | 'additions'>('basic');
+  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'personal' | 'documents' | 'notes' | 'deductions' | 'additions' | 'timeline'>('basic');
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -180,6 +184,35 @@ const EmployeesPage = () => {
     currency: 'CAD'
   });
   const [editingAdditionId, setEditingAdditionId] = useState<string | null>(null);
+
+  // Auto-save draft protection (crash/power-loss safety net for the create/edit form)
+  const employeeDraftSnapshot = useMemo(
+    () => ({ basicData, personalData, notesBenefits, deductions, additions }),
+    [basicData, personalData, notesBenefits, deductions, additions]
+  );
+  const {
+    status: draftStatus,
+    lastSavedAt: draftLastSavedAt,
+    pendingRestore: draftPendingRestore,
+    restoreDraft: restoreEmployeeDraft,
+    discardDraft: discardEmployeeDraft,
+    clearDraft: clearEmployeeDraft,
+  } = useAutoSaveDraft({
+    entityType: 'employees',
+    entityId: editingId || 'new',
+    formData: employeeDraftSnapshot,
+    enabled: showNewEmployeeModal,
+  });
+
+  const handleRestoreEmployeeDraft = () => {
+    const draft = restoreEmployeeDraft();
+    if (!draft) return;
+    if (draft.basicData) setBasicData((prev: any) => ({ ...prev, ...draft.basicData }));
+    if (draft.personalData) setPersonalData((prev: any) => ({ ...prev, ...draft.personalData }));
+    if (typeof draft.notesBenefits === 'string') setNotesBenefits(draft.notesBenefits);
+    if (Array.isArray(draft.deductions)) setDeductions(draft.deductions);
+    if (Array.isArray(draft.additions)) setAdditions(draft.additions);
+  };
 
   // Country selector state for phone (Country type + fetch cache declared at module scope above)
   const [countries, setCountries] = useState<Country[]>(cachedCountries || []);
@@ -846,6 +879,7 @@ const EmployeesPage = () => {
         console.log('✅ Documents were included in the employee creation/update request');
 
         showNotification('success', `Employee ${editingId ? 'updated' : 'created'} successfully!`);
+        clearEmployeeDraft();
         setShowNewEmployeeModal(false);
         resetForm();
         fetchEmployees();
@@ -1651,7 +1685,8 @@ const EmployeesPage = () => {
                     { id: 'documents', label: 'Documents', icon: FileText },
                     { id: 'notes', label: 'Notes / Benefits', icon: FileText },
                     { id: 'deductions', label: 'Deductions', icon: FileText },
-                    { id: 'additions', label: 'Additions', icon: FileText }
+                    { id: 'additions', label: 'Additions', icon: FileText },
+                    ...(editingId ? [{ id: 'timeline', label: 'Timeline', icon: MessageSquare }] : [])
                   ].map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeFormTab === tab.id;
@@ -1680,6 +1715,7 @@ const EmployeesPage = () => {
               <div className="flex items-center justify-between p-6 border-b border-theme bg-card">
                 <h2 className="text-2xl font-bold text-primary">{editingId ? 'Edit Employee' : 'New Employee'}</h2>
                 <div className="flex items-center gap-3">
+                  <AutoSaveIndicator status={draftStatus} lastSavedAt={draftLastSavedAt} />
                   <button
                     onClick={handleSaveEmployee}
                     disabled={isSubmitting}
@@ -1698,6 +1734,13 @@ const EmployeesPage = () => {
 
               {/* Form Content */}
               <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 bg-card">
+                {draftPendingRestore && (
+                  <DraftRestoreBanner
+                    updatedAt={draftPendingRestore.updatedAt}
+                    onRestore={handleRestoreEmployeeDraft}
+                    onDiscard={discardEmployeeDraft}
+                  />
+                )}
                 {activeFormTab === 'basic' && (
                   <div className="space-y-6 max-w-full">
                     <h3 className="text-lg font-bold text-primary mb-4">Basic Information</h3>
@@ -2932,6 +2975,10 @@ const EmployeesPage = () => {
                   </div>
                 )}
 
+                {activeFormTab === 'timeline' && editingId && (
+                  <TimelineNotes entityType="employees" entityId={editingId} />
+                )}
+
               </div>
 
               {/* Tab Navigation Footer - fixed at bottom of modal */}
@@ -2943,6 +2990,7 @@ const EmployeesPage = () => {
                   { id: 'notes', label: 'Notes / Benefits' },
                   { id: 'deductions', label: 'Deductions' },
                   { id: 'additions', label: 'Additions' },
+                  ...(editingId ? [{ id: 'timeline', label: 'Timeline' }] : []),
                 ];
                 const tabIndex = FORM_TABS.findIndex(t => t.id === activeFormTab);
                 const prevTab = tabIndex > 0 ? FORM_TABS[tabIndex - 1] : null;
