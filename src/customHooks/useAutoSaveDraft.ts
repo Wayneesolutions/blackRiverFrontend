@@ -9,7 +9,7 @@ const REMOTE_SAVE_INTERVAL_MS = 12000;
 export type AutoSaveStatus = 'idle' | 'saving' | 'saved';
 
 export interface DraftRestoreInfo {
-  formData: Record<string, any>;
+  formData: Record<string, unknown>;
   updatedAt: string;
   source: 'local' | 'server';
 }
@@ -20,7 +20,7 @@ interface UseAutoSaveDraftOptions {
   /** The record's id, or "new" for a creation-form draft */
   entityId: string;
   /** Current form state — save whenever this changes */
-  formData: Record<string, any>;
+  formData: Record<string, unknown>;
   /** Set to false to pause autosave (e.g. while a restore banner is still unresolved) */
   enabled?: boolean;
 }
@@ -50,7 +50,7 @@ export const useAutoSaveDraft = ({
   formDataRef.current = formData;
 
   const saveLocal = useCallback(
-    (data: Record<string, any>) => {
+    (data: Record<string, unknown>) => {
       try {
         localStorage.setItem(
           storageKey,
@@ -64,7 +64,7 @@ export const useAutoSaveDraft = ({
   );
 
   const saveRemote = useCallback(
-    async (data: Record<string, any>) => {
+    async (data: Record<string, unknown>) => {
       setStatus('saving');
       try {
         const res = await saveDraft(entityType, entityId, data);

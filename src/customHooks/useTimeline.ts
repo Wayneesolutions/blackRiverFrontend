@@ -26,7 +26,11 @@ export const useTimeline = (entityType: TimelineEntityType, entityId: string | u
     async (pageToLoad: number, mode: 'replace' | 'append') => {
       if (!entityId) return;
       const requestId = ++requestIdRef.current;
-      mode === 'replace' ? setLoading(true) : setLoadingMore(true);
+      if (mode === 'replace') {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
       setError(null);
       try {
         const res = await getTimeline(entityType, entityId, pageToLoad, PAGE_SIZE);
@@ -39,9 +43,9 @@ export const useTimeline = (entityType: TimelineEntityType, entityId: string | u
         setEntries((prev) => (mode === 'replace' ? newEntries : [...prev, ...newEntries]));
         setHasMore(Boolean(res?.hasMore));
         setPage(pageToLoad);
-      } catch (err: any) {
+      } catch (err) {
         if (requestId !== requestIdRef.current) return;
-        setError(err?.message || 'Failed to load timeline');
+        setError(err instanceof Error ? err.message : 'Failed to load timeline');
       } finally {
         if (requestId === requestIdRef.current) {
           setLoading(false);
@@ -75,8 +79,9 @@ export const useTimeline = (entityType: TimelineEntityType, entityId: string | u
       setSubmitting(true);
       try {
         const res = await addTimelineEntry(entityType, entityId, note.trim());
-        if (res?.success !== false && res?.entry) {
-          setEntries((prev) => [res.entry, ...prev]);
+        const newEntry = res?.entry;
+        if (res?.success !== false && newEntry) {
+          setEntries((prev) => [newEntry, ...prev]);
         } else if (res?.success !== false) {
           // Backend may not echo the entry back — fall back to a full refresh.
           await fetchPage(1, 'replace');

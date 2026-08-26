@@ -1,3 +1,4 @@
+import axios from 'axios';
 import apiClient from '../apiClient';
 import type { AxiosResponse } from 'axios';
 
@@ -8,7 +9,7 @@ import type { AxiosResponse } from 'axios';
 export type DraftEntityType = 'drivers' | 'trucks' | 'trailers' | 'employees';
 
 export interface DraftRecord {
-  formData: Record<string, any>;
+  formData: Record<string, unknown>;
   updatedAt: string;
 }
 
@@ -17,6 +18,13 @@ export interface DraftResponse {
   message?: string;
   draft?: DraftRecord | null;
 }
+
+const extractErrorResponse = (error: unknown): DraftResponse => {
+  if (axios.isAxiosError(error) && error.response?.data) {
+    return error.response.data as DraftResponse;
+  }
+  return { success: false, message: 'Network error' };
+};
 
 export const getDraft = async (
   entityType: DraftEntityType,
@@ -27,26 +35,25 @@ export const getDraft = async (
     return res.data;
   } catch (error) {
     // A missing draft is a normal "nothing saved yet" state, not an error worth surfacing.
-    const status = (error as any)?.response?.status;
-    if (status === 404) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
       return { success: true, draft: null };
     }
     console.error('❌ Error fetching draft:', error);
-    return (error as any).response?.data || { success: false };
+    return extractErrorResponse(error);
   }
 };
 
 export const saveDraft = async (
   entityType: DraftEntityType,
   entityId: string,
-  formData: Record<string, any>
+  formData: Record<string, unknown>
 ): Promise<DraftResponse> => {
   try {
     const res: AxiosResponse = await apiClient.put(`drafts/${entityType}/${entityId}`, { formData });
     return res.data;
   } catch (error) {
     console.error('❌ Error saving draft:', error);
-    return (error as any).response?.data || { success: false };
+    return extractErrorResponse(error);
   }
 };
 
@@ -59,6 +66,6 @@ export const deleteDraft = async (
     return res.data;
   } catch (error) {
     console.error('❌ Error deleting draft:', error);
-    return (error as any).response?.data || { success: false };
+    return extractErrorResponse(error);
   }
 };

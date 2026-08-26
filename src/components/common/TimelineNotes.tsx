@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { Loader2, MessageSquare, Pencil, Trash2, AlertCircle } from 'lucide-react';
 import type { RootState } from '../../redux/store';
 import { useTimeline } from '../../customHooks/useTimeline';
-import type { TimelineEntityType, TimelineEntry } from '../../axios/api/timeline';
+import type { TimelineEntityType, TimelineEntry, TimelineMutationResponse } from '../../axios/api/timeline';
 import { formatAbsoluteTime, formatRelativeTime } from '../../utils/formatRelativeTime';
 import ConfirmationModal from './ConfirmationModal';
 
@@ -17,7 +17,7 @@ interface TimelineNotesProps {
 const TimelineEntryRow: React.FC<{
   entry: TimelineEntry;
   canManage: boolean;
-  onEdit: (entryId: string, note: string) => Promise<any>;
+  onEdit: (entryId: string, note: string) => Promise<TimelineMutationResponse | { success: boolean; message?: string }>;
   onDelete: (entryId: string) => void;
 }> = ({ entry, canManage, onEdit, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);

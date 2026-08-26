@@ -185,35 +185,6 @@ const EmployeesPage = () => {
   });
   const [editingAdditionId, setEditingAdditionId] = useState<string | null>(null);
 
-  // Auto-save draft protection (crash/power-loss safety net for the create/edit form)
-  const employeeDraftSnapshot = useMemo(
-    () => ({ basicData, personalData, notesBenefits, deductions, additions }),
-    [basicData, personalData, notesBenefits, deductions, additions]
-  );
-  const {
-    status: draftStatus,
-    lastSavedAt: draftLastSavedAt,
-    pendingRestore: draftPendingRestore,
-    restoreDraft: restoreEmployeeDraft,
-    discardDraft: discardEmployeeDraft,
-    clearDraft: clearEmployeeDraft,
-  } = useAutoSaveDraft({
-    entityType: 'employees',
-    entityId: editingId || 'new',
-    formData: employeeDraftSnapshot,
-    enabled: showNewEmployeeModal,
-  });
-
-  const handleRestoreEmployeeDraft = () => {
-    const draft = restoreEmployeeDraft();
-    if (!draft) return;
-    if (draft.basicData) setBasicData((prev: any) => ({ ...prev, ...draft.basicData }));
-    if (draft.personalData) setPersonalData((prev: any) => ({ ...prev, ...draft.personalData }));
-    if (typeof draft.notesBenefits === 'string') setNotesBenefits(draft.notesBenefits);
-    if (Array.isArray(draft.deductions)) setDeductions(draft.deductions);
-    if (Array.isArray(draft.additions)) setAdditions(draft.additions);
-  };
-
   // Country selector state for phone (Country type + fetch cache declared at module scope above)
   const [countries, setCountries] = useState<Country[]>(cachedCountries || []);
   const [phoneCountry, setPhoneCountry] = useState<string>('US');
@@ -313,6 +284,35 @@ const EmployeesPage = () => {
 
   // Form state for Notes / Benefits
   const [notesBenefits, setNotesBenefits] = useState('');
+
+  // Auto-save draft protection (crash/power-loss safety net for the create/edit form)
+  const employeeDraftSnapshot = useMemo(
+    () => ({ basicData, personalData, notesBenefits, deductions, additions }),
+    [basicData, personalData, notesBenefits, deductions, additions]
+  );
+  const {
+    status: draftStatus,
+    lastSavedAt: draftLastSavedAt,
+    pendingRestore: draftPendingRestore,
+    restoreDraft: restoreEmployeeDraft,
+    discardDraft: discardEmployeeDraft,
+    clearDraft: clearEmployeeDraft,
+  } = useAutoSaveDraft({
+    entityType: 'employees',
+    entityId: editingId || 'new',
+    formData: employeeDraftSnapshot,
+    enabled: showNewEmployeeModal,
+  });
+
+  const handleRestoreEmployeeDraft = () => {
+    const draft = restoreEmployeeDraft() as Partial<typeof employeeDraftSnapshot> | null;
+    if (!draft) return;
+    if (draft.basicData) setBasicData((prev) => ({ ...prev, ...draft.basicData }));
+    if (draft.personalData) setPersonalData((prev) => ({ ...prev, ...draft.personalData }));
+    if (typeof draft.notesBenefits === 'string') setNotesBenefits(draft.notesBenefits);
+    if (Array.isArray(draft.deductions)) setDeductions(draft.deductions);
+    if (Array.isArray(draft.additions)) setAdditions(draft.additions);
+  };
 
   // Toast notifications state
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);

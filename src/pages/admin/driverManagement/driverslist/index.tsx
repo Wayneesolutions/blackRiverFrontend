@@ -11,6 +11,9 @@ import type { EmployeeDocument } from '../../../../axios/api/employeeDocument';
 import { deleteViolation } from '../../../../axios/api/violations';
 import { deleteDeductionAddition } from '../../../../axios/api/account.settlement';
 import AddressSearch from '../../../../components/common/AddressSearch';
+import { useAutoSaveDraft } from '../../../../customHooks/useAutoSaveDraft';
+import DraftRestoreBanner from '../../../../components/common/DraftRestoreBanner';
+import AutoSaveIndicator from '../../../../components/common/AutoSaveIndicator';
 
 import DateField from "../../../../components/common/DateField"
 
@@ -318,6 +321,27 @@ const DriverManagement = () => {
     stateProvince: '',
     profileImage: null as File | null
   });
+
+  // Auto-save draft protection (crash/power-loss safety net for the create/edit form)
+  const {
+    status: draftStatus,
+    lastSavedAt: draftLastSavedAt,
+    pendingRestore: draftPendingRestore,
+    restoreDraft: restoreDriverDraft,
+    discardDraft: discardDriverDraft,
+    clearDraft: clearDriverDraft,
+  } = useAutoSaveDraft({
+    entityType: 'drivers',
+    entityId: editingId || 'new',
+    formData,
+    enabled: showNewDriverModal,
+  });
+
+  const handleRestoreDriverDraft = () => {
+    const draft = restoreDriverDraft();
+    if (!draft) return;
+    setFormData((prev) => ({ ...prev, ...draft }));
+  };
 
   // Form state for Personal Information
   const [personalData, setPersonalData] = useState({
@@ -2386,6 +2410,7 @@ const DriverManagement = () => {
         // No need for separate API calls
 
         addNotification('success', 'Driver created successfully!');
+        clearDriverDraft();
 
         // Reset form
         setFormData({
@@ -3445,6 +3470,7 @@ const DriverManagement = () => {
         }
 
         addNotification('success', 'Driver updated successfully!');
+        clearDriverDraft();
         handleCloseModal();
         // Refresh drivers list
         await fetchDrivers();
@@ -4288,6 +4314,7 @@ const DriverManagement = () => {
               <div className="flex items-center justify-between p-3 border-b border-theme bg-card">
                 <h2 className="text-lg font-bold text-primary">{(editingId || editingDriver) ? 'Edit Driver' : 'New Driver'}</h2>
                 <div className="flex items-center gap-2">
+                  <AutoSaveIndicator status={draftStatus} lastSavedAt={draftLastSavedAt} />
                   <button
                     onClick={editingId ? handleUpdateDriver : handleSaveDriver}
                     disabled={isSubmitting}
@@ -4310,6 +4337,13 @@ const DriverManagement = () => {
 
               {/* Form Content */}
               <div className="flex-1 overflow-y-auto p-3 bg-card">
+                {draftPendingRestore && (
+                  <DraftRestoreBanner
+                    updatedAt={draftPendingRestore.updatedAt}
+                    onRestore={handleRestoreDriverDraft}
+                    onDiscard={discardDriverDraft}
+                  />
+                )}
                 {activeFormTab === 'basic' && (
                   <div className="space-y-3">
                     <h3 className="text-sm font-bold text-primary mb-2">Basic Information</h3>

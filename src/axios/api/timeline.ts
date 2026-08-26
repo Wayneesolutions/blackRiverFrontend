@@ -1,3 +1,4 @@
+import axios from 'axios';
 import apiClient from '../apiClient';
 import type { AxiosResponse } from 'axios';
 
@@ -32,6 +33,21 @@ export interface TimelineListResponse {
   hasMore: boolean;
 }
 
+export interface TimelineMutationResponse {
+  success: boolean;
+  message?: string;
+  entry?: TimelineEntry;
+}
+
+const extractErrorResponse = <T extends { success: boolean; message?: string }>(
+  error: unknown
+): T => {
+  if (axios.isAxiosError(error) && error.response?.data) {
+    return error.response.data as T;
+  }
+  return { success: false, message: 'Network error' } as T;
+};
+
 export const getTimeline = async (
   entityType: TimelineEntityType,
   entityId: string,
@@ -45,7 +61,7 @@ export const getTimeline = async (
     return res.data;
   } catch (error) {
     console.error('❌ Error fetching timeline:', error);
-    return (error as any).response?.data;
+    return extractErrorResponse<TimelineListResponse>(error);
   }
 };
 
@@ -53,13 +69,13 @@ export const addTimelineEntry = async (
   entityType: TimelineEntityType,
   entityId: string,
   note: string
-) => {
+): Promise<TimelineMutationResponse> => {
   try {
     const res: AxiosResponse = await apiClient.post(`${entityType}/${entityId}/timeline`, { note });
     return res.data;
   } catch (error) {
     console.error('❌ Error adding timeline entry:', error);
-    return (error as any).response?.data;
+    return extractErrorResponse<TimelineMutationResponse>(error);
   }
 };
 
@@ -68,7 +84,7 @@ export const updateTimelineEntry = async (
   entityId: string,
   entryId: string,
   note: string
-) => {
+): Promise<TimelineMutationResponse> => {
   try {
     const res: AxiosResponse = await apiClient.patch(
       `${entityType}/${entityId}/timeline/${entryId}`,
@@ -77,7 +93,7 @@ export const updateTimelineEntry = async (
     return res.data;
   } catch (error) {
     console.error('❌ Error updating timeline entry:', error);
-    return (error as any).response?.data;
+    return extractErrorResponse<TimelineMutationResponse>(error);
   }
 };
 
@@ -85,7 +101,7 @@ export const deleteTimelineEntry = async (
   entityType: TimelineEntityType,
   entityId: string,
   entryId: string
-) => {
+): Promise<TimelineMutationResponse> => {
   try {
     const res: AxiosResponse = await apiClient.delete(
       `${entityType}/${entityId}/timeline/${entryId}`
@@ -93,6 +109,6 @@ export const deleteTimelineEntry = async (
     return res.data;
   } catch (error) {
     console.error('❌ Error deleting timeline entry:', error);
-    return (error as any).response?.data;
+    return extractErrorResponse<TimelineMutationResponse>(error);
   }
 };
