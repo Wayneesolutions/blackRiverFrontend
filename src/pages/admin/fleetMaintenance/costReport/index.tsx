@@ -221,8 +221,8 @@ const CostReports = () => {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 !border !border-gray-200 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-900">{`${label}`}</p>
+        <div className="bg-card p-3 !border !border-theme rounded-lg shadow-lg">
+          <p className="font-semibold text-primary">{`${label}`}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }}>
               {`${entry.dataKey === 'totalCost' ? 'Total Cost' : 'Work Orders'}: ${
@@ -241,24 +241,24 @@ const CostReports = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Maintenance Cost Reports</h1>
-          <p className="text-gray-600">Track and analyze vehicle maintenance costs and expenses</p>
+          <h1 className="text-3xl font-bold text-primary mb-2">Maintenance Cost Reports</h1>
+          <p className="text-secondary">Track and analyze vehicle maintenance costs and expenses</p>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm !border border-gray-300 p-6 mb-6">
+        <div className="bg-card rounded-lg shadow-sm !border border-theme p-6 mb-6">
           <div className="flex flex-wrap gap-4 items-center">
             <div className="flex items-center gap-2">
-              <Filter className="h-5 w-5 text-gray-500" />
-              <span className="font-medium text-gray-700">Filters:</span>
+              <Filter className="h-5 w-5 text-secondary" />
+              <span className="font-medium text-primary">Filters:</span>
             </div>
             
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Year:</span>
+              <span className="text-sm text-secondary">Year:</span>
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="px-3 py-2 !border !border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[120px]"
+                className="px-3 py-2 !border !border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[120px]"
               >
                 <option value="2024">2024</option>
                 <option value="2023">2023</option>
@@ -267,11 +267,11 @@ const CostReports = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Vehicle:</span>
+              <span className="text-sm text-secondary">Vehicle:</span>
               <select
                 value={selectedVehicle}
                 onChange={(e) => setSelectedVehicle(e.target.value)}
-                className="px-3 py-2 border !border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[140px]"
+                className="px-3 py-2 border !border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[140px]"
               >
                 {vehicles.map(vehicle => (
                   <option key={vehicle.id} value={vehicle.id}>
@@ -282,11 +282,11 @@ const CostReports = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Period:</span>
+              <span className="text-sm text-secondary">Period:</span>
               <select
                 value={selectedDateRange}
                 onChange={(e) => setSelectedDateRange(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]"
+                className="px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]"
               >
                 <option value="12months">Last 12 Months</option>
                 <option value="6months">Last 6 Months</option>
@@ -303,11 +303,11 @@ const CostReports = () => {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border !border-gray-300 p-6">
+          <div className="bg-card rounded-lg shadow-sm border !border-theme p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Cost</p>
-                <p className="text-2xl font-bold text-gray-900">${summaryStats.totalCost.toLocaleString()}</p>
+                <p className="text-sm font-medium text-secondary">Total Cost</p>
+                <p className="text-2xl font-bold text-primary">${summaryStats.totalCost.toLocaleString()}</p>
               </div>
               <DollarSign className="h-8 w-8 text-green-600" />
             </div>
@@ -317,40 +317,40 @@ const CostReports = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-300 p-6">
+          <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Work Orders</p>
-                <p className="text-2xl font-bold text-gray-900">{summaryStats.totalWorkOrders}</p>
+                <p className="text-sm font-medium text-secondary">Work Orders</p>
+                <p className="text-2xl font-bold text-primary">{summaryStats.totalWorkOrders}</p>
               </div>
-              <Wrench className="h-8 w-8 text-blue-600" />
+              <Wrench className="h-8 w-8 text-[#00D1FF]" />
             </div>
             <div className="mt-2 flex items-center text-sm">
-              <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
-              <span className="text-red-600">5% vs last period</span>
+              <TrendingDown className="h-4 w-4 text-[#A855F7] mr-1" />
+              <span className="text-[#A855F7]">5% vs last period</span>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border-gray-300 border p-6">
+          <div className="bg-card rounded-lg shadow-sm border-theme border p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Vehicles</p>
-                <p className="text-2xl font-bold text-gray-900">{summaryStats.uniqueVehicles}</p>
+                <p className="text-sm font-medium text-secondary">Vehicles</p>
+                <p className="text-2xl font-bold text-primary">{summaryStats.uniqueVehicles}</p>
               </div>
               <Truck className="h-8 w-8 text-purple-600" />
             </div>
             <div className="mt-2 flex items-center text-sm">
-              <span className="text-gray-600">Active vehicles</span>
+              <span className="text-secondary">Active vehicles</span>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border-gray-300 border p-6">
+          <div className="bg-card rounded-lg shadow-sm border-theme border p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Avg Cost/Order</p>
-                <p className="text-2xl font-bold text-gray-900">${summaryStats.avgCostPerWorkOrder}</p>
+                <p className="text-sm font-medium text-secondary">Avg Cost/Order</p>
+                <p className="text-2xl font-bold text-primary">${summaryStats.avgCostPerWorkOrder}</p>
               </div>
-              <Calendar className="h-8 w-8 text-orange-600" />
+              <Calendar className="h-8 w-8 text-[#F59E0B]" />
             </div>
             <div className="mt-2 flex items-center text-sm">
               <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
@@ -362,8 +362,8 @@ const CostReports = () => {
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Monthly Cost and Work Orders Trend */}
-          <div className="bg-white rounded-lg shadow-sm border-gray-300 border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Cost & Work Orders Analysis</h3>
+          <div className="bg-card rounded-lg shadow-sm border-theme border p-6">
+            <h3 className="text-lg font-semibold text-primary mb-4">Monthly Cost & Work Orders Analysis</h3>
             <ResponsiveContainer width="100%" height={350}>
               <LineChart data={monthlyChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -421,8 +421,8 @@ const CostReports = () => {
           </div>
 
           {/* Vehicle Cost Distribution */}
-          <div className="bg-white rounded-lg shadow-sm border-gray-300 border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Cost Distribution by Vehicle</h3>
+          <div className="bg-card rounded-lg shadow-sm border-theme border p-6">
+            <h3 className="text-lg font-semibold text-primary mb-4">Cost Distribution by Vehicle</h3>
             <div className="flex items-center justify-center">
               <div style={{ width: '70%', height: '350px' }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -473,8 +473,8 @@ const CostReports = () => {
                         style={{ backgroundColor: COLORS[index % COLORS.length] }}
                       ></div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{vehicle.plateNumber}</div>
-                        <div className="text-xs text-gray-500">${vehicle.totalCost.toLocaleString()}</div>
+                        <div className="text-sm font-medium text-primary">{vehicle.plateNumber}</div>
+                        <div className="text-xs text-secondary">${vehicle.totalCost.toLocaleString()}</div>
                       </div>
                     </div>
                   ))}
@@ -487,52 +487,52 @@ const CostReports = () => {
    
 
         {/* Detailed Table */}
-        <div className="bg-white rounded-lg shadow-sm border !border-gray-200">
-          <div className="px-6 py-4 !border-b !border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">Detailed Cost Breakdown</h3>
+        <div className="bg-card rounded-lg shadow-sm border !border-theme">
+          <div className="px-6 py-4 !border-b !border-theme">
+            <h3 className="text-lg font-semibold text-primary">Detailed Cost Breakdown</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full">
-              <thead className="bg-gray-50/50">
-                <tr className="border-b border-gray-100">
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-0">
+              <thead className="bg-card">
+                <tr className="border-b border-theme">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider border-0">
                     Vehicle
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-0">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider border-0">
                     Month/Year
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-0">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider border-0">
                     Total Cost
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-0">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider border-0">
                     Work Orders
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-0">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider border-0">
                     Avg Cost/Order
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white">
+              <tbody className="bg-card">
                 {filteredData.map((item, index) => (
                   <tr 
                     key={index} 
-                    className={`border-0 hover:bg-gray-50/50 transition-colors duration-150 ${
-                      index !== filteredData.length - 1 ? 'border-b border-gray-100' : ''
+                    className={`border-0 hover:bg-card transition-colors duration-150 ${
+                      index !== filteredData.length - 1 ? 'border-b border-theme' : ''
                     }`}
                   >
                     <td className="px-6 py-4 whitespace-nowrap border-0">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                          <Truck className="h-4 w-4 text-blue-600" />
+                          <Truck className="h-4 w-4 text-[#00D1FF]" />
                         </div>
-                        <span className="text-sm font-medium text-gray-900">{item.plateNumber}</span>
+                        <span className="text-sm font-medium text-primary">{item.plateNumber}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 border-0">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-0">
                       {monthNames[item.month - 1]} {item.year}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap border-0">
-                      <span className="text-sm font-semibold text-gray-900">
+                      <span className="text-sm font-semibold text-primary">
                         ${item.totalCost.toLocaleString()}
                       </span>
                     </td>
@@ -541,7 +541,7 @@ const CostReports = () => {
                         {item.workOrders} orders
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 border-0">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-0">
                       ${Math.round(item.totalCost / item.workOrders).toLocaleString()}
                     </td>
                   </tr>
@@ -553,25 +553,25 @@ const CostReports = () => {
 
         {/* Vehicle Summary Cards */}
         <div className="mt-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Vehicle Summary</h3>
+          <h3 className="text-lg font-semibold text-primary mb-4">Vehicle Summary</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {vehicleBreakdown.map((vehicle, index) => (
-              <div key={vehicle.plateNumber} className="bg-white rounded-lg shadow-sm border-gray-300 border p-4">
+              <div key={vehicle.plateNumber} className="bg-card rounded-lg shadow-sm border-theme border p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-gray-900">{vehicle.plateNumber}</h4>
+                  <h4 className="font-medium text-primary">{vehicle.plateNumber}</h4>
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Total Cost:</span>
+                    <span className="text-secondary">Total Cost:</span>
                     <span className="font-medium">${vehicle.totalCost.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Work Orders:</span>
+                    <span className="text-secondary">Work Orders:</span>
                     <span className="font-medium">{vehicle.workOrders}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Avg per Order:</span>
+                    <span className="text-secondary">Avg per Order:</span>
                     <span className="font-medium">${Math.round(vehicle.totalCost / vehicle.workOrders).toLocaleString()}</span>
                   </div>
                 </div>

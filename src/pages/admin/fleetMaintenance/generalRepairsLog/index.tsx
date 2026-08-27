@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import type { CSSProperties } from 'react';
 import ExcelJS from 'exceljs';
 import { Plus, Edit, Trash2, Search, Download, AlertCircle, Clock, X, Mail, FileText, ExternalLink } from 'lucide-react';
 import { FaExclamationCircle, FaTimes } from 'react-icons/fa';
@@ -15,26 +14,7 @@ import {
 } from '../../../../axios/api/generalRepairs';
 import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { getAllEmployees } from '../../../../axios/api/employee';
-import { FLEET_COLORS } from '../colorUtils';
 
-const ACCENT_PRIMARY = FLEET_COLORS.primary;
-const ACCENT_DARK = FLEET_COLORS.dark;
-const hexToRgba = (hex: string, alpha = 1) => {
-  const parsed = hex.replace('#', '');
-  const bigint = parseInt(parsed, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-const ACCENT_SOFT = hexToRgba(ACCENT_PRIMARY, 0.1);
-const ACCENT_SOFT_BORDER = hexToRgba(ACCENT_PRIMARY, 0.25);
-const ACCENT_VARS = {
-  '--accent-color': ACCENT_PRIMARY,
-  '--accent-dark': ACCENT_DARK,
-  '--accent-soft': ACCENT_SOFT,
-  '--accent-soft-border': ACCENT_SOFT_BORDER
-} as CSSProperties;
 
 interface UnitOption {
   _id?: string;
@@ -94,7 +74,7 @@ const Toast: React.FC<{ notification: NotificationState; onClose: () => void }> 
   const colors =
     notification.type === 'success'
       ? 'border-green-200 bg-green-50 text-green-800'
-      : 'border-red-200 bg-red-50 text-red-800';
+      : 'border-red-200 bg-card text-red-800';
 
   return (
     <div className="fixed top-6 right-6 z-[1200] w-full max-w-sm animate-slide-in">
@@ -150,7 +130,7 @@ const GeneralRepairsLog: React.FC = () => {
   const [filterMechanicType, setFilterMechanicType] = useState<'all' | 'internal' | 'external'>('all');
   const [exporting, setExporting] = useState(false);
   const [sending, setSending] = useState(false);
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -313,8 +293,8 @@ const GeneralRepairsLog: React.FC = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -471,7 +451,7 @@ const GeneralRepairsLog: React.FC = () => {
           makeModel: repair.makeModel || 'N/A',
           description: repair.description,
           odometer: repair.odometer ?? 'N/A',
-          parts: Array.isArray(repair.parts) 
+          parts: Array.isArray(repair.parts)
             ? repair.parts.map((p: any) => `${p.partName || p.partNumber || 'Part'} (Qty: ${p.quantity || 1})`).join(', ')
             : (repair.parts || 'N/A'),
           notes: repair.notes || '',
@@ -649,11 +629,11 @@ const GeneralRepairsLog: React.FC = () => {
 
   const handleSendEmail = async () => {
     if (!selectedRepair) return;
-    
+
     // Check if mechanic is assigned
     const currentServiceProviderId = formData.serviceProviderId || (selectedRepair as any).serviceProviderId;
     const currentServiceProvider = formData.serviceProvider || selectedRepair.serviceProvider;
-    
+
     if (!currentServiceProviderId && !currentServiceProvider) {
       setNotification({ type: 'error', message: 'Please assign a mechanic before sending email.' });
       return;
@@ -695,7 +675,7 @@ const GeneralRepairsLog: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF', ...ACCENT_VARS }}>
+    <div className="min-h-screen pb-10 bg-main" >
       <div className="relative w-full mx-auto p-2">
         {/* Gradient band */}
 
@@ -705,8 +685,8 @@ const GeneralRepairsLog: React.FC = () => {
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-black">Maintenance Orders Log</h1>
-                <div className="flex items-center gap-2 text-black/90">
+                <h1 className="text-2xl font-bold text-headings">Maintenance Orders Log</h1>
+                <div className="flex items-center gap-2 text-secondary">
                   <span className="text-xs">Log non-routine maintenance orders (Tires, Brakes, Accident Repairs)</span>
                 </div>
               </div>
@@ -714,15 +694,15 @@ const GeneralRepairsLog: React.FC = () => {
                 <button
                   onClick={handleExportRepairs}
                   disabled={exporting}
-                  className="inline-flex items-center gap-2 rounded-lg bg-white text-green-600 px-4 py-2 font-bold text-sm shadow-sm hover:bg-white/90 transition disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent-navyblue)] text-green-600 px-4 py-2 font-bold text-sm shadow-sm hover:bg-card/90 transition disabled:opacity-60"
                 >
                   <Download className="w-4 h-4" />
                   {exporting ? 'Exporting...' : 'Export'}
                 </button>
                 <button
                   onClick={handleAddRepair}
-                  className="flex items-center gap-2 px-4 py-2 !text-white rounded-lg shadow-sm transition-all font-bold text-sm hover:opacity-90"
-                  style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+                  className="flex items-center gap-2 px-4 py-2 !text-white rounded-lg shadow-sm transition-all font-bold text-sm hover:opacity-90 bg-[var(--accent-navyblue)]"
+
                 >
                   <Plus className="w-5 h-5" />
                   Add Maintenance Order
@@ -743,93 +723,93 @@ const GeneralRepairsLog: React.FC = () => {
           {notification && <Toast notification={notification} onClose={() => setNotification(null)} />}
 
           {error && !requiresCompanySetup && (
-            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">{error}</div>
+            <div className="mb-4 rounded-lg border border-red-200 bg-card px-4 py-3 text-red-700">{error}</div>
           )}
 
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {/* Incoming Maintenance Card */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+            <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Incoming Maintenance</p>
-                  <p className="text-2xl font-bold text-orange-600 mb-1">{summaryStats.incomingMaintenance}</p>
-                  <p className="text-xs text-gray-500">Recent maintenance orders requiring attention</p>
+                  <p className="text-sm font-medium text-secondary mb-1">Incoming Maintenance</p>
+                  <p className="text-2xl font-bold text-[#F59E0B] mb-1">{summaryStats.incomingMaintenance}</p>
+                  <p className="text-xs text-secondary">Recent maintenance orders requiring attention</p>
                 </div>
-                <div className="bg-orange-50 p-3 rounded-lg">
-                  <AlertCircle className="h-6 w-6 text-orange-600" />
+                <div className="bg-card p-3 rounded-lg">
+                  <AlertCircle className="h-6 w-6 text-[#F59E0B]" />
                 </div>
               </div>
-              <div className="border-t border-gray-100 pt-3 space-y-1.5">
+              <div className="border-t border-theme pt-3 space-y-1.5">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Last 7 Days</span>
-                  <span className="font-semibold text-orange-600">{summaryStats.urgentRepairs}</span>
+                  <span className="text-secondary">Last 7 Days</span>
+                  <span className="font-semibold text-[#F59E0B]">{summaryStats.urgentRepairs}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Last 30 Days</span>
-                  <span className="font-semibold text-gray-900">{summaryStats.incomingMaintenance}</span>
+                  <span className="text-secondary">Last 30 Days</span>
+                  <span className="font-semibold text-headings">{summaryStats.incomingMaintenance}</span>
                 </div>
                 {summaryStats.mostRecentRepairDate && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Most Recent</span>
-                    <span className="font-semibold text-gray-900">
+                    <span className="text-secondary">Most Recent</span>
+                    <span className="font-semibold text-headings">
                       {formatDate(summaryStats.mostRecentRepairDate.toISOString())}
                     </span>
                   </div>
                 )}
-                <div className="flex items-center justify-between text-sm pt-1.5 border-t border-gray-100">
-                  <span className="text-gray-600">Units Affected</span>
-                  <span className="font-semibold text-gray-900">{summaryStats.unitsWithRecentRepairs}</span>
+                <div className="flex items-center justify-between text-sm pt-1.5 border-t border-theme">
+                  <span className="text-secondary">Units Affected</span>
+                  <span className="font-semibold text-headings">{summaryStats.unitsWithRecentRepairs}</span>
                 </div>
               </div>
             </div>
 
             {/* Recent Repairs Activity Card */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+            <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Recent Maintenance Orders / Activity</p>
-                  <p className="text-2xl font-bold text-blue-600 mb-1">{summaryStats.recentActivity}</p>
-                  <p className="text-xs text-gray-500">Maintenance orders logged in last 30 days</p>
+                  <p className="text-sm font-medium text-secondary mb-1">Recent Maintenance Orders / Activity</p>
+                  <p className="text-2xl font-bold text-[#00D1FF] mb-1">{summaryStats.recentActivity}</p>
+                  <p className="text-xs text-secondary">Maintenance orders logged in last 30 days</p>
                 </div>
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <Clock className="h-6 w-6 text-blue-600" />
+                <div className="bg-card p-3 rounded-lg">
+                  <Clock className="h-6 w-6 text-[#00D1FF]" />
                 </div>
               </div>
-              <div className="border-t border-gray-100 pt-3 space-y-1.5">
+              <div className="border-t border-theme pt-3 space-y-1.5">
                 {summaryStats.mostRecentRepairDate && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Most Recent</span>
-                    <span className="font-semibold text-gray-900">
+                    <span className="text-secondary">Most Recent</span>
+                    <span className="font-semibold text-headings">
                       {formatDate(summaryStats.mostRecentRepairDate.toISOString())}
                     </span>
                   </div>
                 )}
                 {summaryStats.topRepairType && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Top Maintenance Order Type</span>
-                    <span className="font-semibold text-blue-600 text-right max-w-[60%] truncate" title={summaryStats.topRepairType}>
+                    <span className="text-secondary">Top Maintenance Order Type</span>
+                    <span className="font-semibold text-[#00D1FF] text-right max-w-[60%] truncate" title={summaryStats.topRepairType}>
                       {summaryStats.topRepairType}
                     </span>
                   </div>
                 )}
-                <div className="flex items-center justify-between text-sm pt-1.5 border-t border-gray-100">
-                    <span className="text-gray-600">Total Maintenance Orders</span>
-                  <span className="font-semibold text-gray-900">{summaryStats.recentActivity}</span>
+                <div className="flex items-center justify-between text-sm pt-1.5 border-t border-theme">
+                  <span className="text-secondary">Total Maintenance Orders</span>
+                  <span className="font-semibold text-headings">{summaryStats.recentActivity}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-4">
+          <div className="bg-card rounded-lg shadow-sm border border-theme p-4 mb-4">
             <div className="relative mb-3">
-              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
               <input
                 type="text"
                 placeholder="Search by unit number, make/model, invoice, or description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                className="pl-10 pr-4 py-2 w-full border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                 onFocus={(e) => {
                   e.target.style.borderColor = '#016ab2';
@@ -842,84 +822,59 @@ const GeneralRepairsLog: React.FC = () => {
               />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 font-medium mr-1">Mechanic:</span>
+              <span className="text-xs text-secondary font-medium mr-1">Mechanic:</span>
               <button
                 onClick={() => setFilterMechanicType('all')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
-                  filterMechanicType === 'all'
-                    ? 'bg-gray-800 !text-white border-gray-800'
-                    : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
-                }`}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${filterMechanicType === 'all'
+                  ? 'bg-gray-800 !text-white border-gray-800'
+                  : 'bg-card text-secondary border-theme hover:border-gray-400'
+                  }`}
               >
                 All Mechanics
               </button>
               <button
                 onClick={() => setFilterMechanicType('internal')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
-                  filterMechanicType === 'internal'
-                    ? 'bg-blue-600 !text-white border-blue-600'
-                    : 'bg-white text-gray-600 border-gray-300 hover:border-blue-300'
-                }`}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${filterMechanicType === 'internal'
+                  ? 'bg-blue-600 !text-white border-blue-600'
+                  : 'bg-card text-secondary border-theme hover:border-blue-300'
+                  }`}
               >
                 Internal
               </button>
               <button
                 onClick={() => setFilterMechanicType('external')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors flex items-center gap-1.5 ${
-                  filterMechanicType === 'external'
-                    ? 'bg-orange-500 !text-white border-orange-500'
-                    : 'bg-white text-gray-600 border-gray-300 hover:border-orange-300'
-                }`}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors flex items-center gap-1.5 ${filterMechanicType === 'external'
+                  ? 'bg-orange-500 !text-white border-orange-500'
+                  : 'bg-card text-secondary border-theme hover:border-orange-300'
+                  }`}
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${filterMechanicType === 'external' ? 'bg-white' : 'bg-orange-400'}`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${filterMechanicType === 'external' ? 'bg-card' : 'bg-orange-400'}`} />
                 External
               </button>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
-            <style>{`
-              .top-scrollbar-container::-webkit-scrollbar {
-                height: 8px;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-track {
-                background: #f7fafc;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-thumb {
-                background: #cbd5e0;
-                border-radius: 4px;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
-                background: #a0aec0;
-              }
-              .table-container-hidden-scrollbar {
-                scrollbar-width: none; /* Firefox */
-                -ms-overflow-style: none; /* IE and Edge */
-              }
-              .table-container-hidden-scrollbar::-webkit-scrollbar {
-                display: none; /* Chrome, Safari, Opera */
-              }
-            `}</style>
-            <div 
+
+            <div
               ref={topScrollRef}
               className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-              style={{ 
+              style={{
                 maxHeight: '20px',
                 marginBottom: '2px',
-                scrollbarWidth: 'thin',
-                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+
               }}
             >
               <div className="top-scroll-content" style={{ height: '1px' }}></div>
             </div>
             {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-            <div 
+            <div
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
               <table className="w-full" style={{ minWidth: '1200px' }}>
-                <thead className="text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
+                <thead className="text-headings" >
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Service Date</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Unit Number</th>
@@ -934,16 +889,16 @@ const GeneralRepairsLog: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-theme divide-white/5">
                   {loading ? (
                     <tr>
-                      <td colSpan={12} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={12} className="px-6 py-12 text-center text-secondary">
                         Loading maintenance orders...
                       </td>
                     </tr>
                   ) : filteredRepairs.length === 0 ? (
                     <tr>
-                      <td colSpan={12} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={12} className="px-6 py-12 text-center text-secondary">
                         No maintenance orders found
                       </td>
                     </tr>
@@ -953,115 +908,113 @@ const GeneralRepairsLog: React.FC = () => {
                       const dbStatus = (repair as any).status;
                       const hasServiceProvider = repair.serviceProvider && repair.serviceProvider.trim() !== '';
                       const isShared = (repair as any).shared === true;
-                      
+
                       // Valid statuses from database: 'Created', 'Assigned', 'Shared', 'in-progress', 'completed'
                       let status = dbStatus;
                       if (!status || !['Created', 'Assigned', 'Shared', 'in-progress', 'completed'].includes(status)) {
                         // Fallback calculation if status not set or invalid
                         status = isShared ? 'Shared' : (hasServiceProvider ? 'Assigned' : 'Created');
                       }
-                      
+
                       return (
-                      <tr 
-                        key={repair._id} 
-                        className="hover:bg-gray-50 transition-colors cursor-pointer"
-                        onClick={() => {
-                          setSelectedRepair(repair);
-                          setShowRepairDetails(true);
-                        }}
-                      >
-                        <td className="px-6 py-4 text-gray-900">{formatDate(repair.serviceDate)}</td>
-                        <td className="px-6 py-4 font-medium text-gray-900">{repair.unitNumber}</td>
-                        <td className="px-6 py-4 text-gray-900">{repair.makeModel || '—'}</td>
-                        <td className="px-6 py-4 text-gray-600 font-mono text-sm">{repair.vinLicensePlate || '—'}</td>
-                        <td className="px-6 py-4 text-gray-900 max-w-xs">
-                          <div className="truncate" title={repair.description}>
-                            {repair.description}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-gray-900">
-                          {typeof repair.odometer === 'number' ? `${repair.odometer.toLocaleString()} km` : '—'}
-                        </td>
-                        <td className="px-6 py-4 text-gray-900">
-                          {repair.mechanicType === 'external' ? (
-                            <div className="flex items-center gap-1">
-                              <span className="inline-flex items-center text-xs font-semibold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">Ext</span>
-                              <span>{repair.serviceProvider || '—'}</span>
+                        <tr
+                          key={repair._id}
+                          className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
+                          onClick={() => {
+                            setSelectedRepair(repair);
+                            setShowRepairDetails(true);
+                          }}
+                        >
+                          <td className="px-6 py-4 text-secondary">{formatDate(repair.serviceDate)}</td>
+                          <td className="px-6 py-4 font-medium text-secondary">{repair.unitNumber}</td>
+                          <td className="px-6 py-4 text-secondary">{repair.makeModel || '—'}</td>
+                          <td className="px-6 py-4 text-secondary font-mono text-sm">{repair.vinLicensePlate || '—'}</td>
+                          <td className="px-6 py-4 text-secondary max-w-xs">
+                            <div className="truncate" title={repair.description}>
+                              {repair.description}
                             </div>
-                          ) : (
-                            repair.serviceProvider || '—'
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-gray-600 font-mono text-sm">{repair.invoiceNumber || '—'}</td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                            status === 'completed'
+                          </td>
+                          <td className="px-6 py-4 text-secondary">
+                            {typeof repair.odometer === 'number' ? `${repair.odometer.toLocaleString()} km` : '—'}
+                          </td>
+                          <td className="px-6 py-4 text-secondary">
+                            {repair.mechanicType === 'external' ? (
+                              <div className="flex items-center gap-1">
+                                <span className="inline-flex items-center text-xs font-semibold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">Ext</span>
+                                <span>{repair.serviceProvider || '—'}</span>
+                              </div>
+                            ) : (
+                              repair.serviceProvider || '—'
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-secondary font-mono text-sm">{repair.invoiceNumber || '—'}</td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${status === 'completed'
                               ? 'bg-blue-100 text-blue-700'
                               : status === 'in-progress'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : status === 'Shared' 
-                              ? 'bg-purple-100 text-purple-700' 
-                              : status === 'Assigned'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-gray-100 text-gray-700'
-                          }`}>
-                            {status === 'in-progress' ? 'In Progress' : status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                          {status === 'completed' ? (
-                            <select
-                              value={(repair as any).verificationStatus || 'not-verified'}
-                              onChange={async (e) => {
-                                const newStatus = e.target.value;
-                                if (newStatus === 'verified' && (repair as any).verificationStatus !== 'verified') {
-                                  try {
-                                    const response = await verifyMaintenanceOrder(repair._id);
-                                    if (response?.success) {
-                                      setNotification({ type: 'success', message: 'Maintenance order verified successfully' });
-                                      await loadRepairs();
-                                    } else {
-                                      setNotification({ type: 'error', message: response?.message || 'Failed to verify order' });
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : status === 'Shared'
+                                  ? 'bg-purple-100 text-purple-700'
+                                  : status === 'Assigned'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-card text-headings'
+                              }`}>
+                              {status === 'in-progress' ? 'In Progress' : status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                            {status === 'completed' ? (
+                              <select
+                                value={(repair as any).verificationStatus || 'not-verified'}
+                                onChange={async (e) => {
+                                  const newStatus = e.target.value;
+                                  if (newStatus === 'verified' && (repair as any).verificationStatus !== 'verified') {
+                                    try {
+                                      const response = await verifyMaintenanceOrder(repair._id);
+                                      if (response?.success) {
+                                        setNotification({ type: 'success', message: 'Maintenance order verified successfully' });
+                                        await loadRepairs();
+                                      } else {
+                                        setNotification({ type: 'error', message: response?.message || 'Failed to verify order' });
+                                      }
+                                    } catch (err: any) {
+                                      setNotification({ type: 'error', message: err?.response?.data?.message || err?.message || 'Failed to verify order' });
                                     }
-                                  } catch (err: any) {
-                                    setNotification({ type: 'error', message: err?.response?.data?.message || err?.message || 'Failed to verify order' });
                                   }
-                                }
-                              }}
-                              disabled={(repair as any).verificationStatus === 'verified'}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                                (repair as any).verificationStatus === 'verified'
-                                  ? 'bg-green-100 text-green-700 border-green-300 cursor-not-allowed'
-                                  : 'bg-yellow-100 text-yellow-700 border-yellow-300 cursor-pointer hover:bg-yellow-200'
-                              }`}
-                            >
-                              <option value="not-verified">Not Verified</option>
-                              <option value="verified">Verified</option>
-                            </select>
-                          ) : (
-                            <span className="text-gray-400 text-sm">—</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleEditRepair(repair)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Edit"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteRepair(repair)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
+                                }}
+                                disabled={(repair as any).verificationStatus === 'verified'}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${(repair as any).verificationStatus === 'verified'
+                                  ? '!bg-green-100 !text-green-700 border-green-300 cursor-not-allowed'
+                                  : '!bg-yellow-100 !text-yellow-700 border-yellow-300 cursor-pointer hover:bg-yellow-200'
+                                  }`}
+                              >
+                                <option className='form-option' value="not-verified">Not Verified</option>
+                                <option className='form-option' value="verified">Verified</option>
+                              </select>
+                            ) : (
+                              <span className="text-secondary text-sm">—</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleEditRepair(repair)}
+                                className="p-2 text-[#00D1FF] hover:bg-[#00D1FF]/10 rounded-lg transition-colors"
+                                title="Edit"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteRepair(repair)}
+                                className="p-2 text-[#A855F7] hover:bg-[#A855F7]/10 rounded-lg transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
                     })
                   )}
                 </tbody>
@@ -1083,18 +1036,18 @@ const GeneralRepairsLog: React.FC = () => {
 
               {/* Sidebar Panel */}
               <div
-                className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+                className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
               >
                 <div className="p-6">
                   {/* Header */}
-                  <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                    <h2 className="text-2xl font-bold text-gray-900">Maintenance Order Details</h2>
+                  <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
+                    <h2 className="text-2xl font-bold text-headings">Maintenance Order Details</h2>
                     <button
                       onClick={() => {
                         setShowRepairDetails(false);
                         setTimeout(() => setSelectedRepair(null), 300);
                       }}
-                      className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                      className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                     >
                       <X size={24} />
                     </button>
@@ -1102,7 +1055,7 @@ const GeneralRepairsLog: React.FC = () => {
 
                   <div className="space-y-6">
                     {/* Repair Header */}
-                    <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                    <div className="border-4 border-theme  text-white p-6 rounded-lg">
                       <div className="flex items-center gap-4">
                         <div className="flex-1">
                           <h3 className="text-2xl font-bold mb-1">{selectedRepair.unitNumber || 'N/A'}</h3>
@@ -1114,104 +1067,104 @@ const GeneralRepairsLog: React.FC = () => {
                     </div>
 
                     {/* Repair Information */}
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                      <h4 className="font-semibold text-gray-900 mb-4 text-lg">Maintenance Order Information</h4>
+                    <div className="bg-card p-6 rounded-lg border border-theme">
+                      <h4 className="font-semibold text-headings mb-4 text-lg">Maintenance Order Information</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Unit Number</p>
-                          <p className="font-medium text-gray-900">{selectedRepair.unitNumber || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Unit Number</p>
+                          <p className="font-medium text-headings">{selectedRepair.unitNumber || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Make / Model</p>
-                          <p className="font-medium text-gray-900">{selectedRepair.makeModel || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Make / Model</p>
+                          <p className="font-medium text-headings">{selectedRepair.makeModel || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">VIN / License Plate</p>
-                          <p className="font-medium text-gray-900">{selectedRepair.vinLicensePlate || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">VIN / License Plate</p>
+                          <p className="font-medium text-headings">{selectedRepair.vinLicensePlate || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Service Date</p>
-                          <p className="font-medium text-gray-900">{formatDate(selectedRepair.serviceDate)}</p>
+                          <p className="text-sm text-secondary mb-1">Service Date</p>
+                          <p className="font-medium text-headings">{formatDate(selectedRepair.serviceDate)}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Odometer</p>
-                          <p className="font-medium text-gray-900">
+                          <p className="text-sm text-secondary mb-1">Odometer</p>
+                          <p className="font-medium text-headings">
                             {typeof selectedRepair.odometer === 'number' ? `${selectedRepair.odometer.toLocaleString()} km` : '—'}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Service Provider</p>
+                          <p className="text-sm text-secondary mb-1">Service Provider</p>
                           {selectedRepair.mechanicType === 'external' ? (
                             <div className="space-y-0.5">
                               <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 mb-1">External Mechanic</span>
-                              <p className="font-medium text-gray-900">{selectedRepair.serviceProvider || '—'}</p>
-                              {selectedRepair.externalMechanicCompany && <p className="text-sm text-gray-500">{selectedRepair.externalMechanicCompany}</p>}
-                              {selectedRepair.externalMechanicPhone && <p className="text-sm text-gray-500">{selectedRepair.externalMechanicPhone}</p>}
-                              {selectedRepair.externalMechanicEmail && <p className="text-sm text-gray-500">{selectedRepair.externalMechanicEmail}</p>}
+                              <p className="font-medium text-headings">{selectedRepair.serviceProvider || '—'}</p>
+                              {selectedRepair.externalMechanicCompany && <p className="text-sm text-secondary">{selectedRepair.externalMechanicCompany}</p>}
+                              {selectedRepair.externalMechanicPhone && <p className="text-sm text-secondary">{selectedRepair.externalMechanicPhone}</p>}
+                              {selectedRepair.externalMechanicEmail && <p className="text-sm text-secondary">{selectedRepair.externalMechanicEmail}</p>}
                             </div>
                           ) : (
-                            <p className="font-medium text-gray-900">{selectedRepair.serviceProvider || "—"}</p>
+                            <p className="font-medium text-headings">{selectedRepair.serviceProvider || "—"}</p>
                           )}
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Invoice Number</p>
-                          <p className="font-medium text-gray-900">{selectedRepair.invoiceNumber || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Invoice Number</p>
+                          <p className="font-medium text-headings">{selectedRepair.invoiceNumber || "—"}</p>
                         </div>
                       </div>
                       <div className="mt-4">
-                        <p className="text-sm text-gray-500 mb-1">Description</p>
-                        <p className="font-medium text-gray-900">{selectedRepair.description || "—"}</p>
+                        <p className="text-sm text-secondary mb-1">Description</p>
+                        <p className="font-medium text-headings">{selectedRepair.description || "—"}</p>
                       </div>
                       {selectedRepair.parts && (
                         <div className="mt-4">
-                          <p className="text-sm text-gray-500 mb-1">Parts</p>
+                          <p className="text-sm text-secondary mb-1">Parts</p>
                           {Array.isArray(selectedRepair.parts) && selectedRepair.parts.length > 0 ? (
                             <div className="space-y-1">
                               {selectedRepair.parts.map((p: any, idx: number) => (
-                                <p key={idx} className="font-medium text-gray-900">
+                                <p key={idx} className="font-medium text-headings">
                                   {p.partName || p.partNumber || 'Part'} - Quantity: {p.quantity || 1}
                                 </p>
                               ))}
                             </div>
                           ) : (
-                            <p className="font-medium text-gray-900">{typeof selectedRepair.parts === 'string' ? selectedRepair.parts : 'N/A'}</p>
+                            <p className="font-medium text-headings">{typeof selectedRepair.parts === 'string' ? selectedRepair.parts : 'N/A'}</p>
                           )}
                         </div>
                       )}
                       {selectedRepair.notes && (
                         <div className="mt-4">
-                          <p className="text-sm text-gray-500 mb-1">Notes</p>
-                          <p className="font-medium text-gray-900">{selectedRepair.notes}</p>
+                          <p className="text-sm text-secondary mb-1">Notes</p>
+                          <p className="font-medium text-headings">{selectedRepair.notes}</p>
                         </div>
                       )}
                     </div>
 
                     {/* Completion Details - Show if order is completed */}
                     {((selectedRepair as any).status === 'completed') && (
-                      <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-                        <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                      <div className=" p-6 rounded-lg border border-green-200">
+                        <h4 className="font-semibold text-headings mb-4 text-lg flex items-center gap-2">
                           <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                           Completion Details
                         </h4>
                         {(selectedRepair as any).repairDetails && (
                           <div className="mb-4">
-                            <p className="text-sm text-gray-500 mb-1">Repair Details</p>
-                            <p className="font-medium text-gray-900">{(selectedRepair as any).repairDetails}</p>
+                            <p className="text-sm text-secondary mb-1">Repair Details</p>
+                            <p className="font-medium text-headings">{(selectedRepair as any).repairDetails}</p>
                           </div>
                         )}
                         {(selectedRepair as any).completedParts && Array.isArray((selectedRepair as any).completedParts) && (selectedRepair as any).completedParts.length > 0 && (
                           <div className="mb-4">
-                            <p className="text-sm text-gray-500 mb-2">Parts Used</p>
+                            <p className="text-sm text-secondary mb-2">Parts Used</p>
                             <div className="space-y-2">
                               {(selectedRepair as any).completedParts.map((part: any, idx: number) => (
-                                <div key={idx} className="bg-white p-3 rounded border border-gray-200">
-                                  <p className="font-medium text-gray-900">
+                                <div key={idx} className="bg-card p-3 rounded border border-theme">
+                                  <p className="font-medium text-headings">
                                     {part.partName || part.partNumber || 'Part'}
                                     {part.quantity > 1 && ` (Qty: ${part.quantity})`}
                                     {part.cost > 0 && ` - $${part.cost.toFixed(2)}`}
                                   </p>
                                   {part.partNumber && (
-                                    <p className="text-xs text-gray-500 mt-1">Part #: {part.partNumber}</p>
+                                    <p className="text-xs text-secondary mt-1">Part #: {part.partNumber}</p>
                                   )}
                                 </div>
                               ))}
@@ -1220,8 +1173,8 @@ const GeneralRepairsLog: React.FC = () => {
                         )}
                         {(selectedRepair as any).completionTotalAmount && (
                           <div className="mb-4">
-                            <p className="text-sm text-gray-500 mb-1">Total Amount</p>
-                            <p className="font-semibold text-lg text-gray-900">
+                            <p className="text-sm text-secondary mb-1">Total Amount</p>
+                            <p className="font-semibold text-lg text-headings">
                               {new Intl.NumberFormat('en-CA', {
                                 style: 'currency',
                                 currency: 'CAD',
@@ -1233,8 +1186,8 @@ const GeneralRepairsLog: React.FC = () => {
                         )}
                         {(selectedRepair as any).completionDate && (
                           <div className="mb-4">
-                            <p className="text-sm text-gray-500 mb-1">Completion Date</p>
-                            <p className="font-medium text-gray-900">
+                            <p className="text-sm text-secondary mb-1">Completion Date</p>
+                            <p className="font-medium text-headings">
                               {formatDate((selectedRepair as any).completionDate)}
                             </p>
                           </div>
@@ -1242,7 +1195,7 @@ const GeneralRepairsLog: React.FC = () => {
                         {/* Invoice File - signed URL */}
                         {((selectedRepair as any).invoiceUploadUrl || (selectedRepair as any).invoiceSignedUrl) && (
                           <div className="mt-4 pt-4 border-t border-green-200">
-                            <p className="text-sm text-gray-500 mb-2">Mechanic's Invoice</p>
+                            <p className="text-sm text-secondary mb-2">Mechanic's Invoice</p>
                             <div className="space-y-2">
                               <a
                                 href={(selectedRepair as any).invoiceSignedUrl || (selectedRepair as any).invoiceUploadUrl}
@@ -1254,7 +1207,7 @@ const GeneralRepairsLog: React.FC = () => {
                                 <span>View Invoice</span>
                                 <ExternalLink size={14} />
                               </a>
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-secondary">
                                 {(selectedRepair as any).invoiceUploadUrl?.split('/').pop() || 'Invoice file'}
                               </p>
                             </div>
@@ -1264,13 +1217,13 @@ const GeneralRepairsLog: React.FC = () => {
                     )}
 
                     {/* Action Buttons */}
-                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                       <button
                         onClick={() => {
                           setShowRepairDetails(false);
                           setTimeout(() => setSelectedRepair(null), 300);
                         }}
-                        className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                        className="px-6 py-2.5 bg-gray-700 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
                       >
                         Close
                       </button>
@@ -1279,7 +1232,7 @@ const GeneralRepairsLog: React.FC = () => {
                           setShowRepairDetails(false);
                           handleEditRepair(selectedRepair);
                         }}
-                        className="px-6 py-2.5 bg-blue-600 !text-white font-medium rounded-lg hover:bg-blue-700 transition-all"
+                        className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white font-medium rounded-lg hover:bg-blue-700 transition-all"
                       >
                         Edit Maintenance Order
                       </button>
@@ -1293,26 +1246,26 @@ const GeneralRepairsLog: React.FC = () => {
           {(showAddModal || showEditModal) && (
             <>
               <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" onClick={closeModals} />
-              <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl z-[101] border-l border-gray-200">
+              <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-card shadow-2xl z-[101] border-l border-theme">
                 <div className="h-full flex flex-col">
-                  <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
+                  <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-primary bg-[var(--accent-navyblue)]" >
                     <h2 className="text-2xl font-bold">{showAddModal ? 'Add Maintenance Order' : 'Edit Maintenance Order'}</h2>
-                    <button onClick={closeModals} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                    <button onClick={closeModals} className="p-2 hover:bg-card/20 rounded-lg transition-colors">
                       <FaTimes className="w-5 h-5" />
                     </button>
                   </div>
                   <div className="flex-1 overflow-y-auto p-6 space-y-4">
                     {formError && (
-                      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">{formError}</div>
+                      <div className="rounded-lg border border-red-200 bg-card px-4 py-2 text-sm text-red-700">{formError}</div>
                     )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Service Date *</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Service Date *</label>
                         <input
                           type="date"
                           value={formData.serviceDate}
                           onChange={(e) => setFormData({ ...formData, serviceDate: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => {
                             e.target.style.borderColor = '#016ab2';
@@ -1325,21 +1278,21 @@ const GeneralRepairsLog: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                        <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50">
-                          <span className={`font-medium ${
-                            formData.status === 'Assigned' ? 'text-green-600' : 'text-gray-600'
-                          }`}>
+                        <label className="block text-sm font-medium text-headings mb-2">Status</label>
+                        <div className="w-full px-4 py-2 border border-theme rounded-lg bg-card">
+                          <span className={`font-medium ${formData.status === 'Assigned' ? 'text-green-600' : 'text-secondary'
+                            }`}>
                             {formData.status || 'Created'}
                           </span>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Unit Number *</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Unit Number *</label>
                         <select
+
                           value={formData.unitNumber}
                           onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => {
                             e.target.style.borderColor = '#016ab2';
@@ -1350,21 +1303,21 @@ const GeneralRepairsLog: React.FC = () => {
                             e.target.style.boxShadow = '';
                           }}
                         >
-                          <option value="">Select Unit</option>
+                          <option className='form-option' value="">Select Unit</option>
                           {units.map((unit) => (
-                            <option key={unit.unitNo} value={unit.unitNo}>
+                            <option className='form-option' key={unit.unitNo} value={unit.unitNo}>
                               {unit.unitNo} - {unit.makeModel}
                             </option>
                           ))}
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Odometer</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Odometer</label>
                         <input
                           type="number"
                           value={formData.odometer}
                           onChange={(e) => setFormData({ ...formData, odometer: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => {
                             e.target.style.borderColor = '#016ab2';
@@ -1378,20 +1331,20 @@ const GeneralRepairsLog: React.FC = () => {
                         />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Service Provider *</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Service Provider *</label>
                         {/* Toggle */}
-                        <div className="flex rounded-lg border border-gray-300 overflow-hidden mb-3 w-fit">
+                        <div className="flex rounded-lg border border-theme overflow-hidden mb-3 w-fit">
                           <button
                             type="button"
                             onClick={() => setFormData((prev) => ({ ...prev, mechanicType: 'internal', serviceProvider: '', serviceProviderId: undefined }))}
-                            className={`px-5 py-2 text-sm font-medium transition-colors ${formData.mechanicType === 'internal' ? 'bg-[#016ab2] !text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                            className={`px-5 py-2 text-sm font-medium transition-colors ${formData.mechanicType === 'internal' ? 'bg-[#016ab2] !text-white' : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}
                           >
                             Internal Mechanic
                           </button>
                           <button
                             type="button"
                             onClick={() => setFormData((prev) => ({ ...prev, mechanicType: 'external', serviceProviderId: undefined }))}
-                            className={`px-5 py-2 text-sm font-medium border-l border-gray-300 transition-colors ${formData.mechanicType === 'external' ? 'bg-[#016ab2] !text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                            className={`px-5 py-2 text-sm font-medium border-l border-theme transition-colors ${formData.mechanicType === 'external' ? 'bg-[#016ab2] !text-white' : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}
                           >
                             External Mechanic
                           </button>
@@ -1399,7 +1352,7 @@ const GeneralRepairsLog: React.FC = () => {
 
                         {formData.mechanicType === 'internal' ? (
                           serviceProvidersLoading ? (
-                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <div className="flex items-center gap-2 text-sm text-secondary">
                               <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 inline-block" />
                               Loading mechanics...
                             </div>
@@ -1414,65 +1367,65 @@ const GeneralRepairsLog: React.FC = () => {
                                   serviceProvider: provider?.name || ''
                                 }));
                               }}
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                              className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                               style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                               onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                               onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                             >
-                              <option value="">Select mechanic</option>
+                              <option className='form-option' value="">Select mechanic</option>
                               {serviceProviders.map((provider) => (
-                                <option key={provider.id} value={provider.id}>
+                                <option className='form-option' key={provider.id} value={provider.id}>
                                   {provider.name} {provider.role ? `(${provider.role})` : ''}
                                 </option>
                               ))}
                             </select>
                           ) : (
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-secondary">
                               No internal mechanics found. Add an employee with a mechanic role, or switch to External Mechanic.
                             </p>
                           )
                         ) : (
-                          <div className="grid grid-cols-2 gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                          <div className="grid grid-cols-2 gap-3 p-4 bg-card border border-orange-200 rounded-lg">
                             <div>
-                              <label className="block text-xs font-medium text-gray-600 mb-1">Name *</label>
+                              <label className="block text-xs font-medium text-secondary mb-1">Name *</label>
                               <input
                                 type="text"
                                 value={formData.serviceProvider}
                                 onChange={(e) => setFormData({ ...formData, serviceProvider: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:border-transparent"
                                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                                 placeholder="Mechanic / Shop name"
                               />
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-gray-600 mb-1">Company</label>
+                              <label className="block text-xs font-medium text-secondary mb-1">Company</label>
                               <input
                                 type="text"
                                 value={formData.externalMechanicCompany}
                                 onChange={(e) => setFormData({ ...formData, externalMechanicCompany: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:border-transparent"
                                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                                 placeholder="Company / Shop"
                               />
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                              <label className="block text-xs font-medium text-secondary mb-1">Phone</label>
                               <input
                                 type="tel"
                                 value={formData.externalMechanicPhone}
                                 onChange={(e) => setFormData({ ...formData, externalMechanicPhone: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:border-transparent"
                                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                                 placeholder="+1 (555) 000-0000"
                               />
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                              <label className="block text-xs font-medium text-secondary mb-1">Email</label>
                               <input
                                 type="email"
                                 value={formData.externalMechanicEmail}
                                 onChange={(e) => setFormData({ ...formData, externalMechanicEmail: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:border-transparent"
                                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                                 placeholder="email@shop.com"
                               />
@@ -1480,16 +1433,16 @@ const GeneralRepairsLog: React.FC = () => {
                           </div>
                         )}
                         {serviceProvidersError && formData.mechanicType === 'internal' && (
-                          <p className="text-sm text-red-600 mt-2">{serviceProvidersError}</p>
+                          <p className="text-sm text-[#A855F7] mt-2">{serviceProvidersError}</p>
                         )}
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Description *</label>
                         <textarea
                           value={formData.description}
                           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                           rows={3}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => {
                             e.target.style.borderColor = '#016ab2';
@@ -1503,12 +1456,12 @@ const GeneralRepairsLog: React.FC = () => {
                         />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Notes</label>
                         <textarea
                           value={formData.notes}
                           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                           rows={2}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => {
                             e.target.style.borderColor = '#016ab2';
@@ -1525,16 +1478,15 @@ const GeneralRepairsLog: React.FC = () => {
                   </div>
 
                   {/* Footer - Fixed to bottom */}
-                  <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-between items-center border-t border-gray-200">
+                  <div className="flex-shrink-0 bg-card px-6 py-4 flex justify-between items-center border-t border-theme">
                     {showEditModal && selectedRepair && (formData.serviceProviderId || formData.serviceProvider) && (
                       <button
                         onClick={handleSendEmail}
                         disabled={sending || formData.shared || (selectedRepair as any).shared}
-                        className={`px-6 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-                          sending || formData.shared || (selectedRepair as any).shared
-                            ? 'opacity-60 cursor-not-allowed bg-gray-300 text-gray-600'
-                            : 'bg-green-600 hover:bg-green-700 !text-white'
-                        }`}
+                        className={`px-6 py-2 rounded-lg transition-colors flex items-center gap-2 ${sending || formData.shared || (selectedRepair as any).shared
+                          ? 'opacity-60 cursor-not-allowed bg-gray-300 text-secondary'
+                          : 'bg-green-600 hover:bg-green-700 !text-white'
+                          }`}
                       >
                         <Mail className="w-4 h-4" />
                         {sending ? 'Sending...' : formData.shared || (selectedRepair as any).shared ? 'Email Sent' : 'Send to Mechanic'}
@@ -1543,16 +1495,16 @@ const GeneralRepairsLog: React.FC = () => {
                     <div className="flex gap-3 ml-auto">
                       <button
                         onClick={closeModals}
-                        className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handleSaveRepair}
                         disabled={saving}
-                        className={`px-6 py-2 !text-white rounded-lg transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'
+                        className={`px-6 py-2 !text-white rounded-lg transition-colors bg-[var(--accent-navyblue)] ${saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'
                           }`}
-                        style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+
                       >
                         {saving ? 'Saving...' : showAddModal ? 'Add Maintenance Order' : 'Save Changes'}
                       </button>
@@ -1572,18 +1524,18 @@ const GeneralRepairsLog: React.FC = () => {
                   setSelectedRepair(null);
                 }}
               />
-              <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-[9999] w-full max-w-md">
+              <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-card rounded-xl shadow-2xl z-[9999] w-full max-w-md">
                 <div className="p-6">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                      <FaExclamationCircle className="text-red-600" size={24} />
+                      <FaExclamationCircle className="text-[#A855F7]" size={24} />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900">Delete Maintenance Order</h3>
-                      <p className="text-sm text-gray-500">This action cannot be undone</p>
+                      <h3 className="text-lg font-bold text-headings">Delete Maintenance Order</h3>
+                      <p className="text-sm text-secondary">This action cannot be undone</p>
                     </div>
                   </div>
-                  <p className="text-gray-700 mb-6">
+                  <p className="text-headings mb-6">
                     Are you sure you want to delete this maintenance order record for unit <strong>{selectedRepair.unitNumber}</strong>?
                   </p>
                   <div className="flex justify-end gap-3">
@@ -1592,7 +1544,7 @@ const GeneralRepairsLog: React.FC = () => {
                         setShowDeleteModal(false);
                         setSelectedRepair(null);
                       }}
-                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="px-6 py-2 border border-theme rounded-lg text-headings hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     >
                       Cancel
                     </button>

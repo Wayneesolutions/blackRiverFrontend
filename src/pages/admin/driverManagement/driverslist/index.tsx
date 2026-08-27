@@ -1,15 +1,21 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText,  MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check, ClipboardCheck, Ticket, FlaskConical, Lock, Eye, EyeOff, FileDown } from 'lucide-react';
+import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText, MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check, ClipboardCheck, Ticket, FlaskConical, Lock, Eye, EyeOff, FileDown } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import * as driverApi from '../../../../axios/api/driver';
 import { getTestResults, approveTestResult, rejectTestResult, getDriverTicketSignedUrl, verifyDrugTestPassword } from '../../../../axios/api/driver';
-import { listDriver } from '../../../../axios/api/distapcher';
+import { listDriver, importDriversFromFile } from '../../../../axios/api/distapcher';
+import ImportButton from '../../../../components/common/ImportButton';
 import { getSignedEmployeeDocumentUrl, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
 import type { EmployeeDocument } from '../../../../axios/api/employeeDocument';
 import { deleteViolation } from '../../../../axios/api/violations';
 import { deleteDeductionAddition } from '../../../../axios/api/account.settlement';
 import AddressSearch from '../../../../components/common/AddressSearch';
+import { useAutoSaveDraft } from '../../../../customHooks/useAutoSaveDraft';
+import DraftRestoreBanner from '../../../../components/common/DraftRestoreBanner';
+import AutoSaveIndicator from '../../../../components/common/AutoSaveIndicator';
+
+import DateField from "../../../../components/common/DateField"
 
 // US States
 const US_STATES = [
@@ -93,15 +99,15 @@ interface ToastNotification {
 
 const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
   const icons = {
-    success: <FaCheckCircle className="text-green-500" size={24} />,
-    error: <FaExclamationCircle className="text-red-500" size={24} />,
-    info: <FaCheckCircle className="text-blue-500" size={24} />
+    success: <FaCheckCircle className="text-[var(--accent-green)]" size={24} />,
+    error: <FaExclamationCircle className="text-[var(--accent-red)]" size={24} />,
+    info: <FaCheckCircle className="text-[var(--accent-navyblue)]" size={24} />
   };
 
   const bgColors = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200'
+    success: 'bg-[var(--accent-green)]/10 border-[var(--accent-green)]/30',
+    error: 'bg-[var(--accent-red)]/10 border-[var(--accent-red)]/30',
+    info: 'bg-[var(--accent-navyblue)]/10 border-[var(--accent-navyblue)]/30'
   };
 
   useEffect(() => {
@@ -116,10 +122,10 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-900">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -164,8 +170,11 @@ const DriverManagement = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPin, setShowPin] = useState(false);
   const [pinIsExisting, setPinIsExisting] = useState(false);
- 
-
+  const passportExpiryRef = useRef<HTMLInputElement>(null);
+  const expiryRef = useRef<HTMLInputElement>(null);
+  const hireDateRef = useRef<HTMLInputElement>(null);
+  const terminationDateRef = useRef<HTMLInputElement>(null);
+  const dateRef = useRef<HTMLInputElement>(null);
   const [filterBy, setFilterBy] = useState('Active');
   const [category, setCategory] = useState('');
   const [complianceStatus, setComplianceStatus] = useState('All');
@@ -180,10 +189,10 @@ const DriverManagement = () => {
   const tableScrollRef = useRef<HTMLDivElement>(null);
   const topScrollRef = useRef<HTMLDivElement>(null);
   const topScrollContentRef = useRef<HTMLDivElement>(null);
-  
+
   // Validation errors state
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  
+
   // Store original driver data for comparison (to detect changes)
   const [originalDriverData, setOriginalDriverData] = useState<{
     formData: typeof formData;
@@ -219,10 +228,10 @@ const DriverManagement = () => {
   // Helper function to parse phone number and extract country code
   const parsePhoneNumber = (phone: string | undefined | null, countriesList: Country[] = countries): { countryCode: string; phoneNumber: string } => {
     if (!phone) return { countryCode: 'US', phoneNumber: '' };
-    
+
     // Remove any whitespace
     const cleanPhone = phone.trim();
-    
+
     // Try to match country code (try longer codes first to avoid partial matches)
     const sortedCountries = [...countriesList].sort((a, b) => b.dialCode.length - a.dialCode.length);
     for (const country of sortedCountries) {
@@ -233,7 +242,7 @@ const DriverManagement = () => {
         };
       }
     }
-    
+
     // Default to US if no match found
     return { countryCode: 'US', phoneNumber: cleanPhone.replace(/^\+1/, '').trim() };
   };
@@ -313,6 +322,27 @@ const DriverManagement = () => {
     profileImage: null as File | null
   });
 
+  // Auto-save draft protection (crash/power-loss safety net for the create/edit form)
+  const {
+    status: draftStatus,
+    lastSavedAt: draftLastSavedAt,
+    pendingRestore: draftPendingRestore,
+    restoreDraft: restoreDriverDraft,
+    discardDraft: discardDriverDraft,
+    clearDraft: clearDriverDraft,
+  } = useAutoSaveDraft({
+    entityType: 'drivers',
+    entityId: editingId || 'new',
+    formData,
+    enabled: showNewDriverModal,
+  });
+
+  const handleRestoreDriverDraft = () => {
+    const draft = restoreDriverDraft();
+    if (!draft) return;
+    setFormData((prev) => ({ ...prev, ...draft }));
+  };
+
   // Form state for Personal Information
   const [personalData, setPersonalData] = useState({
     socialInsuranceNumber: '',
@@ -372,9 +402,9 @@ const DriverManagement = () => {
         // Try to find by code or partial match
         const countryMatch = countries.find(
           c => c.code.toLowerCase() === formData.country.toLowerCase() ||
-               c.name.toLowerCase() === formData.country.toLowerCase() ||
-               c.name.toLowerCase().includes(formData.country.toLowerCase()) ||
-               formData.country.toLowerCase().includes(c.name.toLowerCase())
+            c.name.toLowerCase() === formData.country.toLowerCase() ||
+            c.name.toLowerCase().includes(formData.country.toLowerCase()) ||
+            formData.country.toLowerCase().includes(c.name.toLowerCase())
         );
         if (countryMatch && countryMatch.name !== formData.country) {
           // Update to exact country name from array (only if different)
@@ -636,7 +666,7 @@ const DriverManagement = () => {
     action: 'approve' | 'reject';
   } | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
-  
+
   // Flag update modal state
   const [showFlagModal, setShowFlagModal] = useState(false);
   const [selectedFlag, setSelectedFlag] = useState<{
@@ -650,30 +680,30 @@ const DriverManagement = () => {
     try {
       setLoadingTests(true);
       console.log('📊 Fetching test results for driver:', driverId);
-      
+
       const response = await getTestResults({ driverId });
-      
+
       console.log('📊 Test results response:', response);
-      
+
       if (response?.success && response.data) {
         const tests = Array.isArray(response.data) ? response.data : [];
-        
+
         // Group by test type and get only the latest (most recent) result for each type
         const testsByType = new Map<string, any>();
-        
+
         tests.forEach((test: any) => {
           const testType = test.testType || 'TDG';
           const existing = testsByType.get(testType);
-          
+
           // If no existing test for this type, or this one is more recent, use this one
           const testDate = new Date(test.createdAt || test.updatedAt || test.completedAt || 0);
           const existingDate = existing ? new Date(existing.createdAt || existing.updatedAt || existing.completedAt || 0) : new Date(0);
-          
+
           if (!existing || testDate > existingDate) {
             testsByType.set(testType, test);
           }
         });
-        
+
         // Convert map to array and format
         const formattedTests = Array.from(testsByType.values()).map((test: any) => {
           // Handle hrApprovedBy - could be populated object or just ID string
@@ -687,7 +717,7 @@ const DriverManagement = () => {
               hrApprovedByName = '';
             }
           }
-          
+
           return {
             id: test._id || test.id,
             testType: test.testType || 'TDG',
@@ -702,13 +732,13 @@ const DriverManagement = () => {
             hrRejectionReason: test.hrRejectionReason || ''
           };
         });
-        
+
         // Sort by test type for consistent display
         formattedTests.sort((a, b) => {
           const order = ['VEHICLE', 'HOS', 'TDG', 'WINTER'];
           return order.indexOf(a.testType) - order.indexOf(b.testType);
         });
-        
+
         setDriverTests(formattedTests);
         console.log(`✅ Test results loaded (${formattedTests.length} unique tests - latest per type)`);
       } else {
@@ -754,11 +784,11 @@ const DriverManagement = () => {
     try {
       setVerifyingPassword(true);
       setDrugTestPasswordError('');
-      
+
       console.log('🔐 Calling verifyDrugTestPassword API with password:', drugTestPassword ? '***' : 'empty');
       const response = await verifyDrugTestPassword(drugTestPassword);
       console.log('📥 API Response received:', response);
-      
+
       if (response && response.success === true) {
         console.log('✅ Password verified successfully');
         setDrugTestPasswordVerified(true);
@@ -791,12 +821,12 @@ const DriverManagement = () => {
   // Handle test approval
   const handleTestApproval = async () => {
     if (!selectedTest) return;
-    
+
     try {
       console.log('📝 Approving test:', selectedTest.id);
-      
+
       const response = await approveTestResult(selectedTest.id);
-      
+
       if (response?.success) {
         addNotification('success', 'Test approved successfully');
         closeApprovalModal();
@@ -824,12 +854,12 @@ const DriverManagement = () => {
   // Handle test rejection
   const handleTestRejection = async () => {
     if (!selectedTest) return;
-    
+
     try {
       console.log('📝 Rejecting test:', selectedTest.id, 'Reason:', rejectionReason);
-      
+
       const response = await rejectTestResult(selectedTest.id, rejectionReason || undefined);
-      
+
       if (response?.success) {
         addNotification('success', 'Test rejected successfully');
         closeApprovalModal();
@@ -866,14 +896,14 @@ const DriverManagement = () => {
         // External drivers are those assigned to orders (we'll use 'assigned' for now)
         assignmentParam = 'assigned';
       }
-      
+
       // Use dispatcher endpoint which supports assignment filtering and returns counts
-      const response = await listDriver({ 
-        page: 1, 
+      const response = await listDriver({
+        page: 1,
         limit: 1000,
         assignment: assignmentParam
       });
-      
+
       if (response?.success && response.data) {
         // Store counts from API response
         if (response.count !== undefined && response.assignedDrivers !== undefined && response.unassignedDrivers !== undefined) {
@@ -883,7 +913,7 @@ const DriverManagement = () => {
             unassigned: response.unassignedDrivers || 0
           });
         }
-        
+
         // Transform backend data to match Driver interface
         const transformedDrivers: Driver[] = response.data.map((driver: any) => {
           // Handle name field (could be name string or firstName/lastName)
@@ -911,7 +941,7 @@ const DriverManagement = () => {
             profileImageUrl: driver.profileImageUrl || null
           };
         });
-        
+
         setDrivers(transformedDrivers);
       } else {
         console.error('Failed to fetch drivers:', response);
@@ -928,731 +958,731 @@ const DriverManagement = () => {
   // Fetch drivers on component mount and when activeTab changes
   useEffect(() => {
     fetchDrivers();
-    
+
   }, [activeTab]);
 
   // Load driver data when editing - extracted as reusable function
   const loadDriverForEdit = async (driverId?: string) => {
     const idToLoad = driverId || editingId;
     if (idToLoad) {
-        try {
-          console.log('🔄 Loading driver for edit, ID:', idToLoad);
-          const response = await driverApi.getDriverById(idToLoad);
-          console.log('📥 Driver API response:', response);
-          console.log('📥 Response success:', response?.success);
-          console.log('📥 Response data:', response?.data);
-          console.log('📥 Full response keys:', Object.keys(response || {}));
-          
-          // Handle different response structures
-          // The API might return { success: true, data: {...} } or just the driver object directly
-          let driver = null;
-          
-          // Check if response has success: false
-          if (response?.success === false) {
-            console.error('❌ API returned success: false', response);
-            throw new Error(response?.message || 'Failed to load driver data');
-          }
-          
-          // Try to extract driver data from different possible structures
-          if (response?.success === true && response?.data) {
-            // Standard structure: { success: true, data: {...} }
-            driver = response.data;
-            console.log('📦 Driver documents from API:', driver.documents?.length || 0, driver.documents);
-          } else if (response?.data) {
-            // Has data property but success might be undefined
-            driver = response.data;
-            console.log('📦 Driver documents from API (alt):', driver.documents?.length || 0, driver.documents);
-          } else if (response && typeof response === 'object' && (response._id || response.name || response.email || response.internalId)) {
-            // Response is the driver object directly (no wrapper)
-            driver = response;
-          }
-          
-          console.log('🔍 Extracted driver:', driver);
-          console.log('🔍 Driver has _id:', driver?._id);
-          console.log('🔍 Driver has name:', driver?.name);
-          console.log('🔍 Driver has email:', driver?.email);
-          
-          if (driver && (driver._id || driver.name || driver.email || driver.internalId)) {
-            console.log('✅ Driver data loaded:', driver);
-            // Parse name into parts
-            const nameParts = (driver.name || '').split(' ');
-            const firstName = nameParts[0] || '';
-            const middle = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '';
-            const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+      try {
+        console.log('🔄 Loading driver for edit, ID:', idToLoad);
+        const response = await driverApi.getDriverById(idToLoad);
+        console.log('📥 Driver API response:', response);
+        console.log('📥 Response success:', response?.success);
+        console.log('📥 Response data:', response?.data);
+        console.log('📥 Full response keys:', Object.keys(response || {}));
 
-            // Format date of birth
-            let dateOfBirthFormatted = '';
-            if (driver.details?.dateOfBirth) {
-              try {
-                const dob = new Date(driver.details.dateOfBirth);
-                if (!isNaN(dob.getTime())) {
-                  dateOfBirthFormatted = dob.toISOString().split('T')[0];
-                }
-              } catch (e) {
-                console.error('Error parsing dateOfBirth:', e);
-              }
-            } else if (driver.dob) {
-              try {
-                const dob = new Date(driver.dob);
-                if (!isNaN(dob.getTime())) {
-                  dateOfBirthFormatted = dob.toISOString().split('T')[0];
-                }
-              } catch (e) {
-                console.error('Error parsing dob:', e);
-              }
-            }
+        // Handle different response structures
+        // The API might return { success: true, data: {...} } or just the driver object directly
+        let driver = null;
 
-            console.log('📝 Setting form data with:', {
-              driverId: driver.internalId,
-              firstName,
-              lastName,
-              email: driver.email,
-              phone: driver.phone,
-              address: driver.location?.address || driver.address
-            });
+        // Check if response has success: false
+        if (response?.success === false) {
+          console.error('❌ API returned success: false', response);
+          throw new Error(response?.message || 'Failed to load driver data');
+        }
 
-            setFormData({
-              driverId: driver.internalId || '',
-              firstName: firstName,
-              middle: middle,
-              lastName: lastName,
-              emailAddress: driver.email || '',
-              dateOfBirth: dateOfBirthFormatted,
-              mobileApp: driver.mobileApp || false,
-              pin: '',
-              primaryPhone: (() => {
-                setPinIsExisting(true);
-                const parsed = parsePhoneNumber(driver.phone, countries);
-                setPrimaryPhoneCountry(parsed.countryCode);
-                return parsed.phoneNumber;
-              })(),
-              secondaryPhone: (() => {
-                const secondary = driver.details?.cell1 || driver.details?.cell2 || driver.mobile;
-                const parsed = parsePhoneNumber(secondary, countries);
-                setSecondaryPhoneCountry(parsed.countryCode);
-                return parsed.phoneNumber;
-              })(),
-              searchAddress: '',
-              address: driver.location?.address || driver.address || '',
-              unit: driver.location?.unit || driver.unit || '',
-              city: driver.city || driver.location?.city || '',
-              postalCode: driver.postalCode || driver.location?.postalCode || driver.details?.postalCode || '',
-              country: driver.country || '',
-              stateProvince: driver.state || driver.location?.state || '',
-              profileImage: null
-            });
+        // Try to extract driver data from different possible structures
+        if (response?.success === true && response?.data) {
+          // Standard structure: { success: true, data: {...} }
+          driver = response.data;
+          console.log('📦 Driver documents from API:', driver.documents?.length || 0, driver.documents);
+        } else if (response?.data) {
+          // Has data property but success might be undefined
+          driver = response.data;
+          console.log('📦 Driver documents from API (alt):', driver.documents?.length || 0, driver.documents);
+        } else if (response && typeof response === 'object' && (response._id || response.name || response.email || response.internalId)) {
+          // Response is the driver object directly (no wrapper)
+          driver = response;
+        }
 
-            // Set profile image preview if exists
-            if (driver.profileImageUrl) {
-              setProfileImagePreview(driver.profileImageUrl);
-            } else {
-              setProfileImagePreview(null);
-            }
+        console.log('🔍 Extracted driver:', driver);
+        console.log('🔍 Driver has _id:', driver?._id);
+        console.log('🔍 Driver has name:', driver?.name);
+        console.log('🔍 Driver has email:', driver?.email);
 
-             // Set personal data
-             setPersonalData({
-               socialInsuranceNumber: driver.details?.sinNo || driver.sinNo || '',
-               hireDate: (() => {
-                 // Prefer details.hireDate, fallback to joinDate, then hireDate
-                 const hireDateValue = driver.details?.hireDate || driver.hireDate || driver.joinDate;
-                 return hireDateValue ? new Date(hireDateValue).toISOString().split('T')[0] : '';
-               })(),
-               terminationDate: (() => {
-                 const termDateValue = driver.details?.termDate || driver.termDate;
-                 return termDateValue ? new Date(termDateValue).toISOString().split('T')[0] : '';
-               })(),
-               status: driver.status === 'active' || driver.status === 'ACTIVE' ? 'Active' : 'Inactive',
-               vacationPercent: driver.details?.vacationPay || driver.vacationPay || '',
-               corporationName: driver.details?.incorporation || driver.incorporation || '',
-               driverName: driver.details?.driverName || driver.driverName || '',
-               paymentAddress: driver.details?.paymentAddress || driver.paymentAddress || '',
-               paymentSearchAddress: driver.details?.paymentSearchAddress || '',
-               paymentCity: driver.details?.paymentCity || '',
-               paymentPostalCode: driver.details?.paymentPostalCode || '',
-               paymentCountry: driver.details?.paymentCountry || '',
-               paymentStateProvince: driver.details?.paymentStateProvince || '',
-               gstNo: driver.details?.gstNo || driver.gstNo || '',
-               driverType: (driver.details?.companyFlag || driver.companyFlag) ? 'OWNER OPERATOR' : 'COMPANY DRIVER',
-               paymentMethod: driver.details?.paymentMethod || driver.paymentMethod || 'PAID PER MILE',
-               alone: String(driver.alone || driver.details?.mileRate || 0),
-               empty: String(driver.empty || driver.details?.emptyMileRate || 0),
-               bonusDrop: String(driver.bonusDrop || driver.details?.bonusDrop || 0),
-               team: String(driver.team || driver.details?.mileRateTeam || 0),
-               emptyTeam: String(driver.emptyTeam || driver.details?.emptyMileRateTeam || 0),
-               bonusPick: String(driver.bonusPick || driver.details?.bonusPick || 0),
-               bonusLayover: String(driver.bonusLayover || driver.details?.bonusLayover || 0),
-               percentRate: String(driver.percentageRate || driver.details?.percentageRate || 0),
-               perTripAmount: '0',
-               hourlyRate: String(driver.hourlyRate || driver.details?.hourlyRate || 0),
-               dailyRate: '0',
-               driverTypeSolo: driver.details?.driverTypeSolo !== undefined ? driver.details.driverTypeSolo : (driver.driverTypeSolo !== undefined ? driver.driverTypeSolo : (driver.solo !== undefined ? driver.solo : true)),
-               cross_border_eligible: driver.details?.cross_border_eligible !== undefined ? driver.details.cross_border_eligible : (driver.cross_border_eligible !== undefined ? driver.cross_border_eligible : false),
-               cppExempt: driver.details?.cppQppExempt || driver.cppQppExempt || false,
-               payrollTaxExempt: driver.details?.provTaxExempt || driver.provTaxExempt || false,
-               customHst: driver.details?.customHst || driver.customHst || '',
-               gender: driver.details?.gender || driver.gender || '',
-               citizenship: driver.details?.citizenship || driver.citizenship || ''
-             });
+        if (driver && (driver._id || driver.name || driver.email || driver.internalId)) {
+          console.log('✅ Driver data loaded:', driver);
+          // Parse name into parts
+          const nameParts = (driver.name || '').split(' ');
+          const firstName = nameParts[0] || '';
+          const middle = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '';
+          const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
 
-            // Set travel data with all fields (check top-level first, then details for backward compatibility)
-            setTravelData({
-              driversLicenseNumber: driver.licenceNumber || driver.details?.licenceNumber || driver.details?.driversLicence || '',
-              driversLicenseExpiry: (() => {
-                const expiryValue = driver.licenceExpiry || driver.details?.licenceExpiry;
-                return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
-              })(),
-              licenseStateProvince: driver.licenceState || driver.details?.licenceState || '',
-              passportNumber: driver.passport || driver.details?.passport || driver.details?.passportNumber || '',
-              passportCountry: driver.passportCountry || driver.details?.passportCountry || '',
-              passportExpiry: (() => {
-                const expiryValue = driver.passportExpiry || driver.details?.passportExpiry;
-                return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
-              })(),
-              fastCardNumber: driver.fastCard || driver.details?.fastCardNo || '',
-              fastCardExpiry: (() => {
-                const expiryValue = driver.fastCardExpiry || driver.details?.fastCardExpiry;
-                return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
-              })(),
-              fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
-              sinNumber: driver.sinNo || driver.details?.sinNo || driver.socialInsuranceNumber || '',
-              canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
-              permanentResidenceExpiry: (() => {
-                const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
-                return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
-              })(),
-              workPermitExpiry: (() => {
-                const expiryValue = driver.workPermitExpiry || driver.details?.workPermitExpiry;
-                return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
-              })(),
-              wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || '',
-              workPermitDocument: null,
-              prCardDocument: null,
-              existingWorkPermitUrl: driver.workPermitDocumentUrl || driver.details?.workPermitDocumentUrl || null,
-              existingPrCardUrl: driver.prCardDocumentUrl || driver.details?.prCardDocumentUrl || null
-            });
-
-          
-            
+          // Format date of birth
+          let dateOfBirthFormatted = '';
+          if (driver.details?.dateOfBirth) {
             try {
-              let documentsToUse: EmployeeDocument[] = [];
-              if (driver.documents && Array.isArray(driver.documents) && driver.documents.length > 0) {
-                documentsToUse = driver.documents;
-                console.log(`✅ Using ${documentsToUse.length} documents from getDriverById response`);
-              } else {
-                console.log('⚠️ No documents found in getDriverById response');
-                documentsToUse = [];
+              const dob = new Date(driver.details.dateOfBirth);
+              if (!isNaN(dob.getTime())) {
+                dateOfBirthFormatted = dob.toISOString().split('T')[0];
               }
-              
-              if (documentsToUse.length > 0) {
-                // Show all documents without filtering by tab
-                const existingDocuments = documentsToUse.map((doc: EmployeeDocument) => ({
-                  id: `existing-${doc._id}`,
-                  expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
-                  description: doc.description || doc.documentType || '',
-                  ignoreExpiration: doc.ignoreExpiration || false,
-                  file: null,
-                  isExisting: true,
-                  documentId: doc._id,
-                  fileUrl: doc.fileUrl || '',
-                  fileName: doc.fileName || '',
-                  documentType: doc.documentType || 'Other'
-                }));
-                setDocuments(existingDocuments);
-                console.log(`✅ Documents loaded (${existingDocuments.length} documents)`);
-              } else {
-                console.log('⚠️ No documents found for this driver');
-                setDocuments([]);
+            } catch (e) {
+              console.error('Error parsing dateOfBirth:', e);
+            }
+          } else if (driver.dob) {
+            try {
+              const dob = new Date(driver.dob);
+              if (!isNaN(dob.getTime())) {
+                dateOfBirthFormatted = dob.toISOString().split('T')[0];
               }
-            } catch (docError) {
-              console.error('Error loading documents:', docError);
+            } catch (e) {
+              console.error('Error parsing dob:', e);
+            }
+          }
+
+          console.log('📝 Setting form data with:', {
+            driverId: driver.internalId,
+            firstName,
+            lastName,
+            email: driver.email,
+            phone: driver.phone,
+            address: driver.location?.address || driver.address
+          });
+
+          setFormData({
+            driverId: driver.internalId || '',
+            firstName: firstName,
+            middle: middle,
+            lastName: lastName,
+            emailAddress: driver.email || '',
+            dateOfBirth: dateOfBirthFormatted,
+            mobileApp: driver.mobileApp || false,
+            pin: '',
+            primaryPhone: (() => {
+              setPinIsExisting(true);
+              const parsed = parsePhoneNumber(driver.phone, countries);
+              setPrimaryPhoneCountry(parsed.countryCode);
+              return parsed.phoneNumber;
+            })(),
+            secondaryPhone: (() => {
+              const secondary = driver.details?.cell1 || driver.details?.cell2 || driver.mobile;
+              const parsed = parsePhoneNumber(secondary, countries);
+              setSecondaryPhoneCountry(parsed.countryCode);
+              return parsed.phoneNumber;
+            })(),
+            searchAddress: '',
+            address: driver.location?.address || driver.address || '',
+            unit: driver.location?.unit || driver.unit || '',
+            city: driver.city || driver.location?.city || '',
+            postalCode: driver.postalCode || driver.location?.postalCode || driver.details?.postalCode || '',
+            country: driver.country || '',
+            stateProvince: driver.state || driver.location?.state || '',
+            profileImage: null
+          });
+
+          // Set profile image preview if exists
+          if (driver.profileImageUrl) {
+            setProfileImagePreview(driver.profileImageUrl);
+          } else {
+            setProfileImagePreview(null);
+          }
+
+          // Set personal data
+          setPersonalData({
+            socialInsuranceNumber: driver.details?.sinNo || driver.sinNo || '',
+            hireDate: (() => {
+              // Prefer details.hireDate, fallback to joinDate, then hireDate
+              const hireDateValue = driver.details?.hireDate || driver.hireDate || driver.joinDate;
+              return hireDateValue ? new Date(hireDateValue).toISOString().split('T')[0] : '';
+            })(),
+            terminationDate: (() => {
+              const termDateValue = driver.details?.termDate || driver.termDate;
+              return termDateValue ? new Date(termDateValue).toISOString().split('T')[0] : '';
+            })(),
+            status: driver.status === 'active' || driver.status === 'ACTIVE' ? 'Active' : 'Inactive',
+            vacationPercent: driver.details?.vacationPay || driver.vacationPay || '',
+            corporationName: driver.details?.incorporation || driver.incorporation || '',
+            driverName: driver.details?.driverName || driver.driverName || '',
+            paymentAddress: driver.details?.paymentAddress || driver.paymentAddress || '',
+            paymentSearchAddress: driver.details?.paymentSearchAddress || '',
+            paymentCity: driver.details?.paymentCity || '',
+            paymentPostalCode: driver.details?.paymentPostalCode || '',
+            paymentCountry: driver.details?.paymentCountry || '',
+            paymentStateProvince: driver.details?.paymentStateProvince || '',
+            gstNo: driver.details?.gstNo || driver.gstNo || '',
+            driverType: (driver.details?.companyFlag || driver.companyFlag) ? 'OWNER OPERATOR' : 'COMPANY DRIVER',
+            paymentMethod: driver.details?.paymentMethod || driver.paymentMethod || 'PAID PER MILE',
+            alone: String(driver.alone || driver.details?.mileRate || 0),
+            empty: String(driver.empty || driver.details?.emptyMileRate || 0),
+            bonusDrop: String(driver.bonusDrop || driver.details?.bonusDrop || 0),
+            team: String(driver.team || driver.details?.mileRateTeam || 0),
+            emptyTeam: String(driver.emptyTeam || driver.details?.emptyMileRateTeam || 0),
+            bonusPick: String(driver.bonusPick || driver.details?.bonusPick || 0),
+            bonusLayover: String(driver.bonusLayover || driver.details?.bonusLayover || 0),
+            percentRate: String(driver.percentageRate || driver.details?.percentageRate || 0),
+            perTripAmount: '0',
+            hourlyRate: String(driver.hourlyRate || driver.details?.hourlyRate || 0),
+            dailyRate: '0',
+            driverTypeSolo: driver.details?.driverTypeSolo !== undefined ? driver.details.driverTypeSolo : (driver.driverTypeSolo !== undefined ? driver.driverTypeSolo : (driver.solo !== undefined ? driver.solo : true)),
+            cross_border_eligible: driver.details?.cross_border_eligible !== undefined ? driver.details.cross_border_eligible : (driver.cross_border_eligible !== undefined ? driver.cross_border_eligible : false),
+            cppExempt: driver.details?.cppQppExempt || driver.cppQppExempt || false,
+            payrollTaxExempt: driver.details?.provTaxExempt || driver.provTaxExempt || false,
+            customHst: driver.details?.customHst || driver.customHst || '',
+            gender: driver.details?.gender || driver.gender || '',
+            citizenship: driver.details?.citizenship || driver.citizenship || ''
+          });
+
+          // Set travel data with all fields (check top-level first, then details for backward compatibility)
+          setTravelData({
+            driversLicenseNumber: driver.licenceNumber || driver.details?.licenceNumber || driver.details?.driversLicence || '',
+            driversLicenseExpiry: (() => {
+              const expiryValue = driver.licenceExpiry || driver.details?.licenceExpiry;
+              return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+            })(),
+            licenseStateProvince: driver.licenceState || driver.details?.licenceState || '',
+            passportNumber: driver.passport || driver.details?.passport || driver.details?.passportNumber || '',
+            passportCountry: driver.passportCountry || driver.details?.passportCountry || '',
+            passportExpiry: (() => {
+              const expiryValue = driver.passportExpiry || driver.details?.passportExpiry;
+              return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+            })(),
+            fastCardNumber: driver.fastCard || driver.details?.fastCardNo || '',
+            fastCardExpiry: (() => {
+              const expiryValue = driver.fastCardExpiry || driver.details?.fastCardExpiry;
+              return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+            })(),
+            fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
+            sinNumber: driver.sinNo || driver.details?.sinNo || driver.socialInsuranceNumber || '',
+            canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
+            permanentResidenceExpiry: (() => {
+              const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
+              return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+            })(),
+            workPermitExpiry: (() => {
+              const expiryValue = driver.workPermitExpiry || driver.details?.workPermitExpiry;
+              return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+            })(),
+            wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || '',
+            workPermitDocument: null,
+            prCardDocument: null,
+            existingWorkPermitUrl: driver.workPermitDocumentUrl || driver.details?.workPermitDocumentUrl || null,
+            existingPrCardUrl: driver.prCardDocumentUrl || driver.details?.prCardDocumentUrl || null
+          });
+
+
+
+          try {
+            let documentsToUse: EmployeeDocument[] = [];
+            if (driver.documents && Array.isArray(driver.documents) && driver.documents.length > 0) {
+              documentsToUse = driver.documents;
+              console.log(`✅ Using ${documentsToUse.length} documents from getDriverById response`);
+            } else {
+              console.log('⚠️ No documents found in getDriverById response');
+              documentsToUse = [];
+            }
+
+            if (documentsToUse.length > 0) {
+              // Show all documents without filtering by tab
+              const existingDocuments = documentsToUse.map((doc: EmployeeDocument) => ({
+                id: `existing-${doc._id}`,
+                expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
+                description: doc.description || doc.documentType || '',
+                ignoreExpiration: doc.ignoreExpiration || false,
+                file: null,
+                isExisting: true,
+                documentId: doc._id,
+                fileUrl: doc.fileUrl || '',
+                fileName: doc.fileName || '',
+                documentType: doc.documentType || 'Other'
+              }));
+              setDocuments(existingDocuments);
+              console.log(`✅ Documents loaded (${existingDocuments.length} documents)`);
+            } else {
+              console.log('⚠️ No documents found for this driver');
               setDocuments([]);
             }
+          } catch (docError) {
+            console.error('Error loading documents:', docError);
+            setDocuments([]);
+          }
 
-            // Load certifications (Safety Certifications) from getDriverById response
-            try {
-              if (driver.certifications && Array.isArray(driver.certifications) && driver.certifications.length > 0) {
-                const existingCertifications = driver.certifications.map((cert: any) => ({
-                  id: `existing-${cert._id}`,
-                  expiryDate: cert.expiryDate ? new Date(cert.expiryDate).toISOString().split('T')[0] : '',
-                  description: cert.description || '',
-                  ignoreExpiration: cert.ignoreExpiration || false,
-                  file: cert.fileName ? { name: cert.fileName, size: cert.fileSize || 0 } : null,
-                  fileUrl: cert.fileUrl || null,
-                  fileName: cert.fileName || null
-                }));
-                setCertifications(existingCertifications);
-                console.log(`✅ Certifications loaded (${existingCertifications.length} certifications)`);
-              } else {
-                console.log('⚠️ No certifications found for this driver');
-                setCertifications([]);
-              }
-            } catch (certError) {
-              console.error('Error loading certifications:', certError);
+          // Load certifications (Safety Certifications) from getDriverById response
+          try {
+            if (driver.certifications && Array.isArray(driver.certifications) && driver.certifications.length > 0) {
+              const existingCertifications = driver.certifications.map((cert: any) => ({
+                id: `existing-${cert._id}`,
+                expiryDate: cert.expiryDate ? new Date(cert.expiryDate).toISOString().split('T')[0] : '',
+                description: cert.description || '',
+                ignoreExpiration: cert.ignoreExpiration || false,
+                file: cert.fileName ? { name: cert.fileName, size: cert.fileSize || 0 } : null,
+                fileUrl: cert.fileUrl || null,
+                fileName: cert.fileName || null
+              }));
+              setCertifications(existingCertifications);
+              console.log(`✅ Certifications loaded (${existingCertifications.length} certifications)`);
+            } else {
+              console.log('⚠️ No certifications found for this driver');
               setCertifications([]);
             }
+          } catch (certError) {
+            console.error('Error loading certifications:', certError);
+            setCertifications([]);
+          }
 
-            // Load tickets (Tickets & Fines) from getDriverById response
-            try {
-              if (driver.tickets && Array.isArray(driver.tickets) && driver.tickets.length > 0) {
-                const existingTickets = driver.tickets.map((ticket: any) => ({
-                  id: `existing-${ticket._id}`,
-                  ticketId: ticket._id, // Store MongoDB ID for signed URL
-                  date: ticket.date ? new Date(ticket.date).toISOString().split('T')[0] : '',
-                  title: ticket.title || '',
-                  description: ticket.description || '',
-                  amount: ticket.amount?.toString() || '0',
-                  currency: ticket.currency || 'CAD',
-                  status: ticket.status || 'Unpaid',
-                  file: null, // Don't set file for existing tickets (it's a File object, not needed for display)
-                  fileUrl: ticket.fileUrl || null, // Include fileUrl for displaying existing files
-                  fileName: ticket.fileName || null // Include fileName for displaying existing files
-                }));
-                setTickets(existingTickets);
-                console.log(`✅ Tickets loaded (${existingTickets.length} tickets)`, existingTickets.map((t: any) => ({ id: t.id, ticketId: t.ticketId, hasFile: !!t.fileUrl, fileName: t.fileName })));
-              } else {
-                console.log('⚠️ No tickets found for this driver');
-                setTickets([]);
-              }
-            } catch (ticketError) {
-              console.error('Error loading tickets:', ticketError);
+          // Load tickets (Tickets & Fines) from getDriverById response
+          try {
+            if (driver.tickets && Array.isArray(driver.tickets) && driver.tickets.length > 0) {
+              const existingTickets = driver.tickets.map((ticket: any) => ({
+                id: `existing-${ticket._id}`,
+                ticketId: ticket._id, // Store MongoDB ID for signed URL
+                date: ticket.date ? new Date(ticket.date).toISOString().split('T')[0] : '',
+                title: ticket.title || '',
+                description: ticket.description || '',
+                amount: ticket.amount?.toString() || '0',
+                currency: ticket.currency || 'CAD',
+                status: ticket.status || 'Unpaid',
+                file: null, // Don't set file for existing tickets (it's a File object, not needed for display)
+                fileUrl: ticket.fileUrl || null, // Include fileUrl for displaying existing files
+                fileName: ticket.fileName || null // Include fileName for displaying existing files
+              }));
+              setTickets(existingTickets);
+              console.log(`✅ Tickets loaded (${existingTickets.length} tickets)`, existingTickets.map((t: any) => ({ id: t.id, ticketId: t.ticketId, hasFile: !!t.fileUrl, fileName: t.fileName })));
+            } else {
+              console.log('⚠️ No tickets found for this driver');
               setTickets([]);
             }
+          } catch (ticketError) {
+            console.error('Error loading tickets:', ticketError);
+            setTickets([]);
+          }
 
-            // Load violations (Violations) from getDriverById response
-            try {
-              if (driver.violations && Array.isArray(driver.violations) && driver.violations.length > 0) {
-                const existingViolations = driver.violations.map((vio: any) => ({
-                  id: `existing-${vio._id}`,
-                  violationType: vio.violationType || vio.type || '',
-                  title: vio.title || vio.ticketInfo?.ticketNumber || vio.ticket || '',
-                  description: vio.description || '',
-                  dateOfIncident: vio.dateOfIncident || (vio.date ? new Date(vio.date).toISOString().split('T')[0] : ''),
-                  reportedBy: vio.reportedBy || '',
-                  severity: vio.severity || '',
-                  actionTaken: vio.actionTaken || '',
-                  status: vio.status || '',
-                  file: null, // Don't set file for existing violations (it's a File object, not needed for display)
-                  fileUrl: vio.fileUrl || null, // Include fileUrl for displaying existing files
-                  fileName: vio.fileName || null // Include fileName for displaying existing files
-                }));
-                setViolations(existingViolations);
-                console.log(`✅ Violations loaded (${existingViolations.length} violations)`, existingViolations.map((v: any) => ({ id: v.id, hasFile: !!v.fileUrl, fileName: v.fileName })));
-              } else {
-                console.log('⚠️ No violations found for this driver');
-                setViolations([]);
-              }
-            } catch (vioError) {
-              console.error('Error loading violations:', vioError);
+          // Load violations (Violations) from getDriverById response
+          try {
+            if (driver.violations && Array.isArray(driver.violations) && driver.violations.length > 0) {
+              const existingViolations = driver.violations.map((vio: any) => ({
+                id: `existing-${vio._id}`,
+                violationType: vio.violationType || vio.type || '',
+                title: vio.title || vio.ticketInfo?.ticketNumber || vio.ticket || '',
+                description: vio.description || '',
+                dateOfIncident: vio.dateOfIncident || (vio.date ? new Date(vio.date).toISOString().split('T')[0] : ''),
+                reportedBy: vio.reportedBy || '',
+                severity: vio.severity || '',
+                actionTaken: vio.actionTaken || '',
+                status: vio.status || '',
+                file: null, // Don't set file for existing violations (it's a File object, not needed for display)
+                fileUrl: vio.fileUrl || null, // Include fileUrl for displaying existing files
+                fileName: vio.fileName || null // Include fileName for displaying existing files
+              }));
+              setViolations(existingViolations);
+              console.log(`✅ Violations loaded (${existingViolations.length} violations)`, existingViolations.map((v: any) => ({ id: v.id, hasFile: !!v.fileUrl, fileName: v.fileName })));
+            } else {
+              console.log('⚠️ No violations found for this driver');
               setViolations([]);
             }
+          } catch (vioError) {
+            console.error('Error loading violations:', vioError);
+            setViolations([]);
+          }
 
-            // Load drug tests from getDriverById response
-            try {
-              if (driver.drugTests && Array.isArray(driver.drugTests) && driver.drugTests.length > 0) {
-                const existingDrugTests = driver.drugTests.map((dt: any, index: number) => {
-                  // Handle date formatting - ensure we get a valid date string
-                  let dateValue = '';
-                  if (dt.date) {
-                    try {
-                      if (typeof dt.date === 'string') {
-                        dateValue = dt.date.split('T')[0];
-                      } else if (dt.date instanceof Date) {
-                        dateValue = dt.date.toISOString().split('T')[0];
-                      } else {
-                        dateValue = new Date(dt.date).toISOString().split('T')[0];
-                      }
-                    } catch (e) {
-                      console.error('Error parsing date:', e, dt.date);
-                      dateValue = '';
+          // Load drug tests from getDriverById response
+          try {
+            if (driver.drugTests && Array.isArray(driver.drugTests) && driver.drugTests.length > 0) {
+              const existingDrugTests = driver.drugTests.map((dt: any, index: number) => {
+                // Handle date formatting - ensure we get a valid date string
+                let dateValue = '';
+                if (dt.date) {
+                  try {
+                    if (typeof dt.date === 'string') {
+                      dateValue = dt.date.split('T')[0];
+                    } else if (dt.date instanceof Date) {
+                      dateValue = dt.date.toISOString().split('T')[0];
+                    } else {
+                      dateValue = new Date(dt.date).toISOString().split('T')[0];
                     }
+                  } catch (e) {
+                    console.error('Error parsing date:', e, dt.date);
+                    dateValue = '';
                   }
-                  
-                  return {
-                    id: dt._id ? `existing-${dt._id}` : `drug-test-${index}`,
-                    drugTestId: dt._id || null, // Store MongoDB ID if available
-                    date: dateValue,
-                    result: dt.result || '',
-                    labName: dt.labName || dt.lab || '',
-                    file: null, // Don't set file for existing drug tests
-                    fileUrl: dt.fileUrl || null, // This should already be a signed URL from backend
-                    fileName: dt.fileName || null,
-                    fileSize: dt.fileSize || null,
-                    mimeType: dt.mimeType || null,
-                    isExisting: true
-                  };
-                });
-                setDrugTests(existingDrugTests);
-                console.log(`✅ Drug tests loaded (${existingDrugTests.length} drug tests)`, existingDrugTests.map((dt: any) => ({ id: dt.id, drugTestId: dt.drugTestId, hasFile: !!dt.fileUrl, fileName: dt.fileName })));
-              } else {
-                console.log('⚠️ No drug tests found for this driver');
-                setDrugTests([]);
-              }
-            } catch (dtError) {
-              console.error('Error loading drug tests:', dtError);
+                }
+
+                return {
+                  id: dt._id ? `existing-${dt._id}` : `drug-test-${index}`,
+                  drugTestId: dt._id || null, // Store MongoDB ID if available
+                  date: dateValue,
+                  result: dt.result || '',
+                  labName: dt.labName || dt.lab || '',
+                  file: null, // Don't set file for existing drug tests
+                  fileUrl: dt.fileUrl || null, // This should already be a signed URL from backend
+                  fileName: dt.fileName || null,
+                  fileSize: dt.fileSize || null,
+                  mimeType: dt.mimeType || null,
+                  isExisting: true
+                };
+              });
+              setDrugTests(existingDrugTests);
+              console.log(`✅ Drug tests loaded (${existingDrugTests.length} drug tests)`, existingDrugTests.map((dt: any) => ({ id: dt.id, drugTestId: dt.drugTestId, hasFile: !!dt.fileUrl, fileName: dt.fileName })));
+            } else {
+              console.log('⚠️ No drug tests found for this driver');
               setDrugTests([]);
             }
+          } catch (dtError) {
+            console.error('Error loading drug tests:', dtError);
+            setDrugTests([]);
+          }
 
-            // Load deductions (Payroll Deductions) from getDriverById response
-            try {
-              if (driver.deductions && Array.isArray(driver.deductions) && driver.deductions.length > 0) {
-                const existingDeductions = driver.deductions.map((ded: any) => ({
-                  id: `existing-${ded._id}`,
-                  startDate: ded.startDate ? new Date(ded.startDate).toISOString().split('T')[0] : '',
-                  description: ded.name || ded.description || '',
-                  amount: ded.amount?.toString() || '0',
-                  interval: ded.recurrence || ded.interval || '',
-                  currency: ded.currency || 'CAD' // Use currency from API response
-                }));
-                setDeductions(existingDeductions);
-                console.log(`✅ Deductions loaded (${existingDeductions.length} deductions)`);
-              } else {
-                console.log('⚠️ No deductions found for this driver');
-                setDeductions([]);
-              }
-            } catch (dedError) {
-              console.error('Error loading deductions:', dedError);
+          // Load deductions (Payroll Deductions) from getDriverById response
+          try {
+            if (driver.deductions && Array.isArray(driver.deductions) && driver.deductions.length > 0) {
+              const existingDeductions = driver.deductions.map((ded: any) => ({
+                id: `existing-${ded._id}`,
+                startDate: ded.startDate ? new Date(ded.startDate).toISOString().split('T')[0] : '',
+                description: ded.name || ded.description || '',
+                amount: ded.amount?.toString() || '0',
+                interval: ded.recurrence || ded.interval || '',
+                currency: ded.currency || 'CAD' // Use currency from API response
+              }));
+              setDeductions(existingDeductions);
+              console.log(`✅ Deductions loaded (${existingDeductions.length} deductions)`);
+            } else {
+              console.log('⚠️ No deductions found for this driver');
               setDeductions([]);
             }
+          } catch (dedError) {
+            console.error('Error loading deductions:', dedError);
+            setDeductions([]);
+          }
 
-            // Load additions (Payroll Additions) from getDriverById response
-            try {
-              if (driver.additions && Array.isArray(driver.additions) && driver.additions.length > 0) {
-                const existingAdditions = driver.additions.map((add: any) => ({
-                  id: `existing-${add._id}`,
-                  startDate: add.startDate ? new Date(add.startDate).toISOString().split('T')[0] : '',
-                  description: add.name || add.description || '',
-                  amount: add.amount?.toString() || '0',
-                  interval: add.recurrence || add.interval || '',
-                  currency: add.currency || 'CAD' // Use currency from API response
-                }));
-                setAdditions(existingAdditions);
-                console.log(`✅ Additions loaded (${existingAdditions.length} additions)`);
-              } else {
-                console.log('⚠️ No additions found for this driver');
-                setAdditions([]);
-              }
-            } catch (addError) {
-              console.error('Error loading additions:', addError);
+          // Load additions (Payroll Additions) from getDriverById response
+          try {
+            if (driver.additions && Array.isArray(driver.additions) && driver.additions.length > 0) {
+              const existingAdditions = driver.additions.map((add: any) => ({
+                id: `existing-${add._id}`,
+                startDate: add.startDate ? new Date(add.startDate).toISOString().split('T')[0] : '',
+                description: add.name || add.description || '',
+                amount: add.amount?.toString() || '0',
+                interval: add.recurrence || add.interval || '',
+                currency: add.currency || 'CAD' // Use currency from API response
+              }));
+              setAdditions(existingAdditions);
+              console.log(`✅ Additions loaded (${existingAdditions.length} additions)`);
+            } else {
+              console.log('⚠️ No additions found for this driver');
               setAdditions([]);
             }
-
-            // Load notes
-            let notesArray: Array<{ id: string; note: string; category: string }> = [];
-            if (driver.details?.notes || driver.notes) {
-              if (Array.isArray(driver.details?.notes)) {
-                notesArray = driver.details.notes.map((note: any, index: number) => ({
-                  id: note.id || `note-${index}`,
-                  note: typeof note === 'string' ? note : (note.note || note.text || ''),
-                  category: note.category || ''
-                }));
-              } else if (driver.details?.notes || driver.notes) {
-                const noteText = driver.details?.notes || driver.notes || '';
-                notesArray = [{ id: '1', note: noteText, category: '' }];
-              }
-              setNotes(notesArray);
-            } else {
-              setNotes([]);
-            }
-
-            // Load onboarding data
-            try {
-              // Load onboarding status
-              if (driver.onboardingStatus) {
-                setOnboardingStatus(driver.onboardingStatus);
-              } else {
-                setOnboardingStatus('PENDING_TESTS');
-              }
-
-              // Load hazardous loads flag
-              console.log('📋 Loading driver flags from backend:', {
-                handlesHazardousLoads: driver.handlesHazardousLoads,
-                winterTestRequired: driver.winterTestRequired,
-                driverId: driver._id || driver.id,
-                hasHandlesHazardousLoads: driver.handlesHazardousLoads !== undefined,
-                hasWinterTestRequired: driver.winterTestRequired !== undefined
-              });
-              
-              if (driver.handlesHazardousLoads !== undefined) {
-                const value = Boolean(driver.handlesHazardousLoads);
-                console.log('✅ Setting handlesHazardousLoads to:', value, 'type:', typeof value);
-                setHandlesHazardousLoads(value);
-              } else {
-                console.log('⚠️ handlesHazardousLoads not found, defaulting to false');
-                setHandlesHazardousLoads(false);
-              }
-
-              // Load winter test flag
-              if (driver.winterTestRequired !== undefined) {
-                const value = Boolean(driver.winterTestRequired);
-                console.log('✅ Setting winterTestRequired to:', value, 'type:', typeof value);
-                setWinterTestRequired(value);
-              } else {
-                console.log('⚠️ winterTestRequired not found, defaulting to false');
-                setWinterTestRequired(false);
-              }
-              
-              console.log('📊 Flags loaded. Final state will be:', {
-                handlesHazardousLoads: Boolean(driver.handlesHazardousLoads || false),
-                winterTestRequired: Boolean(driver.winterTestRequired || false)
-              });
-              
-              // Store driver object for flag update timestamp display
-              setEditingDriver(driver);
-
-              // Load HR approval data
-              if (driver.approvedByHR !== undefined) {
-                setApprovedByHR(driver.approvedByHR);
-              } else {
-                setApprovedByHR(false);
-              }
-
-              if (driver.approvedAt) {
-                setApprovedAt(new Date(driver.approvedAt).toISOString().split('T')[0]);
-              } else {
-                setApprovedAt('');
-              }
-
-              // Fetch test results from API
-              await fetchDriverTestResults(driver._id);
-            } catch (onboardingError) {
-              console.error('Error loading onboarding data:', onboardingError);
-              // Set defaults
-              setOnboardingStatus('PENDING_TESTS');
-              setHandlesHazardousLoads(false);
-              setWinterTestRequired(false);
-              setApprovedByHR(false);
-              setApprovedAt('');
-              setDriverTests([]);
-            }
-
-            // Store original data for comparison (after state updates)
-            // Capture current state values for original data snapshot
-            const currentNotes = notesArray;
-            const currentDocuments = documents;
-            const currentCertifications = certifications;
-            const currentViolations = violations;
-            const currentDeductions = deductions;
-            const currentAdditions = additions;
-            
-            setTimeout(() => {
-              // Parse phone numbers for original data (same as formData)
-              const originalPrimaryParsed = parsePhoneNumber(driver.phone, countries);
-              const originalSecondary = driver.details?.cell1 || driver.details?.cell2 || driver.mobile;
-              const originalSecondaryParsed = parsePhoneNumber(originalSecondary, countries);
-              
-              // Store original data snapshot
-              setOriginalDriverData({
-                formData: {
-                  driverId: driver.internalId || '',
-                  firstName: firstName,
-                  middle: middle,
-                  lastName: lastName,
-                  emailAddress: driver.email || '',
-                  dateOfBirth: dateOfBirthFormatted,
-                  mobileApp: driver.mobileApp || false,
-                  pin: '',
-                  primaryPhone: originalPrimaryParsed.phoneNumber,
-                  secondaryPhone: originalSecondaryParsed.phoneNumber,
-                  searchAddress: '',
-                  address: driver.location?.address || driver.address || '',
-                  unit: driver.location?.unit || driver.unit || '',
-                  city: driver.city || driver.location?.city || '',
-                  postalCode: driver.postalCode || driver.location?.postalCode || driver.details?.postalCode || '',
-                  country: driver.country || '',
-                  stateProvince: driver.state || driver.location?.state || '',
-                  profileImage: null
-                },
-                personalData: {
-                  socialInsuranceNumber: driver.details?.sinNo || driver.sinNo || '',
-                  hireDate: (() => {
-                    const hireDateValue = driver.details?.hireDate || driver.hireDate || driver.joinDate;
-                    return hireDateValue ? new Date(hireDateValue).toISOString().split('T')[0] : '';
-                  })(),
-                  terminationDate: (() => {
-                    const termDateValue = driver.details?.termDate || driver.termDate;
-                    return termDateValue ? new Date(termDateValue).toISOString().split('T')[0] : '';
-                  })(),
-                  status: driver.status === 'active' || driver.status === 'ACTIVE' ? 'Active' : 'Inactive',
-                  vacationPercent: driver.details?.vacationPay || driver.vacationPay || '',
-                  corporationName: driver.details?.incorporation || driver.incorporation || '',
-                  driverName: driver.details?.driverName || driver.driverName || '',
-                  paymentAddress: driver.details?.paymentAddress || driver.paymentAddress || '',
-                  paymentSearchAddress: driver.details?.paymentSearchAddress || '',
-                  paymentCity: driver.details?.paymentCity || '',
-                  paymentPostalCode: driver.details?.paymentPostalCode || '',
-                  paymentCountry: driver.details?.paymentCountry || '',
-                  paymentStateProvince: driver.details?.paymentStateProvince || '',
-                  gstNo: driver.details?.gstNo || driver.gstNo || '',
-                  driverType: (driver.details?.companyFlag || driver.companyFlag) ? 'OWNER OPERATOR' : 'COMPANY DRIVER',
-                  paymentMethod: driver.details?.paymentMethod || driver.paymentMethod || 'PAID PER MILE',
-                  alone: String(driver.alone || driver.details?.mileRate || 0),
-                  empty: String(driver.empty || driver.details?.emptyMileRate || 0),
-                  bonusDrop: String(driver.bonusDrop || driver.details?.bonusDrop || 0),
-                  team: String(driver.team || driver.details?.mileRateTeam || 0),
-                  emptyTeam: String(driver.emptyTeam || driver.details?.emptyMileRateTeam || 0),
-                  bonusPick: String(driver.bonusPick || driver.details?.bonusPick || 0),
-                  bonusLayover: String(driver.bonusLayover || driver.details?.bonusLayover || 0),
-                  percentRate: String(driver.percentageRate || driver.details?.percentageRate || 0),
-                  perTripAmount: '0',
-                  hourlyRate: String(driver.hourlyRate || driver.details?.hourlyRate || 0),
-                  dailyRate: '0',
-                  driverTypeSolo: driver.details?.driverTypeSolo !== undefined ? driver.details.driverTypeSolo : (driver.driverTypeSolo !== undefined ? driver.driverTypeSolo : (driver.solo !== undefined ? driver.solo : true)),
-                  cross_border_eligible: driver.details?.cross_border_eligible !== undefined ? driver.details.cross_border_eligible : (driver.cross_border_eligible !== undefined ? driver.cross_border_eligible : false),
-                  cppExempt: driver.details?.cppQppExempt || driver.cppQppExempt || false,
-                  payrollTaxExempt: driver.details?.provTaxExempt || driver.provTaxExempt || false,
-                  customHst: driver.details?.customHst || driver.customHst || '',
-                  gender: driver.details?.gender || driver.gender || '',
-                  citizenship: driver.details?.citizenship || driver.citizenship || ''
-                },
-                travelData: {
-                  driversLicenseNumber: driver.licenceNumber || driver.details?.licenceNumber || driver.details?.driversLicence || '',
-                  driversLicenseExpiry: (() => {
-                    const expiryValue = driver.licenceExpiry || driver.details?.licenceExpiry;
-                    return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
-                  })(),
-                  licenseStateProvince: driver.licenceState || driver.details?.licenceState || '',
-                  passportNumber: driver.passport || driver.details?.passport || driver.details?.passportNumber || '',
-                  passportCountry: driver.passportCountry || driver.details?.passportCountry || '',
-                  passportExpiry: (() => {
-                    const expiryValue = driver.passportExpiry || driver.details?.passportExpiry;
-                    return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
-                  })(),
-                  fastCardNumber: driver.fastCard || driver.details?.fastCardNo || '',
-                  fastCardExpiry: (() => {
-                    const expiryValue = driver.fastCardExpiry || driver.details?.fastCardExpiry;
-                    return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
-                  })(),
-                  fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
-                  sinNumber: driver.sinNo || driver.details?.sinNo || driver.socialInsuranceNumber || '',
-                  canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
-                  permanentResidenceExpiry: (() => {
-                    const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
-                    return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
-                  })(),
-                  workPermitExpiry: (() => {
-                    const expiryValue = driver.workPermitExpiry || driver.details?.workPermitExpiry;
-                    return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
-                  })(),
-                  wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || '',
-                  workPermitDocument: null,
-                  prCardDocument: null,
-                  existingWorkPermitUrl: driver.workPermitDocumentUrl || driver.details?.workPermitDocumentUrl || null,
-                  existingPrCardUrl: driver.prCardDocumentUrl || driver.details?.prCardDocumentUrl || null
-                },
-                notes: currentNotes || [],
-                documents: currentDocuments || [],
-                certifications: currentCertifications || [],
-                violations: currentViolations || [],
-                deductions: currentDeductions || [],
-                additions: currentAdditions || [],
-                drugTests: drugTests || []
-              });
-              console.log('✅ Form data populated, opening modal');
-              setShowNewDriverModal(true);
-              setActiveFormTab('basic');
-            }, 100);
-          } else {
-            console.error('❌ Failed to load driver - invalid driver data');
-            console.error('Response:', JSON.stringify(response, null, 2));
-            console.error('Driver object:', driver);
-            console.error('Response type:', typeof response);
-            console.error('Has success:', 'success' in (response || {}));
-            console.error('Has data:', 'data' in (response || {}));
-            alert('Failed to load driver data. The response structure may be incorrect. Please check console for details.');
-            setEditingId(null);
+          } catch (addError) {
+            console.error('Error loading additions:', addError);
+            setAdditions([]);
           }
-        } catch (error: any) {
-          console.error('❌ Error loading driver for edit:', error);
-          console.error('Error details:', {
-            message: error?.message,
-            response: error?.response,
-            data: error?.response?.data
-          });
-          alert('Error loading driver data: ' + (error?.message || error?.response?.data?.message || 'Unknown error'));
+
+          // Load notes
+          let notesArray: Array<{ id: string; note: string; category: string }> = [];
+          if (driver.details?.notes || driver.notes) {
+            if (Array.isArray(driver.details?.notes)) {
+              notesArray = driver.details.notes.map((note: any, index: number) => ({
+                id: note.id || `note-${index}`,
+                note: typeof note === 'string' ? note : (note.note || note.text || ''),
+                category: note.category || ''
+              }));
+            } else if (driver.details?.notes || driver.notes) {
+              const noteText = driver.details?.notes || driver.notes || '';
+              notesArray = [{ id: '1', note: noteText, category: '' }];
+            }
+            setNotes(notesArray);
+          } else {
+            setNotes([]);
+          }
+
+          // Load onboarding data
+          try {
+            // Load onboarding status
+            if (driver.onboardingStatus) {
+              setOnboardingStatus(driver.onboardingStatus);
+            } else {
+              setOnboardingStatus('PENDING_TESTS');
+            }
+
+            // Load hazardous loads flag
+            console.log('📋 Loading driver flags from backend:', {
+              handlesHazardousLoads: driver.handlesHazardousLoads,
+              winterTestRequired: driver.winterTestRequired,
+              driverId: driver._id || driver.id,
+              hasHandlesHazardousLoads: driver.handlesHazardousLoads !== undefined,
+              hasWinterTestRequired: driver.winterTestRequired !== undefined
+            });
+
+            if (driver.handlesHazardousLoads !== undefined) {
+              const value = Boolean(driver.handlesHazardousLoads);
+              console.log('✅ Setting handlesHazardousLoads to:', value, 'type:', typeof value);
+              setHandlesHazardousLoads(value);
+            } else {
+              console.log('⚠️ handlesHazardousLoads not found, defaulting to false');
+              setHandlesHazardousLoads(false);
+            }
+
+            // Load winter test flag
+            if (driver.winterTestRequired !== undefined) {
+              const value = Boolean(driver.winterTestRequired);
+              console.log('✅ Setting winterTestRequired to:', value, 'type:', typeof value);
+              setWinterTestRequired(value);
+            } else {
+              console.log('⚠️ winterTestRequired not found, defaulting to false');
+              setWinterTestRequired(false);
+            }
+
+            console.log('📊 Flags loaded. Final state will be:', {
+              handlesHazardousLoads: Boolean(driver.handlesHazardousLoads || false),
+              winterTestRequired: Boolean(driver.winterTestRequired || false)
+            });
+
+            // Store driver object for flag update timestamp display
+            setEditingDriver(driver);
+
+            // Load HR approval data
+            if (driver.approvedByHR !== undefined) {
+              setApprovedByHR(driver.approvedByHR);
+            } else {
+              setApprovedByHR(false);
+            }
+
+            if (driver.approvedAt) {
+              setApprovedAt(new Date(driver.approvedAt).toISOString().split('T')[0]);
+            } else {
+              setApprovedAt('');
+            }
+
+            // Fetch test results from API
+            await fetchDriverTestResults(driver._id);
+          } catch (onboardingError) {
+            console.error('Error loading onboarding data:', onboardingError);
+            // Set defaults
+            setOnboardingStatus('PENDING_TESTS');
+            setHandlesHazardousLoads(false);
+            setWinterTestRequired(false);
+            setApprovedByHR(false);
+            setApprovedAt('');
+            setDriverTests([]);
+          }
+
+          // Store original data for comparison (after state updates)
+          // Capture current state values for original data snapshot
+          const currentNotes = notesArray;
+          const currentDocuments = documents;
+          const currentCertifications = certifications;
+          const currentViolations = violations;
+          const currentDeductions = deductions;
+          const currentAdditions = additions;
+
+          setTimeout(() => {
+            // Parse phone numbers for original data (same as formData)
+            const originalPrimaryParsed = parsePhoneNumber(driver.phone, countries);
+            const originalSecondary = driver.details?.cell1 || driver.details?.cell2 || driver.mobile;
+            const originalSecondaryParsed = parsePhoneNumber(originalSecondary, countries);
+
+            // Store original data snapshot
+            setOriginalDriverData({
+              formData: {
+                driverId: driver.internalId || '',
+                firstName: firstName,
+                middle: middle,
+                lastName: lastName,
+                emailAddress: driver.email || '',
+                dateOfBirth: dateOfBirthFormatted,
+                mobileApp: driver.mobileApp || false,
+                pin: '',
+                primaryPhone: originalPrimaryParsed.phoneNumber,
+                secondaryPhone: originalSecondaryParsed.phoneNumber,
+                searchAddress: '',
+                address: driver.location?.address || driver.address || '',
+                unit: driver.location?.unit || driver.unit || '',
+                city: driver.city || driver.location?.city || '',
+                postalCode: driver.postalCode || driver.location?.postalCode || driver.details?.postalCode || '',
+                country: driver.country || '',
+                stateProvince: driver.state || driver.location?.state || '',
+                profileImage: null
+              },
+              personalData: {
+                socialInsuranceNumber: driver.details?.sinNo || driver.sinNo || '',
+                hireDate: (() => {
+                  const hireDateValue = driver.details?.hireDate || driver.hireDate || driver.joinDate;
+                  return hireDateValue ? new Date(hireDateValue).toISOString().split('T')[0] : '';
+                })(),
+                terminationDate: (() => {
+                  const termDateValue = driver.details?.termDate || driver.termDate;
+                  return termDateValue ? new Date(termDateValue).toISOString().split('T')[0] : '';
+                })(),
+                status: driver.status === 'active' || driver.status === 'ACTIVE' ? 'Active' : 'Inactive',
+                vacationPercent: driver.details?.vacationPay || driver.vacationPay || '',
+                corporationName: driver.details?.incorporation || driver.incorporation || '',
+                driverName: driver.details?.driverName || driver.driverName || '',
+                paymentAddress: driver.details?.paymentAddress || driver.paymentAddress || '',
+                paymentSearchAddress: driver.details?.paymentSearchAddress || '',
+                paymentCity: driver.details?.paymentCity || '',
+                paymentPostalCode: driver.details?.paymentPostalCode || '',
+                paymentCountry: driver.details?.paymentCountry || '',
+                paymentStateProvince: driver.details?.paymentStateProvince || '',
+                gstNo: driver.details?.gstNo || driver.gstNo || '',
+                driverType: (driver.details?.companyFlag || driver.companyFlag) ? 'OWNER OPERATOR' : 'COMPANY DRIVER',
+                paymentMethod: driver.details?.paymentMethod || driver.paymentMethod || 'PAID PER MILE',
+                alone: String(driver.alone || driver.details?.mileRate || 0),
+                empty: String(driver.empty || driver.details?.emptyMileRate || 0),
+                bonusDrop: String(driver.bonusDrop || driver.details?.bonusDrop || 0),
+                team: String(driver.team || driver.details?.mileRateTeam || 0),
+                emptyTeam: String(driver.emptyTeam || driver.details?.emptyMileRateTeam || 0),
+                bonusPick: String(driver.bonusPick || driver.details?.bonusPick || 0),
+                bonusLayover: String(driver.bonusLayover || driver.details?.bonusLayover || 0),
+                percentRate: String(driver.percentageRate || driver.details?.percentageRate || 0),
+                perTripAmount: '0',
+                hourlyRate: String(driver.hourlyRate || driver.details?.hourlyRate || 0),
+                dailyRate: '0',
+                driverTypeSolo: driver.details?.driverTypeSolo !== undefined ? driver.details.driverTypeSolo : (driver.driverTypeSolo !== undefined ? driver.driverTypeSolo : (driver.solo !== undefined ? driver.solo : true)),
+                cross_border_eligible: driver.details?.cross_border_eligible !== undefined ? driver.details.cross_border_eligible : (driver.cross_border_eligible !== undefined ? driver.cross_border_eligible : false),
+                cppExempt: driver.details?.cppQppExempt || driver.cppQppExempt || false,
+                payrollTaxExempt: driver.details?.provTaxExempt || driver.provTaxExempt || false,
+                customHst: driver.details?.customHst || driver.customHst || '',
+                gender: driver.details?.gender || driver.gender || '',
+                citizenship: driver.details?.citizenship || driver.citizenship || ''
+              },
+              travelData: {
+                driversLicenseNumber: driver.licenceNumber || driver.details?.licenceNumber || driver.details?.driversLicence || '',
+                driversLicenseExpiry: (() => {
+                  const expiryValue = driver.licenceExpiry || driver.details?.licenceExpiry;
+                  return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+                })(),
+                licenseStateProvince: driver.licenceState || driver.details?.licenceState || '',
+                passportNumber: driver.passport || driver.details?.passport || driver.details?.passportNumber || '',
+                passportCountry: driver.passportCountry || driver.details?.passportCountry || '',
+                passportExpiry: (() => {
+                  const expiryValue = driver.passportExpiry || driver.details?.passportExpiry;
+                  return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+                })(),
+                fastCardNumber: driver.fastCard || driver.details?.fastCardNo || '',
+                fastCardExpiry: (() => {
+                  const expiryValue = driver.fastCardExpiry || driver.details?.fastCardExpiry;
+                  return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+                })(),
+                fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
+                sinNumber: driver.sinNo || driver.details?.sinNo || driver.socialInsuranceNumber || '',
+                canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
+                permanentResidenceExpiry: (() => {
+                  const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
+                  return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+                })(),
+                workPermitExpiry: (() => {
+                  const expiryValue = driver.workPermitExpiry || driver.details?.workPermitExpiry;
+                  return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+                })(),
+                wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || '',
+                workPermitDocument: null,
+                prCardDocument: null,
+                existingWorkPermitUrl: driver.workPermitDocumentUrl || driver.details?.workPermitDocumentUrl || null,
+                existingPrCardUrl: driver.prCardDocumentUrl || driver.details?.prCardDocumentUrl || null
+              },
+              notes: currentNotes || [],
+              documents: currentDocuments || [],
+              certifications: currentCertifications || [],
+              violations: currentViolations || [],
+              deductions: currentDeductions || [],
+              additions: currentAdditions || [],
+              drugTests: drugTests || []
+            });
+            console.log('✅ Form data populated, opening modal');
+            setShowNewDriverModal(true);
+            setActiveFormTab('basic');
+          }, 100);
+        } else {
+          console.error('❌ Failed to load driver - invalid driver data');
+          console.error('Response:', JSON.stringify(response, null, 2));
+          console.error('Driver object:', driver);
+          console.error('Response type:', typeof response);
+          console.error('Has success:', 'success' in (response || {}));
+          console.error('Has data:', 'data' in (response || {}));
+          alert('Failed to load driver data. The response structure may be incorrect. Please check console for details.');
           setEditingId(null);
         }
-      } else {
-        // Reset form when not editing
-        setFormData({
-          driverId: '',
-          firstName: '',
-          middle: '',
-          lastName: '',
-          emailAddress: '',
-          dateOfBirth: '',
-          mobileApp: false,
-          pin: '',
-          primaryPhone: '',
-          secondaryPhone: '',
-          searchAddress: '',
-          address: '',
-          unit: '',
-          city: '',
-          postalCode: '',
-          country: '',
-          stateProvince: '',
-          profileImage: null
+      } catch (error: any) {
+        console.error('❌ Error loading driver for edit:', error);
+        console.error('Error details:', {
+          message: error?.message,
+          response: error?.response,
+          data: error?.response?.data
         });
-        setPersonalData({
-          socialInsuranceNumber: '',
-          hireDate: '',
-          terminationDate: '',
-          status: 'Active',
-          vacationPercent: '',
-          corporationName: '',
-          driverName: '',
-          paymentAddress: '',
-          paymentSearchAddress: '',
-          paymentCity: '',
-          paymentPostalCode: '',
-          paymentCountry: '',
-          paymentStateProvince: '',
-          gstNo: '',
-          driverType: 'COMPANY DRIVER',
-          paymentMethod: 'PAID PER MILE',
-          alone: '0',
-          empty: '0',
-          bonusDrop: '0',
-          team: '0',
-          emptyTeam: '0',
-          bonusPick: '0',
-          bonusLayover: '0',
-          percentRate: '0',
-          perTripAmount: '0',
-          hourlyRate: '0',
-          dailyRate: '0',
-          driverTypeSolo: true,
-          cross_border_eligible: false,
-          cppExempt: false,
-          payrollTaxExempt: false,
-          customHst: '',
-          gender: '',
-          citizenship: ''
-        });
-        setTravelData({
-          driversLicenseNumber: '',
-          driversLicenseExpiry: '',
-          licenseStateProvince: '',
-          passportNumber: '',
-          passportCountry: '',
-          passportExpiry: '',
-          fastCardNumber: '',
-          fastCardExpiry: '',
-          fastCardValid: false,
-          sinNumber: '',
-          canadianWorkerStatus: 'PERMANENT RESIDENT',
-          permanentResidenceExpiry: '',
-          workPermitExpiry: '',
-          wcbNumber: '',
-          workPermitDocument: null,
-          prCardDocument: null,
-          existingWorkPermitUrl: null,
-          existingPrCardUrl: null
-        });
-        setDocuments([]);
-        setNotes([]);
-        setProfileImagePreview(null);
+        alert('Error loading driver data: ' + (error?.message || error?.response?.data?.message || 'Unknown error'));
+        setEditingId(null);
       }
+    } else {
+      // Reset form when not editing
+      setFormData({
+        driverId: '',
+        firstName: '',
+        middle: '',
+        lastName: '',
+        emailAddress: '',
+        dateOfBirth: '',
+        mobileApp: false,
+        pin: '',
+        primaryPhone: '',
+        secondaryPhone: '',
+        searchAddress: '',
+        address: '',
+        unit: '',
+        city: '',
+        postalCode: '',
+        country: '',
+        stateProvince: '',
+        profileImage: null
+      });
+      setPersonalData({
+        socialInsuranceNumber: '',
+        hireDate: '',
+        terminationDate: '',
+        status: 'Active',
+        vacationPercent: '',
+        corporationName: '',
+        driverName: '',
+        paymentAddress: '',
+        paymentSearchAddress: '',
+        paymentCity: '',
+        paymentPostalCode: '',
+        paymentCountry: '',
+        paymentStateProvince: '',
+        gstNo: '',
+        driverType: 'COMPANY DRIVER',
+        paymentMethod: 'PAID PER MILE',
+        alone: '0',
+        empty: '0',
+        bonusDrop: '0',
+        team: '0',
+        emptyTeam: '0',
+        bonusPick: '0',
+        bonusLayover: '0',
+        percentRate: '0',
+        perTripAmount: '0',
+        hourlyRate: '0',
+        dailyRate: '0',
+        driverTypeSolo: true,
+        cross_border_eligible: false,
+        cppExempt: false,
+        payrollTaxExempt: false,
+        customHst: '',
+        gender: '',
+        citizenship: ''
+      });
+      setTravelData({
+        driversLicenseNumber: '',
+        driversLicenseExpiry: '',
+        licenseStateProvince: '',
+        passportNumber: '',
+        passportCountry: '',
+        passportExpiry: '',
+        fastCardNumber: '',
+        fastCardExpiry: '',
+        fastCardValid: false,
+        sinNumber: '',
+        canadianWorkerStatus: 'PERMANENT RESIDENT',
+        permanentResidenceExpiry: '',
+        workPermitExpiry: '',
+        wcbNumber: '',
+        workPermitDocument: null,
+        prCardDocument: null,
+        existingWorkPermitUrl: null,
+        existingPrCardUrl: null
+      });
+      setDocuments([]);
+      setNotes([]);
+      setProfileImagePreview(null);
+    }
   };
 
   // Load driver data when editingId changes
@@ -1736,15 +1766,15 @@ const DriverManagement = () => {
     if (sortConfig.key !== key) {
       return (
         <div className="flex flex-col">
-          <ChevronUp className="w-3 h-3 text-gray-400" />
-          <ChevronDown className="w-3 h-3 text-gray-400 -mt-1" />
+          <ChevronUp className="w-3 h-3 text-secondary" />
+          <ChevronDown className="w-3 h-3 text-secondary -mt-1" />
         </div>
       );
     }
     return sortConfig.direction === 'asc' ? (
-      <ChevronUp className="w-3 h-3 text-gray-700" />
+      <ChevronUp className="w-3 h-3 text-primary" />
     ) : (
-      <ChevronDown className="w-3 h-3 text-gray-700" />
+      <ChevronDown className="w-3 h-3 text-primary" />
     );
   };
 
@@ -1757,7 +1787,7 @@ const DriverManagement = () => {
       case 'NON-COMPLIANT':
         return 'bg-[#ef4444] text-white';
       default:
-        return 'bg-gray-500 text-white';
+        return 'bg-[rgba(255,255,255,0.1)] text-secondary';
     }
   };
 
@@ -1809,11 +1839,11 @@ const DriverManagement = () => {
     }
   };
 
- 
+
 
   // Note: Removed getDocumentTypeFromTab function since we're not using tabs anymore
 
- 
+
 
 
   // Validation function
@@ -1911,10 +1941,10 @@ const DriverManagement = () => {
     // If there are errors, show detailed notification and switch to the first tab with errors
     if (Object.keys(errors).length > 0) {
       const errorCount = Object.keys(errors).length;
-      
+
       // Create a detailed error message listing all missing fields
       const errorFields: string[] = [];
-      
+
       if (errors.firstName) errorFields.push('First Name');
       if (errors.lastName) errorFields.push('Last Name');
       if (errors.emailAddress) errorFields.push('Email Address');
@@ -1927,17 +1957,17 @@ const DriverManagement = () => {
       if (errors.driversLicenseExpiry) errorFields.push('Drivers License Expiry Date');
       if (errors.passportNumber) errorFields.push('Passport Number');
       if (errors.passportExpiry) errorFields.push('Passport Expiry Date');
-      
+
       // Create detailed error message
       let errorMessage = `Please complete the following required field${errorCount > 1 ? 's' : ''}: ${errorFields.join(', ')}`;
-      
+
       // If message is too long, show summary
       if (errorMessage.length > 100) {
         errorMessage = `Please fix ${errorCount} required field${errorCount > 1 ? 's' : ''} before submitting. Missing: ${errorFields.slice(0, 3).join(', ')}${errorFields.length > 3 ? ` and ${errorFields.length - 3} more` : ''}`;
       }
-      
+
       addNotification('error', errorMessage);
-      
+
       // Switch to the tab with the first error
       if (errors.firstName || errors.lastName || errors.emailAddress || errors.dateOfBirth || errors.primaryPhone || errors.country || errors.stateProvince) {
         setActiveFormTab('basic');
@@ -1946,7 +1976,7 @@ const DriverManagement = () => {
       } else if (errors.driversLicenseNumber || errors.driversLicenseExpiry || errors.passportNumber || errors.passportExpiry) {
         setActiveFormTab('travel');
       }
-      
+
       return false;
     }
 
@@ -1956,10 +1986,10 @@ const DriverManagement = () => {
   const handleSaveDriver = async () => {
     try {
       setIsSubmitting(true);
-      
+
       // Clear previous validation errors
       setValidationErrors({});
-      
+
       // Validate form
       if (!validateForm()) {
         setIsSubmitting(false);
@@ -1968,11 +1998,11 @@ const DriverManagement = () => {
 
       // Create FormData
       const driverFormData = new FormData();
-      
+
       // Basic Information - always include these fields
       driverFormData.append('name', `${formData.firstName} ${formData.middle ? formData.middle + ' ' : ''}${formData.lastName}`.trim());
       if (formData.emailAddress) driverFormData.append('email', formData.emailAddress);
-      
+
       // Primary Phone - include country code prefix
       if (formData.primaryPhone) {
         const primaryCountry = countries.find(c => c.code === primaryPhoneCountry);
@@ -1993,7 +2023,7 @@ const DriverManagement = () => {
           driverFormData.append('phone', formData.primaryPhone.startsWith('+') ? formData.primaryPhone : `+${formData.primaryPhone}`);
         }
       }
-      
+
       if (formData.country) driverFormData.append('country', formData.country);
       if (formData.driverId) driverFormData.append('internalId', formData.driverId);
       driverFormData.append('password', formData.pin || 'TempPassword123!'); // Default password if not provided
@@ -2001,28 +2031,28 @@ const DriverManagement = () => {
       // Use status from personalData if available, otherwise default to 'active'
       const statusValue = personalData.status ? personalData.status.toLowerCase() : 'active';
       driverFormData.append('status', statusValue);
-      
+
       // Mobile App Access - always send (true/false)
       driverFormData.append('mobileApp', String(formData.mobileApp));
-      
+
       // Date of Birth
       if (formData.dateOfBirth) {
         driverFormData.append('dob', formData.dateOfBirth);
       }
-      
+
       // Address Information
       if (formData.address) driverFormData.append('address', formData.address);
       if (formData.unit) driverFormData.append('unit', formData.unit);
       if (formData.city) driverFormData.append('city', formData.city);
       if (formData.stateProvince) driverFormData.append('state', formData.stateProvince);
       if (formData.postalCode) driverFormData.append('postalCode', formData.postalCode);
-      
+
       // Personal Information
       if (personalData.socialInsuranceNumber) driverFormData.append('sinNo', personalData.socialInsuranceNumber);
       if (personalData.hireDate) driverFormData.append('joinDate', personalData.hireDate);
       if (personalData.gender) driverFormData.append('gender', personalData.gender);
       if (personalData.citizenship) driverFormData.append('citizenship', personalData.citizenship);
-      
+
       // Employment Details - combine multiple fields into remark/employmentDetails
       // The backend stores this in details.remark field
       const employmentDetailsParts = [];
@@ -2034,13 +2064,13 @@ const DriverManagement = () => {
       if (employmentDetailsParts.length > 0) {
         driverFormData.append('employmentDetails', employmentDetailsParts.join('; '));
       }
-      
+
       // Payment/Salary Information - Payment Rate Fields
       // Send payment method
       if (personalData.paymentMethod) {
         driverFormData.append('paymentMethod', personalData.paymentMethod);
       }
-      
+
       // Payment rate fields (ALONE, EMPTY, TEAM, etc.)
       if (personalData.alone && personalData.alone !== '0') {
         driverFormData.append('mileRate', personalData.alone); // ALONE* = mileRate
@@ -2063,7 +2093,7 @@ const DriverManagement = () => {
       if (personalData.bonusLayover && personalData.bonusLayover !== '0') {
         driverFormData.append('bonusLayover', personalData.bonusLayover); // BONUS/LAYOVER = bonusLayover
       }
-      
+
       // Other payment fields
       if (personalData.percentRate && personalData.percentRate !== '0') {
         driverFormData.append('percentageRate', personalData.percentRate);
@@ -2077,7 +2107,7 @@ const DriverManagement = () => {
       if (personalData.dailyRate && personalData.dailyRate !== '0') {
         driverFormData.append('dailyRate', personalData.dailyRate);
       }
-      
+
       // For backward compatibility, also send salaryPerMile if alone is set
       if (personalData.paymentMethod === 'PAID PER MILE' && personalData.alone && personalData.alone !== '0') {
         driverFormData.append('salaryPerMile', personalData.alone);
@@ -2096,7 +2126,7 @@ const DriverManagement = () => {
           personalData.paymentPostalCode,
           personalData.paymentCountry
         ].filter(Boolean);
-        const fullPaymentAddress = paymentAddressParts.length > 0 
+        const fullPaymentAddress = paymentAddressParts.length > 0
           ? paymentAddressParts.join(', ')
           : personalData.paymentAddress;
         driverFormData.append('paymentAddress', fullPaymentAddress);
@@ -2110,25 +2140,25 @@ const DriverManagement = () => {
       if (personalData.gstNo) driverFormData.append('gstNo', personalData.gstNo);
       if (personalData.vacationPercent) driverFormData.append('vacationPay', personalData.vacationPercent);
 
-      
+
       // Driver Type - Send companyFlag: true for OWNER OPERATOR, false for COMPANY DRIVER
       if (personalData.driverType) {
         const companyFlagValue = personalData.driverType === 'OWNER OPERATOR';
         driverFormData.append('companyFlag', String(companyFlagValue));
       }
-      
+
       // Driver Type (SOLO/TEAM) - driverTypeSolo: true = SOLO, false = TEAM
       driverFormData.append('driverTypeSolo', String(personalData.driverTypeSolo !== undefined ? personalData.driverTypeSolo : true));
       // Also send as solo for backward compatibility
       driverFormData.append('solo', String(personalData.driverTypeSolo !== undefined ? personalData.driverTypeSolo : true));
       // Cross-border eligibility
       driverFormData.append('cross_border_eligible', String(personalData.cross_border_eligible !== undefined ? personalData.cross_border_eligible : false));
-      
+
       // Exemption and additional fields
       driverFormData.append('cppExempt', String(personalData.cppExempt || false));
       driverFormData.append('payrollTaxExempt', String(personalData.payrollTaxExempt || false));
       if (personalData.customHst) driverFormData.append('customHst', personalData.customHst);
-      
+
       // Mobile/Secondary Phone - include country code prefix
       if (formData.secondaryPhone) {
         const secondaryCountry = countries.find(c => c.code === secondaryPhoneCountry);
@@ -2136,7 +2166,7 @@ const DriverManagement = () => {
           // Remove + from dial code for comparison
           const dialCodeWithoutPlus = secondaryCountry.dialCode.replace('+', '');
           let phoneNumber = formData.secondaryPhone;
-          
+
           // If phone starts with the dial code, use it as is (just add + prefix)
           // Otherwise, prepend the dial code
           if (phoneNumber.startsWith(dialCodeWithoutPlus)) {
@@ -2151,19 +2181,19 @@ const DriverManagement = () => {
           driverFormData.append('mobile', phoneValue);
         }
       }
-      
+
       // Travel Information - Drivers License
       if (travelData.driversLicenseNumber) driverFormData.append('licenceNumber', travelData.driversLicenseNumber);
       // Note: createDriver doesn't accept licenceExpiry, licenceState, but we'll send them for consistency
       if (travelData.driversLicenseExpiry) driverFormData.append('licenceExpiry', travelData.driversLicenseExpiry);
       if (travelData.licenseStateProvince) driverFormData.append('licenceState', travelData.licenseStateProvince);
-      
+
       // Travel Information - Passport
       if (travelData.passportNumber) driverFormData.append('passport', travelData.passportNumber);
       if (travelData.passportCountry) driverFormData.append('passportCountry', travelData.passportCountry);
       // Note: createDriver doesn't accept passportExpiry, but we'll send it for consistency
       if (travelData.passportExpiry) driverFormData.append('passportExpiry', travelData.passportExpiry);
-      
+
       // Travel Information - Fast Card
       if (travelData.fastCardNumber) driverFormData.append('fastCard', travelData.fastCardNumber);
       // Note: createDriver doesn't accept fastCardExpiry, fastCardValid, but we'll send them for consistency
@@ -2171,17 +2201,17 @@ const DriverManagement = () => {
       if (travelData.fastCardValid !== undefined && travelData.fastCardValid !== null) {
         driverFormData.append('fastCardValid', String(travelData.fastCardValid));
       }
-      
+
       // Travel Information - SIN Number (mandatory, send from travel section)
       if (travelData.sinNumber) driverFormData.append('sinNo', travelData.sinNumber);
-      
+
       // Travel Information - Canadian Worker Status
       // Note: createDriver doesn't accept these fields, but we'll send them for consistency
       if (travelData.canadianWorkerStatus) driverFormData.append('canadianWorkerStatus', travelData.canadianWorkerStatus);
       if (travelData.permanentResidenceExpiry) driverFormData.append('permanentResidenceExpiry', travelData.permanentResidenceExpiry);
       if (travelData.workPermitExpiry) driverFormData.append('workPermitExpiry', travelData.workPermitExpiry);
       if (travelData.wcbNumber) driverFormData.append('wsibAccountNo', travelData.wcbNumber);
-      
+
       // Travel Information - Document Uploads
       if (travelData.workPermitDocument) {
         driverFormData.append('workPermitDocument', travelData.workPermitDocument);
@@ -2189,7 +2219,7 @@ const DriverManagement = () => {
       if (travelData.prCardDocument) {
         driverFormData.append('prCardDocument', travelData.prCardDocument);
       }
-      
+
       // Notes - send as JSON array for table data
       if (notes && notes.length > 0) {
         const notesData = notes.map(n => ({
@@ -2202,7 +2232,7 @@ const DriverManagement = () => {
         const notesText = notes.map(n => `[${n.category}] ${n.note}`).join('\n');
         driverFormData.append('notesText', notesText);
       }
-      
+
       // Documents - send as JSON array and append files
       if (documents && documents.length > 0) {
         const documentsData = documents.map((doc, index) => ({
@@ -2216,7 +2246,7 @@ const DriverManagement = () => {
           index: index // Track index for file matching
         }));
         driverFormData.append('documents', JSON.stringify(documentsData));
-        
+
         // Append document files directly (multer expects array, not indexed)
         documents.forEach((doc) => {
           if (doc.file) {
@@ -2225,7 +2255,7 @@ const DriverManagement = () => {
           }
         });
       }
-      
+
       // Certifications - send as JSON array
       if (certifications && certifications.length > 0) {
         const certificationsData = certifications.map(cert => ({
@@ -2238,7 +2268,7 @@ const DriverManagement = () => {
           hasFile: !!(cert.file instanceof File) // Only true if it's a new File object
         }));
         driverFormData.append('certifications', JSON.stringify(certificationsData));
-        
+
         // Append certification files directly (only new File objects)
         certifications.forEach((cert) => {
           if (cert.file instanceof File) {
@@ -2247,7 +2277,7 @@ const DriverManagement = () => {
           }
         });
       }
-      
+
       // Tickets - send as JSON array
       if (tickets && tickets.length > 0) {
         const ticketsData = tickets.map(ticket => ({
@@ -2264,7 +2294,7 @@ const DriverManagement = () => {
         }));
         driverFormData.append('tickets', JSON.stringify(ticketsData));
         console.log('🎫 Sending tickets:', ticketsData.length, 'tickets');
-        
+
         // Append ticket files directly (multer expects array, not indexed)
         // Only append actual File objects (new files), not metadata from existing tickets
         tickets.forEach((ticket) => {
@@ -2274,7 +2304,7 @@ const DriverManagement = () => {
           }
         });
       }
-      
+
       // Violations - send as JSON array
       if (violations && violations.length > 0) {
         const violationsData = violations.map(viol => ({
@@ -2292,7 +2322,7 @@ const DriverManagement = () => {
           hasFile: !!(viol.file instanceof File) // Only true if it's a new File object
         }));
         driverFormData.append('violations', JSON.stringify(violationsData));
-        
+
         // Append violation files directly (multer expects array, not indexed)
         // Only append actual File objects (new files), not metadata from existing violations
         violations.forEach((vio) => {
@@ -2302,7 +2332,7 @@ const DriverManagement = () => {
           }
         });
       }
-      
+
       // Drug Tests - send as JSON array (always send, even if empty, so backend can clear deleted ones)
       const drugTestsData = (drugTests || []).map(dt => ({
         id: dt.id,
@@ -2316,7 +2346,7 @@ const DriverManagement = () => {
       }));
       driverFormData.append('drugTests', JSON.stringify(drugTestsData));
       console.log('💊 Sending drug tests:', drugTestsData.length, 'drug tests');
-      
+
       // Append drug test files directly (multer expects array, not indexed)
       // Only append actual File objects (new files), not metadata from existing drug tests
       if (drugTests && drugTests.length > 0) {
@@ -2327,7 +2357,7 @@ const DriverManagement = () => {
           }
         });
       }
-      
+
       // Deductions - send as JSON array
       if (deductions && deductions.length > 0) {
         const deductionsData = deductions.map(ded => ({
@@ -2340,7 +2370,7 @@ const DriverManagement = () => {
         }));
         driverFormData.append('deductions', JSON.stringify(deductionsData));
       }
-      
+
       // Additions - send as JSON array
       if (additions && additions.length > 0) {
         const additionsData = additions.map(add => ({
@@ -2353,7 +2383,7 @@ const DriverManagement = () => {
         }));
         driverFormData.append('additions', JSON.stringify(additionsData));
       }
-      
+
       // Profile Image - backend expects 'file' field name
       if (formData.profileImage) {
         driverFormData.append('file', formData.profileImage);
@@ -2371,16 +2401,17 @@ const DriverManagement = () => {
       }
 
       const response = await driverApi.createDriver(driverFormData);
-      
+
       if (response?.success && response?.data?._id) {
         const driverId = response.data._id;
         console.log('✅ Driver created successfully with ID:', driverId);
-        
+
         // All documents, deductions, and additions are now handled by the backend in a single API call
         // No need for separate API calls
-        
+
         addNotification('success', 'Driver created successfully!');
-        
+        clearDriverDraft();
+
         // Reset form
         setFormData({
           driverId: '',
@@ -2464,7 +2495,7 @@ const DriverManagement = () => {
         setOriginalDriverData(null);
         resetAllFormState();
         setShowNewDriverModal(false);
-        
+
         // Refresh drivers list
         await fetchDrivers();
       } else {
@@ -2485,17 +2516,17 @@ const DriverManagement = () => {
     const sheet = workbook.addWorksheet('Drivers', { views: [{ state: 'frozen', ySplit: 1 }] });
 
     sheet.columns = [
-      { header: 'Driver ID',        key: 'driverId',        width: 18 },
-      { header: 'First Name',       key: 'firstName',       width: 16 },
-      { header: 'Last Name',        key: 'lastName',        width: 16 },
-      { header: 'Email',            key: 'email',           width: 28 },
-      { header: 'Phone',            key: 'phone',           width: 18 },
-      { header: 'Date of Birth',    key: 'dateOfBirth',     width: 16 },
-      { header: "Driver's Licence", key: 'driversLicence',  width: 22 },
-      { header: 'Passport',         key: 'passport',        width: 18 },
-      { header: 'Status',           key: 'status',          width: 12 },
-      { header: 'Compliance',       key: 'compliance',      width: 18 },
-      { header: 'Notes',            key: 'notes',           width: 30 },
+      { header: 'Driver ID', key: 'driverId', width: 18 },
+      { header: 'First Name', key: 'firstName', width: 16 },
+      { header: 'Last Name', key: 'lastName', width: 16 },
+      { header: 'Email', key: 'email', width: 28 },
+      { header: 'Phone', key: 'phone', width: 18 },
+      { header: 'Date of Birth', key: 'dateOfBirth', width: 16 },
+      { header: "Driver's Licence", key: 'driversLicence', width: 22 },
+      { header: 'Passport', key: 'passport', width: 18 },
+      { header: 'Status', key: 'status', width: 12 },
+      { header: 'Compliance', key: 'compliance', width: 18 },
+      { header: 'Notes', key: 'notes', width: 30 },
     ];
 
     const headerRow = sheet.getRow(1);
@@ -2506,17 +2537,17 @@ const DriverManagement = () => {
 
     drivers.forEach((d: any) => {
       const row = sheet.addRow({
-        driverId:       d.driverId || '',
-        firstName:      d.firstName || '',
-        lastName:       d.lastName || '',
-        email:          d.email || '',
-        phone:          d.phone || '',
-        dateOfBirth:    d.dateOfBirth || '',
+        driverId: d.driverId || '',
+        firstName: d.firstName || '',
+        lastName: d.lastName || '',
+        email: d.email || '',
+        phone: d.phone || '',
+        dateOfBirth: d.dateOfBirth || '',
         driversLicence: d.driversLicence || '',
-        passport:       d.passport || '',
-        status:         d.status || '',
-        compliance:     d.compliance || '',
-        notes:          d.notes || '',
+        passport: d.passport || '',
+        status: d.status || '',
+        compliance: d.compliance || '',
+        notes: d.notes || '',
       });
       row.alignment = { vertical: 'middle' };
     });
@@ -2544,7 +2575,7 @@ const DriverManagement = () => {
     setValidationErrors({});
     setPinIsExisting(false);
     setShowPin(false);
-    
+
     // Reset all form data
     setFormData({
       driverId: '',
@@ -2566,7 +2597,7 @@ const DriverManagement = () => {
       stateProvince: '',
       profileImage: null
     });
-    
+
     // Reset personal data
     setPersonalData({
       socialInsuranceNumber: '',
@@ -2604,7 +2635,7 @@ const DriverManagement = () => {
       gender: '',
       citizenship: ''
     });
-    
+
     // Reset travel data
     setTravelData({
       driversLicenseNumber: '',
@@ -2626,10 +2657,10 @@ const DriverManagement = () => {
       existingWorkPermitUrl: null,
       existingPrCardUrl: null
     });
-    
+
     // Reset documents
     setDocuments([]);
-    
+
     // Reset certifications
     setCertifications([]);
     setNewCertification({
@@ -2643,7 +2674,7 @@ const DriverManagement = () => {
     setEditingCertificationId(null);
     setUploadedFiles({});
     setDocumentFile(null);
-    
+
     // Reset violations
     setViolations([]);
     setNewViolation({
@@ -2659,7 +2690,7 @@ const DriverManagement = () => {
     });
     setViolationFile(null);
     setEditingViolationId(null);
-    
+
     // Reset drug tests
     setDrugTests([]);
     setNewDrugTest({
@@ -2671,7 +2702,7 @@ const DriverManagement = () => {
     setDrugTestFile(null);
     setEditingDrugTestId(null);
     setDrugTestPasswordVerified(false);
-    
+
     // Reset notes
     setNotes([]);
     setNewNote({
@@ -2683,7 +2714,7 @@ const DriverManagement = () => {
       note: '',
       category: ''
     });
-    
+
     // Reset deductions
     setDeductions([]);
     setNewDeduction({
@@ -2694,7 +2725,7 @@ const DriverManagement = () => {
       currency: 'CAD'
     });
     setEditingDeductionId(null);
-    
+
     // Reset additions
     setAdditions([]);
     setNewAddition({
@@ -2705,7 +2736,7 @@ const DriverManagement = () => {
       currency: 'CAD'
     });
     setEditingAdditionId(null);
-    
+
     // Reset onboarding data
     setOnboardingStatus('PENDING_TESTS');
     setHandlesHazardousLoads(false);
@@ -2713,7 +2744,7 @@ const DriverManagement = () => {
     setApprovedByHR(false);
     setApprovedAt('');
     setDriverTests([]);
-    
+
     // Reset other states
     setProfileImagePreview(null);
     setActiveFormTab('basic');
@@ -2737,7 +2768,7 @@ const DriverManagement = () => {
   // Handle certification deletion confirmation
   const handleConfirmDeleteCertification = async () => {
     if (!confirmDeleteCertification.cert) return;
-    
+
     const cert = confirmDeleteCertification.cert;
     try {
       // Check if it's an existing certification (ID starts with "existing-")
@@ -2784,23 +2815,23 @@ const DriverManagement = () => {
     if (original === null || original === undefined) {
       return current !== null && current !== undefined && current !== '';
     }
-    
+
     // Convert to string for comparison (handles dates, numbers, etc.)
     const currentStr = String(current).trim();
     const originalStr = String(original).trim();
-    
+
     return currentStr !== originalStr;
   };
 
   const handleUpdateDriver = async () => {
     if (!editingId || !originalDriverData) return;
-    
+
     try {
       setIsSubmitting(true);
-      
+
       // Clear previous validation errors
       setValidationErrors({});
-      
+
       // Validate form
       if (!validateForm()) {
         setIsSubmitting(false);
@@ -2809,27 +2840,27 @@ const DriverManagement = () => {
 
       // Create FormData - only include changed fields
       const driverFormData = new FormData();
-      
+
       const original = originalDriverData;
-      
+
       // Basic Information - only append if changed
       const fullName = `${formData.firstName} ${formData.middle ? formData.middle + ' ' : ''}${formData.lastName}`.trim();
       const originalName = `${original.formData.firstName} ${original.formData.middle ? original.formData.middle + ' ' : ''}${original.formData.lastName}`.trim();
       if (hasValueChanged(fullName, originalName)) {
         driverFormData.append('name', fullName);
       }
-      
+
       if (hasValueChanged(formData.emailAddress, original.formData.emailAddress)) {
         driverFormData.append('email', formData.emailAddress);
       }
-      
+
       if (hasValueChanged(formData.primaryPhone, original.formData.primaryPhone)) {
         const primaryCountry = countries.find(c => c.code === primaryPhoneCountry);
         if (primaryCountry) {
           // Remove + from dial code for comparison
           const dialCodeWithoutPlus = primaryCountry.dialCode.replace('+', '');
           let phoneNumber = formData.primaryPhone;
-          
+
           // If phone starts with the dial code, use it as is (just add + prefix)
           // Otherwise, prepend the dial code
           if (phoneNumber.startsWith(dialCodeWithoutPlus)) {
@@ -2844,30 +2875,30 @@ const DriverManagement = () => {
           driverFormData.append('phone', phoneValue);
         }
       }
-      
+
       if (hasValueChanged(formData.country, original.formData.country)) {
         driverFormData.append('country', formData.country);
       }
-      
+
       if (hasValueChanged(formData.driverId, original.formData.driverId)) {
         driverFormData.append('internalId', formData.driverId);
       }
-      
+
       // PIN - only send if changed and not empty
       if (formData.pin && hasValueChanged(formData.pin, original.formData.pin)) {
         driverFormData.append('password', formData.pin);
       }
-      
+
       // Mobile App Access
       if (hasValueChanged(formData.mobileApp, original.formData.mobileApp)) {
         driverFormData.append('mobileApp', String(formData.mobileApp));
       }
-      
+
       // Date of Birth
       if (hasValueChanged(formData.dateOfBirth, original.formData.dateOfBirth)) {
         driverFormData.append('dob', formData.dateOfBirth);
       }
-      
+
       // Address Information
       if (hasValueChanged(formData.address, original.formData.address)) {
         driverFormData.append('address', formData.address);
@@ -2884,7 +2915,7 @@ const DriverManagement = () => {
       if (hasValueChanged(formData.postalCode, original.formData.postalCode)) {
         driverFormData.append('postalCode', formData.postalCode);
       }
-      
+
       // Personal Information
       if (hasValueChanged(personalData.socialInsuranceNumber, original.personalData.socialInsuranceNumber)) {
         driverFormData.append('sinNo', personalData.socialInsuranceNumber);
@@ -2939,10 +2970,10 @@ const DriverManagement = () => {
       }
       // Payment Address - save full address for backward compatibility and separate fields
       if (hasValueChanged(personalData.paymentAddress, original.personalData.paymentAddress) ||
-          hasValueChanged(personalData.paymentCity, original.personalData.paymentCity) ||
-          hasValueChanged(personalData.paymentStateProvince, original.personalData.paymentStateProvince) ||
-          hasValueChanged(personalData.paymentPostalCode, original.personalData.paymentPostalCode) ||
-          hasValueChanged(personalData.paymentCountry, original.personalData.paymentCountry)) {
+        hasValueChanged(personalData.paymentCity, original.personalData.paymentCity) ||
+        hasValueChanged(personalData.paymentStateProvince, original.personalData.paymentStateProvince) ||
+        hasValueChanged(personalData.paymentPostalCode, original.personalData.paymentPostalCode) ||
+        hasValueChanged(personalData.paymentCountry, original.personalData.paymentCountry)) {
         // Build full address string for backward compatibility
         const paymentAddressParts = [
           personalData.paymentAddress,
@@ -2951,7 +2982,7 @@ const DriverManagement = () => {
           personalData.paymentPostalCode,
           personalData.paymentCountry
         ].filter(Boolean);
-        const fullPaymentAddress = paymentAddressParts.length > 0 
+        const fullPaymentAddress = paymentAddressParts.length > 0
           ? paymentAddressParts.join(', ')
           : personalData.paymentAddress;
         driverFormData.append('paymentAddress', fullPaymentAddress);
@@ -2978,7 +3009,7 @@ const DriverManagement = () => {
       if (hasValueChanged(personalData.citizenship, original.personalData.citizenship)) {
         driverFormData.append('citizenship', personalData.citizenship);
       }
-      
+
       // Mobile/Secondary Phone
       if (hasValueChanged(formData.secondaryPhone, original.formData.secondaryPhone)) {
         const secondaryCountry = countries.find(c => c.code === secondaryPhoneCountry);
@@ -2986,7 +3017,7 @@ const DriverManagement = () => {
           // Remove + from dial code for comparison
           const dialCodeWithoutPlus = secondaryCountry.dialCode.replace('+', '');
           let phoneNumber = formData.secondaryPhone;
-          
+
           // If phone starts with the dial code, use it as is (just add + prefix)
           // Otherwise, prepend the dial code
           if (phoneNumber.startsWith(dialCodeWithoutPlus)) {
@@ -3001,7 +3032,7 @@ const DriverManagement = () => {
           driverFormData.append('mobile', phoneValue);
         }
       }
-      
+
       // Travel Information - Drivers License (always send if changed)
       if (hasValueChanged(travelData.driversLicenseNumber, original.travelData.driversLicenseNumber)) {
         driverFormData.append('licenceNumber', travelData.driversLicenseNumber || '');
@@ -3015,7 +3046,7 @@ const DriverManagement = () => {
         driverFormData.append('licenceState', travelData.licenseStateProvince || '');
         console.log('📤 Sending licenceState:', travelData.licenseStateProvince, '(original:', original.travelData.licenseStateProvince, ')');
       }
-      
+
       // Travel Information - Passport
       if (hasValueChanged(travelData.passportNumber, original.travelData.passportNumber)) {
         driverFormData.append('passport', travelData.passportNumber);
@@ -3026,7 +3057,7 @@ const DriverManagement = () => {
       if (hasValueChanged(travelData.passportExpiry, original.travelData.passportExpiry)) {
         driverFormData.append('passportExpiry', travelData.passportExpiry);
       }
-      
+
       // Travel Information - Fast Card
       if (hasValueChanged(travelData.fastCardNumber, original.travelData.fastCardNumber)) {
         driverFormData.append('fastCard', travelData.fastCardNumber);
@@ -3037,12 +3068,12 @@ const DriverManagement = () => {
       if (hasValueChanged(travelData.fastCardValid, original.travelData.fastCardValid)) {
         driverFormData.append('fastCardValid', String(travelData.fastCardValid));
       }
-      
+
       // Travel Information - SIN Number (mandatory, send from travel section)
       if (hasValueChanged(travelData.sinNumber, original.travelData.sinNumber)) {
         driverFormData.append('sinNo', travelData.sinNumber || '');
       }
-      
+
       // Travel Information - Canadian Worker Status (always send if changed)
       if (hasValueChanged(travelData.canadianWorkerStatus, original.travelData.canadianWorkerStatus)) {
         driverFormData.append('canadianWorkerStatus', travelData.canadianWorkerStatus || '');
@@ -3057,7 +3088,7 @@ const DriverManagement = () => {
       if (hasValueChanged(travelData.wcbNumber, original.travelData.wcbNumber)) {
         driverFormData.append('wsibAccountNo', travelData.wcbNumber);
       }
-      
+
       // Travel Information - Document Uploads (send if new files are selected)
       if (travelData.workPermitDocument) {
         driverFormData.append('workPermitDocument', travelData.workPermitDocument);
@@ -3065,7 +3096,7 @@ const DriverManagement = () => {
       if (travelData.prCardDocument) {
         driverFormData.append('prCardDocument', travelData.prCardDocument);
       }
-      
+
       // Profile Image - always send if a new file is selected
       if (formData.profileImage) {
         driverFormData.append('file', formData.profileImage);
@@ -3073,7 +3104,7 @@ const DriverManagement = () => {
 
       // Certifications - send as JSON array if changed
       const originalCertifications = original.certifications || [];
-      
+
       // Normalize certifications for comparison (only compare relevant fields)
       const normalizeCert = (cert: any) => ({
         id: cert.id || '',
@@ -3081,12 +3112,12 @@ const DriverManagement = () => {
         description: cert.description || '',
         ignoreExpiration: cert.ignoreExpiration || false
       });
-      
+
       const normalizedCurrent = certifications.map(normalizeCert).sort((a, b) => (a.id || '').localeCompare(b.id || ''));
       const normalizedOriginal = originalCertifications.map(normalizeCert).sort((a, b) => (a.id || '').localeCompare(b.id || ''));
-      
+
       const certificationsChanged = JSON.stringify(normalizedCurrent) !== JSON.stringify(normalizedOriginal);
-      
+
       console.log('📜 Certifications comparison:', {
         currentCount: certifications.length,
         originalCount: originalCertifications.length,
@@ -3094,7 +3125,7 @@ const DriverManagement = () => {
         current: normalizedCurrent,
         original: normalizedOriginal
       });
-      
+
       // Always send certifications if they exist (even if unchanged, to ensure backend has latest data)
       if (certifications && certifications.length > 0) {
         const certificationsData = certifications.map(cert => ({
@@ -3108,7 +3139,7 @@ const DriverManagement = () => {
         }));
         driverFormData.append('certifications', JSON.stringify(certificationsData));
         console.log('📜 Sending certifications:', certificationsData.length, 'certifications');
-        
+
         // Append certification files directly (only new File objects)
         certifications.forEach((cert) => {
           if (cert.file instanceof File) {
@@ -3117,7 +3148,7 @@ const DriverManagement = () => {
           }
         });
       }
-      
+
       // Documents - send as JSON array and append files
       if (documents && documents.length > 0) {
         const documentsData = documents.map((doc, index) => ({
@@ -3131,7 +3162,7 @@ const DriverManagement = () => {
           index: index // Track index for file matching
         }));
         driverFormData.append('documents', JSON.stringify(documentsData));
-        
+
         // Append document files directly (multer expects array, not indexed)
         documents.forEach((doc) => {
           if (doc.file) {
@@ -3141,7 +3172,7 @@ const DriverManagement = () => {
         });
         console.log('📄 Sending documents:', documentsData.length, 'documents');
       }
-      
+
       // Tickets - send as JSON array (always send if exists, backend handles updates)
       if (tickets && tickets.length > 0) {
         const ticketsData = tickets.map(ticket => ({
@@ -3158,7 +3189,7 @@ const DriverManagement = () => {
         }));
         driverFormData.append('tickets', JSON.stringify(ticketsData));
         console.log('🎫 Sending tickets:', ticketsData.length, 'tickets');
-        
+
         // Append ticket files directly (multer expects array, not indexed)
         // Only append actual File objects (new files), not metadata from existing tickets
         tickets.forEach((ticket) => {
@@ -3168,7 +3199,7 @@ const DriverManagement = () => {
           }
         });
       }
-      
+
       // Violations - send as JSON array (always send if exists, backend handles updates)
       if (violations && violations.length > 0) {
         const violationsData = violations.map(vio => ({
@@ -3187,7 +3218,7 @@ const DriverManagement = () => {
         }));
         driverFormData.append('violations', JSON.stringify(violationsData));
         console.log('🚨 Sending violations:', violationsData.length, 'violations');
-        
+
         // Append violation files directly (multer expects array, not indexed)
         // Only append actual File objects (new files), not metadata from existing violations
         violations.forEach((vio) => {
@@ -3197,7 +3228,7 @@ const DriverManagement = () => {
           }
         });
       }
-      
+
       // Drug Tests - send as JSON array (always send, even if empty, so backend can clear deleted ones)
       // Always send drugTests array to backend, even if empty, so backend knows to clear all drug tests
       const drugTestsData = (drugTests || []).map(dt => ({
@@ -3212,7 +3243,7 @@ const DriverManagement = () => {
       }));
       driverFormData.append('drugTests', JSON.stringify(drugTestsData));
       console.log('💊 Sending drug tests:', drugTestsData.length, 'drug tests');
-      
+
       // Append drug test files directly (multer expects array, not indexed)
       // Only append actual File objects (new files), not metadata from existing drug tests
       if (drugTests && drugTests.length > 0) {
@@ -3223,7 +3254,7 @@ const DriverManagement = () => {
           }
         });
       }
-      
+
       // Deductions - send as JSON array (always send if exists, backend handles updates)
       if (deductions && deductions.length > 0) {
         const deductionsData = deductions.map(ded => ({
@@ -3237,7 +3268,7 @@ const DriverManagement = () => {
         driverFormData.append('deductions', JSON.stringify(deductionsData));
         console.log('💰 Sending deductions:', deductionsData.length, 'deductions');
       }
-      
+
       // Additions - send as JSON array (always send if exists, backend handles updates)
       if (additions && additions.length > 0) {
         const additionsData = additions.map(add => ({
@@ -3251,12 +3282,12 @@ const DriverManagement = () => {
         driverFormData.append('additions', JSON.stringify(additionsData));
         console.log('➕ Sending additions:', additionsData.length, 'additions');
       }
-      
+
       // Log what's being sent
       console.log('📤 Updating driver with ID:', editingId);
       const changedFields = Array.from(driverFormData.keys());
       console.log('📋 Changed fields:', changedFields);
-      
+
       // Check if there are documents, certifications, violations, tickets, deductions, or additions to send
       const hasDocuments = documents && documents.length > 0;
       const hasCertifications = certifications && certifications.length > 0;
@@ -3264,7 +3295,7 @@ const DriverManagement = () => {
       const hasViolations = violations && violations.length > 0;
       const hasDeductions = deductions && deductions.length > 0;
       const hasAdditions = additions && additions.length > 0;
-      
+
       console.log('🔍 Update summary:', {
         changedFieldsCount: changedFields.length,
         hasProfileImage: !!formData.profileImage,
@@ -3275,7 +3306,7 @@ const DriverManagement = () => {
         hasDeductions,
         hasAdditions
       });
-      
+
       // Only proceed if there are changes or related data to update
       if (changedFields.length === 0 && !formData.profileImage && !hasDocuments && !hasCertifications && !hasTickets && !hasViolations && !hasDeductions && !hasAdditions) {
         addNotification('info', 'No changes detected. Please modify at least one field before updating.');
@@ -3284,20 +3315,20 @@ const DriverManagement = () => {
       }
 
       const response = await driverApi.updateDriver(editingId, driverFormData);
-      
+
       if (response?.success) {
         console.log('✅ Driver updated successfully');
-        
+
         // All documents, violations, deductions, and additions are now handled by the backend in a single API call
         // No need for separate API calls
-        
+
         // Reload driver data to refresh the form with updated data
         if (editingId) {
           try {
             const driverResponse = await driverApi.getDriverById(editingId);
             if (driverResponse?.success && driverResponse.data) {
               const driver = driverResponse.data;
-              
+
               // Update documents from response
               if (driver.documents && Array.isArray(driver.documents)) {
                 // Show all documents without filtering
@@ -3316,7 +3347,7 @@ const DriverManagement = () => {
                 }));
                 setDocuments(existingDocuments);
               }
-              
+
               // Update certifications from response
               if (driver.certifications && Array.isArray(driver.certifications)) {
                 const existingCertifications = driver.certifications.map((cert: any) => ({
@@ -3329,7 +3360,7 @@ const DriverManagement = () => {
                 }));
                 setCertifications(existingCertifications);
               }
-              
+
               // Update tickets from response
               if (driver.tickets && Array.isArray(driver.tickets)) {
                 const existingTickets = driver.tickets.map((ticket: any) => ({
@@ -3348,7 +3379,7 @@ const DriverManagement = () => {
                 setTickets(existingTickets);
                 console.log('✅ Tickets reloaded after update:', existingTickets.map((t: any) => ({ id: t.id, ticketId: t.ticketId, hasFile: !!t.fileUrl, fileName: t.fileName })));
               }
-              
+
               // Update violations from response
               if (driver.violations && Array.isArray(driver.violations)) {
                 const existingViolations = driver.violations.map((vio: any) => ({
@@ -3368,7 +3399,7 @@ const DriverManagement = () => {
                 setViolations(existingViolations);
                 console.log('✅ Violations reloaded after update:', existingViolations.map((v: any) => ({ id: v.id, hasFile: !!v.fileUrl, fileName: v.fileName })));
               }
-              
+
               // Update deductions from response
               if (driver.deductions && Array.isArray(driver.deductions)) {
                 const existingDeductions = driver.deductions.map((ded: any) => ({
@@ -3381,7 +3412,7 @@ const DriverManagement = () => {
                 }));
                 setDeductions(existingDeductions);
               }
-              
+
               // Update additions from response
               if (driver.additions && Array.isArray(driver.additions)) {
                 const existingAdditions = driver.additions.map((add: any) => ({
@@ -3394,7 +3425,7 @@ const DriverManagement = () => {
                 }));
                 setAdditions(existingAdditions);
               }
-              
+
               // Update travel data with fresh data from server
               setTravelData({
                 driversLicenseNumber: driver.licenceNumber || driver.details?.licenceNumber || driver.details?.driversLicence || '',
@@ -3437,8 +3468,9 @@ const DriverManagement = () => {
             console.error('Error reloading driver data:', error);
           }
         }
-        
+
         addNotification('success', 'Driver updated successfully!');
+        clearDriverDraft();
         handleCloseModal();
         // Refresh drivers list
         await fetchDrivers();
@@ -3457,43 +3489,43 @@ const DriverManagement = () => {
   const areBaseTestsCompleted = () => {
     const vehicleTest = driverTests.find(t => t.testType === 'VEHICLE');
     const hosTest = driverTests.find(t => t.testType === 'HOS');
-    
+
     const vehicleCompleted = vehicleTest && vehicleTest.hrApproved === true;
     const hosCompleted = hosTest && hosTest.hrApproved === true;
-    
+
     return vehicleCompleted && hosCompleted;
   };
 
   // Handle flag checkbox change - show modal for confirmation
   const handleFlagChange = (flagName: 'handlesHazardousLoads' | 'winterTestRequired', value: boolean) => {
     console.log('🔄 handleFlagChange called:', { flagName, value, editingId });
-    
+
     if (!editingId) {
       console.log('❌ No editingId, returning');
       return;
     }
-    
+
     // Check if base tests are completed before allowing flag changes
     if (value === true && !areBaseTestsCompleted()) {
       addNotification('error', 'Please complete and approve VEHICLE and HOS tests first before enabling driver flags.');
       return;
     }
-    
+
     const currentValue = flagName === 'handlesHazardousLoads' ? handlesHazardousLoads : winterTestRequired;
-    console.log('📊 Current flag values:', { 
-      flagName, 
-      currentValue, 
+    console.log('📊 Current flag values:', {
+      flagName,
+      currentValue,
       newValue: value,
       handlesHazardousLoads,
       winterTestRequired
     });
-    
+
     // If value is same, do nothing
     if (currentValue === value) {
       console.log('⚠️ Value is same, returning');
       return;
     }
-    
+
     // Show confirmation modal
     console.log('✅ Showing flag update modal');
     setSelectedFlag({
@@ -3503,35 +3535,35 @@ const DriverManagement = () => {
     });
     setShowFlagModal(true);
   };
-  
+
   // Confirm and update flag
   const handleConfirmFlagUpdate = async () => {
     console.log('🚀 handleConfirmFlagUpdate called:', { selectedFlag, editingId });
-    
+
     if (!selectedFlag || !editingId) {
       console.log('❌ Missing selectedFlag or editingId');
       return;
     }
-    
+
     try {
       const { flagName, newValue } = selectedFlag;
       console.log(`🔄 Starting flag update: ${flagName} = ${newValue} for driver ${editingId}`);
-      
+
       // Create FormData to update only the flag
       const flagFormData = new FormData();
       flagFormData.append(flagName, String(newValue));
       console.log('📦 FormData created:', { flagName, value: String(newValue) });
-      
+
       // Call update API
       console.log('📡 Calling updateDriver API...');
       const response = await driverApi.updateDriver(editingId, flagFormData);
       console.log('📡 API Response:', response);
-      
+
       if (response?.success) {
         const flagLabel = flagName === 'handlesHazardousLoads' ? 'Hazardous loads' : 'Winter test';
         const action = newValue ? 'enabled' : 'disabled';
         addNotification('success', `${flagLabel} flag ${action} successfully`);
-        
+
         // Update state IMMEDIATELY before refreshing
         console.log('💾 Updating state immediately...');
         if (flagName === 'handlesHazardousLoads') {
@@ -3541,19 +3573,19 @@ const DriverManagement = () => {
           setWinterTestRequired(newValue);
           console.log('✅ State updated: winterTestRequired =', newValue);
         }
-        
+
         // Close modal
         setShowFlagModal(false);
         setSelectedFlag(null);
-        
+
         // Refresh driver data and test results to get updated flags from backend
         console.log('🔄 Refreshing driver data from backend...');
         await loadDriverForEdit(editingId);
         console.log('✅ Driver data refreshed');
-        
+
         await fetchDriverTestResults(editingId);
         console.log('✅ Test results refreshed');
-        
+
         // Log final state after refresh
         setTimeout(() => {
           console.log('📊 Final flag state after update:', {
@@ -3577,7 +3609,7 @@ const DriverManagement = () => {
       addNotification('error', error.response?.data?.message || error.message || 'Failed to update flag');
     }
   };
-  
+
   // Cancel flag update
   const handleCancelFlagUpdate = () => {
     setShowFlagModal(false);
@@ -3586,32 +3618,67 @@ const DriverManagement = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#EDF8FF] p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-main p-6 flex items-center justify-center">
         <div className="text-center">
-          <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading drivers...</p>
+          <RefreshCw className="w-8 h-8 animate-spin text-[var(--accent-navyblue)] mx-auto mb-4" />
+          <p className="text-secondary">Loading drivers...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF] p-6">
+    <div className="min-h-screen bg-main p-6">
+      <style>{`
+  @media print {
+    body { background: #ffffff !important; }
+    .print-hide { display: none !important; }
+    table { border-collapse: collapse !important; width: 100% !important; font-size: 11px !important; }
+    thead tr { background: #1183e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    thead th { color: #ffffff !important; padding: 8px 12px !important; border: 1px solid #0d6bc7 !important; font-weight: 600 !important; text-transform: uppercase !important; font-size: 10px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tbody tr:nth-child(even) { background: #f0f6ff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tbody td { padding: 7px 12px !important; border: 1px solid #dde6f0 !important; color: #1a1a2e !important; }
+    .bg-main, .bg-card { background: #ffffff !important; }
+  }
+`}</style>
       <div className="max-w-full mx-auto">
         {/* Header Section */}
         <div className="mb-6">
 
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">Drivers</h1>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-gray-700">({getTabCount(activeTab)})</span>
+            <h1 className="text-3xl font-bold text-primary">Drivers</h1>
+            <div className="flex items-center gap-2 print-hide">
+              <span className="text-2xl font-bold text-primary">({getTabCount(activeTab)})</span>
               <button
                 onClick={handleExportDrivers}
                 title="Export to Excel"
-                className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
+                className="w-10 h-10 bg-[var(--accent-navyblue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-navyblue)]/80 transition-colors shadow-md"
               >
                 <FileDown className="w-5 h-5" />
               </button>
+              <ImportButton
+                onImport={async (file, fieldMap) => { const res = await importDriversFromFile(file, fieldMap); await fetchDrivers(); return res; }}
+                templateFileName="drivers_template.csv"
+                templateColumns={[
+                  { header: 'first_name', example: 'John', required: false },
+                  { header: 'last_name', example: 'Smith', required: false },
+                  { header: 'name', example: 'John Smith', required: false },
+                  { header: 'email', example: 'john.smith@company.com', required: false },
+                  { header: 'phone', example: '555-123-4567', required: false },
+                  { header: 'secondary_phone', example: '555-987-0000', required: false },
+                  { header: 'country', example: 'Canada', required: false },
+                  { header: 'city', example: 'Toronto', required: false },
+                  { header: 'province_state', example: 'Ontario', required: false },
+                  { header: 'postal_code', example: 'M5V 3A8', required: false },
+                  { header: 'date_of_birth', example: '1985-06-20', required: false },
+                  { header: 'hire_date', example: '2022-03-01', required: false },
+                  { header: 'gender', example: 'Male', required: false },
+                  { header: 'notes', example: 'Experienced long-haul driver', required: false },
+                  { header: 'driver_id', example: 'DRV-0001', required: false },
+                  { header: 'status', example: 'active', required: false },
+                ]}
+                label="Import Drivers"
+              />
               <button
                 onClick={() => {
                   setEditingId(null);
@@ -3620,7 +3687,7 @@ const DriverManagement = () => {
                   resetAllFormState();
                   setShowNewDriverModal(true);
                 }}
-                className="w-10 h-10 bg-[#42aeec] !text-white rounded-lg flex items-center justify-center hover:bg-[#1db5f5] transition-colors shadow-md"
+                className="w-10 h-10 bg-[var(--accent-navyblue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-navyblue)] transition-colors shadow-md"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -3629,12 +3696,12 @@ const DriverManagement = () => {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex gap-6 border-b-2 border-gray-200">
+          <div className="flex gap-6 border-b-2 border-theme print-hide">
             <button
               onClick={() => setActiveTab('all')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'all'
-                  ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
-                  : 'text-gray-600 hover:text-gray-900'
+                ? 'text-[var(--accent-navyblue)] border-b-2 border-[var(--accent-navyblue)] -mb-[2px]'
+                : 'text-secondary hover:text-primary'
                 }`}
             >
               All ({getTabCount('all')})
@@ -3642,8 +3709,8 @@ const DriverManagement = () => {
             <button
               onClick={() => setActiveTab('external')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'external'
-                  ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
-                  : 'text-gray-600 hover:text-gray-900'
+                ? 'text-[var(--accent-navyblue)] border-b-2 border-[var(--accent-navyblue)] -mb-[2px]'
+                : 'text-secondary hover:text-primary'
                 }`}
             >
               External ({getTabCount('external')})
@@ -3651,8 +3718,8 @@ const DriverManagement = () => {
             <button
               onClick={() => setActiveTab('unassigned')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'unassigned'
-                  ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
-                  : 'text-gray-600 hover:text-gray-900'
+                ? 'text-[var(--accent-navyblue)] border-b-2 border-[var(--accent-navyblue)] -mb-[2px]'
+                : 'text-secondary hover:text-primary'
                 }`}
             >
               Unassigned ({getTabCount('unassigned')})
@@ -3661,18 +3728,18 @@ const DriverManagement = () => {
         </div>
 
         {/* Search and Filter Bar */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+        <div className="bg-card rounded-lg shadow-sm p-4 mb-4 print-hide">
           <div className="flex flex-wrap items-center gap-4">
             {/* Search Input */}
             <div className="flex-1 min-w-[250px]">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Drivers Licence #, Passport #, Or Name"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                 />
               </div>
             </div>
@@ -3681,60 +3748,63 @@ const DriverManagement = () => {
 
             {/* Filter By */}
             <div className="flex flex-col">
-              <label className="text-xs text-gray-600 mb-1">Filter By</label>
+              <label className="text-xs text-secondary mb-1">Filter By</label>
               <select
                 value={filterBy}
                 onChange={(e) => setFilterBy(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                className="px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 text-sm"
               >
-                <option>Active</option>
-                <option>Inactive</option>
-                <option>All</option>
+                <option className="bg-[#0f1b2d] text-white">Active</option>
+                <option className="bg-[#0f1b2d] text-white">Inactive</option>
+                <option className="bg-[#0f1b2d] text-white">All</option>
               </select>
             </div>
 
             {/* Category */}
             <div className="flex flex-col">
-              <label className="text-xs text-gray-600 mb-1">Category</label>
+              <label className="text-xs text-secondary mb-1">Category</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm min-w-[120px]"
+                className="px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 text-sm min-w-[120px]"
               >
-                <option value="">Select...</option>
-                <option>StandBy</option>
-
+                <option className="bg-[#0f1b2d] text-white" value="">
+                  Select...
+                </option>
+                <option className="bg-[#0f1b2d] text-white">StandBy</option>
               </select>
             </div>
 
             {/* Compliance Status */}
             <div className="flex flex-col">
-              <label className="text-xs text-gray-600 mb-1">Compliance Status</label>
+              <label className="text-xs text-secondary mb-1">Compliance Status</label>
               <select
                 value={complianceStatus}
                 onChange={(e) => setComplianceStatus(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm min-w-[120px]"
+                className="px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 text-sm min-w-[120px]"
               >
-                <option>All</option>
-                <option>Compliant</option>
-                <option>Expiring Soon</option>
-                <option>Non-Compliant</option>
+                <option className="bg-[#0f1b2d] text-white">All</option>
+                <option className="bg-[#0f1b2d] text-white">Compliant</option>
+                <option className="bg-[#0f1b2d] text-white">Expiring Soon</option>
+                <option className="bg-[#0f1b2d] text-white">Non-Compliant</option>
               </select>
             </div>
 
             {/* Sort By */}
             <div className="flex flex-col">
-              <label className="text-xs text-gray-600 mb-1">Sort By</label>
+              <label className="text-xs text-secondary mb-1">Sort By</label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm min-w-[120px]"
+                className="px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 text-sm min-w-[120px]"
               >
-                <option value="">Select...</option>
-                <option>Driver ID</option>
-                <option>First Name</option>
-                <option>Last Name</option>
-                <option>Status</option>
+                <option className="bg-[#0f1b2d] text-white" value="">
+                  Select...
+                </option>
+                <option className="bg-[#0f1b2d] text-white">Driver ID</option>
+                <option className="bg-[#0f1b2d] text-white">First Name</option>
+                <option className="bg-[#0f1b2d] text-white">Last Name</option>
+                <option className="bg-[#0f1b2d] text-white">Status</option>
               </select>
             </div>
 
@@ -3743,12 +3813,12 @@ const DriverManagement = () => {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-card rounded-lg shadow-sm overflow-hidden">
           {/* Top Horizontal Scrollbar */}
-          <div 
+          <div
             ref={topScrollRef}
-            className="overflow-x-auto overflow-y-hidden border-b border-gray-200"
-            style={{ 
+            className="overflow-x-auto overflow-y-hidden border-b border-theme print-hide"
+            style={{
               height: '17px'
             }}
             onScroll={(e) => {
@@ -3760,7 +3830,7 @@ const DriverManagement = () => {
           >
             <div ref={topScrollContentRef} style={{ height: '1px' }}></div>
           </div>
-          <div 
+          <div
             ref={tableScrollRef}
             className="overflow-x-auto"
             onScroll={(e) => {
@@ -3771,12 +3841,12 @@ const DriverManagement = () => {
             }}
           >
             <table className="w-full min-w-[1200px]">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-card  border-theme">
                 <tr>
                   {/* Photo */}
                   <th className="px-4 py-3 text-left">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-xs text-gray-700 uppercase">Photo</span>
+                      <span className="font-medium text-xs text-[var(--accent-navyblue)] uppercase">Photo</span>
                     </div>
                   </th>
 
@@ -3785,13 +3855,13 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('driverId')}
-                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                        className="flex items-center gap-2 hover:text-primary font-medium text-xs !text-[var(--accent-navyblue)] uppercase"
                       >
                         Driver ID
                         {getSortIcon('driverId')}
                       </button>
                     </div>
-                  
+
                   </th>
 
                   {/* First Name */}
@@ -3799,13 +3869,13 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('firstName')}
-                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                        className="flex items-center gap-2 hover:!text-[var(--accent-navyblue)] font-medium text-xs !text-[var(--accent-navyblue)] uppercase"
                       >
                         First Name
                         {getSortIcon('firstName')}
                       </button>
                     </div>
-               
+
                   </th>
 
                   {/* Last Name */}
@@ -3813,13 +3883,13 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('lastName')}
-                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                        className="flex items-center gap-2 hover:!text-[var(--accent-navyblue)] font-medium text-xs !text-[var(--accent-navyblue)] uppercase"
                       >
                         Last Name
                         {getSortIcon('lastName')}
                       </button>
                     </div>
-             
+
                   </th>
 
                   {/* Drivers Licence */}
@@ -3827,13 +3897,13 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('driversLicence')}
-                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                        className="flex items-center gap-2 hover:!text-[var(--accent-navyblue)] font-medium text-xs !text-[var(--accent-navyblue)] uppercase"
                       >
                         Drivers Licence
                         {getSortIcon('driversLicence')}
                       </button>
                     </div>
-                
+
                   </th>
 
                   {/* Passport */}
@@ -3841,13 +3911,13 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('passport')}
-                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                        className="flex items-center gap-2 hover:!text-[var(--accent-navyblue)] font-medium text-xs !text-[var(--accent-navyblue)] uppercase"
                       >
                         Passport
                         {getSortIcon('passport')}
                       </button>
                     </div>
-              
+
                   </th>
 
                   {/* Date Of Birth */}
@@ -3855,78 +3925,87 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('dateOfBirth')}
-                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                        className="flex items-center gap-2 hover:!text-[var(--accent-navyblue)] font-medium text-xs !text-[var(--accent-navyblue)] uppercase"
                       >
                         Date Of Birth
                         {getSortIcon('dateOfBirth')}
                       </button>
                     </div>
-                
+
                   </th>
 
                   {/* Notes */}
                   <th className="px-4 py-3 text-left">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-xs text-gray-700 uppercase">Notes</span>
+                      <span className="font-medium text-xs !text-[var(--accent-navyblue)] uppercase">Notes</span>
                     </div>
-                  
+
                   </th>
 
-                 
+
 
                   {/* Status */}
                   <th className="px-4 py-3 text-left">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('status')}
-                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                        className="flex items-center gap-2 hover:!text-[var(--accent-navyblue)] font-medium text-xs !text-[var(--accent-navyblue)] uppercase"
                       >
                         Status
                         {getSortIcon('status')}
                       </button>
                     </div>
-              
+
                   </th>
 
                   {/* Compliance */}
                   <th className="px-4 py-3 text-left">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-xs text-gray-700 uppercase">Compliance</span>
+                      <span className="font-medium text-xs !text-[var(--accent-navyblue)] uppercase">
+                        Compliance
+                      </span>
                     </div>
+
                     <select
                       value={complianceStatus}
                       onChange={(e) => setComplianceStatus(e.target.value)}
-                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                      className="
+      mt-2 w-full px-3 py-2 text-xs rounded-md
+      bg-[#0f172a] text-white
+      border border-[var(--accent-navyblue)]
+      focus:outline-none focus:ring-1 focus:ring-[var(--accent-navyblue)]
+      appearance-none cursor-pointer
+    "
                     >
-                      <option>All</option>
-                      <option>Compliant</option>
-                      <option>Expiring Soon</option>
-                      <option>Non-Compliant</option>
+                      <option className="bg-[#0f172a] text-white">All</option>
+                      <option className="bg-[#0f172a] text-green-400">Compliant</option>
+                      <option className="bg-[#0f172a] text-yellow-400">Expiring Soon</option>
+                      <option className="bg-[#0f172a] text-red-400">Non-Compliant</option>
                     </select>
                   </th>
                   {/* Actions */}
                   <th className="px-4 py-3 text-left">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-xs text-gray-700 uppercase">Actions</span>
+                      <span className="font-medium text-xs !text-[var(--accent-navyblue)] uppercase">Actions</span>
                     </div>
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-card  divide-theme">
                 {filteredDrivers.map((driver) => (
                   <tr
                     key={driver._id || driver.driverId}
-                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                     onClick={(e) => {
                       // Prevent triggering if clicking on interactive elements (buttons, links, inputs, selects)
                       const target = e.target as HTMLElement;
-                      if (target.tagName === 'BUTTON' || target.tagName === 'A' || 
-                          target.tagName === 'INPUT' || target.tagName === 'SELECT' ||
-                          target.closest('button') || target.closest('a') || 
-                          target.closest('input') || target.closest('select')) {
+                      if (target.tagName === 'BUTTON' || target.tagName === 'A' ||
+                        target.tagName === 'INPUT' || target.tagName === 'SELECT' ||
+                        target.closest('button') || target.closest('a') ||
+                        target.closest('input') || target.closest('select')) {
                         return;
                       }
-                      
+
                       // Set editingId to trigger API call (same as edit button)
                       if (driver._id) {
                         console.log('🔄 Row clicked for driver:', driver._id);
@@ -3938,11 +4017,11 @@ const DriverManagement = () => {
                         setEditingId(null);
                         setOriginalDriverData(null);
                         resetAllFormState();
-                        
+
                         // Parse phone number to extract country code and number
                         const parsedPhone = parsePhoneNumber(driver.phone || driver.mobile);
                         setPrimaryPhoneCountry(parsedPhone.countryCode);
-                        
+
                         // Populate form data with driver data
                         setFormData({
                           driverId: driver.driverId,
@@ -3975,7 +4054,7 @@ const DriverManagement = () => {
                           <img
                             src={driver.profileImageUrl}
                             alt={`${driver.firstName || ''} ${driver.lastName || ''}`}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                            className="w-10 h-10 rounded-full object-cover border-2 border-theme"
                             onError={(e) => {
                               // If image fails to load, show placeholder
                               const target = e.target as HTMLImageElement;
@@ -3986,18 +4065,27 @@ const DriverManagement = () => {
                           />
                         ) : null}
                         <div
-                          className={`w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-200 ${driver.profileImageUrl ? 'hidden' : ''}`}
+                          className={`w-10 h-10 rounded-full bg-[rgba(255,255,255,0.08)] flex items-center justify-center border-2 border-theme ${driver.profileImageUrl ? 'hidden' : ''}`}
                         >
-                          <User className="w-6 h-6 text-gray-400" />
+                          <User className="w-6 h-6 text-secondary" />
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{driver.driverId}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{driver.firstName}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{driver.lastName}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{driver.driversLicence}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{driver.passport}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                    <td className="px-4 py-3 text-sm text-primary">{driver.driverId}</td>
+                    <td className="px-4 py-3 text-sm text-primary">
+                      <div className="flex items-center gap-1.5">
+                        {driver.firstName}
+                        {driver.email?.endsWith('@logistiq.import') && (
+                          <span title="No email set — imported without email. Click to edit and add one." className="text-[10px] bg-amber-100 text-amber-700 border border-amber-200 rounded px-1 py-0.5 font-medium leading-none cursor-help">
+                            No email
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-primary">{driver.lastName}</td>
+                    <td className="px-4 py-3 text-sm text-primary">{driver.driversLicence}</td>
+                    <td className="px-4 py-3 text-sm text-primary">{driver.passport}</td>
+                    <td className="px-4 py-3 text-sm text-primary">
                       {driver.dateOfBirth ? (() => {
                         try {
                           // Handle ISO string format (e.g., "2026-02-02T00:00:00.000Z")
@@ -4017,9 +4105,9 @@ const DriverManagement = () => {
                         }
                       })() : '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">{driver.notes || '-'}</td>
-                  
-                    <td className="px-4 py-3 text-sm text-gray-900">{driver.status}</td>
+                    <td className="px-4 py-3 text-sm text-secondary">{driver.notes || '-'}</td>
+
+                    <td className="px-4 py-3 text-sm text-primary">{driver.status}</td>
                     <td className="px-4 py-3">
                       <button
                         className={`px-3 py-1 rounded text-xs !text-white font-medium ${getComplianceButtonClass(driver.compliance)}`}
@@ -4042,11 +4130,11 @@ const DriverManagement = () => {
                               setEditingDriver(driver);
                               setOriginalDriverData(null);
                               resetAllFormState();
-                              
+
                               // Parse phone number to extract country code and number
                               const parsedPhone = parsePhoneNumber(driver.phone || driver.mobile);
                               setPrimaryPhoneCountry(parsedPhone.countryCode);
-                              
+
                               setFormData({
                                 driverId: driver.driverId,
                                 firstName: driver.firstName,
@@ -4071,7 +4159,7 @@ const DriverManagement = () => {
                               setShowNewDriverModal(true);
                             }
                           }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          className="p-2 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                           title="Edit Driver"
                         >
                           <Edit className="w-4 h-4" />
@@ -4085,7 +4173,7 @@ const DriverManagement = () => {
                               handleDelete(driver.driverId);
                             }
                           }}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                          className="p-2 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                           title="Delete Driver"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -4111,15 +4199,15 @@ const DriverManagement = () => {
           }}
         >
           <div
-            className="bg-white rounded-lg shadow-2xl w-full max-w-5xl max-h-[90vh] flex overflow-hidden"
+            className="bg-card rounded-lg shadow-2xl w-full max-w-5xl max-h-[90vh] flex overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Left Sidebar */}
-            <div className="w-48 bg-gray-50 border-r border-gray-200 flex flex-col">
+            <div className="w-48 bg-card border-r border-theme flex flex-col">
               {/* Image Upload Area */}
-              <div className="p-3 border-b border-gray-200">
-                <div 
-                  className="border-2 border-dashed border-gray-300 p-4 text-center mb-2 cursor-pointer hover:border-[#42aeec] transition-colors"
+              <div className="p-3 border-b border-theme">
+                <div
+                  className="border-2 border-dashed border-theme p-4 text-center mb-2 cursor-pointer hover:border-[var(--accent-navyblue)] transition-colors"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   {profileImagePreview ? (
@@ -4130,8 +4218,8 @@ const DriverManagement = () => {
                     />
                   ) : (
                     <>
-                      <Upload className="w-6 h-6 text-gray-400 mx-auto mb-1" />
-                      <p className="text-xs text-gray-600">Select Image</p>
+                      <Upload className="w-6 h-6 text-secondary mx-auto mb-1" />
+                      <p className="text-xs text-secondary">Select Image</p>
                     </>
                   )}
                 </div>
@@ -4166,10 +4254,10 @@ const DriverManagement = () => {
                   }}
                   className="hidden"
                 />
-                <button 
+                <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full bg-black !text-white py-1.5 text-xs font-medium hover:bg-gray-800 transition-colors"
+                  className="w-full bg-[rgba(255,255,255,0.08)] !text-white py-1.5 text-xs font-medium hover:bg-[rgba(255,255,255,0.12)] transition-colors"
                 >
                   {formData.profileImage ? 'CHANGE IMAGE' : 'UPLOAD'}
                 </button>
@@ -4206,8 +4294,8 @@ const DriverManagement = () => {
                           }
                         }}
                         className={`w-full flex items-center gap-1.5 px-2 py-1.5 transition-colors text-left ${isActive
-                            ? 'bg-[#0ea3d8] !text-white shadow-md'
-                            : 'bg-gray-700 !text-white hover:bg-gray-600'
+                          ? 'bg-[var(--accent-navyblue)]/15 !text-white shadow-md'
+                          : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                           }`}
                       >
                         <Icon className="w-3.5 h-3.5" />
@@ -4223,13 +4311,14 @@ const DriverManagement = () => {
             {/* Right Content Area */}
             <div className={`flex-1 flex flex-col overflow-hidden transition-all ${selectedCertificate || selectedTicket ? 'mr-96' : ''}`}>
               {/* Header */}
-              <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-white">
-                <h2 className="text-lg font-bold text-gray-900">{(editingId || editingDriver) ? 'Edit Driver' : 'New Driver'}</h2>
+              <div className="flex items-center justify-between p-3 border-b border-theme bg-card">
+                <h2 className="text-lg font-bold text-primary">{(editingId || editingDriver) ? 'Edit Driver' : 'New Driver'}</h2>
                 <div className="flex items-center gap-2">
-                  <button 
+                  <AutoSaveIndicator status={draftStatus} lastSavedAt={draftLastSavedAt} />
+                  <button
                     onClick={editingId ? handleUpdateDriver : handleSaveDriver}
                     disabled={isSubmitting}
-                    className="px-3 py-1 text-xs bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                    className="px-3 py-1 text-xs bg-[rgba(255,255,255,0.08)] !text-white border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.12)] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
                   >
                     {isSubmitting && (
                       <RefreshCw className="w-3 h-3 animate-spin" />
@@ -4239,7 +4328,7 @@ const DriverManagement = () => {
                   <button
                     onClick={handleCloseModal}
                     disabled={isSubmitting}
-                    className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="text-secondary hover:text-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -4247,26 +4336,33 @@ const DriverManagement = () => {
               </div>
 
               {/* Form Content */}
-              <div className="flex-1 overflow-y-auto p-3 bg-white">
+              <div className="flex-1 overflow-y-auto p-3 bg-card">
+                {draftPendingRestore && (
+                  <DraftRestoreBanner
+                    updatedAt={draftPendingRestore.updatedAt}
+                    onRestore={handleRestoreDriverDraft}
+                    onDiscard={discardDriverDraft}
+                  />
+                )}
                 {activeFormTab === 'basic' && (
                   <div className="space-y-3">
-                    <h3 className="text-sm font-bold text-gray-900 mb-2">Basic Information</h3>
+                    <h3 className="text-sm font-bold text-primary mb-2">Basic Information</h3>
 
                     {/* First Row */}
                     <div className="grid grid-cols-4 gap-2">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Driver ID</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">Driver ID</label>
                         <input
                           type="text"
                           placeholder="Driver ID"
                           value={formData.driverId}
                           onChange={(e) => setFormData({ ...formData, driverId: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                          First Name<span className="text-red-500">*</span>
+                        <label className="block text-xs font-medium text-primary mb-0.5">
+                          First Name<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <input
                           type="text"
@@ -4278,27 +4374,26 @@ const DriverManagement = () => {
                               setValidationErrors({ ...validationErrors, firstName: '' });
                             }
                           }}
-                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
-                            validationErrors.firstName ? 'border-red-500' : 'border-gray-300'
-                          }`}
+                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.firstName ? 'border-[var(--accent-red)]' : 'border-theme'
+                            }`}
                         />
                         {validationErrors.firstName && (
-                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.firstName}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.firstName}</p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Middle</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">Middle</label>
                         <input
                           type="text"
                           placeholder="Middle"
                           value={formData.middle}
                           onChange={(e) => setFormData({ ...formData, middle: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                          Last Name<span className="text-red-500">*</span>
+                        <label className="block text-xs font-medium text-primary mb-0.5">
+                          Last Name<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <input
                           type="text"
@@ -4310,12 +4405,11 @@ const DriverManagement = () => {
                               setValidationErrors({ ...validationErrors, lastName: '' });
                             }
                           }}
-                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
-                            validationErrors.lastName ? 'border-red-500' : 'border-gray-300'
-                          }`}
+                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.lastName ? 'border-[var(--accent-red)]' : 'border-theme'
+                            }`}
                         />
                         {validationErrors.lastName && (
-                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.lastName}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.lastName}</p>
                         )}
                       </div>
                     </div>
@@ -4323,8 +4417,8 @@ const DriverManagement = () => {
                     {/* Second Row */}
                     <div className="grid grid-cols-4 gap-2">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                          Email Address<span className="text-red-500">*</span>
+                        <label className="block text-xs font-medium text-primary mb-0.5">
+                          Email Address<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <input
                           type="email"
@@ -4336,58 +4430,77 @@ const DriverManagement = () => {
                               setValidationErrors({ ...validationErrors, emailAddress: '' });
                             }
                           }}
-                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
-                            validationErrors.emailAddress ? 'border-red-500' : 'border-gray-300'
-                          }`}
+                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.emailAddress ? 'border-[var(--accent-red)]' : 'border-theme'
+                            }`}
                         />
                         {validationErrors.emailAddress && (
-                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.emailAddress}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.emailAddress}</p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                          Date Of Birth<span className="text-red-500">*</span>
+                        <label className="block text-xs font-medium text-primary mb-0.5">
+                          Date Of Birth <span className="text-[var(--accent-red)]">*</span>
                         </label>
-                        <div className="relative">
-                          <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+
+                        <div
+                          className="relative cursor-pointer"
+                          onMouseDown={(e) => {
+                            e.preventDefault(); // IMPORTANT
+                            if (dateRef.current) {
+                              dateRef.current.showPicker?.(); // open calendar
+                              dateRef.current.focus();
+                            }
+                          }}
+                        >
+                          {/* Icon */}
+                          <Calendar className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-secondary pointer-events-none z-10" />
+
+                          {/* Input */}
                           <input
+                            ref={dateRef}
                             type="date"
                             value={formData.dateOfBirth}
                             onChange={(e) => {
                               setFormData({ ...formData, dateOfBirth: e.target.value });
                               if (validationErrors.dateOfBirth) {
-                                setValidationErrors({ ...validationErrors, dateOfBirth: '' });
+                                setValidationErrors({
+                                  ...validationErrors,
+                                  dateOfBirth: "",
+                                });
                               }
                             }}
-                            className={`w-full pl-7 pr-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
-                              validationErrors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
-                            }`}
-                            placeholder="Select"
-                            max={new Date().toISOString().split('T')[0]}
+                            className={`w-full pl-7 pr-2 py-2 text-sm bg-[rgba(255,255,255,0.05)] text-primary border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 cursor-pointer ${validationErrors.dateOfBirth
+                              ? "border-[var(--accent-red)]"
+                              : "border-theme"
+                              }`}
+                            max={new Date().toISOString().split("T")[0]}
                           />
                         </div>
+
                         {validationErrors.dateOfBirth && (
-                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.dateOfBirth}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">
+                            {validationErrors.dateOfBirth}
+                          </p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Mobile App</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">Mobile App</label>
                         <div className="flex items-center gap-2 mt-1">
                           <button
                             type="button"
                             onClick={() => setFormData({ ...formData, mobileApp: !formData.mobileApp })}
-                            className={`relative w-9 h-5 rounded-full transition-colors ${formData.mobileApp ? 'bg-[#42aeec]' : 'bg-gray-300'
+                            className={`relative w-9 h-5 rounded-full transition-colors ${formData.mobileApp ? 'bg-[var(--accent-navyblue)]' : 'bg-[rgba(255,255,255,0.15)]'
                               }`}
                           >
                             <span
-                              className={`absolute top-0.5 left-0.5 w-3.5 h-3.5 bg-white rounded-full transition-transform ${formData.mobileApp ? 'translate-x-4' : 'translate-x-0'
+                              className={`absolute top-0.5 left-0.5 w-3.5 h-3.5 bg-card rounded-full transition-transform ${formData.mobileApp ? 'translate-x-4' : 'translate-x-0'
                                 }`}
                             />
                           </button>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">PIN</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">PIN</label>
                         {pinIsExisting ? (
                           <div className="relative">
                             <input
@@ -4398,7 +4511,7 @@ const DriverManagement = () => {
                                 setPinIsExisting(false);
                                 setFormData({ ...formData, pin: '' });
                               }}
-                              className="w-full px-2 py-1 pr-20 text-xs border border-gray-300 rounded bg-gray-50 cursor-text focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              className="w-full px-2 py-1 pr-20 text-xs border border-theme rounded bg-card cursor-text focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                             <button
                               type="button"
@@ -4406,7 +4519,7 @@ const DriverManagement = () => {
                                 setPinIsExisting(false);
                                 setFormData({ ...formData, pin: '' });
                               }}
-                              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-[#42aeec] hover:text-blue-700 font-medium whitespace-nowrap"
+                              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]/70 font-medium whitespace-nowrap"
                               tabIndex={-1}
                             >
                               Change
@@ -4419,13 +4532,13 @@ const DriverManagement = () => {
                               placeholder="Enter new PIN"
                               value={formData.pin}
                               onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
-                              className="w-full px-2 py-1 pr-7 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              className="w-full px-2 py-1 pr-7 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               autoFocus
                             />
                             <button
                               type="button"
                               onClick={() => setShowPin(prev => !prev)}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-secondary hover:text-secondary"
                               tabIndex={-1}
                             >
                               {showPin ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -4438,12 +4551,11 @@ const DriverManagement = () => {
                     {/* Third Row */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                          Primary Phone #<span className="text-red-500">*</span>
+                        <label className="block text-xs font-medium text-primary mb-0.5">
+                          Primary Phone #<span className="text-[var(--accent-red)]">*</span>
                         </label>
-                        <div className={`flex items-center border rounded focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent ${
-                          validationErrors.primaryPhone ? 'border-red-500' : 'border-gray-300'
-                        }`}>
+                        <div className={`flex items-center border rounded focus-within:ring-2 focus-within:ring-[var(--accent-navyblue)] focus-within:border-transparent ${validationErrors.primaryPhone ? 'border-[var(--accent-red)]' : 'border-theme'
+                          }`}>
                           <div className="relative" ref={primaryCountryDropdownRef}>
                             <button
                               type="button"
@@ -4453,28 +4565,28 @@ const DriverManagement = () => {
                                   setPrimaryCountrySearch('');
                                 }
                               }}
-                              className="flex items-center gap-1.5 px-2 py-1 text-xs bg-white border-none outline-none cursor-pointer h-full"
+                              className="flex items-center gap-1.5 px-2 py-1 text-xs bg-card border-none outline-none cursor-pointer h-full"
                               style={{ minWidth: '85px' }}
                             >
                               {countries.find(c => c.code === primaryPhoneCountry) && (
                                 <>
                                   <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === primaryPhoneCountry)?.flag}</span>
-                                  <span className="text-xs text-gray-600 font-medium">{countries.find(c => c.code === primaryPhoneCountry)?.dialCode}</span>
+                                  <span className="text-xs text-secondary font-medium">{countries.find(c => c.code === primaryPhoneCountry)?.dialCode}</span>
                                 </>
                               )}
-                              <ChevronDown className="w-3 h-3 text-gray-400 ml-auto" />
+                              <ChevronDown className="w-3 h-3 text-secondary ml-auto" />
                             </button>
                             {primaryCountryDropdownOpen && (
-                              <div className="absolute top-full left-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                              <div className="absolute top-full left-0 z-50 bg-card border border-theme rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
                                 {/* Search Input */}
-                                <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                                <div className="p-2 border-b border-theme sticky top-0 bg-card">
                                   <input
                                     type="text"
                                     placeholder="Search country..."
                                     value={primaryCountrySearch}
                                     onChange={(e) => setPrimaryCountrySearch(e.target.value)}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                    className="w-full px-3 py-1.5 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                                   />
                                 </div>
                                 {/* Countries List */}
@@ -4499,13 +4611,12 @@ const DriverManagement = () => {
                                           // Don't auto-fill dial code - keep the input field clean
                                           // User will enter only their phone number
                                         }}
-                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
-                                          primaryPhoneCountry === country.code ? 'bg-blue-50' : ''
-                                        }`}
+                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-[rgba(255,255,255,0.03)] transition-colors ${primaryPhoneCountry === country.code ? 'bg-card' : ''
+                                          }`}
                                       >
                                         <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
                                         <span className="flex-1 truncate">{country.name}</span>
-                                        <span className="text-gray-600 font-medium">{country.dialCode}</span>
+                                        <span className="text-secondary font-medium">{country.dialCode}</span>
                                       </button>
                                     ))}
                                   {countries.filter((country) => {
@@ -4516,15 +4627,15 @@ const DriverManagement = () => {
                                       country.dialCode.includes(searchLower)
                                     );
                                   }).length === 0 && (
-                                    <div className="px-3 py-4 text-xs text-gray-500 text-center">
-                                      No countries found
-                                    </div>
-                                  )}
+                                      <div className="px-3 py-4 text-xs text-secondary text-center">
+                                        No countries found
+                                      </div>
+                                    )}
                                 </div>
                               </div>
                             )}
                           </div>
-                          <div className="h-5 w-px bg-gray-300"></div>
+                          <div className="h-5 w-px bg-[rgba(255,255,255,0.15)]"></div>
                           <input
                             type="tel"
                             placeholder=""
@@ -4538,8 +4649,8 @@ const DriverManagement = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Secondary Phone #</label>
-                        <div className="flex items-center border border-gray-300 rounded focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent">
+                        <label className="block text-xs font-medium text-primary mb-0.5">Secondary Phone #</label>
+                        <div className="flex items-center border border-theme rounded focus-within:ring-2 focus-within:ring-[var(--accent-navyblue)] focus-within:border-transparent">
                           <div className="relative" ref={secondaryCountryDropdownRef}>
                             <button
                               type="button"
@@ -4549,28 +4660,28 @@ const DriverManagement = () => {
                                   setSecondaryCountrySearch('');
                                 }
                               }}
-                              className="flex items-center gap-1.5 px-2 py-1 text-xs bg-white border-none outline-none cursor-pointer h-full"
+                              className="flex items-center gap-1.5 px-2 py-1 text-xs bg-card border-none outline-none cursor-pointer h-full"
                               style={{ minWidth: '85px' }}
                             >
                               {countries.find(c => c.code === secondaryPhoneCountry) && (
                                 <>
                                   <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === secondaryPhoneCountry)?.flag}</span>
-                                  <span className="text-xs text-gray-600 font-medium">{countries.find(c => c.code === secondaryPhoneCountry)?.dialCode}</span>
+                                  <span className="text-xs text-secondary font-medium">{countries.find(c => c.code === secondaryPhoneCountry)?.dialCode}</span>
                                 </>
                               )}
-                              <ChevronDown className="w-3 h-3 text-gray-400 ml-auto" />
+                              <ChevronDown className="w-3 h-3 text-secondary ml-auto" />
                             </button>
                             {secondaryCountryDropdownOpen && (
-                              <div className="absolute top-full left-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                              <div className="absolute top-full left-0 z-50 bg-card border border-theme rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
                                 {/* Search Input */}
-                                <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                                <div className="p-2 border-b border-theme sticky top-0 bg-card">
                                   <input
                                     type="text"
                                     placeholder="Search country..."
                                     value={secondaryCountrySearch}
                                     onChange={(e) => setSecondaryCountrySearch(e.target.value)}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                    className="w-full px-3 py-1.5 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                                   />
                                 </div>
                                 {/* Countries List */}
@@ -4595,13 +4706,12 @@ const DriverManagement = () => {
                                           // Don't auto-fill dial code - keep the input field clean
                                           // User will enter only their phone number
                                         }}
-                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
-                                          secondaryPhoneCountry === country.code ? 'bg-blue-50' : ''
-                                        }`}
+                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-[rgba(255,255,255,0.03)] transition-colors ${secondaryPhoneCountry === country.code ? 'bg-card' : ''
+                                          }`}
                                       >
                                         <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
                                         <span className="flex-1 truncate">{country.name}</span>
-                                        <span className="text-gray-600 font-medium">{country.dialCode}</span>
+                                        <span className="text-secondary font-medium">{country.dialCode}</span>
                                       </button>
                                     ))}
                                   {countries.filter((country) => {
@@ -4612,15 +4722,15 @@ const DriverManagement = () => {
                                       country.dialCode.includes(searchLower)
                                     );
                                   }).length === 0 && (
-                                    <div className="px-3 py-4 text-xs text-gray-500 text-center">
-                                      No countries found
-                                    </div>
-                                  )}
+                                      <div className="px-3 py-4 text-xs text-secondary text-center">
+                                        No countries found
+                                      </div>
+                                    )}
                                 </div>
                               </div>
                             )}
                           </div>
-                          <div className="h-5 w-px bg-gray-300"></div>
+                          <div className="h-5 w-px bg-[rgba(255,255,255,0.15)]"></div>
                           <input
                             type="tel"
                             placeholder=""
@@ -4646,37 +4756,37 @@ const DriverManagement = () => {
                           if (addressData.country) {
                             const countryInput = addressData.country.trim();
                             const countryInputLower = countryInput.toLowerCase();
-                            
+
                             // Try to find country by code first (most reliable)
                             let countryFromAddress = countries.length > 0 ? countries.find(
                               c => c.code.toLowerCase() === countryInputLower
                             ) : null;
-                            
+
                             // If not found by code, try by name (exact match)
                             if (!countryFromAddress && countries.length > 0) {
                               countryFromAddress = countries.find(
                                 c => c.name.toLowerCase() === countryInputLower
                               );
                             }
-                            
+
                             // If still not found, try partial/fuzzy name match
                             if (!countryFromAddress && countries.length > 0) {
                               countryFromAddress = countries.find(
                                 c => {
                                   const nameLower = c.name.toLowerCase();
                                   // Check if either string contains the other (fuzzy match)
-                                  return nameLower.includes(countryInputLower) || 
-                                         countryInputLower.includes(nameLower) ||
-                                         // Handle common variations
-                                         (countryInputLower.includes('united states') && (nameLower.includes('united states') || c.code === 'US')) ||
-                                         (countryInputLower.includes('usa') && c.code === 'US') ||
-                                         (countryInputLower.includes('canada') && c.code === 'CA') ||
-                                         (countryInputLower.includes('russia') && (nameLower.includes('russia') || c.code === 'RU')) ||
-                                         (countryInputLower.includes('russian') && (nameLower.includes('russia') || c.code === 'RU'));
+                                  return nameLower.includes(countryInputLower) ||
+                                    countryInputLower.includes(nameLower) ||
+                                    // Handle common variations
+                                    (countryInputLower.includes('united states') && (nameLower.includes('united states') || c.code === 'US')) ||
+                                    (countryInputLower.includes('usa') && c.code === 'US') ||
+                                    (countryInputLower.includes('canada') && c.code === 'CA') ||
+                                    (countryInputLower.includes('russia') && (nameLower.includes('russia') || c.code === 'RU')) ||
+                                    (countryInputLower.includes('russian') && (nameLower.includes('russia') || c.code === 'RU'));
                                 }
                               );
                             }
-                            
+
                             // Set country name if found
                             if (countryFromAddress) {
                               countryName = countryFromAddress.name;
@@ -4690,7 +4800,7 @@ const DriverManagement = () => {
                                 'au': 'AU', 'australia': 'AU',
                                 'ru': 'RU', 'russia': 'RU', 'russian federation': 'RU', 'russian': 'RU'
                               };
-                              
+
                               const mappedCode = countryCodeMap[countryInputLower];
                               if (mappedCode && countries.length > 0) {
                                 // Find the country by code in the countries array
@@ -4724,19 +4834,19 @@ const DriverManagement = () => {
                           if (countryName && addressData.state) {
                             // Check if it's US
                             const foundCountry = countries.find(c => c.name === countryName);
-                            const isUS = countryName.toLowerCase().includes('united states') || 
-                                        countryName.toLowerCase() === 'usa' ||
-                                        foundCountry?.code === 'US';
-                            
+                            const isUS = countryName.toLowerCase().includes('united states') ||
+                              countryName.toLowerCase() === 'usa' ||
+                              foundCountry?.code === 'US';
+
                             // Check if it's Canada
-                            const isCA = countryName.toLowerCase().includes('canada') || 
-                                        foundCountry?.code === 'CA';
+                            const isCA = countryName.toLowerCase().includes('canada') ||
+                              foundCountry?.code === 'CA';
 
                             if (isUS && addressData.state) {
                               // Try to find matching US state code
                               const matchedState = US_STATES.find(
-                                s => s.label.toLowerCase() === addressData.state.toLowerCase() || 
-                                     s.value.toLowerCase() === addressData.state.toLowerCase()
+                                s => s.label.toLowerCase() === addressData.state.toLowerCase() ||
+                                  s.value.toLowerCase() === addressData.state.toLowerCase()
                               );
                               if (matchedState) {
                                 stateProvinceValue = matchedState.value;
@@ -4744,8 +4854,8 @@ const DriverManagement = () => {
                             } else if (isCA && addressData.state) {
                               // Try to find matching Canadian province code
                               const matchedProvince = CANADIAN_PROVINCES.find(
-                                p => p.label.toLowerCase() === addressData.state.toLowerCase() || 
-                                     p.value.toLowerCase() === addressData.state.toLowerCase()
+                                p => p.label.toLowerCase() === addressData.state.toLowerCase() ||
+                                  p.value.toLowerCase() === addressData.state.toLowerCase()
                               );
                               if (matchedProvince) {
                                 stateProvinceValue = matchedProvince.value;
@@ -4792,65 +4902,65 @@ const DriverManagement = () => {
                     {/* Fifth Row */}
                     <div className="grid grid-cols-4 gap-2">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Address</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">Address</label>
                         <input
                           type="text"
                           placeholder="Address"
                           value={formData.address}
                           onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Unit</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">Unit</label>
                         <input
                           type="text"
                           placeholder="Unit"
                           value={formData.unit}
                           onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">City</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">City</label>
                         <input
                           type="text"
                           placeholder="City"
                           value={formData.city}
                           onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Postal Code</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">Postal Code</label>
                         <input
                           type="text"
                           placeholder="Postal Code"
                           value={formData.postalCode}
                           onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                     </div>
 
                     {/* Profile Image Row */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Profile Image</label>
                       <div className="flex items-center gap-4">
                         <div className="flex-shrink-0">
                           {profileImagePreview ? (
                             <img
                               src={profileImagePreview}
                               alt="Profile preview"
-                              className="w-24 h-24 rounded-lg object-cover border-2 border-gray-300"
+                              className="w-24 h-24 rounded-lg object-cover border-2 border-theme"
                               onError={() => {
                                 // If image fails to load, show placeholder
                                 setProfileImagePreview(null);
                               }}
                             />
                           ) : (
-                            <div className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
-                              <User className="w-8 h-8 text-gray-400" />
+                            <div className="w-24 h-24 rounded-lg border-2 border-dashed border-theme flex items-center justify-center bg-card">
+                              <User className="w-8 h-8 text-secondary" />
                             </div>
                           )}
                         </div>
@@ -4894,7 +5004,7 @@ const DriverManagement = () => {
                             onClick={() => {
                               fileInputRef.current?.click();
                             }}
-                            className="inline-block !mr-3 px-4 py-2 bg-[#42aeec] !text-white rounded-lg cursor-pointer hover:bg-[#0ea3d8] transition-colors"
+                            className="inline-block !mr-3 px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg cursor-pointer hover:bg-[var(--accent-navyblue)]/80 transition-colors"
                           >
                             {formData.profileImage ? 'Change Image' : 'Select Image'}
                           </button>
@@ -4908,34 +5018,35 @@ const DriverManagement = () => {
                                   fileInputRef.current.value = '';
                                 }
                               }}
-                              className="ml-2 px-4 py-2 bg-red-500 !text-white rounded-lg hover:bg-red-600 transition-colors"
+                              className="ml-2 px-4 py-2 bg-[var(--accent-red)] !text-white rounded-lg hover:bg-[var(--accent-red)]/80 transition-colors"
                             >
                               Remove
                             </button>
                           )}
-                          <p className="text-xs text-gray-500 mt-2">JPG, PNG or GIF (Max 20MB)</p>
+                          <p className="text-xs text-secondary mt-2">JPG, PNG or GIF (Max 20MB)</p>
                         </div>
                       </div>
                     </div>
 
                     {/* Sixth Row */}
                     <div className="grid grid-cols-2 gap-2">
+                      {/* Country */}
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                          Country<span className="text-red-500">*</span>
+                        <label className="block text-xs font-medium text-primary mb-0.5">
+                          Country <span className="text-[var(--accent-red)]">*</span>
                         </label>
+
                         <select
                           value={(() => {
-                            // Find country by name (formData.country stores the name)
                             const foundCountry = countries.find(c => c.name === formData.country);
                             return foundCountry ? foundCountry.code : '';
                           })()}
                           onChange={(e) => {
                             const selectedCountry = countries.find(c => c.code === e.target.value);
-                            setFormData({ 
-                              ...formData, 
-                              country: selectedCountry ? selectedCountry.name : '', 
-                              stateProvince: '' 
+                            setFormData({
+                              ...formData,
+                              country: selectedCountry ? selectedCountry.name : '',
+                              stateProvince: ''
                             });
                             if (validationErrors.country) {
                               setValidationErrors({ ...validationErrors, country: '' });
@@ -4944,42 +5055,62 @@ const DriverManagement = () => {
                               setValidationErrors({ ...validationErrors, stateProvince: '' });
                             }
                           }}
-                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
-                            validationErrors.country ? 'border-red-500' : 'border-gray-300'
-                          }`}
+                          className={`w-full px-2 py-1 text-xs bg-[rgba(255,255,255,0.05)] text-primary border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 ${validationErrors.country
+                            ? 'border-[var(--accent-red)]'
+                            : 'border-theme'
+                            }`}
                         >
-                          <option value="">Select Country</option>
+                          <option className="bg-[#0f1b2d] text-white" value="">
+                            Select Country
+                          </option>
                           {countries.map((country) => (
-                            <option key={country.code} value={country.code}>
+                            <option
+                              key={country.code}
+                              value={country.code}
+                              className="bg-[#0f1b2d] text-white"
+                            >
                               {country.flag} {country.name}
                             </option>
                           ))}
                         </select>
+
                         {validationErrors.country && (
-                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.country}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">
+                            {validationErrors.country}
+                          </p>
                         )}
                       </div>
+
+                      {/* Province / State */}
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                          Province/State<span className="text-red-500">*</span>
+                        <label className="block text-xs font-medium text-primary mb-0.5">
+                          Province/State <span className="text-[var(--accent-red)]">*</span>
                         </label>
+
                         <input
                           type="text"
                           value={formData.stateProvince}
                           onChange={(e) => {
                             setFormData({ ...formData, stateProvince: e.target.value });
                             if (validationErrors.stateProvince) {
-                              setValidationErrors({ ...validationErrors, stateProvince: '' });
+                              setValidationErrors({
+                                ...validationErrors,
+                                stateProvince: ''
+                              });
                             }
                           }}
                           disabled={!formData.country}
                           placeholder={formData.country ? "Enter Province/State" : "Select country first"}
-                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed ${
-                            validationErrors.stateProvince ? 'border-red-500' : 'border-gray-300'
-                          }`}
+                          className={`w-full px-2 py-1 text-xs bg-[rgba(255,255,255,0.05)] text-primary placeholder:text-secondary border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 disabled:bg-[rgba(255,255,255,0.02)] disabled:text-secondary disabled:cursor-not-allowed ${validationErrors.stateProvince
+                            ? 'border-[var(--accent-red)]'
+                            : 'border-theme'
+                            }`}
                         />
+
                         {validationErrors.stateProvince && (
-                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.stateProvince}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">
+                            {validationErrors.stateProvince}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -4988,50 +5119,83 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'personal' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Personal Information</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Personal Information</h3>
 
                     {/* Personal Information Section */}
                     <div className="grid grid-cols-5 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Social Insurance Number</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Social Insurance Number</label>
                         <input
                           type="text"
                           placeholder="Social Insurance Nu"
                           value={personalData.socialInsuranceNumber}
                           onChange={(e) => setPersonalData({ ...personalData, socialInsuranceNumber: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Hire Date</label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Hire Date
+                        </label>
+
+                        <div
+                          className="relative cursor-pointer"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            hireDateRef.current?.showPicker?.();
+                            hireDateRef.current?.focus();
+                          }}
+                        >
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none z-10" />
+
                           <input
+                            ref={hireDateRef}
                             type="date"
                             value={personalData.hireDate}
-                            onChange={(e) => setPersonalData({ ...personalData, hireDate: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            onChange={(e) =>
+                              setPersonalData({ ...personalData, hireDate: e.target.value })
+                            }
+                            className="w-full pl-10 pr-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 cursor-pointer"
                             placeholder="Select"
                           />
                         </div>
                       </div>
+
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Termination Date</label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Termination Date
+                        </label>
+
+                        <div
+                          className="relative cursor-pointer"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            terminationDateRef.current?.showPicker?.();
+                            terminationDateRef.current?.focus();
+                          }}
+                        >
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none z-10" />
+
                           <input
+                            ref={terminationDateRef}
                             type="date"
                             value={personalData.terminationDate}
-                            onChange={(e) => setPersonalData({ ...personalData, terminationDate: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            onChange={(e) =>
+                              setPersonalData({
+                                ...personalData,
+                                terminationDate: e.target.value,
+                              })
+                            }
+                            className="w-full pl-10 pr-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 cursor-pointer"
                             placeholder="Select"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Status<span className="text-red-500">*</span>
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Status <span className="text-[var(--accent-red)]">*</span>
                         </label>
+
                         <select
                           value={personalData.status}
                           onChange={(e) => {
@@ -5040,63 +5204,75 @@ const DriverManagement = () => {
                               setValidationErrors({ ...validationErrors, status: '' });
                             }
                           }}
-                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
-                            validationErrors.status ? 'border-red-500' : 'border-gray-300'
-                          }`}
+                          className={`w-full px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 ${validationErrors.status
+                            ? 'border-[var(--accent-red)]'
+                            : 'border-theme'
+                            }`}
                         >
-                          <option value="">Select Status</option>
-                          <option value="Active">Active</option>
-                          <option value="Inactive">Inactive</option>
-                          <option value="Terminated">Terminated</option>
+                          <option className="bg-[#0f1b2d] text-white" value="">
+                            Select Status
+                          </option>
+                          <option className="bg-[#0f1b2d] text-white" value="Active">
+                            Active
+                          </option>
+                          <option className="bg-[#0f1b2d] text-white" value="Inactive">
+                            Inactive
+                          </option>
+                          <option className="bg-[#0f1b2d] text-white" value="Terminated">
+                            Terminated
+                          </option>
                         </select>
+
                         {validationErrors.status && (
-                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.status}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">
+                            {validationErrors.status}
+                          </p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Vacation %</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Vacation %</label>
                         <input
                           type="text"
                           placeholder="0"
                           value={personalData.vacationPercent}
                           onChange={(e) => setPersonalData({ ...personalData, vacationPercent: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                     </div>
 
                     {/* Pay Information Section */}
                     <div className="mt-6">
-                      <h4 className="text-md font-bold text-gray-900 mb-4">Pay Information</h4>
+                      <h4 className="text-md font-bold text-primary mb-4">Pay Information</h4>
                       <div className="grid grid-cols-3 gap-4 mb-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Corporation Name</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Corporation Name</label>
                           <input
                             type="text"
                             placeholder="Corporation Name"
                             value={personalData.corporationName}
                             onChange={(e) => setPersonalData({ ...personalData, corporationName: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Driver Name</label>
                           <input
                             type="text"
                             placeholder="Driver Name"
                             value={personalData.driverName}
                             onChange={(e) => setPersonalData({ ...personalData, driverName: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">GST No.</label>
+                          <label className="block text-sm font-medium text-primary mb-1">GST No.</label>
                           <input
                             type="text"
                             placeholder="GST No."
                             value={personalData.gstNo}
                             onChange={(e) => setPersonalData({ ...personalData, gstNo: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -5110,37 +5286,37 @@ const DriverManagement = () => {
                             if (addressData.country) {
                               const countryInput = addressData.country.trim();
                               const countryInputLower = countryInput.toLowerCase();
-                              
+
                               // Try to find country by code first (most reliable)
                               let countryFromAddress = countries.length > 0 ? countries.find(
                                 c => c.code.toLowerCase() === countryInputLower
                               ) : null;
-                              
+
                               // If not found by code, try by name (exact match)
                               if (!countryFromAddress && countries.length > 0) {
                                 countryFromAddress = countries.find(
                                   c => c.name.toLowerCase() === countryInputLower
                                 );
                               }
-                              
+
                               // If still not found, try partial/fuzzy name match
                               if (!countryFromAddress && countries.length > 0) {
                                 countryFromAddress = countries.find(
                                   c => {
                                     const nameLower = c.name.toLowerCase();
                                     // Check if either string contains the other (fuzzy match)
-                                    return nameLower.includes(countryInputLower) || 
-                                           countryInputLower.includes(nameLower) ||
-                                           // Handle common variations
-                                           (countryInputLower.includes('united states') && (nameLower.includes('united states') || c.code === 'US')) ||
-                                           (countryInputLower.includes('usa') && c.code === 'US') ||
-                                           (countryInputLower.includes('canada') && c.code === 'CA') ||
-                                           (countryInputLower.includes('russia') && (nameLower.includes('russia') || c.code === 'RU')) ||
-                                           (countryInputLower.includes('russian') && (nameLower.includes('russia') || c.code === 'RU'));
+                                    return nameLower.includes(countryInputLower) ||
+                                      countryInputLower.includes(nameLower) ||
+                                      // Handle common variations
+                                      (countryInputLower.includes('united states') && (nameLower.includes('united states') || c.code === 'US')) ||
+                                      (countryInputLower.includes('usa') && c.code === 'US') ||
+                                      (countryInputLower.includes('canada') && c.code === 'CA') ||
+                                      (countryInputLower.includes('russia') && (nameLower.includes('russia') || c.code === 'RU')) ||
+                                      (countryInputLower.includes('russian') && (nameLower.includes('russia') || c.code === 'RU'));
                                   }
                                 );
                               }
-                              
+
                               // Set country name if found
                               if (countryFromAddress) {
                                 countryName = countryFromAddress.name;
@@ -5154,7 +5330,7 @@ const DriverManagement = () => {
                                   'au': 'AU', 'australia': 'AU',
                                   'ru': 'RU', 'russia': 'RU', 'russian federation': 'RU', 'russian': 'RU'
                                 };
-                                
+
                                 const mappedCode = countryCodeMap[countryInputLower];
                                 if (mappedCode && countries.length > 0) {
                                   // Find the country by code in the countries array
@@ -5188,19 +5364,19 @@ const DriverManagement = () => {
                             if (countryName && addressData.state) {
                               // Check if it's US
                               const foundCountry = countries.find(c => c.name === countryName);
-                              const isUS = countryName.toLowerCase().includes('united states') || 
-                                          countryName.toLowerCase() === 'usa' ||
-                                          foundCountry?.code === 'US';
-                              
+                              const isUS = countryName.toLowerCase().includes('united states') ||
+                                countryName.toLowerCase() === 'usa' ||
+                                foundCountry?.code === 'US';
+
                               // Check if it's Canada
-                              const isCA = countryName.toLowerCase().includes('canada') || 
-                                          foundCountry?.code === 'CA';
+                              const isCA = countryName.toLowerCase().includes('canada') ||
+                                foundCountry?.code === 'CA';
 
                               if (isUS && addressData.state) {
                                 // Try to find matching US state code
                                 const matchedState = US_STATES.find(
-                                  s => s.label.toLowerCase() === addressData.state.toLowerCase() || 
-                                       s.value.toLowerCase() === addressData.state.toLowerCase()
+                                  s => s.label.toLowerCase() === addressData.state.toLowerCase() ||
+                                    s.value.toLowerCase() === addressData.state.toLowerCase()
                                 );
                                 if (matchedState) {
                                   stateProvinceValue = matchedState.value;
@@ -5208,8 +5384,8 @@ const DriverManagement = () => {
                               } else if (isCA && addressData.state) {
                                 // Try to find matching Canadian province code
                                 const matchedProvince = CANADIAN_PROVINCES.find(
-                                  p => p.label.toLowerCase() === addressData.state.toLowerCase() || 
-                                       p.value.toLowerCase() === addressData.state.toLowerCase()
+                                  p => p.label.toLowerCase() === addressData.state.toLowerCase() ||
+                                    p.value.toLowerCase() === addressData.state.toLowerCase()
                                 );
                                 if (matchedProvince) {
                                   stateProvinceValue = matchedProvince.value;
@@ -5236,77 +5412,102 @@ const DriverManagement = () => {
                       {/* Payment Address Fields */}
                       <div className="grid grid-cols-3 gap-4 mt-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Payment Address</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Payment Address</label>
                           <input
                             type="text"
                             placeholder="Payment Address"
                             value={personalData.paymentAddress}
                             onChange={(e) => setPersonalData({ ...personalData, paymentAddress: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Payment City</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Payment City</label>
                           <input
                             type="text"
                             placeholder="Payment City"
                             value={personalData.paymentCity}
                             onChange={(e) => setPersonalData({ ...personalData, paymentCity: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Payment Postal Code</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Payment Postal Code</label>
                           <input
                             type="text"
                             placeholder="Payment Postal Code"
                             value={personalData.paymentPostalCode}
                             onChange={(e) => setPersonalData({ ...personalData, paymentPostalCode: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4 mt-4">
+                        {/* Payment Country */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-primary mb-1">
                             Payment Country
                           </label>
+
                           <select
                             value={(() => {
-                              // Find country by name (personalData.paymentCountry stores the name)
-                              const foundCountry = countries.find(c => c.name === personalData.paymentCountry);
-                              return foundCountry ? foundCountry.code : '';
+                              const foundCountry = countries.find(
+                                (c) => c.name === personalData.paymentCountry
+                              );
+                              return foundCountry ? foundCountry.code : "";
                             })()}
                             onChange={(e) => {
-                              const selectedCountry = countries.find(c => c.code === e.target.value);
-                              setPersonalData({ 
-                                ...personalData, 
-                                paymentCountry: selectedCountry ? selectedCountry.name : '', 
-                                paymentStateProvince: '' 
+                              const selectedCountry = countries.find(
+                                (c) => c.code === e.target.value
+                              );
+                              setPersonalData({
+                                ...personalData,
+                                paymentCountry: selectedCountry
+                                  ? selectedCountry.name
+                                  : "",
+                                paymentStateProvince: "",
                               });
                             }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200"
                           >
-                            <option value="">Select Country</option>
+                            <option className="bg-[#0f1b2d] text-white" value="">
+                              Select Country
+                            </option>
                             {countries.map((country) => (
-                              <option key={country.code} value={country.code}>
+                              <option
+                                key={country.code}
+                                value={country.code}
+                                className="bg-[#0f1b2d] text-white"
+                              >
                                 {country.flag} {country.name}
                               </option>
                             ))}
                           </select>
                         </div>
+
+                        {/* Payment Province / State */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-primary mb-1">
                             Payment Province/State
                           </label>
+
                           <input
                             type="text"
                             value={personalData.paymentStateProvince}
-                            onChange={(e) => setPersonalData({ ...personalData, paymentStateProvince: e.target.value })}
+                            onChange={(e) =>
+                              setPersonalData({
+                                ...personalData,
+                                paymentStateProvince: e.target.value,
+                              })
+                            }
                             disabled={!personalData.paymentCountry}
-                            placeholder={personalData.paymentCountry ? "Enter Province/State" : "Select country first"}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            placeholder={
+                              personalData.paymentCountry
+                                ? "Enter Province/State"
+                                : "Select country first"
+                            }
+                            className="w-full px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary placeholder:text-secondary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 disabled:bg-[rgba(255,255,255,0.02)] disabled:text-secondary disabled:cursor-not-allowed"
                           />
                         </div>
                       </div>
@@ -5314,7 +5515,7 @@ const DriverManagement = () => {
 
                     {/* Pay Type Section */}
                     <div className="mt-4">
-                      <label className="block text-xs font-medium text-gray-900 mb-1.5">Pay Type</label>
+                      <label className="block text-xs font-medium text-primary mb-1.5">Pay Type</label>
 
                       {/* Driver Type Toggle */}
                       <div className="mb-1.5">
@@ -5323,8 +5524,8 @@ const DriverManagement = () => {
                             type="button"
                             onClick={() => setPersonalData({ ...personalData, driverType: 'COMPANY DRIVER' })}
                             className={`px-4 py-1.5 text-xs font-medium transition-colors rounded-l ${personalData.driverType === 'COMPANY DRIVER'
-                                ? 'bg-gray-700 !text-white'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              ? 'bg-[var(--accent-navyblue)] !text-white'
+                              : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                               }`}
                           >
                             COMPANY DRIVER
@@ -5333,8 +5534,8 @@ const DriverManagement = () => {
                             type="button"
                             onClick={() => setPersonalData({ ...personalData, driverType: 'OWNER OPERATOR' })}
                             className={`px-4 py-1.5 text-xs font-medium transition-colors rounded-r ${personalData.driverType === 'OWNER OPERATOR'
-                                ? 'bg-gray-700 !text-white'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              ? 'bg-[var(--accent-navyblue)] !text-white'
+                              : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                               }`}
                           >
                             OWNER OPERATOR
@@ -5345,7 +5546,7 @@ const DriverManagement = () => {
 
                       {/* Configure Payroll Text - shown when OWNER OPERATOR is selected */}
                       {personalData.driverType === 'OWNER OPERATOR' && (
-                        <p className="text-xs font-medium text-gray-900 mt-1.5 mb-3">
+                        <p className="text-xs font-medium text-primary mt-1.5 mb-3">
                           CONFIGURE PAYROLL IN TRUCK
                         </p>
                       )}
@@ -5365,8 +5566,8 @@ const DriverManagement = () => {
                               type="button"
                               onClick={() => setPersonalData({ ...personalData, paymentMethod: method as any })}
                               className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${personalData.paymentMethod === method
-                                  ? 'bg-gray-700 !text-white'
-                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                ? 'bg-[var(--accent-navyblue)] !text-white'
+                                : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                                 }`}
                             >
                               {method}
@@ -5379,74 +5580,74 @@ const DriverManagement = () => {
                       {personalData.paymentMethod === 'PAID PER MILE' && (
                         <div className="grid grid-cols-4 gap-4 mt-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              ALONE<span className="text-red-500">*</span>
+                            <label className="block text-sm font-medium text-primary mb-1">
+                              ALONE<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.alone}
                               onChange={(e) => setPersonalData({ ...personalData, alone: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              EMPTY<span className="text-red-500">*</span>
+                            <label className="block text-sm font-medium text-primary mb-1">
+                              EMPTY<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.empty}
                               onChange={(e) => setPersonalData({ ...personalData, empty: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">DROP</label>
+                            <label className="block text-sm font-medium text-primary mb-1">DROP</label>
                             <input
                               type="text"
                               value={personalData.bonusDrop}
                               onChange={(e) => setPersonalData({ ...personalData, bonusDrop: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              TEAM<span className="text-red-500">*</span>
+                            <label className="block text-sm font-medium text-primary mb-1">
+                              TEAM<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.team}
                               onChange={(e) => setPersonalData({ ...personalData, team: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              EMPTY-TEAM<span className="text-red-500">*</span>
+                            <label className="block text-sm font-medium text-primary mb-1">
+                              EMPTY-TEAM<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.emptyTeam}
                               onChange={(e) => setPersonalData({ ...personalData, emptyTeam: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">PICK</label>
+                            <label className="block text-sm font-medium text-primary mb-1">PICK</label>
                             <input
                               type="text"
                               value={personalData.bonusPick}
                               onChange={(e) => setPersonalData({ ...personalData, bonusPick: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">BONUS/LAYOVER</label>
+                            <label className="block text-sm font-medium text-primary mb-1">BONUS/LAYOVER</label>
                             <input
                               type="text"
                               value={personalData.bonusLayover}
                               onChange={(e) => setPersonalData({ ...personalData, bonusLayover: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                         </div>
@@ -5455,16 +5656,16 @@ const DriverManagement = () => {
                       {/* Percent Rate (shown when PAID PERCENT is selected) */}
                       {personalData.paymentMethod === 'PAID PERCENT' && (
                         <div className="mt-4">
-                          <h4 className="text-md font-bold text-gray-900 mb-4">Percent Rate</h4>
+                          <h4 className="text-md font-bold text-primary mb-4">Percent Rate</h4>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              %<span className="text-red-500">*</span>
+                            <label className="block text-sm font-medium text-primary mb-1">
+                              %<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.percentRate}
                               onChange={(e) => setPersonalData({ ...personalData, percentRate: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                         </div>
@@ -5474,14 +5675,14 @@ const DriverManagement = () => {
                       {personalData.paymentMethod === 'PAID BY TRIP' && (
                         <div className="mt-4">
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                              Per Trip Amount<span className="text-red-500">*</span>
+                            <label className="block text-xs font-medium text-primary mb-0.5">
+                              Per Trip Amount<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.perTripAmount}
                               onChange={(e) => setPersonalData({ ...personalData, perTripAmount: e.target.value })}
-                              className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               placeholder="0"
                             />
                           </div>
@@ -5492,14 +5693,14 @@ const DriverManagement = () => {
                       {personalData.paymentMethod === 'PAID PER HOUR' && (
                         <div className="mt-4">
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                              PER HOUR<span className="text-red-500">*</span>
+                            <label className="block text-xs font-medium text-primary mb-0.5">
+                              PER HOUR<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.hourlyRate}
                               onChange={(e) => setPersonalData({ ...personalData, hourlyRate: e.target.value })}
-                              className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               placeholder="0"
                             />
                           </div>
@@ -5510,14 +5711,14 @@ const DriverManagement = () => {
                       {personalData.paymentMethod === 'PAID PER DAY' && (
                         <div className="mt-4">
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                              PER DAY<span className="text-red-500">*</span>
+                            <label className="block text-xs font-medium text-primary mb-0.5">
+                              PER DAY<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.dailyRate}
                               onChange={(e) => setPersonalData({ ...personalData, dailyRate: e.target.value })}
-                              className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               placeholder="0"
                             />
                           </div>
@@ -5527,14 +5728,14 @@ const DriverManagement = () => {
 
                     {/* Driver Type Section */}
                     <div className="mt-6">
-                      <h4 className="text-md font-bold text-gray-900 mb-4">Driver Type</h4>
+                      <h4 className="text-md font-bold text-primary mb-4">Driver Type</h4>
                       <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => setPersonalData({ ...personalData, driverTypeSolo: true })}
                           className={`px-6 py-2 rounded-sm font-medium transition-colors ${personalData.driverTypeSolo
-                              ? 'bg-gray-700 !text-white'
-                              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                            ? 'bg-[var(--accent-navyblue)] !text-white'
+                            : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                             }`}
                         >
                           SOLO
@@ -5543,8 +5744,8 @@ const DriverManagement = () => {
                           type="button"
                           onClick={() => setPersonalData({ ...personalData, driverTypeSolo: false })}
                           className={`px-6 py-2 rounded-sm font-medium transition-colors ${!personalData.driverTypeSolo
-                              ? 'bg-gray-700 !text-white'
-                              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                            ? 'bg-[var(--accent-navyblue)] !text-white'
+                            : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                             }`}
                         >
                           TEAM
@@ -5554,81 +5755,113 @@ const DriverManagement = () => {
 
                     {/* Exemption Checkboxes */}
                     <div className="mt-6">
-                      <h4 className="text-md font-bold text-gray-900 mb-4">Exemptions</h4>
+                      <h4 className="text-md font-bold text-primary mb-4">Exemptions</h4>
                       <div className="flex gap-6">
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={personalData.cppExempt}
                             onChange={(e) => setPersonalData({ ...personalData, cppExempt: e.target.checked })}
-                            className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                            className="w-4 h-4 text-[var(--accent-navyblue)] border-theme rounded focus:ring-[var(--accent-navyblue)]"
                           />
-                          <span className="text-sm font-medium text-gray-700">CPP Exempt</span>
+                          <span className="text-sm font-medium text-primary">CPP Exempt</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={personalData.payrollTaxExempt}
                             onChange={(e) => setPersonalData({ ...personalData, payrollTaxExempt: e.target.checked })}
-                            className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                            className="w-4 h-4 text-[var(--accent-navyblue)] border-theme rounded focus:ring-[var(--accent-navyblue)]"
                           />
-                          <span className="text-sm font-medium text-gray-700">Payroll Tax Exempt</span>
+                          <span className="text-sm font-medium text-primary">Payroll Tax Exempt</span>
                         </label>
                       </div>
                     </div>
 
                     {/* Cross-Border Eligibility */}
                     <div className="mt-6">
-                      <h4 className="text-md font-bold text-gray-900 mb-4">Cross-Border Eligibility</h4>
+                      <h4 className="text-md font-bold text-primary mb-4">Cross-Border Eligibility</h4>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={personalData.cross_border_eligible}
                           onChange={(e) => setPersonalData({ ...personalData, cross_border_eligible: e.target.checked })}
-                          className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                          className="w-4 h-4 text-[var(--accent-navyblue)] border-theme rounded focus:ring-[var(--accent-navyblue)]"
                         />
-                        <span className="text-sm font-medium text-gray-700">Cross-Border Eligible</span>
+                        <span className="text-sm font-medium text-primary">Cross-Border Eligible</span>
                       </label>
                     </div>
 
                     {/* Custom HST % */}
                     <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Custom HST %</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Custom HST %</label>
                       <input
                         type="text"
                         placeholder="Leave Empty To Use Compar"
                         value={personalData.customHst}
                         onChange={(e) => setPersonalData({ ...personalData, customHst: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                       />
                     </div>
 
                     {/* Gender and Citizenship */}
                     <div className="mt-6 grid grid-cols-2 gap-4">
+                      {/* Gender */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Gender
+                        </label>
+
                         <select
                           value={personalData.gender}
-                          onChange={(e) => setPersonalData({ ...personalData, gender: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          onChange={(e) =>
+                            setPersonalData({ ...personalData, gender: e.target.value })
+                          }
+                          className="w-full px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200"
                         >
-                          <option value="">Select Gender</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                          <option value="Other">Other</option>
-                          <option value="Prefer not to say">Prefer not to say</option>
+                          <option className="bg-[#0f1b2d] text-white" value="">
+                            Select Gender
+                          </option>
+                          <option className="bg-[#0f1b2d] text-white" value="Male">
+                            Male
+                          </option>
+                          <option className="bg-[#0f1b2d] text-white" value="Female">
+                            Female
+                          </option>
+                          <option className="bg-[#0f1b2d] text-white" value="Other">
+                            Other
+                          </option>
+                          <option className="bg-[#0f1b2d] text-white" value="Prefer not to say">
+                            Prefer not to say
+                          </option>
                         </select>
                       </div>
+
+                      {/* Citizenship */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Citizenship</label>
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Citizenship
+                        </label>
+
                         <select
                           value={personalData.citizenship}
-                          onChange={(e) => setPersonalData({ ...personalData, citizenship: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          onChange={(e) =>
+                            setPersonalData({
+                              ...personalData,
+                              citizenship: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200"
                         >
-                          <option value="">Select Citizenship</option>
+                          <option className="bg-[#0f1b2d] text-white" value="">
+                            Select Citizenship
+                          </option>
                           {countries.map((country) => (
-                            <option key={country.code} value={country.name}>
+                            <option
+                              key={country.code}
+                              value={country.name}
+                              className="bg-[#0f1b2d] text-white"
+                            >
                               {country.name}
                             </option>
                           ))}
@@ -5641,15 +5874,15 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'travel' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Travel Information</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Travel Information</h3>
 
                     {/* Driver's License Row */}
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-4">Driver's License</h4>
+                    <div className="bg-card p-4 rounded-lg border border-theme">
+                      <h4 className="text-sm font-semibold text-primary mb-4">Driver's License</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Drivers License #<span className="text-red-500">*</span>
+                          <label className="block text-sm font-medium text-primary mb-1">
+                            Drivers License #<span className="text-[var(--accent-red)]">*</span>
                           </label>
                           <input
                             type="text"
@@ -5661,59 +5894,80 @@ const DriverManagement = () => {
                                 setValidationErrors({ ...validationErrors, driversLicenseNumber: '' });
                               }
                             }}
-                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
-                              validationErrors.driversLicenseNumber ? 'border-red-500' : 'border-gray-300'
-                            }`}
+                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.driversLicenseNumber ? 'border-[var(--accent-red)]' : 'border-theme'
+                              }`}
                           />
                           {validationErrors.driversLicenseNumber && (
-                            <p className="text-xs text-red-500 mt-0.5">{validationErrors.driversLicenseNumber}</p>
+                            <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.driversLicenseNumber}</p>
                           )}
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Date Of Expiry<span className="text-red-500">*</span>
+                          <label className="block text-sm font-medium text-primary mb-1">
+                            Date Of Expiry <span className="text-[var(--accent-red)]">*</span>
                           </label>
-                          <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+
+                          <div
+                            className="relative cursor-pointer"
+                            onMouseDown={(e) => {
+                              e.preventDefault(); // IMPORTANT
+                              expiryRef.current?.showPicker?.();
+                              expiryRef.current?.focus();
+                            }}
+                          >
+                            {/* Icon */}
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none z-10" />
+
+                            {/* Input */}
                             <input
+                              ref={expiryRef}
                               type="date"
                               value={travelData.driversLicenseExpiry}
                               onChange={(e) => {
-                                setTravelData({ ...travelData, driversLicenseExpiry: e.target.value });
+                                setTravelData({
+                                  ...travelData,
+                                  driversLicenseExpiry: e.target.value,
+                                });
                                 if (validationErrors.driversLicenseExpiry) {
-                                  setValidationErrors({ ...validationErrors, driversLicenseExpiry: '' });
+                                  setValidationErrors({
+                                    ...validationErrors,
+                                    driversLicenseExpiry: "",
+                                  });
                                 }
                               }}
-                              className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
-                                validationErrors.driversLicenseExpiry ? 'border-red-500' : 'border-gray-300'
-                              }`}
+                              className={`w-full pl-10 pr-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 cursor-pointer ${validationErrors.driversLicenseExpiry
+                                ? "border-[var(--accent-red)]"
+                                : "border-theme"
+                                }`}
                               placeholder="Select"
                             />
                           </div>
+
                           {validationErrors.driversLicenseExpiry && (
-                            <p className="text-xs text-red-500 mt-0.5">{validationErrors.driversLicenseExpiry}</p>
+                            <p className="text-xs text-[var(--accent-red)] mt-0.5">
+                              {validationErrors.driversLicenseExpiry}
+                            </p>
                           )}
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">License State/Province</label>
+                          <label className="block text-sm font-medium text-primary mb-1">License State/Province</label>
                           <input
                             type="text"
                             value={travelData.licenseStateProvince}
                             onChange={(e) => setTravelData({ ...travelData, licenseStateProvince: e.target.value })}
                             placeholder="Enter State/Province"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                       </div>
                     </div>
 
                     {/* Passport Row */}
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-4">Passport</h4>
+                    <div className="bg-card p-4 rounded-lg border border-theme">
+                      <h4 className="text-sm font-semibold text-primary mb-4">Passport</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Passport #<span className="text-red-500">*</span>
+                          <label className="block text-sm font-medium text-primary mb-1">
+                            Passport #<span className="text-[var(--accent-red)]">*</span>
                           </label>
                           <input
                             type="text"
@@ -5725,83 +5979,118 @@ const DriverManagement = () => {
                                 setValidationErrors({ ...validationErrors, passportNumber: '' });
                               }
                             }}
-                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
-                              validationErrors.passportNumber ? 'border-red-500' : 'border-gray-300'
-                            }`}
+                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.passportNumber ? 'border-[var(--accent-red)]' : 'border-theme'
+                              }`}
                           />
                           {validationErrors.passportNumber && (
-                            <p className="text-xs text-red-500 mt-0.5">{validationErrors.passportNumber}</p>
+                            <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.passportNumber}</p>
                           )}
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Passport Country</label>
+                          <label className="block text-sm font-medium text-primary mb-1">
+                            Passport Country
+                          </label>
+
                           <select
                             value={travelData.passportCountry}
-                            onChange={(e) => setTravelData({ ...travelData, passportCountry: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            onChange={(e) =>
+                              setTravelData({
+                                ...travelData,
+                                passportCountry: e.target.value,
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200"
                           >
-                            <option value="">Select Passport Country</option>
+                            <option className="bg-[#0f1b2d] text-white" value="">
+                              Select Passport Country
+                            </option>
+
                             {countries.map((country) => (
-                              <option key={country.code} value={country.name}>
+                              <option
+                                key={country.code}
+                                value={country.name}
+                                className="bg-[#0f1b2d] text-white"
+                              >
                                 {country.name}
                               </option>
                             ))}
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Date Of Expiry<span className="text-red-500">*</span>
+                          <label className="block text-sm font-medium text-primary mb-1">
+                            Date Of Expiry <span className="text-[var(--accent-red)]">*</span>
                           </label>
-                          <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+
+                          <div
+                            className="relative cursor-pointer"
+                            onMouseDown={(e) => {
+                              e.preventDefault(); // IMPORTANT
+                              passportExpiryRef.current?.showPicker?.();
+                              passportExpiryRef.current?.focus();
+                            }}
+                          >
+                            {/* Icon */}
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none z-10" />
+
+                            {/* Input */}
                             <input
+                              ref={passportExpiryRef}
                               type="date"
                               value={travelData.passportExpiry}
                               onChange={(e) => {
-                                setTravelData({ ...travelData, passportExpiry: e.target.value });
+                                setTravelData({
+                                  ...travelData,
+                                  passportExpiry: e.target.value,
+                                });
                                 if (validationErrors.passportExpiry) {
-                                  setValidationErrors({ ...validationErrors, passportExpiry: '' });
+                                  setValidationErrors({
+                                    ...validationErrors,
+                                    passportExpiry: "",
+                                  });
                                 }
                               }}
-                              className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
-                                validationErrors.passportExpiry ? 'border-red-500' : 'border-gray-300'
-                              }`}
+                              className={`w-full pl-10 pr-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 cursor-pointer ${validationErrors.passportExpiry
+                                ? "border-[var(--accent-red)]"
+                                : "border-theme"
+                                }`}
                               placeholder="Select"
                             />
                           </div>
+
                           {validationErrors.passportExpiry && (
-                            <p className="text-xs text-red-500 mt-0.5">{validationErrors.passportExpiry}</p>
+                            <p className="text-xs text-[var(--accent-red)] mt-0.5">
+                              {validationErrors.passportExpiry}
+                            </p>
                           )}
                         </div>
                       </div>
                     </div>
 
                     {/* Fast Card Row */}
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-4">Fast Card</h4>
+                    <div className="bg-card p-4 rounded-lg border border-theme">
+                      <h4 className="text-sm font-semibold text-primary mb-4">Fast Card</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Fast Card #</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Fast Card #</label>
                           <input
                             type="text"
                             placeholder="Fast Card #"
                             value={travelData.fastCardNumber}
                             onChange={(e) => setTravelData({ ...travelData, fastCardNumber: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Date Of Expiry</label>
-                          <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                            <input
-                              type="date"
-                              value={travelData.fastCardExpiry}
-                              onChange={(e) => setTravelData({ ...travelData, fastCardExpiry: e.target.value })}
-                              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                              placeholder="Select"
-                            />
-                          </div>
+                          <DateField
+                            label="Date Of Expiry"
+                            value={travelData.fastCardExpiry}
+                            onChange={(e) =>
+                              setTravelData({
+                                ...travelData,
+                                fastCardExpiry: e.target.value,
+                              })
+                            }
+                          />
                         </div>
                         <div className="flex items-end">
                           <label className="flex items-center gap-2 cursor-pointer">
@@ -5809,9 +6098,9 @@ const DriverManagement = () => {
                               type="checkbox"
                               checked={travelData.fastCardValid}
                               onChange={(e) => setTravelData({ ...travelData, fastCardValid: e.target.checked })}
-                              className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                              className="w-4 h-4 text-[var(--accent-navyblue)] border-theme rounded focus:ring-[var(--accent-navyblue)]"
                             />
-                            <span className="text-sm font-medium text-gray-700">Fast Card Valid</span>
+                            <span className="text-sm font-medium text-primary">Fast Card Valid</span>
                           </label>
                         </div>
                       </div>
@@ -5819,14 +6108,14 @@ const DriverManagement = () => {
 
                     {/* Canadian Worker Status Section */}
                     <div className="mt-6">
-                      <h4 className="text-md font-bold text-gray-900 mb-4">Canadian Worker Status</h4>
+                      <h4 className="text-md font-bold text-primary mb-4">Canadian Worker Status</h4>
                       <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => setTravelData({ ...travelData, canadianWorkerStatus: 'CANADIAN CITIZEN' })}
                           className={`px-6 py-2 rounded-sm font-medium transition-colors ${travelData.canadianWorkerStatus === 'CANADIAN CITIZEN'
-                              ? 'bg-gray-700 !text-white'
-                              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                            ? 'bg-[var(--accent-navyblue)] !text-white'
+                            : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                             }`}
                         >
                           CANADIAN CITIZEN
@@ -5835,8 +6124,8 @@ const DriverManagement = () => {
                           type="button"
                           onClick={() => setTravelData({ ...travelData, canadianWorkerStatus: 'PERMANENT RESIDENT' })}
                           className={`px-6 py-2 rounded-sm font-medium transition-colors ${travelData.canadianWorkerStatus === 'PERMANENT RESIDENT'
-                              ? 'bg-gray-700 !text-white'
-                              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                            ? 'bg-[var(--accent-navyblue)] !text-white'
+                            : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                             }`}
                         >
                           PERMANENT RESIDENT
@@ -5845,8 +6134,8 @@ const DriverManagement = () => {
                           type="button"
                           onClick={() => setTravelData({ ...travelData, canadianWorkerStatus: 'WORK PERMIT' })}
                           className={`px-6 py-2 rounded-sm font-medium transition-colors ${travelData.canadianWorkerStatus === 'WORK PERMIT'
-                              ? 'bg-gray-700 !text-white'
-                              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                            ? 'bg-[var(--accent-navyblue)] !text-white'
+                            : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                             }`}
                         >
                           WORK PERMIT
@@ -5856,54 +6145,52 @@ const DriverManagement = () => {
 
                     {/* Permanent Residence Expiry */}
                     {travelData.canadianWorkerStatus === 'PERMANENT RESIDENT' && (
-                      <div className="mt-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Permanent Residence Expiry</label>
-                        <div className="relative max-w-md">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                          <input
-                            type="date"
-                            value={travelData.permanentResidenceExpiry}
-                            onChange={(e) => setTravelData({ ...travelData, permanentResidenceExpiry: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                            placeholder="Select"
-                          />
-                        </div>
+                      <div className="mt-6 max-w-md">
+                        <DateField
+                          label="Permanent Residence Expiry"
+                          value={travelData.permanentResidenceExpiry}
+                          onChange={(e) =>
+                            setTravelData({
+                              ...travelData,
+                              permanentResidenceExpiry: e.target.value,
+                            })
+                          }
+                        />
                       </div>
                     )}
 
                     {/* Work Permit Expiry */}
                     {travelData.canadianWorkerStatus === 'WORK PERMIT' && (
-                      <div className="mt-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Work Permit Expiry</label>
-                        <div className="relative max-w-md">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                          <input
-                            type="date"
-                            value={travelData.workPermitExpiry}
-                            onChange={(e) => setTravelData({ ...travelData, workPermitExpiry: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                            placeholder="Select"
-                          />
-                        </div>
+                      <div className="mt-6 max-w-md">
+                        <DateField
+                          label="Work Permit Expiry"
+                          value={travelData.workPermitExpiry}
+                          onChange={(e) =>
+                            setTravelData({
+                              ...travelData,
+                              workPermitExpiry: e.target.value,
+                            })
+                          }
+                        />
                       </div>
                     )}
 
                     {/* WCB Number */}
                     <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">WCB (Workers' Compensation Board) Number</label>
+                      <label className="block text-sm font-medium text-primary mb-1">WCB (Workers' Compensation Board) Number</label>
                       <input
                         type="text"
                         placeholder="WCB (Workers' Compensation Board) Number"
                         value={travelData.wcbNumber}
                         onChange={(e) => setTravelData({ ...travelData, wcbNumber: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent max-w-md"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent max-w-md"
                       />
                     </div>
 
                     {/* SIN Number - Mandatory */}
                     <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        SIN Number <span className="text-red-500">*</span>
+                      <label className="block text-sm font-medium text-primary mb-1">
+                        SIN Number <span className="text-[var(--accent-red)]">*</span>
                       </label>
                       <input
                         type="text"
@@ -5915,34 +6202,33 @@ const DriverManagement = () => {
                             setValidationErrors({ ...validationErrors, sinNumber: '' });
                           }
                         }}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent max-w-md ${
-                          validationErrors.sinNumber ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent max-w-md ${validationErrors.sinNumber ? 'border-[var(--accent-red)]' : 'border-theme'
+                          }`}
                         required
                       />
                       {validationErrors.sinNumber && (
-                        <p className="text-xs text-red-500 mt-0.5">{validationErrors.sinNumber}</p>
+                        <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.sinNumber}</p>
                       )}
                     </div>
 
                     {/* Work Permit Document Upload */}
                     {travelData.canadianWorkerStatus === 'WORK PERMIT' && (
                       <div className="mt-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Work Permit Document <span className="text-red-500">*</span>
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Work Permit Document <span className="text-[var(--accent-red)]">*</span>
                         </label>
                         {travelData.existingWorkPermitUrl && !travelData.workPermitDocument && (
-                          <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="mb-2 p-2 bg-[var(--accent-green)]/10 border border-[var(--accent-green)]/30 rounded-lg">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <FileText size={16} className="text-green-600" />
-                                <span className="text-sm text-green-700">Existing document uploaded</span>
+                                <FileText size={16} className="text-[var(--accent-green)]" />
+                                <span className="text-sm text-[var(--accent-green)]">Existing document uploaded</span>
                               </div>
                               <a
                                 href={travelData.existingWorkPermitUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                className="text-xs text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]/70 underline"
                               >
                                 View Document
                               </a>
@@ -5953,14 +6239,14 @@ const DriverManagement = () => {
                           type="file"
                           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                           onChange={(e) => setTravelData({ ...travelData, workPermitDocument: e.target.files?.[0] || null })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent max-w-md"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent max-w-md"
                           required={!travelData.existingWorkPermitUrl}
                         />
                         {travelData.workPermitDocument && (
-                          <p className="text-xs text-gray-600 mt-1">Selected: {travelData.workPermitDocument.name}</p>
+                          <p className="text-xs text-secondary mt-1">Selected: {travelData.workPermitDocument.name}</p>
                         )}
                         {travelData.existingWorkPermitUrl && travelData.workPermitDocument && (
-                          <p className="text-xs text-amber-600 mt-1">⚠️ New file will replace existing document</p>
+                          <p className="text-xs text-[var(--accent-orange)] mt-1">⚠️ New file will replace existing document</p>
                         )}
                       </div>
                     )}
@@ -5968,21 +6254,21 @@ const DriverManagement = () => {
                     {/* PR Card Document Upload */}
                     {travelData.canadianWorkerStatus === 'PERMANENT RESIDENT' && (
                       <div className="mt-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          PR Card Document <span className="text-red-500">*</span>
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          PR Card Document <span className="text-[var(--accent-red)]">*</span>
                         </label>
                         {travelData.existingPrCardUrl && !travelData.prCardDocument && (
-                          <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="mb-2 p-2 bg-[var(--accent-green)]/10 border border-[var(--accent-green)]/30 rounded-lg">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <FileText size={16} className="text-green-600" />
-                                <span className="text-sm text-green-700">Existing document uploaded</span>
+                                <FileText size={16} className="text-[var(--accent-green)]" />
+                                <span className="text-sm text-[var(--accent-green)]">Existing document uploaded</span>
                               </div>
                               <a
                                 href={travelData.existingPrCardUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                className="text-xs text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]/70 underline"
                               >
                                 View Document
                               </a>
@@ -5993,14 +6279,14 @@ const DriverManagement = () => {
                           type="file"
                           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                           onChange={(e) => setTravelData({ ...travelData, prCardDocument: e.target.files?.[0] || null })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent max-w-md"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent max-w-md"
                           required={!travelData.existingPrCardUrl}
                         />
                         {travelData.prCardDocument && (
-                          <p className="text-xs text-gray-600 mt-1">Selected: {travelData.prCardDocument.name}</p>
+                          <p className="text-xs text-secondary mt-1">Selected: {travelData.prCardDocument.name}</p>
                         )}
                         {travelData.existingPrCardUrl && travelData.prCardDocument && (
-                          <p className="text-xs text-amber-600 mt-1">⚠️ New file will replace existing document</p>
+                          <p className="text-xs text-[var(--accent-orange)] mt-1">⚠️ New file will replace existing document</p>
                         )}
                       </div>
                     )}
@@ -6010,27 +6296,27 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'documents' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Documents</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Documents</h3>
 
                     {/* Documents Table with Headers */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">EXPIRY DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DESCRIPTION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">IGNORE EXPIRATION</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white">
+                        <tbody className="bg-card">
                           {/* Input Row */}
-                          <tr className="bg-gray-50">
+                          <tr className="bg-card">
                             <td className="px-4 py-3">
                               <input
                                 type="date"
                                 value={newDocument.expiryDate}
                                 onChange={(e) => setNewDocument({ ...newDocument, expiryDate: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               />
                             </td>
                             <td className="px-4 py-3">
@@ -6040,26 +6326,26 @@ const DriverManagement = () => {
                                   placeholder="Description"
                                   value={newDocument.description}
                                   onChange={(e) => setNewDocument({ ...newDocument, description: e.target.value })}
-                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                  className="flex-1 px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                                 />
                                 {documentFile ? (
-                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                                    <FileText className="w-4 h-4 text-gray-600" />
-                                    <span className="text-sm text-gray-700 truncate max-w-[100px]">{documentFile.name}</span>
+                                  <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
+                                    <FileText className="w-4 h-4 text-secondary" />
+                                    <span className="text-sm text-primary truncate max-w-[100px]">{documentFile.name}</span>
                                     <button
                                       onClick={() => {
                                         setDocumentFile(null);
                                         setNewDocument({ ...newDocument, file: null });
                                       }}
-                                      className="text-gray-400 hover:text-gray-600"
+                                      className="text-secondary hover:text-secondary"
                                     >
                                       <X className="w-4 h-4" />
                                     </button>
                                   </div>
                                 ) : (
-                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer">
-                                    <Upload className="w-4 h-4 text-gray-600" />
-                                    <span className="text-sm text-gray-700">Select File</span>
+                                  <label className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card hover:bg-[rgba(255,255,255,0.03)] cursor-pointer">
+                                    <Upload className="w-4 h-4 text-secondary" />
+                                    <span className="text-sm text-primary">Select File</span>
                                     <input
                                       type="file"
                                       className="hidden"
@@ -6082,28 +6368,28 @@ const DriverManagement = () => {
                                     type="checkbox"
                                     checked={newDocument.ignoreExpiration}
                                     onChange={(e) => setNewDocument({ ...newDocument, ignoreExpiration: e.target.checked })}
-                                    className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                                    className="w-4 h-4 text-[var(--accent-navyblue)] border-theme rounded focus:ring-[var(--accent-navyblue)]"
                                   />
-                                  <span className="text-sm text-gray-700">Ignore Expiration</span>
+                                  <span className="text-sm text-primary">Ignore Expiration</span>
                                 </label>
                                 <button
                                   onClick={() => {
                                     if (newDocument.expiryDate || newDocument.description) {
                                       if (editingDocumentId) {
                                         // Update existing document in the list - preserve all existing fields
-                                        setDocuments(documents.map(d => 
-                                          d.id === editingDocumentId 
+                                        setDocuments(documents.map(d =>
+                                          d.id === editingDocumentId
                                             ? {
-                                                ...d,
-                                                expiryDate: newDocument.expiryDate,
-                                                description: newDocument.description,
-                                                ignoreExpiration: newDocument.ignoreExpiration,
-                                                documentType: newDocument.documentType || d.documentType || 'Other',
-                                                file: newDocument.file || null, // Only set if new file is uploaded
-                                                // Preserve existing file info if no new file
-                                                fileUrl: newDocument.file ? undefined : (d.fileUrl || undefined),
-                                                fileName: newDocument.file ? undefined : (d.fileName || undefined)
-                                              }
+                                              ...d,
+                                              expiryDate: newDocument.expiryDate,
+                                              description: newDocument.description,
+                                              ignoreExpiration: newDocument.ignoreExpiration,
+                                              documentType: newDocument.documentType || d.documentType || 'Other',
+                                              file: newDocument.file || null, // Only set if new file is uploaded
+                                              // Preserve existing file info if no new file
+                                              fileUrl: newDocument.file ? undefined : (d.fileUrl || undefined),
+                                              fileName: newDocument.file ? undefined : (d.fileName || undefined)
+                                            }
                                             : d
                                         ));
                                         if (newDocument.file && documentFile) {
@@ -6137,7 +6423,7 @@ const DriverManagement = () => {
                                       setDocumentFile(null);
                                     }
                                   }}
-                                  className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                                  className="w-10 h-10 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors"
                                 >
                                   {editingDocumentId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                                 </button>
@@ -6149,28 +6435,28 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Documents Data Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden mt-4">
+                    <div className="border border-theme rounded-lg overflow-hidden mt-4">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">FILE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">EXPIRY DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DESCRIPTION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">FILE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">IGNORE EXPIRATION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-theme">
                           {documents.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
                           ) : (
                             documents.map((doc) => (
-                              <tr key={doc.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                              <tr key={doc.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {doc.expiryDate ? (() => {
                                     try {
                                       // Format date for display (YYYY-MM-DD to readable format)
@@ -6184,10 +6470,10 @@ const DriverManagement = () => {
                                     }
                                   })() : '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {doc.description || '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     {doc.isExisting && doc.documentId && (doc.fileUrl || doc.fileName) ? (
                                       <button
@@ -6213,30 +6499,30 @@ const DriverManagement = () => {
                                             }
                                           }
                                         }}
-                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                                        className="flex items-center gap-1 text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]/70 hover:underline"
                                         title={doc.fileName || 'View document'}
                                       >
                                         <FileText className="w-4 h-4" />
                                         <span className="text-xs">{doc.fileName || 'View'}</span>
                                       </button>
                                     ) : uploadedFiles[doc.id] ? (
-                                      <span title={uploadedFiles[doc.id].name} className="flex items-center gap-1 text-gray-600">
-                                        <FileText className="w-4 h-4 text-blue-500" />
+                                      <span title={uploadedFiles[doc.id].name} className="flex items-center gap-1 text-secondary">
+                                        <FileText className="w-4 h-4 text-[var(--accent-navyblue)]" />
                                         <span className="text-xs">{uploadedFiles[doc.id].name}</span>
                                       </span>
                                     ) : (
-                                      <span className="text-gray-400">-</span>
+                                      <span className="text-secondary">-</span>
                                     )}
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {doc.ignoreExpiration ? (
-                                    <Check className="w-5 h-5 text-green-500" />
+                                    <Check className="w-5 h-5 text-[var(--accent-green)]" />
                                   ) : (
-                                    <span className="text-gray-400">-</span>
+                                    <span className="text-secondary">-</span>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -6258,7 +6544,7 @@ const DriverManagement = () => {
                                           setDocumentFile(null);
                                         }
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                       title="Edit document"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -6303,7 +6589,7 @@ const DriverManagement = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                       title="Delete document"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -6322,32 +6608,32 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'certifications' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Safety Certifications</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Safety Certifications</h3>
 
                     {/* Certifications Table with Input Row */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">EXPIRY DATE</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">DESCRIPTION</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">IGNORE EXPIRATION</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">DOCUMENT</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white">
+                        <tbody className="bg-card">
                           {/* Input Row */}
-                          <tr className="bg-gray-50">
+                          <tr className="bg-card">
                             <td className="px-3 py-2">
                               <div className="relative">
                                 <input
                                   type="date"
                                   value={newCertification.expiryDate}
                                   onChange={(e) => setNewCertification({ ...newCertification, expiryDate: e.target.value })}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                                   placeholder="mm/dd/yyyy"
                                 />
-                                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                               </div>
                             </td>
                             <td className="px-3 py-2">
@@ -6356,7 +6642,7 @@ const DriverManagement = () => {
                                 placeholder="Description"
                                 value={newCertification.description}
                                 onChange={(e) => setNewCertification({ ...newCertification, description: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               />
                             </td>
                             <td className="px-3 py-2">
@@ -6366,33 +6652,33 @@ const DriverManagement = () => {
                                     type="checkbox"
                                     checked={newCertification.ignoreExpiration}
                                     onChange={(e) => setNewCertification({ ...newCertification, ignoreExpiration: e.target.checked })}
-                                    className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                                    className="w-4 h-4 text-[var(--accent-navyblue)] border-theme rounded focus:ring-[var(--accent-navyblue)]"
                                   />
-                                  <span className="text-sm text-gray-700">Ignore Expiration</span>
+                                  <span className="text-sm text-primary">Ignore Expiration</span>
                                 </label>
                               </div>
                             </td>
                             <td className="px-3 py-2">
                               <div className="flex items-center gap-2">
                                 {certificationFile ? (
-                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                                    <FileText className="w-4 h-4 text-gray-600" />
-                                    <span className="text-sm text-gray-700 truncate max-w-[120px]">{certificationFile.name}</span>
+                                  <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
+                                    <FileText className="w-4 h-4 text-secondary" />
+                                    <span className="text-sm text-primary truncate max-w-[120px]">{certificationFile.name}</span>
                                     <button
                                       onClick={() => {
                                         setCertificationFile(null);
                                         setNewCertification({ ...newCertification, file: null });
                                       }}
-                                      className="text-gray-400 hover:text-red-600 transition-colors"
+                                      className="text-secondary hover:text-[#A855F7] transition-colors"
                                       title="Remove file"
                                     >
                                       <X className="w-4 h-4" />
                                     </button>
                                   </div>
                                 ) : (
-                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer transition-colors">
-                                    <Upload className="w-4 h-4 text-gray-600" />
-                                    <span className="text-sm text-gray-700">Select File</span>
+                                  <label className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors">
+                                    <Upload className="w-4 h-4 text-secondary" />
+                                    <span className="text-sm text-primary">Select File</span>
                                     <input
                                       type="file"
                                       className="hidden"
@@ -6411,15 +6697,15 @@ const DriverManagement = () => {
                                     if (newCertification.expiryDate || newCertification.description) {
                                       if (editingCertificationId) {
                                         // Update existing certification in the list
-                                        setCertifications(certifications.map(c => 
-                                          c.id === editingCertificationId 
+                                        setCertifications(certifications.map(c =>
+                                          c.id === editingCertificationId
                                             ? {
-                                                ...c,
-                                                expiryDate: newCertification.expiryDate,
-                                                description: newCertification.description,
-                                                ignoreExpiration: newCertification.ignoreExpiration,
-                                                file: newCertification.file
-                                              }
+                                              ...c,
+                                              expiryDate: newCertification.expiryDate,
+                                              description: newCertification.description,
+                                              ignoreExpiration: newCertification.ignoreExpiration,
+                                              file: newCertification.file
+                                            }
                                             : c
                                         ));
                                         setEditingCertificationId(null);
@@ -6442,7 +6728,7 @@ const DriverManagement = () => {
                                       setCertificationFile(null);
                                     }
                                   }}
-                                  className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                                  className="w-10 h-10 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors"
                                 >
                                   {editingCertificationId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                                 </button>
@@ -6454,21 +6740,21 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Certifications Data Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden mt-4">
+                    <div className="border border-theme rounded-lg overflow-hidden mt-4">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">EXPIRY DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DESCRIPTION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">IGNORE EXPIRATION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DOCUMENT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-theme">
                           {certifications.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
@@ -6476,30 +6762,30 @@ const DriverManagement = () => {
                             certifications.map((cert) => (
                               <tr
                                 key={cert.id}
-                                className={`hover:bg-gray-50 ${selectedCertificate?.id === cert.id ? 'bg-blue-50' : ''}`}
+                                className={`hover:bg-[rgba(255,255,255,0.03)] ${selectedCertificate?.id === cert.id ? 'bg-card' : ''}`}
                               >
-                                <td className="px-4 py-3 text-sm text-gray-900">{cert.expiryDate || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{cert.description || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">{cert.expiryDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{cert.description || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {cert.ignoreExpiration ? (
-                                    <Check className="w-5 h-5 text-green-500" />
+                                    <Check className="w-5 h-5 text-[var(--accent-green)]" />
                                   ) : (
-                                    <span className="text-gray-400">-</span>
+                                    <span className="text-secondary">-</span>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {(cert.file instanceof File || cert.fileUrl || cert.fileName) ? (
                                     <div className="flex items-center gap-2">
-                                      <FileText className="w-4 h-4 text-blue-500" />
-                                      <span className="text-sm text-gray-700 truncate max-w-[150px]" title={cert.file instanceof File ? cert.file.name : (cert.fileName || 'File attached')}>
+                                      <FileText className="w-4 h-4 text-[var(--accent-navyblue)]" />
+                                      <span className="text-sm text-primary truncate max-w-[150px]" title={cert.file instanceof File ? cert.file.name : (cert.fileName || 'File attached')}>
                                         {cert.file instanceof File ? cert.file.name : (cert.fileName || 'File attached')}
                                       </span>
                                     </div>
                                   ) : (
-                                    <span className="text-gray-400">-</span>
+                                    <span className="text-secondary">-</span>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -6519,7 +6805,7 @@ const DriverManagement = () => {
                                           setCertificationFile(null);
                                         }
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                       title="Edit certification"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -6529,7 +6815,7 @@ const DriverManagement = () => {
                                         e.stopPropagation();
                                         setConfirmDeleteCertification({ open: true, cert });
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                       title="Delete certification"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -6545,13 +6831,13 @@ const DriverManagement = () => {
 
                     {/* Safety Certificate Details Side Panel */}
                     {selectedCertificate && (
-                      <div className="absolute right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 border-l border-gray-200 overflow-y-auto" style={{ top: 0, right: 0 }}>
+                      <div className="absolute right-0 top-0 h-full w-96 bg-card shadow-2xl z-50 border-l border-theme overflow-y-auto" style={{ top: 0, right: 0 }}>
                         <div className="p-6">
                           <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-gray-900">Safety Certificate Details</h3>
+                            <h3 className="text-xl font-bold text-primary">Safety Certificate Details</h3>
                             <button
                               onClick={() => setSelectedCertificate(null)}
-                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                              className="text-secondary hover:text-secondary transition-colors"
                             >
                               <X className="w-6 h-6" />
                             </button>
@@ -6559,54 +6845,54 @@ const DriverManagement = () => {
 
                           <div className="space-y-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Title</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedCertificate.title || '-'}
                               </div>
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedCertificate.expiryDate || '-'}
                               </div>
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedCertificate.description || '-'}
                               </div>
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Result</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Result</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedCertificate.result || '-'}
                               </div>
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Ignore Expiration</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                              <label className="block text-sm font-medium text-primary mb-1">Ignore Expiration</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg">
                                 {selectedCertificate.ignoreExpiration ? (
                                   <div className="flex items-center gap-2">
-                                    <Check className="w-5 h-5 text-green-500" />
-                                    <span className="text-gray-900">Yes</span>
+                                    <Check className="w-5 h-5 text-[var(--accent-green)]" />
+                                    <span className="text-primary">Yes</span>
                                   </div>
                                 ) : (
-                                  <span className="text-gray-500">No</span>
+                                  <span className="text-secondary">No</span>
                                 )}
                               </div>
                             </div>
 
-                            <div className="pt-4 border-t border-gray-200">
+                            <div className="pt-4 border-t border-theme">
                               <button
                                 onClick={() => {
                                   setCertifications(certifications.filter(c => c.id !== selectedCertificate.id));
                                   setSelectedCertificate(null);
                                 }}
-                                className="w-full px-4 py-2 bg-red-500 !text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+                                className="w-full px-4 py-2 bg-[var(--accent-red)] !text-white rounded-lg hover:bg-[var(--accent-red)]/80 transition-colors font-medium"
                               >
                                 Delete Certificate
                               </button>
@@ -6621,168 +6907,128 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'tickets' && (
                   <div className="space-y-6 relative">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Tickets & Fines</h3>
-                    <p className="text-sm text-gray-500 mb-4">Record driver tickets, fines, and citations. Static only — not sent to backend.</p>
+                    <h3 className="text-lg font-bold text-primary mb-4">Tickets & Fines</h3>
+                    <p className="text-sm text-secondary mb-4">Record driver tickets, fines, and citations. Static only — not sent to backend.</p>
 
                     {/* Tickets Table with Input Row */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden overflow-x-auto">
+                    <div className="border border-theme rounded-lg overflow-hidden overflow-x-auto">
                       <table className="w-full min-w-[800px]">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">TITLE</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">AMOUNT</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">STATUS</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">DATE</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">TITLE</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">DESCRIPTION</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">AMOUNT</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">STATUS</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">DOCUMENT</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white">
-                          <tr className="bg-gray-50">
-                            <td className="px-3 py-2">
-                              <div className="relative">
+                        <tbody className="bg-card">
+                          <tr className="bg-card hover:bg-[rgba(0,209,255,0.05)] transition-all">
+                            <td colSpan={7} className="p-3">
+
+                              {/* Row 1 */}
+                              <div className="grid grid-cols-5 gap-3 mb-2">
+
+                                {/* Date */}
                                 <input
                                   type="date"
                                   value={newTicket.date}
                                   onChange={(e) => setNewTicket({ ...newTicket, date: e.target.value })}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                  className="form-select text-sm"
                                 />
-                                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                              </div>
-                            </td>
-                            <td className="px-3 py-2">
-                              <input
-                                type="text"
-                                placeholder="Title"
-                                value={newTicket.title}
-                                onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                              />
-                            </td>
-                            <td className="px-3 py-2">
-                              <input
-                                type="text"
-                                placeholder="Description"
-                                value={newTicket.description}
-                                onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                              />
-                            </td>
-                            <td className="px-3 py-2">
-                              <div className="flex items-center gap-2">
+
+                                {/* Title */}
                                 <input
                                   type="text"
-                                  placeholder="Amount"
-                                  value={newTicket.amount}
-                                  onChange={(e) => setNewTicket({ ...newTicket, amount: e.target.value })}
-                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                  placeholder="Title"
+                                  value={newTicket.title}
+                                  onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
+                                  className="form-select text-sm"
                                 />
-                                <select
-                                  value={newTicket.currency}
-                                  onChange={(e) => setNewTicket({ ...newTicket, currency: e.target.value })}
-                                  className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
-                                >
-                                  <option value="CAD">CAD</option>
-                                  <option value="USD">USD</option>
-                                </select>
-                              </div>
-                            </td>
-                            <td className="px-3 py-2">
-                              <select
-                                value={newTicket.status}
-                                onChange={(e) => setNewTicket({ ...newTicket, status: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                              >
-                                <option value="Unpaid">Unpaid</option>
-                                <option value="Paid">Paid</option>
-                                <option value="Contested">Contested</option>
-                                <option value="Waived">Waived</option>
-                              </select>
-                            </td>
-                            <td className="px-3 py-2">
-                              <div className="flex items-center gap-2 min-w-0">
-                                {ticketFile ? (
-                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white flex-1 min-w-0">
-                                    <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                                    <span className="text-sm text-gray-700 truncate flex-1 min-w-0">{ticketFile.name}</span>
-                                    <button
-                                      onClick={() => {
-                                        setTicketFile(null);
-                                        setNewTicket({ ...newTicket, file: null });
-                                      }}
-                                      className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
-                                      title="Remove file"
-                                    >
-                                      <X className="w-4 h-4" />
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer transition-colors flex-1 min-w-0">
-                                    <Upload className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                                    <span className="text-sm text-gray-700 truncate">Select File</span>
-                                    <input
-                                      type="file"
-                                      className="hidden"
-                                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                      onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) {
-                                          setTicketFile(file);
-                                          setNewTicket({ ...newTicket, file: file });
-                                        }
-                                      }}
-                                    />
-                                  </label>
-                                )}
-                                <button
-                                  onClick={() => {
-                                    if (newTicket.date || newTicket.title || newTicket.description || newTicket.amount) {
-                                      if (editingTicketId) {
-                                        setTickets(tickets.map(t =>
-                                          t.id === editingTicketId
-                                            ? {
-                                                ...t,
-                                                date: newTicket.date,
-                                                title: newTicket.title,
-                                                description: newTicket.description,
-                                                amount: newTicket.amount,
-                                                currency: newTicket.currency,
-                                                status: newTicket.status,
-                                                file: newTicket.file
-                                              }
-                                            : t
-                                        ));
-                                        setEditingTicketId(null);
-                                      } else {
-                                        setTickets([...tickets, {
-                                          id: Date.now().toString(),
-                                          date: newTicket.date,
-                                          title: newTicket.title,
-                                          description: newTicket.description,
-                                          amount: newTicket.amount,
-                                          currency: newTicket.currency,
-                                          status: newTicket.status,
-                                          file: newTicket.file
-                                        }]);
-                                      }
-                                      setNewTicket({
-                                        date: '',
-                                        title: '',
-                                        description: '',
-                                        amount: '',
-                                        currency: 'CAD',
-                                        status: 'Unpaid',
-                                        file: null
-                                      });
-                                      setTicketFile(null);
+
+                                {/* Amount + Currency */}
+                                <div className="flex items-center gap-2 w-full">
+
+                                  <input
+                                    type="text"
+                                    placeholder="Amount"
+                                    value={newTicket.amount || ''}
+                                    onChange={(e) =>
+                                      setNewTicket((prev) => ({
+                                        ...prev,
+                                        amount: e.target.value,
+                                      }))
                                     }
-                                  }}
-                                  className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors flex-shrink-0"
-                                  title={editingTicketId ? "Save changes" : "Add ticket"}
+                                    className="flex-1 min-w-[60px] px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                                  />
+
+                                  <select
+                                    value={newTicket.currency}
+                                    onChange={(e) =>
+                                      setNewTicket((prev) => ({
+                                        ...prev,
+                                        currency: e.target.value,
+                                      }))
+                                    }
+                                    className="w-14 px-2 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg"
+                                  >
+                                    <option className="form-option">CAD</option>
+                                    <option className="form-option">USD</option>
+                                  </select>
+
+                                </div>
+
+                                {/* Status */}
+                                <select
+                                  value={newTicket.status}
+                                  onChange={(e) => setNewTicket({ ...newTicket, status: e.target.value })}
+                                  className="form-select text-sm"
                                 >
-                                  {editingTicketId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                                  <option className="form-option">Unpaid</option>
+                                  <option className="form-option">Paid</option>
+                                  <option className="form-option">Contested</option>
+                                  <option className="form-option">Waived</option>
+                                </select>
+
+                                {/* Action */}
+                                <button className="bg-[var(--accent-navyblue)] text-white rounded-lg px-2 hover:opacity-90">
+                                  {editingTicketId ? "Save" : "Add"}
                                 </button>
                               </div>
+
+                              {/* Row 2 */}
+                              <div className="grid grid-cols-2 gap-3">
+
+                                {/* Description */}
+                                <input
+                                  type="text"
+                                  placeholder="Description"
+                                  value={newTicket.description}
+                                  onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
+                                  className="form-select text-sm"
+                                />
+
+                                {/* File Upload */}
+                                <label className="form-select flex items-center gap-2 cursor-pointer">
+                                  <Upload className="w-4 h-4 text-secondary" />
+                                  <span className="text-sm text-secondary truncate">
+                                    {ticketFile ? ticketFile.name : "Upload File"}
+                                  </span>
+                                  <input
+                                    type="file"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) {
+                                        setTicketFile(file);
+                                        setNewTicket({ ...newTicket, file });
+                                      }
+                                    }}
+                                  />
+                                </label>
+                              </div>
+
                             </td>
                           </tr>
                         </tbody>
@@ -6790,24 +7036,24 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Tickets Data Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden overflow-x-auto mt-4">
+                    <div className="border border-theme rounded-lg overflow-hidden overflow-x-auto mt-4">
                       <table className="w-full min-w-[800px]">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">TITLE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">AMOUNT</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">CURRENCY</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">STATUS</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">TITLE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DESCRIPTION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">AMOUNT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">CURRENCY</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">STATUS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DOCUMENT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-theme">
                           {tickets.length === 0 ? (
                             <tr>
-                              <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={7} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
@@ -6815,7 +7061,7 @@ const DriverManagement = () => {
                             tickets.map((ticket) => (
                               <tr
                                 key={ticket.id}
-                                className={`hover:bg-gray-50 cursor-pointer ${selectedTicket?.id === ticket.id ? 'bg-blue-50' : ''}`}
+                                className={`hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${selectedTicket?.id === ticket.id ? 'bg-card' : ''}`}
                                 onClick={() => setSelectedTicket(selectedTicket?.id === ticket.id ? null : {
                                   id: ticket.id,
                                   date: ticket.date,
@@ -6826,31 +7072,30 @@ const DriverManagement = () => {
                                   status: ticket.status
                                 })}
                               >
-                                <td className="px-4 py-3 text-sm text-gray-900">{ticket.date || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{ticket.title || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{ticket.description || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">{ticket.date || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{ticket.title || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{ticket.description || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {ticket.amount ? (
                                     <div className="flex items-center gap-2">
                                       <span>{ticket.currency === 'USD' ? '$' : 'C$'}{ticket.amount}</span>
-                                      <span className="text-xs text-gray-500">({ticket.currency || 'CAD'})</span>
+                                      <span className="text-xs text-secondary">({ticket.currency || 'CAD'})</span>
                                     </div>
                                   ) : '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
-                                  <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                                    ticket.status === 'Paid' ? 'bg-green-100 text-green-700' :
-                                    ticket.status === 'Unpaid' ? 'bg-amber-100 text-amber-700' :
-                                    ticket.status === 'Contested' ? 'bg-blue-100 text-blue-700' :
-                                    'bg-gray-100 text-gray-700'
-                                  }`}>
+                                <td className="px-4 py-3 text-sm text-primary">
+                                  <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${ticket.status === 'Paid' ? 'bg-[var(--accent-green)]/15 text-[var(--accent-green)]' :
+                                    ticket.status === 'Unpaid' ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]' :
+                                      ticket.status === 'Contested' ? 'bg-[var(--accent-navyblue)]/15 text-[var(--accent-navyblue)]' :
+                                        'bg-card text-primary'
+                                    }`}>
                                     {ticket.status}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {(ticket.file instanceof File || ticket.fileUrl || ticket.fileName) ? (
                                     <div className="flex items-center gap-2">
-                                      <FileText className="w-4 h-4 text-blue-500" />
+                                      <FileText className="w-4 h-4 text-[var(--accent-navyblue)]" />
                                       {(ticket.fileUrl || ticket.file instanceof File) ? (
                                         <button
                                           onClick={async (e) => {
@@ -6867,7 +7112,7 @@ const DriverManagement = () => {
                                                   }
                                                 }
                                               }
-                                              
+
                                               // For newly uploaded files (not yet saved), create a local object URL
                                               if (ticket.file instanceof File) {
                                                 const objectUrl = URL.createObjectURL(ticket.file);
@@ -6876,7 +7121,7 @@ const DriverManagement = () => {
                                                 setTimeout(() => URL.revokeObjectURL(objectUrl), 100);
                                                 return;
                                               }
-                                              
+
                                               // Fallback to direct fileUrl
                                               if (ticket.fileUrl) {
                                                 window.open(ticket.fileUrl, '_blank');
@@ -6897,22 +7142,22 @@ const DriverManagement = () => {
                                               }
                                             }
                                           }}
-                                          className="text-sm text-blue-600 hover:underline truncate max-w-[150px] cursor-pointer"
+                                          className="text-sm text-[var(--accent-navyblue)] hover:underline truncate max-w-[150px] cursor-pointer"
                                           title={ticket.fileName || (ticket.file instanceof File ? ticket.file.name : 'View Document')}
                                         >
                                           {ticket.fileName || (ticket.file instanceof File ? ticket.file.name : 'View Document')}
                                         </button>
                                       ) : (
-                                        <span className="text-sm text-gray-700 truncate max-w-[150px]" title={ticket.fileName || 'File attached'}>
+                                        <span className="text-sm text-primary truncate max-w-[150px]" title={ticket.fileName || 'File attached'}>
                                           {ticket.fileName || 'File attached'}
                                         </span>
                                       )}
                                     </div>
                                   ) : (
-                                    <span className="text-gray-400">-</span>
+                                    <span className="text-secondary">-</span>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900" onClick={(e) => e.stopPropagation()}>
+                                <td className="px-4 py-3 text-sm text-primary" onClick={(e) => e.stopPropagation()}>
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -6934,7 +7179,7 @@ const DriverManagement = () => {
                                           setTicketFile(null);
                                         }
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                       title="Edit ticket"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -6944,7 +7189,7 @@ const DriverManagement = () => {
                                         e.stopPropagation();
                                         setConfirmDeleteTicket({ open: true, ticket });
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                       title="Delete ticket"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -6960,55 +7205,55 @@ const DriverManagement = () => {
 
                     {/* Ticket Details Side Panel */}
                     {selectedTicket && (
-                      <div className="absolute right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 border-l border-gray-200 overflow-y-auto" style={{ top: 0, right: 0 }}>
+                      <div className="absolute right-0 top-0 h-full w-96 bg-card shadow-2xl z-50 border-l border-theme overflow-y-auto" style={{ top: 0, right: 0 }}>
                         <div className="p-6">
                           <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-gray-900">Ticket Details</h3>
+                            <h3 className="text-xl font-bold text-primary">Ticket Details</h3>
                             <button
                               onClick={() => setSelectedTicket(null)}
-                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                              className="text-secondary hover:text-secondary transition-colors"
                             >
                               <X className="w-6 h-6" />
                             </button>
                           </div>
                           <div className="space-y-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Date</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedTicket.date || '-'}
                               </div>
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Title</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedTicket.title || '-'}
                               </div>
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedTicket.description || '-'}
                               </div>
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Amount</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedTicket.amount ? `$${selectedTicket.amount}` : '-'}
                               </div>
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Status</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedTicket.status}
                               </div>
                             </div>
-                            <div className="pt-4 border-t border-gray-200">
+                            <div className="pt-4 border-t border-theme">
                               <button
                                 onClick={() => {
                                   setTickets(tickets.filter(t => t.id !== selectedTicket.id));
                                   setSelectedTicket(null);
                                 }}
-                                className="w-full px-4 py-2 bg-red-500 !text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+                                className="w-full px-4 py-2 bg-[var(--accent-red)] !text-white rounded-lg hover:bg-[var(--accent-red)]/80 transition-colors font-medium"
                               >
                                 Delete Ticket
                               </button>
@@ -7021,24 +7266,24 @@ const DriverManagement = () => {
                     {/* Delete Ticket Confirmation Modal */}
                     {confirmDeleteTicket.open && confirmDeleteTicket.ticket && (
                       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-                        <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+                        <div className="bg-card rounded-xl shadow-2xl w-full max-w-md">
                           <div className="p-6">
                             <div className="flex items-center gap-4 mb-4">
-                              <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                                <Trash2 className="w-6 h-6 text-red-600" />
+                              <div className="flex-shrink-0 w-12 h-12 bg-[var(--accent-red)]/15 rounded-full flex items-center justify-center">
+                                <Trash2 className="w-6 h-6 text-[#A855F7]" />
                               </div>
                               <div>
-                                <h3 className="text-lg font-semibold text-gray-900">Delete Ticket</h3>
-                                <p className="text-sm text-gray-500">This action cannot be undone</p>
+                                <h3 className="text-lg font-semibold text-primary">Delete Ticket</h3>
+                                <p className="text-sm text-secondary">This action cannot be undone</p>
                               </div>
                             </div>
-                            <p className="text-gray-700 mb-6">
+                            <p className="text-primary mb-6">
                               Are you sure you want to delete this ticket ({confirmDeleteTicket.ticket.title || 'Ticket'} — {confirmDeleteTicket.ticket.date || 'N/A'})?
                             </p>
                             <div className="flex items-center justify-end gap-3">
                               <button
                                 onClick={() => setConfirmDeleteTicket({ open: false, ticket: null })}
-                                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                                className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                               >
                                 Cancel
                               </button>
@@ -7048,7 +7293,7 @@ const DriverManagement = () => {
                                   setConfirmDeleteTicket({ open: false, ticket: null });
                                   setSelectedTicket(null);
                                 }}
-                                className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                                className="px-4 py-2 bg-[var(--accent-red)] !text-white rounded-lg hover:bg-[var(--accent-red)]/80 transition-colors font-medium"
                               >
                                 Delete
                               </button>
@@ -7063,13 +7308,13 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'violations' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Violations</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Violations</h3>
 
                     {/* Violations Input Form */}
-                    <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="space-y-4 p-4 bg-card rounded-lg">
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Violation Type <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-medium text-primary mb-1">Violation Type <span className="text-[var(--accent-red)]">*</span></label>
                           <select
                             value={newViolation.violationType}
                             onChange={(e) => {
@@ -7078,125 +7323,129 @@ const DriverManagement = () => {
                                 setValidationErrors({ ...validationErrors, violationType: '' });
                               }
                             }}
-                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
-                              validationErrors.violationType ? 'border-red-500' : 'border-gray-300'
-                            }`}
+                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.violationType ? 'border-[var(--accent-red)]' : 'border-theme'
+                              }`}
                           >
-                            <option value="">Select Type</option>
-                            <option value="HOS">HOS</option>
-                            <option value="Behaviour Issue">Behaviour Issue</option>
-                            <option value="Safety Violation">Safety Violation</option>
-                            <option value="Warning Letter">Warning Letter</option>
-                            <option value="General">General</option>
-                            <option value="Other">Other</option>
+                            <option className="form-option" value="">Select Type</option>
+                            <option className="form-option" value="HOS">HOS</option>
+                            <option className="form-option" value="Behaviour Issue">Behaviour Issue</option>
+                            <option className="form-option" value="Safety Violation">Safety Violation</option>
+                            <option className="form-option" value="Warning Letter">Warning Letter</option>
+                            <option className="form-option" value="General">General</option>
+                            <option className="form-option" value="Other">Other</option>
                           </select>
                           {validationErrors.violationType && (
-                            <p className="text-xs text-red-500 mt-0.5">{validationErrors.violationType}</p>
+                            <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.violationType}</p>
                           )}
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Title</label>
                           <input
                             type="text"
                             placeholder="Short one-line summary"
                             value={newViolation.title}
                             onChange={(e) => setNewViolation({ ...newViolation, title: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Date of Incident <span className="text-red-500">*</span></label>
-                          <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                            <input
-                              type="date"
-                              value={newViolation.dateOfIncident}
-                              onChange={(e) => setNewViolation({ ...newViolation, dateOfIncident: e.target.value })}
-                              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                            />
-                          </div>
+                          <DateField
+                            label={
+                              <>
+                                Date of Incident{" "}
+                                <span className="text-[var(--accent-red)]">*</span>
+                              </>
+                            }
+                            value={newViolation.dateOfIncident}
+                            onChange={(e) =>
+                              setNewViolation((prev) => ({
+                                ...prev,
+                                dateOfIncident: e.target.value,
+                              }))
+                            }
+                          />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Reported By</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Reported By</label>
                           <input
                             type="text"
                             placeholder="Manager/Admin name"
                             value={newViolation.reportedBy}
                             onChange={(e) => setNewViolation({ ...newViolation, reportedBy: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Severity</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Severity</label>
                           <select
                             value={newViolation.severity}
                             onChange={(e) => setNewViolation({ ...newViolation, severity: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           >
-                            <option value="">Select Severity</option>
-                            <option value="Low">Low</option>
-                            <option value="Medium">Medium</option>
-                            <option value="High">High</option>
+                            <option className="form-option" value="">Select Severity</option>
+                            <option className="form-option" value="Low">Low</option>
+                            <option className="form-option" value="Medium">Medium</option>
+                            <option className="form-option" value="High">High</option>
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Action Taken</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Action Taken</label>
                           <select
                             value={newViolation.actionTaken}
                             onChange={(e) => setNewViolation({ ...newViolation, actionTaken: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           >
-                            <option value="">Select Action</option>
-                            <option value="None">None</option>
-                            <option value="Warning">Warning</option>
-                            <option value="Training">Training</option>
-                            <option value="Suspension">Suspension</option>
+                            <option className="form-option" value="">Select Action</option>
+                            <option className="form-option" value="None">None</option>
+                            <option className="form-option" value="Warning">Warning</option>
+                            <option className="form-option" value="Training">Training</option>
+                            <option className="form-option" value="Suspension">Suspension</option>
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Status</label>
                           <select
                             value={newViolation.status}
                             onChange={(e) => setNewViolation({ ...newViolation, status: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           >
-                            <option value="">Select Status</option>
-                            <option value="Open">Open</option>
-                            <option value="Under Review">Under Review</option>
-                            <option value="Closed">Closed</option>
+                            <option className="form-option" value="">Select Status</option>
+                            <option className="form-option" value="Open">Open</option>
+                            <option className="form-option" value="Under Review">Under Review</option>
+                            <option className="form-option" value="Closed">Closed</option>
                           </select>
                         </div>
                         <div className="sm:col-span-2 lg:col-span-3">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Description</label>
                           <textarea
                             placeholder="Detailed explanation"
                             value={newViolation.description}
                             onChange={(e) => setNewViolation({ ...newViolation, description: e.target.value })}
                             rows={3}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="flex items-end">
                           {violationFile ? (
-                            <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                              <FileText className="w-4 h-4 text-gray-600" />
-                              <span className="text-sm text-gray-700 truncate max-w-[100px]">{violationFile.name}</span>
+                            <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
+                              <FileText className="w-4 h-4 text-secondary" />
+                              <span className="text-sm text-primary truncate max-w-[100px]">{violationFile.name}</span>
                               <button
                                 onClick={() => {
                                   setViolationFile(null);
                                   setNewViolation({ ...newViolation, file: null });
                                 }}
-                                className="text-gray-400 hover:text-gray-600"
+                                className="text-secondary hover:text-secondary"
                               >
                                 <X className="w-4 h-4" />
                               </button>
                             </div>
                           ) : (
-                            <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer">
-                              <Upload className="w-4 h-4 text-gray-600" />
-                              <span className="text-sm text-gray-700">Select File</span>
+                            <label className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card hover:bg-[rgba(255,255,255,0.03)] cursor-pointer">
+                              <Upload className="w-4 h-4 text-secondary" />
+                              <span className="text-sm text-primary">Select File</span>
                               <input
                                 type="file"
                                 className="hidden"
@@ -7225,20 +7474,20 @@ const DriverManagement = () => {
                                   addNotification('error', 'Date of Incident is required');
                                   return;
                                 }
-                                setViolations(violations.map(v => 
-                                  v.id === editingViolationId 
-                                    ? { 
-                                        ...v, 
-                                        violationType: newViolation.violationType,
-                                        title: newViolation.title,
-                                        description: newViolation.description,
-                                        dateOfIncident: newViolation.dateOfIncident,
-                                        reportedBy: newViolation.reportedBy,
-                                        severity: newViolation.severity,
-                                        actionTaken: newViolation.actionTaken,
-                                        status: newViolation.status,
-                                        file: newViolation.file
-                                      }
+                                setViolations(violations.map(v =>
+                                  v.id === editingViolationId
+                                    ? {
+                                      ...v,
+                                      violationType: newViolation.violationType,
+                                      title: newViolation.title,
+                                      description: newViolation.description,
+                                      dateOfIncident: newViolation.dateOfIncident,
+                                      reportedBy: newViolation.reportedBy,
+                                      severity: newViolation.severity,
+                                      actionTaken: newViolation.actionTaken,
+                                      status: newViolation.status,
+                                      file: newViolation.file
+                                    }
                                     : v
                                 ));
                                 setEditingViolationId(null);
@@ -7256,7 +7505,7 @@ const DriverManagement = () => {
                                   addNotification('error', 'Date of Incident is required');
                                   return;
                                 }
-                                
+
                                 // Add new violation
                                 const violationId = Date.now().toString();
                                 setViolations([...violations, {
@@ -7271,7 +7520,7 @@ const DriverManagement = () => {
                                   status: newViolation.status,
                                   file: newViolation.file
                                 }]);
-                                
+
                                 // Clear validation error if it exists
                                 if (validationErrors.violationType) {
                                   setValidationErrors({ ...validationErrors, violationType: '' });
@@ -7290,7 +7539,7 @@ const DriverManagement = () => {
                               });
                               setViolationFile(null);
                             }}
-                            className="px-4 py-2 bg-black !text-white rounded-lg flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors font-medium"
+                            className="px-4 py-2 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center gap-2 hover:bg-[rgba(255,255,255,0.12)] transition-colors font-medium"
                           >
                             <Plus className="w-4 h-4" />
                             {editingViolationId ? 'Update' : 'Add'} Violation
@@ -7300,70 +7549,68 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Violations Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Date</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Type</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Title</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Severity</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Status</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">File</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Type</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Title</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Severity</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Status</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">File</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-theme">
                           {violations.length === 0 ? (
                             <tr>
-                              <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={7} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
                           ) : (
                             violations.map((violation) => (
-                              <tr key={violation.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                              <tr key={violation.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {violation.dateOfIncident ? new Date(violation.dateOfIncident).toLocaleDateString() : '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
-                                  <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium">
+                                <td className="px-4 py-3 text-sm text-primary">
+                                  <span className="px-2 py-1 bg-card text-[var(--accent-navyblue)] rounded-md text-xs font-medium">
                                     {violation.violationType || '-'}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {violation.title || '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {violation.severity ? (
-                                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${
-                                      violation.severity === 'High' ? 'bg-red-100 text-red-700' :
-                                      violation.severity === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                                      'bg-green-100 text-green-700'
-                                    }`}>
+                                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${violation.severity === 'High' ? 'bg-[var(--accent-red)]/15 text-[var(--accent-red)]' :
+                                      violation.severity === 'Medium' ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]' :
+                                        'bg-[var(--accent-green)]/15 text-[var(--accent-green)]'
+                                      }`}>
                                       {violation.severity}
                                     </span>
                                   ) : '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {violation.status ? (
-                                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${
-                                      violation.status === 'Closed' ? 'bg-gray-100 text-gray-700' :
-                                      violation.status === 'Under Review' ? 'bg-blue-100 text-blue-700' :
-                                      'bg-orange-100 text-orange-700'
-                                    }`}>
+                                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${violation.status === 'Closed' ? 'bg-card text-primary' :
+                                      violation.status === 'Under Review' ? 'bg-[var(--accent-navyblue)]/15 text-[var(--accent-navyblue)]' :
+                                        'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]'
+                                      }`}>
                                       {violation.status}
                                     </span>
                                   ) : '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {(violation.file instanceof File || violation.fileUrl || violation.fileName) ? (
                                     violation.fileUrl ? (
                                       <a
                                         href={violation.fileUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                                        className="flex items-center gap-1 text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]/70 hover:underline"
                                         title={violation.file instanceof File ? violation.file.name : (violation.fileName || 'View File')}
                                         onClick={(e) => e.stopPropagation()}
                                       >
@@ -7371,16 +7618,16 @@ const DriverManagement = () => {
                                         <span className="text-xs">{violation.fileName || 'View File'}</span>
                                       </a>
                                     ) : (
-                                      <span className="flex items-center gap-1 text-gray-600" title={violation.file instanceof File ? violation.file.name : (violation.fileName || 'File attached')}>
-                                        <FileText className="w-4 h-4 text-blue-500" />
+                                      <span className="flex items-center gap-1 text-secondary" title={violation.file instanceof File ? violation.file.name : (violation.fileName || 'File attached')}>
+                                        <FileText className="w-4 h-4 text-[var(--accent-navyblue)]" />
                                         <span className="text-xs">{violation.file instanceof File ? violation.file.name : (violation.fileName || 'File attached')}</span>
                                       </span>
                                     )
                                   ) : (
-                                    <span className="text-gray-400">-</span>
+                                    <span className="text-secondary">-</span>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -7404,7 +7651,7 @@ const DriverManagement = () => {
                                           setViolationFile(null);
                                         }
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                       title="Edit violation"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -7448,7 +7695,7 @@ const DriverManagement = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                       title="Delete violation"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -7467,31 +7714,31 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'notes' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Notes</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Notes</h3>
 
                     {/* Notes Input Row */}
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3 p-4 bg-card rounded-lg">
                       <div className="flex-1">
                         <input
                           type="text"
                           placeholder="Note"
                           value={newNote.note}
                           onChange={(e) => setNewNote({ ...newNote, note: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div className="flex-1">
                         <select
                           value={newNote.category}
                           onChange={(e) => setNewNote({ ...newNote, category: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="">Category</option>
-                          <option value="Safety">Safety</option>
-                          <option value="Attitude">Attitude</option>
-                          <option value="Ops">Ops</option>
-                          <option value="General">General</option>
-                          <option value="Maintenance">Maintenance</option>
+                          <option className="form-option" value="">Category</option>
+                          <option className="form-option" value="Safety">Safety</option>
+                          <option className="form-option" value="Attitude">Attitude</option>
+                          <option className="form-option" value="Ops">Ops</option>
+                          <option className="form-option" value="General">General</option>
+                          <option className="form-option" value="Maintenance">Maintenance</option>
                         </select>
                       </div>
                       <div>
@@ -7500,13 +7747,13 @@ const DriverManagement = () => {
                             if (newNote.note) {
                               if (editingNoteId) {
                                 // Update existing note in the list
-                                setNotes(notes.map(n => 
-                                  n.id === editingNoteId 
+                                setNotes(notes.map(n =>
+                                  n.id === editingNoteId
                                     ? {
-                                        ...n,
-                                        note: newNote.note,
-                                        category: newNote.category
-                                      }
+                                      ...n,
+                                      note: newNote.note,
+                                      category: newNote.category
+                                    }
                                     : n
                                 ));
                                 setEditingNoteId(null);
@@ -7524,7 +7771,7 @@ const DriverManagement = () => {
                               });
                             }
                           }}
-                          className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                          className="w-10 h-10 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors"
                         >
                           {editingNoteId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                         </button>
@@ -7532,20 +7779,20 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Notes Display */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       {notes.length === 0 ? (
-                        <div className="px-4 py-8 text-center text-gray-500">
+                        <div className="px-4 py-8 text-center text-secondary">
                           No Data
                         </div>
                       ) : (
-                        <div className="divide-y divide-gray-200">
+                        <div className="divide-y divide-theme">
                           {notes.map((note) => (
-                            <div key={note.id} className="px-4 py-3 hover:bg-gray-50">
+                            <div key={note.id} className="px-4 py-3 hover:bg-[rgba(255,255,255,0.03)]">
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <p className="text-sm text-gray-900">{note.note}</p>
+                                  <p className="text-sm text-primary">{note.note}</p>
                                   {note.category && (
-                                    <p className="text-xs text-gray-500 mt-1">Category: {note.category}</p>
+                                    <p className="text-xs text-secondary mt-1">Category: {note.category}</p>
                                   )}
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -7557,7 +7804,7 @@ const DriverManagement = () => {
                                       });
                                       setEditingNoteId(note.id);
                                     }}
-                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                    className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                     title="Edit note"
                                   >
                                     <Edit className="w-4 h-4" />
@@ -7575,7 +7822,7 @@ const DriverManagement = () => {
                                         }
                                       }
                                     }}
-                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                    className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                     title="Delete note"
                                   >
                                     <Trash2 className="w-4 h-4" />
@@ -7593,66 +7840,66 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'deductions' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Payroll Deductions</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Payroll Deductions</h3>
 
                     {/* Deductions Input Row */}
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3 p-4 bg-card rounded-lg">
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                          <input
-                            type="date"
-                            value={newDeduction.startDate}
-                            onChange={(e) => setNewDeduction({ ...newDeduction, startDate: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                          />
-                        </div>
+                        <DateField
+                          label="Start Date"
+                          value={newDeduction.startDate}
+                          onChange={(e) =>
+                            setNewDeduction((prev) => ({
+                              ...prev,
+                              startDate: e.target.value,
+                            }))
+                          }
+                        />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                         <input
                           type="text"
                           placeholder="Description"
                           value={newDeduction.description}
                           onChange={(e) => setNewDeduction({ ...newDeduction, description: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Amount</label>
                         <input
                           type="text"
                           placeholder="0"
                           value={newDeduction.amount}
                           onChange={(e) => setNewDeduction({ ...newDeduction, amount: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Interval</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Interval</label>
                         <select
                           value={newDeduction.interval}
                           onChange={(e) => setNewDeduction({ ...newDeduction, interval: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="">Interval</option>
-                          <option value="Weekly">Weekly</option>
-                          <option value="Bi-Weekly">Bi-Weekly</option>
-                          <option value="Monthly">Monthly</option>
-                          <option value="Yearly">Yearly</option>
-                          <option value="One Time Payment">One Time Payment</option>
+                          <option className="form-option" value="">Interval</option>
+                          <option className="form-option" value="Weekly">Weekly</option>
+                          <option className="form-option" value="Bi-Weekly">Bi-Weekly</option>
+                          <option className="form-option" value="Monthly">Monthly</option>
+                          <option className="form-option" value="Yearly">Yearly</option>
+                          <option className="form-option" value="One Time Payment">One Time Payment</option>
                         </select>
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Currency</label>
                         <select
                           value={newDeduction.currency}
                           onChange={(e) => setNewDeduction({ ...newDeduction, currency: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="CAD">CAD</option>
-                          <option value="USD">USD</option>
+                          <option className="form-option" value="CAD">CAD</option>
+                          <option className="form-option" value="USD">USD</option>
                         </select>
                       </div>
                       <div className="flex items-end">
@@ -7661,16 +7908,16 @@ const DriverManagement = () => {
                             if (newDeduction.startDate || newDeduction.description) {
                               if (editingDeductionId) {
                                 // Update existing deduction in the list
-                                setDeductions(deductions.map(d => 
-                                  d.id === editingDeductionId 
+                                setDeductions(deductions.map(d =>
+                                  d.id === editingDeductionId
                                     ? {
-                                        ...d,
-                                        startDate: newDeduction.startDate,
-                                        description: newDeduction.description,
-                                        amount: newDeduction.amount,
-                                        interval: newDeduction.interval,
-                                        currency: newDeduction.currency
-                                      }
+                                      ...d,
+                                      startDate: newDeduction.startDate,
+                                      description: newDeduction.description,
+                                      amount: newDeduction.amount,
+                                      interval: newDeduction.interval,
+                                      currency: newDeduction.currency
+                                    }
                                     : d
                                 ));
                                 setEditingDeductionId(null);
@@ -7694,7 +7941,7 @@ const DriverManagement = () => {
                               });
                             }
                           }}
-                          className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                          className="w-10 h-10 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors"
                         >
                           {editingDeductionId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                         </button>
@@ -7702,32 +7949,32 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Deductions Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Start Date</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Start Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Description</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Amount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Interval</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-theme">
                           {deductions.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
                           ) : (
                             deductions.map((deduction) => (
-                              <tr key={deduction.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.startDate || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.description || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.amount || '0'} {deduction.currency}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.interval || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                              <tr key={deduction.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                <td className="px-4 py-3 text-sm text-primary">{deduction.startDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{deduction.description || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{deduction.amount || '0'} {deduction.currency}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{deduction.interval || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -7741,7 +7988,7 @@ const DriverManagement = () => {
                                         });
                                         setEditingDeductionId(deduction.id);
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                       title="Edit deduction"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -7780,7 +8027,7 @@ const DriverManagement = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                       title="Delete deduction"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -7799,66 +8046,66 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'additions' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Payroll Additions</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Payroll Additions</h3>
 
                     {/* Additions Input Row */}
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3 p-4 bg-card rounded-lg">
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                          <input
-                            type="date"
-                            value={newAddition.startDate}
-                            onChange={(e) => setNewAddition({ ...newAddition, startDate: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                          />
-                        </div>
+                        <DateField
+                          label="Start Date"
+                          value={newAddition.startDate}
+                          onChange={(e) =>
+                            setNewAddition((prev) => ({
+                              ...prev,
+                              startDate: e.target.value,
+                            }))
+                          }
+                        />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                         <input
                           type="text"
                           placeholder="Description"
                           value={newAddition.description}
                           onChange={(e) => setNewAddition({ ...newAddition, description: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Amount</label>
                         <input
                           type="text"
                           placeholder="0"
                           value={newAddition.amount}
                           onChange={(e) => setNewAddition({ ...newAddition, amount: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Interval</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Interval</label>
                         <select
                           value={newAddition.interval}
                           onChange={(e) => setNewAddition({ ...newAddition, interval: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="">Interval</option>
-                          <option value="Weekly">Weekly</option>
-                          <option value="Bi-Weekly">Bi-Weekly</option>
-                          <option value="Monthly">Monthly</option>
-                          <option value="Yearly">Yearly</option>
-                          <option value="One Time Payment">One Time Payment</option>
+                          <option className="form-option" value="">Interval</option>
+                          <option className="form-option" value="Weekly">Weekly</option>
+                          <option className="form-option" value="Bi-Weekly">Bi-Weekly</option>
+                          <option className="form-option" value="Monthly">Monthly</option>
+                          <option className="form-option" value="Yearly">Yearly</option>
+                          <option className="form-option" value="One Time Payment">One Time Payment</option>
                         </select>
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Currency</label>
                         <select
                           value={newAddition.currency}
                           onChange={(e) => setNewAddition({ ...newAddition, currency: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="CAD">CAD</option>
-                          <option value="USD">USD</option>
+                          <option className="form-option" value="CAD">CAD</option>
+                          <option className="form-option" value="USD">USD</option>
                         </select>
                       </div>
                       <div className="flex items-end">
@@ -7867,16 +8114,16 @@ const DriverManagement = () => {
                             if (newAddition.startDate || newAddition.description) {
                               if (editingAdditionId) {
                                 // Update existing addition in the list
-                                setAdditions(additions.map(a => 
-                                  a.id === editingAdditionId 
+                                setAdditions(additions.map(a =>
+                                  a.id === editingAdditionId
                                     ? {
-                                        ...a,
-                                        startDate: newAddition.startDate,
-                                        description: newAddition.description,
-                                        amount: newAddition.amount,
-                                        interval: newAddition.interval,
-                                        currency: newAddition.currency
-                                      }
+                                      ...a,
+                                      startDate: newAddition.startDate,
+                                      description: newAddition.description,
+                                      amount: newAddition.amount,
+                                      interval: newAddition.interval,
+                                      currency: newAddition.currency
+                                    }
                                     : a
                                 ));
                                 setEditingAdditionId(null);
@@ -7900,7 +8147,7 @@ const DriverManagement = () => {
                               });
                             }
                           }}
-                          className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                          className="w-10 h-10 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors"
                         >
                           {editingAdditionId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                         </button>
@@ -7908,32 +8155,32 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Additions Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Start Date</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Start Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Description</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Amount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Interval</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-theme">
                           {additions.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
                           ) : (
                             additions.map((addition) => (
-                              <tr key={addition.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm text-gray-900">{addition.startDate || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{addition.description || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{addition.amount || '0'} {addition.currency}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{addition.interval || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                              <tr key={addition.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                <td className="px-4 py-3 text-sm text-primary">{addition.startDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{addition.description || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{addition.amount || '0'} {addition.currency}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{addition.interval || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -7947,7 +8194,7 @@ const DriverManagement = () => {
                                         });
                                         setEditingAdditionId(addition.id);
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                       title="Edit addition"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -7986,7 +8233,7 @@ const DriverManagement = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                       title="Delete addition"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -8005,47 +8252,47 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'onboarding' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Onboarding & Tests</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Onboarding & Tests</h3>
 
                     {/* Section 1: Onboarding Status */}
-                    <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-                      <h4 className="text-sm font-bold text-gray-900 mb-3">Onboarding Status</h4>
-                      
+                    <div className="bg-card rounded-lg p-4 space-y-4">
+                      <h4 className="text-sm font-bold text-primary mb-3">Onboarding Status</h4>
+
                       {/* Test Approval Summary - Show at top */}
                       {driverTests.length > 0 && (
-                        <div className="bg-white rounded-lg p-3 border border-gray-200 mb-4">
-                          <label className="block text-xs font-medium text-gray-700 mb-2">Test Approval Status</label>
+                        <div className="bg-card rounded-lg p-3 border border-theme mb-4">
+                          <label className="block text-xs font-medium text-primary mb-2">Test Approval Status</label>
                           <div className="space-y-2">
                             {driverTests.map((test) => (
                               <div key={test.id} className="flex items-center justify-between">
-                                <span className="text-xs font-medium text-gray-700">{test.testType}</span>
+                                <span className="text-xs font-medium text-primary">{test.testType}</span>
                                 {test.hrApproved ? (
                                   <div className="flex items-center gap-2">
-                                    <span className="px-2 py-1 rounded bg-green-100 text-green-800 text-xs font-medium flex items-center gap-1">
+                                    <span className="px-2 py-1 rounded bg-[var(--accent-green)]/15 text-[var(--accent-green)] text-xs font-medium flex items-center gap-1">
                                       <Check className="w-3 h-3" />
                                       Approved
                                     </span>
                                     {test.hrApprovedBy && (
-                                      <span className="text-xs text-gray-500">by {test.hrApprovedBy}</span>
+                                      <span className="text-xs text-secondary">by {test.hrApprovedBy}</span>
                                     )}
                                     {test.hrApprovedAt && (
-                                      <span className="text-xs text-gray-500">
+                                      <span className="text-xs text-secondary">
                                         {new Date(test.hrApprovedAt).toLocaleDateString()}
                                       </span>
                                     )}
                                   </div>
                                 ) : test.hrRejected ? (
                                   <div className="flex items-center gap-2">
-                                    <span className="px-2 py-1 rounded bg-red-100 text-red-800 text-xs font-medium flex items-center gap-1">
+                                    <span className="px-2 py-1 rounded bg-[var(--accent-red)]/15 text-[var(--accent-red)] text-xs font-medium flex items-center gap-1">
                                       <X className="w-3 h-3" />
                                       Rejected
                                     </span>
                                     {test.hrRejectionReason && (
-                                      <span className="text-xs text-red-600">({test.hrRejectionReason})</span>
+                                      <span className="text-xs text-[#A855F7]">({test.hrRejectionReason})</span>
                                     )}
                                   </div>
                                 ) : (
-                                  <span className="px-2 py-1 rounded bg-yellow-100 text-yellow-800 text-xs font-medium">
+                                  <span className="px-2 py-1 rounded bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-xs font-medium">
                                     Pending Review
                                   </span>
                                 )}
@@ -8056,42 +8303,41 @@ const DriverManagement = () => {
                       )}
 
                       {approvedByHR && approvedAt && (
-                        <div className="mt-3 text-xs text-gray-600">
+                        <div className="mt-3 text-xs text-secondary">
                           <span className="font-medium">Approved by HR:</span> {new Date(approvedAt).toLocaleDateString()}
                         </div>
                       )}
                     </div>
 
                     {/* Section 2: Flags */}
-                    <div className="bg-white rounded-lg p-4 space-y-3 border border-gray-200">
+                    <div className="bg-card rounded-lg p-4 space-y-3 border border-theme">
                       <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-bold text-gray-900">Driver Test Requirements (Flags)</h4>
-                        <span className="text-xs text-gray-500">Default: Disabled</span>
+                        <h4 className="text-sm font-bold text-primary">Driver Test Requirements (Flags)</h4>
+                        <span className="text-xs text-secondary">Default: Disabled</span>
                       </div>
-                      
+
                       {/* Warning message if base tests not completed */}
                       {!areBaseTestsCompleted() && (
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                        <div className="bg-card border border-[var(--accent-orange)]/30 rounded-lg p-3 mb-3">
                           <div className="flex items-start gap-2">
-                            <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                            <AlertTriangle className="w-4 h-4 text-[#00FFA3] mt-0.5 flex-shrink-0" />
                             <div className="flex-1">
-                              <p className="text-xs font-medium text-yellow-800 mb-1">
+                              <p className="text-xs font-medium text-[var(--accent-orange)] mb-1">
                                 Complete Required Tests First
                               </p>
-                              <p className="text-xs text-yellow-700">
+                              <p className="text-xs text-[var(--accent-orange)]">
                                 Driver must complete and have HR approval for VEHICLE and HOS tests before enabling driver flags.
                               </p>
                             </div>
                           </div>
                         </div>
                       )}
-                      
+
                       <div className="space-y-3">
-                        <div className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
-                          !areBaseTestsCompleted() && !handlesHazardousLoads
-                            ? 'bg-gray-100 border-gray-300 opacity-60'
-                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                        }`}>
+                        <div className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${!areBaseTestsCompleted() && !handlesHazardousLoads
+                          ? 'bg-card border-theme opacity-60'
+                          : 'bg-card border-theme hover:bg-[rgba(255,255,255,0.03)]'
+                          }`}>
                           <input
                             type="checkbox"
                             id="handlesHazardousLoads"
@@ -8101,39 +8347,36 @@ const DriverManagement = () => {
                               e.preventDefault();
                               handleFlagChange('handlesHazardousLoads', !handlesHazardousLoads);
                             }}
-                            className={`w-4 h-4 mt-0.5 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8] ${
-                              !areBaseTestsCompleted() && !handlesHazardousLoads
-                                ? 'cursor-not-allowed opacity-50'
-                                : 'cursor-pointer'
-                            }`}
+                            className={`w-4 h-4 mt-0.5 text-[var(--accent-navyblue)]/15 border-theme rounded focus:ring-[var(--accent-navyblue)]/15 ${!areBaseTestsCompleted() && !handlesHazardousLoads
+                              ? 'cursor-not-allowed opacity-50'
+                              : 'cursor-pointer'
+                              }`}
                           />
                           <div className="flex-1">
-                            <label 
-                              htmlFor="handlesHazardousLoads" 
-                              className={`text-xs font-medium block ${
-                                !areBaseTestsCompleted() && !handlesHazardousLoads
-                                  ? 'text-gray-500 cursor-not-allowed'
-                                  : 'text-gray-900 cursor-pointer'
-                              }`}
+                            <label
+                              htmlFor="handlesHazardousLoads"
+                              className={`text-xs font-medium block ${!areBaseTestsCompleted() && !handlesHazardousLoads
+                                ? 'text-secondary cursor-not-allowed'
+                                : 'text-primary cursor-pointer'
+                                }`}
                             >
                               Handles hazardous loads
                             </label>
-                            <p className="text-xs text-gray-600 mt-0.5">
+                            <p className="text-xs text-secondary mt-0.5">
                               When enabled, driver must complete TDG (Transportation of Dangerous Goods) test
                             </p>
                             {handlesHazardousLoads && (
-                              <span className="inline-block mt-1 px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded font-medium">
+                              <span className="inline-block mt-1 px-2 py-0.5 bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-xs rounded font-medium">
                                 TDG Test Required
                               </span>
                             )}
                           </div>
                         </div>
 
-                        <div className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
-                          !areBaseTestsCompleted() && !winterTestRequired
-                            ? 'bg-gray-100 border-gray-300 opacity-60'
-                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                        }`}>
+                        <div className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${!areBaseTestsCompleted() && !winterTestRequired
+                          ? 'bg-card border-theme opacity-60'
+                          : 'bg-card border-theme hover:bg-[rgba(255,255,255,0.03)]'
+                          }`}>
                           <input
                             type="checkbox"
                             id="winterTestRequired"
@@ -8143,57 +8386,55 @@ const DriverManagement = () => {
                               e.preventDefault();
                               handleFlagChange('winterTestRequired', !winterTestRequired);
                             }}
-                            className={`w-4 h-4 mt-0.5 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8] ${
-                              !areBaseTestsCompleted() && !winterTestRequired
-                                ? 'cursor-not-allowed opacity-50'
-                                : 'cursor-pointer'
-                            }`}
+                            className={`w-4 h-4 mt-0.5 text-[var(--accent-navyblue)]/15 border-theme rounded focus:ring-[var(--accent-navyblue)]/15 ${!areBaseTestsCompleted() && !winterTestRequired
+                              ? 'cursor-not-allowed opacity-50'
+                              : 'cursor-pointer'
+                              }`}
                           />
                           <div className="flex-1">
-                            <label 
-                              htmlFor="winterTestRequired" 
-                              className={`text-xs font-medium block ${
-                                !areBaseTestsCompleted() && !winterTestRequired
-                                  ? 'text-gray-500 cursor-not-allowed'
-                                  : 'text-gray-900 cursor-pointer'
-                              }`}
+                            <label
+                              htmlFor="winterTestRequired"
+                              className={`text-xs font-medium block ${!areBaseTestsCompleted() && !winterTestRequired
+                                ? 'text-secondary cursor-not-allowed'
+                                : 'text-primary cursor-pointer'
+                                }`}
                             >
                               Winter test required (optional override)
                             </label>
-                            <p className="text-xs text-gray-600 mt-0.5">
+                            <p className="text-xs text-secondary mt-0.5">
                               When enabled, driver must complete Winter Driving test
                             </p>
                             {winterTestRequired && (
-                              <span className="inline-block mt-1 px-2 py-0.5 bg-cyan-100 text-cyan-800 text-xs rounded font-medium">
+                              <span className="inline-block mt-1 px-2 py-0.5 bg-[var(--accent-navyblue)]/15 text-[var(--accent-navyblue)] text-xs rounded font-medium">
                                 Winter Test Required
                               </span>
                             )}
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Show update timestamp if flags were updated */}
                       {editingDriver && (editingDriver as any).flagsUpdatedAt && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <div className="mt-3 pt-3 border-t border-theme">
+                          <div className="flex items-center gap-2 text-xs text-secondary">
                             <span className="font-medium">Last updated:</span>
                             <span>{new Date((editingDriver as any).flagsUpdatedAt).toLocaleString()}</span>
                             {(editingDriver as any).flagsUpdatedBy && (
                               <>
-                                <span className="text-gray-400">•</span>
+                                <span className="text-secondary">•</span>
                                 <span>by {(editingDriver as any).flagsUpdatedBy?.name || 'HR'}</span>
                                 {(editingDriver as any).flagsUpdatedBy?.email && (
-                                  <span className="text-gray-400">({(editingDriver as any).flagsUpdatedBy.email})</span>
+                                  <span className="text-secondary">({(editingDriver as any).flagsUpdatedBy.email})</span>
                                 )}
                               </>
                             )}
                           </div>
                         </div>
                       )}
-                      
+
                       {(!editingDriver || !(editingDriver as any).flagsUpdatedAt) && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <div className="text-xs text-gray-500 italic">
+                        <div className="mt-3 pt-3 border-t border-theme">
+                          <div className="text-xs text-secondary italic">
                             Flags have not been updated yet. Default state: Both disabled.
                           </div>
                         </div>
@@ -8201,10 +8442,10 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Section 4: Required Tests */}
-                    <div className="bg-blue-50 rounded-lg p-4 space-y-3 border border-blue-200">
-                      <h4 className="text-sm font-bold text-gray-900 mb-3">Required Tests</h4>
-                      <p className="text-xs text-gray-600 mb-3">Based on the flags above, the following tests are required for this driver:</p>
-                      
+                    <div className="bg-card rounded-lg p-4 space-y-3 border border-[var(--accent-navyblue)]/30">
+                      <h4 className="text-sm font-bold text-primary mb-3">Required Tests</h4>
+                      <p className="text-xs text-secondary mb-3">Based on the flags above, the following tests are required for this driver:</p>
+
                       {(() => {
                         console.log('🎯 Required Tests Section - Current flag states:', {
                           handlesHazardousLoads,
@@ -8216,61 +8457,61 @@ const DriverManagement = () => {
                         });
                         return null;
                       })()}
-                      
+
                       <div className="space-y-2">
                         {/* Base tests - always required */}
-                        <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-blue-100">
-                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                          <span className="text-xs font-medium text-gray-900">VEHICLE</span>
-                          <span className="text-xs text-gray-600">- Vehicle Inspection</span>
+                        <div className="flex items-center gap-2 bg-card rounded-lg p-2 border border-[var(--accent-navyblue)]/20">
+                          <div className="w-2 h-2 rounded-full bg-[var(--accent-navyblue)]"></div>
+                          <span className="text-xs font-medium text-primary">VEHICLE</span>
+                          <span className="text-xs text-secondary">- Vehicle Inspection</span>
                         </div>
-                        
-                        <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-blue-100">
-                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                          <span className="text-xs font-medium text-gray-900">HOS</span>
-                          <span className="text-xs text-gray-600">- Hours of Service</span>
+
+                        <div className="flex items-center gap-2 bg-card rounded-lg p-2 border border-[var(--accent-navyblue)]/20">
+                          <div className="w-2 h-2 rounded-full bg-[var(--accent-navyblue)]"></div>
+                          <span className="text-xs font-medium text-primary">HOS</span>
+                          <span className="text-xs text-secondary">- Hours of Service</span>
                         </div>
-                        
+
                         {/* TDG test - only if handles hazardous loads */}
                         {(() => {
                           console.log('🔍 Rendering Required Tests - handlesHazardousLoads:', handlesHazardousLoads, 'type:', typeof handlesHazardousLoads);
                           return handlesHazardousLoads === true ? (
-                            <div className="flex items-center gap-2 bg-orange-50 rounded-lg p-2 border border-orange-200">
-                              <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                              <span className="text-xs font-medium text-gray-900">TDG</span>
-                              <span className="text-xs text-gray-600">- Transportation of Dangerous Goods</span>
-                              <span className="ml-auto px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded">Hazardous Loads</span>
+                            <div className="flex items-center gap-2 bg-card rounded-lg p-2 border border-[var(--accent-orange)]/30">
+                              <div className="w-2 h-2 rounded-full bg-[var(--accent-orange)]"></div>
+                              <span className="text-xs font-medium text-primary">TDG</span>
+                              <span className="text-xs text-secondary">- Transportation of Dangerous Goods</span>
+                              <span className="ml-auto px-2 py-0.5 bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-xs rounded">Hazardous Loads</span>
                             </div>
                           ) : null;
                         })()}
-                        
+
                         {/* Winter test - only if winter test required */}
                         {(() => {
                           console.log('🔍 Rendering Required Tests - winterTestRequired:', winterTestRequired, 'type:', typeof winterTestRequired);
                           return winterTestRequired === true ? (
-                            <div className="flex items-center gap-2 bg-cyan-50 rounded-lg p-2 border border-cyan-200">
-                              <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
-                              <span className="text-xs font-medium text-gray-900">WINTER</span>
-                              <span className="text-xs text-gray-600">- Winter Driving</span>
-                              <span className="ml-auto px-2 py-0.5 bg-cyan-100 text-cyan-800 text-xs rounded">Winter Season</span>
+                            <div className="flex items-center gap-2 bg-[var(--accent-navyblue)]/10 rounded-lg p-2 border border-[var(--accent-navyblue)]/20">
+                              <div className="w-2 h-2 rounded-full bg-[var(--accent-navyblue)]"></div>
+                              <span className="text-xs font-medium text-primary">WINTER</span>
+                              <span className="text-xs text-secondary">- Winter Driving</span>
+                              <span className="ml-auto px-2 py-0.5 bg-[var(--accent-navyblue)]/15 text-[var(--accent-navyblue)] text-xs rounded">Winter Season</span>
                             </div>
                           ) : null;
                         })()}
                       </div>
-                      
-                      <div className="mt-3 pt-3 border-t border-blue-200">
-                        <p className="text-xs text-gray-600">
+
+                      <div className="mt-3 pt-3 border-t border-[var(--accent-navyblue)]/30">
+                        <p className="text-xs text-secondary">
                           <span className="font-medium">Total Required Tests:</span> {2 + (handlesHazardousLoads ? 1 : 0) + (winterTestRequired ? 1 : 0)}
                         </p>
                       </div>
                     </div>
 
                     {/* Section 4: Test Results Table */}
-                    <div className="bg-white rounded-lg border border-gray-200">
-                      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                        <h4 className="text-sm font-bold text-gray-900">Test Results</h4>
+                    <div className="bg-card rounded-lg border border-theme">
+                      <div className="p-4 border-b border-theme flex items-center justify-between">
+                        <h4 className="text-sm font-bold text-primary">Test Results</h4>
                         {loadingTests && (
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <div className="flex items-center gap-2 text-xs text-secondary">
                             <RefreshCw className="w-3 h-3 animate-spin" />
                             Loading...
                           </div>
@@ -8278,49 +8519,48 @@ const DriverManagement = () => {
                       </div>
                       <div className="overflow-x-auto">
                         <table className="w-full">
-                          <thead className="bg-gray-50">
+                          <thead className="bg-card">
                             <tr>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Test Type</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Score</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Status</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">HR Approval</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Attempts</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Date</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Actions</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-primary">Test Type</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-primary">Score</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-primary">Status</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-primary">HR Approval</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-primary">Attempts</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-primary">Date</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-200">
+                          <tbody className="divide-y divide-theme">
                             {driverTests.length > 0 ? (
                               driverTests.map((test) => (
-                                <tr key={test.id} className="hover:bg-gray-50">
-                                  <td className="px-4 py-2 text-xs text-gray-900 font-medium">{test.testType}</td>
-                                  <td className="px-4 py-2 text-xs text-gray-900">{test.score}%</td>
+                                <tr key={test.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                  <td className="px-4 py-2 text-xs text-primary font-medium">{test.testType}</td>
+                                  <td className="px-4 py-2 text-xs text-primary">{test.score}%</td>
                                   <td className="px-4 py-2">
-                                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                      test.passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                    }`}>
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${test.passed ? 'bg-[var(--accent-green)]/15 text-[var(--accent-green)]' : 'bg-[var(--accent-red)]/15 text-[var(--accent-red)]'
+                                      }`}>
                                       {test.passed ? 'Passed' : 'Failed'}
                                     </span>
                                   </td>
                                   <td className="px-4 py-2">
                                     {test.hrApproved ? (
-                                      <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 !text-green-800 flex items-center gap-1">
+                                      <span className="px-2 py-1 rounded text-xs font-medium bg-[var(--accent-green)]/15 !text-[var(--accent-green)] flex items-center gap-1">
                                         <Check className="w-3 h-3" />
                                         Approved
                                       </span>
                                     ) : test.hrRejected ? (
-                                      <span className="px-2 py-1 rounded text-xs font-medium bg-red-100 !text-red-800 flex items-center gap-1">
+                                      <span className="px-2 py-1 rounded text-xs font-medium bg-[var(--accent-red)]/15 !text-[var(--accent-red)] flex items-center gap-1">
                                         <X className="w-3 h-3" />
                                         Rejected
                                       </span>
                                     ) : (
-                                      <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                      <span className="px-2 py-1 rounded text-xs font-medium bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
                                         Pending
                                       </span>
                                     )}
                                   </td>
-                                  <td className="px-4 py-2 text-xs text-gray-900">{test.attempts}</td>
-                                  <td className="px-4 py-2 text-xs text-gray-900">
+                                  <td className="px-4 py-2 text-xs text-primary">{test.attempts}</td>
+                                  <td className="px-4 py-2 text-xs text-primary">
                                     {test.completedAt ? new Date(test.completedAt).toLocaleDateString() : '-'}
                                   </td>
                                   <td className="px-4 py-2">
@@ -8328,7 +8568,7 @@ const DriverManagement = () => {
                                       <div className="flex items-center gap-1">
                                         <button
                                           onClick={() => openApprovalModal(test, 'approve')}
-                                          className="px-2 py-1 bg-green-600 !text-white text-xs rounded hover:bg-green-700 transition-colors flex items-center gap-1"
+                                          className="px-2 py-1 bg-[var(--accent-green)] !text-white text-xs rounded hover:bg-[var(--accent-green)]/80 transition-colors flex items-center gap-1"
                                           title="Approve Test"
                                         >
                                           <Check className="w-3 h-3" />
@@ -8336,7 +8576,7 @@ const DriverManagement = () => {
                                         </button>
                                         <button
                                           onClick={() => openApprovalModal(test, 'reject')}
-                                          className="px-2 py-1 bg-red-600 !text-white text-xs rounded hover:bg-red-700 transition-colors flex items-center gap-1"
+                                          className="px-2 py-1 bg-[var(--accent-red)] !text-white text-xs rounded hover:bg-[var(--accent-red)]/80 transition-colors flex items-center gap-1"
                                           title="Reject Test"
                                         >
                                           <X className="w-3 h-3" />
@@ -8346,26 +8586,26 @@ const DriverManagement = () => {
                                     )}
                                     {test.hrApproved && (
                                       <div className="text-xs">
-                                        <div className="text-green-700 font-medium">Approved</div>
+                                        <div className="text-[var(--accent-green)] font-medium">Approved</div>
                                         {test.hrApprovedBy && (
-                                          <div className="text-gray-500">By: {test.hrApprovedBy}</div>
+                                          <div className="text-secondary">By: {test.hrApprovedBy}</div>
                                         )}
                                         {test.hrApprovedAt && (
-                                          <div className="text-gray-500">{new Date(test.hrApprovedAt).toLocaleDateString()}</div>
+                                          <div className="text-secondary">{new Date(test.hrApprovedAt).toLocaleDateString()}</div>
                                         )}
                                       </div>
                                     )}
                                     {test.hrRejected && (
                                       <div className="text-xs">
-                                        <div className="text-red-700 font-medium">Rejected</div>
+                                        <div className="text-[var(--accent-red)] font-medium">Rejected</div>
                                         {test.hrRejectionReason && (
-                                          <div className="text-red-600 mt-1">Reason: {test.hrRejectionReason}</div>
+                                          <div className="text-[#A855F7] mt-1">Reason: {test.hrRejectionReason}</div>
                                         )}
                                         {test.hrApprovedBy && (
-                                          <div className="text-gray-500 mt-1">By: {test.hrApprovedBy}</div>
+                                          <div className="text-secondary mt-1">By: {test.hrApprovedBy}</div>
                                         )}
                                         {test.hrApprovedAt && (
-                                          <div className="text-gray-500">{new Date(test.hrApprovedAt).toLocaleDateString()}</div>
+                                          <div className="text-secondary">{new Date(test.hrApprovedAt).toLocaleDateString()}</div>
                                         )}
                                       </div>
                                     )}
@@ -8374,7 +8614,7 @@ const DriverManagement = () => {
                               ))
                             ) : (
                               <tr>
-                                <td colSpan={7} className="px-4 py-8 text-center text-xs text-gray-500">
+                                <td colSpan={7} className="px-4 py-8 text-center text-xs text-secondary">
                                   {loadingTests ? 'Loading test results...' : 'No test results available'}
                                 </td>
                               </tr>
@@ -8390,45 +8630,49 @@ const DriverManagement = () => {
                 {activeFormTab === 'drugtest' && drugTestPasswordVerified && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-bold text-gray-900">Drug Test</h3>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Lock className="w-4 h-4 text-green-500" />
+                      <h3 className="text-lg font-bold text-primary">Drug Test</h3>
+                      <div className="flex items-center gap-2 text-sm text-secondary">
+                        <Lock className="w-4 h-4 text-[var(--accent-green)]" />
                         <span>Protected Section</span>
                       </div>
                     </div>
 
                     {/* Drug Test Table with Headers */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT NAME</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">FILE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">RESULT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DOCUMENT NAME</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">FILE</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white">
+                        <tbody className="bg-card">
                           {/* Input Row */}
-                          <tr className="bg-gray-50">
+                          <tr className="bg-card">
                             <td className="px-4 py-3">
-                              <input
-                                type="date"
+                              <DateField
+                                label="Date"
                                 value={newDrugTest.date}
-                                onChange={(e) => setNewDrugTest({ ...newDrugTest, date: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                onChange={(e) =>
+                                  setNewDrugTest((prev) => ({
+                                    ...prev,
+                                    date: e.target.value,
+                                  }))
+                                }
                               />
                             </td>
                             <td className="px-4 py-3">
                               <select
                                 value={newDrugTest.result}
                                 onChange={(e) => setNewDrugTest({ ...newDrugTest, result: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               >
-                                <option value="">Select Result</option>
-                                <option value="Negative">Negative</option>
-                                <option value="Positive">Positive</option>
-                                <option value="Pending">Pending</option>
+                                <option className="form-option" value="">Select Result</option>
+                                <option className="form-option" value="Negative">Negative</option>
+                                <option className="form-option" value="Positive">Positive</option>
+                                <option className="form-option" value="Pending">Pending</option>
                               </select>
                             </td>
                             <td className="px-4 py-3">
@@ -8437,29 +8681,29 @@ const DriverManagement = () => {
                                 placeholder="Document Name"
                                 value={newDrugTest.labName}
                                 onChange={(e) => setNewDrugTest({ ...newDrugTest, labName: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               />
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2">
                                 {drugTestFile ? (
-                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                                    <FileText className="w-4 h-4 text-gray-600" />
-                                    <span className="text-sm text-gray-700 truncate max-w-[100px]">{drugTestFile.name}</span>
+                                  <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
+                                    <FileText className="w-4 h-4 text-secondary" />
+                                    <span className="text-sm text-primary truncate max-w-[100px]">{drugTestFile.name}</span>
                                     <button
                                       onClick={() => {
                                         setDrugTestFile(null);
                                         setNewDrugTest({ ...newDrugTest, file: null });
                                       }}
-                                      className="text-gray-400 hover:text-gray-600"
+                                      className="text-secondary hover:text-secondary"
                                     >
                                       <X className="w-4 h-4" />
                                     </button>
                                   </div>
                                 ) : (
-                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer">
-                                    <Upload className="w-4 h-4 text-gray-600" />
-                                    <span className="text-sm text-gray-700">Select File</span>
+                                  <label className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card hover:bg-[rgba(255,255,255,0.03)] cursor-pointer">
+                                    <Upload className="w-4 h-4 text-secondary" />
+                                    <span className="text-sm text-primary">Select File</span>
                                     <input
                                       type="file"
                                       className="hidden"
@@ -8478,17 +8722,17 @@ const DriverManagement = () => {
                                     if (newDrugTest.date || newDrugTest.result || newDrugTest.labName) {
                                       if (editingDrugTestId) {
                                         // Update existing drug test
-                                        setDrugTests(drugTests.map(dt => 
-                                          dt.id === editingDrugTestId 
+                                        setDrugTests(drugTests.map(dt =>
+                                          dt.id === editingDrugTestId
                                             ? {
-                                                ...dt,
-                                                date: newDrugTest.date,
-                                                result: newDrugTest.result,
-                                                labName: newDrugTest.labName,
-                                                file: newDrugTest.file || null,
-                                                fileUrl: newDrugTest.file ? undefined : (dt.fileUrl || undefined),
-                                                fileName: newDrugTest.file ? undefined : (dt.fileName || undefined)
-                                              }
+                                              ...dt,
+                                              date: newDrugTest.date,
+                                              result: newDrugTest.result,
+                                              labName: newDrugTest.labName,
+                                              file: newDrugTest.file || null,
+                                              fileUrl: newDrugTest.file ? undefined : (dt.fileUrl || undefined),
+                                              fileName: newDrugTest.file ? undefined : (dt.fileName || undefined)
+                                            }
                                             : dt
                                         ));
                                         if (newDrugTest.file && drugTestFile) {
@@ -8519,7 +8763,7 @@ const DriverManagement = () => {
                                       setDrugTestFile(null);
                                     }
                                   }}
-                                  className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                                  className="w-10 h-10 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors"
                                 >
                                   {editingDrugTestId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                                 </button>
@@ -8531,28 +8775,28 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Drug Test Data Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden mt-4">
+                    <div className="border border-theme rounded-lg overflow-hidden mt-4">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT NAME</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">FILE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">RESULT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DOCUMENT NAME</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">FILE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-theme">
                           {drugTests.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
                           ) : (
                             drugTests.map((dt) => (
-                              <tr key={dt.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                              <tr key={dt.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {dt.date ? (() => {
                                     try {
                                       const date = new Date(dt.date);
@@ -8565,19 +8809,18 @@ const DriverManagement = () => {
                                     }
                                   })() : '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
-                                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                    dt.result === 'Negative' ? 'bg-green-100 text-green-800' :
-                                    dt.result === 'Positive' ? 'bg-red-100 text-red-800' :
-                                    'bg-yellow-100 text-yellow-800'
-                                  }`}>
+                                <td className="px-4 py-3 text-sm text-primary">
+                                  <span className={`px-2 py-1 rounded text-xs font-medium ${dt.result === 'Negative' ? 'bg-[var(--accent-green)]/15 text-[var(--accent-green)]' :
+                                    dt.result === 'Positive' ? 'bg-[var(--accent-red)]/15 text-[var(--accent-red)]' :
+                                      'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]'
+                                    }`}>
                                     {dt.result || '-'}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {dt.labName || '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     {dt.isExisting && (dt.fileUrl || dt.fileName) ? (
                                       <button
@@ -8599,7 +8842,7 @@ const DriverManagement = () => {
                                             addNotification('error', 'Failed to open file');
                                           }
                                         }}
-                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                                        className="flex items-center gap-1 text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]/70 hover:underline"
                                         title={dt.fileName || 'View file'}
                                       >
                                         <FileText className="w-4 h-4" />
@@ -8618,18 +8861,18 @@ const DriverManagement = () => {
                                             window.open(url, '_blank');
                                           }
                                         }}
-                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                                        className="flex items-center gap-1 text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]/70 hover:underline"
                                         title={uploadedFiles[dt.id].name}
                                       >
                                         <FileText className="w-4 h-4" />
                                         <span className="text-xs">{uploadedFiles[dt.id].name}</span>
                                       </button>
                                     ) : (
-                                      <span className="text-gray-400">-</span>
+                                      <span className="text-secondary">-</span>
                                     )}
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -8647,7 +8890,7 @@ const DriverManagement = () => {
                                         }
                                         setEditingDrugTestId(dt.id);
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                       title="Edit drug test"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -8661,7 +8904,7 @@ const DriverManagement = () => {
                                             const updatedDrugTests = drugTests.filter(d => d.id !== dt.id);
                                             setDrugTests(updatedDrugTests);
                                             console.log(`🗑️ Deleted drug test ${dt.id}. Remaining: ${updatedDrugTests.length}`);
-                                            
+
                                             // Clear editing state if this was the record being edited
                                             if (editingDrugTestId === dt.id) {
                                               setEditingDrugTestId(null);
@@ -8673,14 +8916,14 @@ const DriverManagement = () => {
                                               });
                                               setDrugTestFile(null);
                                             }
-                                            
+
                                             // Remove from uploadedFiles if it exists
                                             if (uploadedFiles[dt.id]) {
                                               const newUploadedFiles = { ...uploadedFiles };
                                               delete newUploadedFiles[dt.id];
                                               setUploadedFiles(newUploadedFiles);
                                             }
-                                            
+
                                             addNotification('success', 'Drug test record deleted successfully!');
                                           } catch (error: any) {
                                             console.error('Error deleting drug test:', error);
@@ -8688,7 +8931,7 @@ const DriverManagement = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                       title="Delete drug test"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -8727,12 +8970,12 @@ const DriverManagement = () => {
                 const prevTab = tabIndex > 0 ? FORM_TABS[tabIndex - 1] : null;
                 const nextTab = tabIndex >= 0 && tabIndex < FORM_TABS.length - 1 ? FORM_TABS[tabIndex + 1] : null;
                 return (
-                  <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50 px-4 py-3 flex justify-between items-center">
+                  <div className="flex-shrink-0 border-t border-theme bg-card px-4 py-3 flex justify-between items-center">
                     {prevTab ? (
                       <button
                         type="button"
                         onClick={() => setActiveFormTab(prevTab.id as any)}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg shadow-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                       >
                         <span aria-hidden>←</span> {prevTab.label}
                       </button>
@@ -8741,7 +8984,7 @@ const DriverManagement = () => {
                       <button
                         type="button"
                         onClick={() => setActiveFormTab(nextTab.id as any)}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg shadow-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                       >
                         {nextTab.label} <span aria-hidden>→</span>
                       </button>
@@ -8757,40 +9000,40 @@ const DriverManagement = () => {
       {/* Flag Update Modal */}
       {showFlagModal && selectedFlag && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+          <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900">
+                <h3 className="text-lg font-bold text-primary">
                   {selectedFlag.newValue ? 'Enable Flag' : 'Disable Flag'}
                 </h3>
                 <button
                   onClick={handleCancelFlagUpdate}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-secondary hover:text-secondary transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="mb-4">
-                <p className="text-sm text-gray-700 mb-2">
+                <p className="text-sm text-primary mb-2">
                   <span className="font-medium">Flag:</span> {selectedFlag.flagName === 'handlesHazardousLoads' ? 'Handles hazardous loads' : 'Winter test required'}
                 </p>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-secondary mb-4">
                   Current status: <span className="font-medium">{selectedFlag.currentValue ? 'Enabled' : 'Disabled'}</span>
                 </p>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-secondary mb-4">
                   New status: <span className="font-medium">{selectedFlag.newValue ? 'Enabled' : 'Disabled'}</span>
                 </p>
                 {selectedFlag.flagName === 'handlesHazardousLoads' && selectedFlag.newValue && (
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
-                    <p className="text-xs text-orange-800">
+                  <div className="bg-card border border-[var(--accent-orange)]/30 rounded-lg p-3 mb-4">
+                    <p className="text-xs text-[var(--accent-orange)]">
                       <span className="font-medium">Note:</span> Enabling this flag will require the driver to complete the TDG (Transportation of Dangerous Goods) test.
                     </p>
                   </div>
                 )}
                 {selectedFlag.flagName === 'winterTestRequired' && selectedFlag.newValue && (
-                  <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-3 mb-4">
-                    <p className="text-xs text-cyan-800">
+                  <div className="bg-[var(--accent-navyblue)]/10 border border-[var(--accent-navyblue)]/30 rounded-lg p-3 mb-4">
+                    <p className="text-xs text-[var(--accent-navyblue)]">
                       <span className="font-medium">Note:</span> Enabling this flag will require the driver to complete the Winter Driving test.
                     </p>
                   </div>
@@ -8800,13 +9043,13 @@ const DriverManagement = () => {
               <div className="flex gap-3">
                 <button
                   onClick={handleCancelFlagUpdate}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                  className="flex-1 px-4 py-2 bg-[rgba(255,255,255,0.08)] text-primary rounded-lg hover:bg-[rgba(255,255,255,0.12)] transition-colors font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmFlagUpdate}
-                  className="flex-1 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors font-medium"
+                  className="flex-1 px-4 py-2 bg-[var(--accent-navyblue)]/15 !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors font-medium"
                 >
                   {selectedFlag.newValue ? 'Enable' : 'Disable'}
                 </button>
@@ -8819,12 +9062,12 @@ const DriverManagement = () => {
       {/* Drug Test Password Verification Modal */}
       {showDrugTestPasswordModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+          <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Lock className="w-5 h-5 text-gray-600" />
-                  <h3 className="text-lg font-bold text-gray-900">Password Required</h3>
+                  <Lock className="w-5 h-5 text-secondary" />
+                  <h3 className="text-lg font-bold text-primary">Password Required</h3>
                 </div>
                 <button
                   onClick={() => {
@@ -8832,17 +9075,17 @@ const DriverManagement = () => {
                     setDrugTestPassword('');
                     setDrugTestPasswordError('');
                   }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-secondary hover:text-secondary transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="mb-4">
-                <p className="text-sm text-gray-700 mb-4">
+                <p className="text-sm text-primary mb-4">
                   This section contains sensitive drug test information. Please enter your account password to access it.
                 </p>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-primary mb-2">
                   Your Account Password
                 </label>
                 <input
@@ -8858,13 +9101,12 @@ const DriverManagement = () => {
                     }
                   }}
                   placeholder="Enter your account password"
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] focus:border-transparent ${
-                    drugTestPasswordError ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)]/15 focus:border-transparent ${drugTestPasswordError ? 'border-[var(--accent-red)]' : 'border-theme'
+                    }`}
                   autoFocus
                 />
                 {drugTestPasswordError && (
-                  <p className="mt-2 text-sm text-red-600">{drugTestPasswordError}</p>
+                  <p className="mt-2 text-sm text-[#A855F7]">{drugTestPasswordError}</p>
                 )}
               </div>
 
@@ -8878,14 +9120,14 @@ const DriverManagement = () => {
                     }
                   }}
                   disabled={verifyingPassword}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-[rgba(255,255,255,0.08)] text-primary rounded-lg hover:bg-[rgba(255,255,255,0.12)] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDrugTestPasswordVerify}
                   disabled={verifyingPassword || !drugTestPassword.trim()}
-                  className="flex-1 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 bg-[var(--accent-navyblue)]/15 !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {verifyingPassword ? (
                     <>
@@ -8905,40 +9147,40 @@ const DriverManagement = () => {
       {/* Test Approval/Rejection Modal */}
       {showApprovalModal && selectedTest && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+          <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900">
+                <h3 className="text-lg font-bold text-primary">
                   {selectedTest.action === 'approve' ? 'Approve Test' : 'Reject Test'}
                 </h3>
                 <button
                   onClick={closeApprovalModal}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-secondary hover:text-secondary transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="mb-4">
-                <p className="text-sm text-gray-700 mb-2">
+                <p className="text-sm text-primary mb-2">
                   <span className="font-medium">Test Type:</span> {selectedTest.testType}
                 </p>
                 {selectedTest.action === 'reject' && (
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Rejection Reason <span className="text-gray-500">(optional)</span>
+                    <label className="block text-sm font-medium text-primary mb-2">
+                      Rejection Reason <span className="text-secondary">(optional)</span>
                     </label>
                     <textarea
                       value={rejectionReason}
                       onChange={(e) => setRejectionReason(e.target.value)}
                       placeholder="Enter reason for rejection..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] focus:border-transparent resize-none"
+                      className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)]/15 focus:border-transparent resize-none"
                       rows={4}
                     />
                   </div>
                 )}
                 {selectedTest.action === 'approve' && (
-                  <p className="text-sm text-gray-600 mt-2">
+                  <p className="text-sm text-secondary mt-2">
                     Are you sure you want to approve this test result?
                   </p>
                 )}
@@ -8947,17 +9189,16 @@ const DriverManagement = () => {
               <div className="flex items-center gap-3 justify-end">
                 <button
                   onClick={closeApprovalModal}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-primary bg-card rounded-lg hover:bg-[rgba(255,255,255,0.08)] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={selectedTest.action === 'approve' ? handleTestApproval : handleTestRejection}
-                  className={`px-4 py-2 text-sm font-medium !text-white rounded-lg transition-colors ${
-                    selectedTest.action === 'approve'
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : 'bg-red-600 hover:bg-red-700'
-                  }`}
+                  className={`px-4 py-2 text-sm font-medium !text-white rounded-lg transition-colors ${selectedTest.action === 'approve'
+                    ? 'bg-[var(--accent-green)] hover:bg-[var(--accent-green)]/80'
+                    : 'bg-[var(--accent-red)] hover:bg-[var(--accent-red)]/80'
+                    }`}
                 >
                   {selectedTest.action === 'approve' ? 'Approve' : 'Reject'}
                 </button>
@@ -8970,30 +9211,30 @@ const DriverManagement = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirm.show && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+          <div className="bg-card rounded-xl shadow-xl max-w-md w-full">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <Trash2 className="w-6 h-6 text-red-600" />
+                <div className="flex-shrink-0 w-12 h-12 bg-[var(--accent-red)]/15 rounded-full flex items-center justify-center">
+                  <Trash2 className="w-6 h-6 text-[#A855F7]" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Delete Driver</h3>
-                  <p className="text-sm text-gray-500">This action cannot be undone</p>
+                  <h3 className="text-lg font-semibold text-primary">Delete Driver</h3>
+                  <p className="text-sm text-secondary">This action cannot be undone</p>
                 </div>
               </div>
-              <p className="text-gray-700 mb-6">
+              <p className="text-primary mb-6">
                 Are you sure you want to delete this driver? This will permanently remove the driver and all associated data.
               </p>
               <div className="flex items-center justify-end gap-3">
                 <button
                   onClick={() => setDeleteConfirm({ show: false, driverId: null })}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDeleteDriver}
-                  className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors"
+                  className="px-4 py-2 bg-[var(--accent-red)] !text-white rounded-lg hover:bg-[var(--accent-red)]/80 transition-colors"
                 >
                   Delete
                 </button>
@@ -9006,30 +9247,30 @@ const DriverManagement = () => {
       {/* Delete Certification Confirmation Modal */}
       {confirmDeleteCertification.open && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[10001] p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-md">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <Trash2 className="w-6 h-6 text-red-600" />
+                <div className="flex-shrink-0 w-12 h-12 bg-[var(--accent-red)]/15 rounded-full flex items-center justify-center">
+                  <Trash2 className="w-6 h-6 text-[#A855F7]" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Delete Certification</h3>
-                  <p className="text-sm text-gray-500">This action cannot be undone</p>
+                  <h3 className="text-lg font-semibold text-primary">Delete Certification</h3>
+                  <p className="text-sm text-secondary">This action cannot be undone</p>
                 </div>
               </div>
-              <p className="text-gray-700 mb-6">
-                Are you sure you want to delete the certification <span className="font-medium text-gray-900">{confirmDeleteCertification.cert?.title || 'this item'}</span>? This will permanently remove the certification and all associated data.
+              <p className="text-primary mb-6">
+                Are you sure you want to delete the certification <span className="font-medium text-primary">{confirmDeleteCertification.cert?.title || 'this item'}</span>? This will permanently remove the certification and all associated data.
               </p>
               <div className="flex items-center justify-end gap-3">
                 <button
                   onClick={() => setConfirmDeleteCertification({ open: false, cert: null })}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmDeleteCertification}
-                  className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                  className="px-4 py-2 bg-[var(--accent-red)] !text-white rounded-lg hover:bg-[var(--accent-red)]/80 transition-colors font-medium"
                 >
                   Delete
                 </button>

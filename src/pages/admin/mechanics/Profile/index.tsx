@@ -51,9 +51,9 @@ const ToastNotificationComponent = ({
   };
   const bgColors = {
     success: "bg-green-50 border-green-200",
-    error: "bg-red-50 border-red-200",
-    info: "bg-blue-50 border-blue-200",
-    warning: "bg-yellow-50 border-yellow-200",
+    error: "bg-card border-red-200",
+    info: "bg-card border-blue-200",
+    warning: "bg-card border-yellow-200",
   };
   return (
     <div className="fixed top-4 right-4 z-[10000] space-y-2">
@@ -63,8 +63,8 @@ const ToastNotificationComponent = ({
           className={`flex items-start gap-3 p-3 rounded-lg border-2 shadow-lg ${bgColors[n.type]} min-w-[250px] max-w-[400px]`}
         >
           <div className="flex-shrink-0 mt-0.5">{icons[n.type]}</div>
-          <p className="flex-1 text-sm font-medium text-gray-800">{n.message}</p>
-          <button onClick={() => removeNotification(n.id)} className="flex-shrink-0 text-gray-400 hover:text-gray-600">
+          <p className="flex-1 text-sm font-medium text-headings">{n.message}</p>
+          <button onClick={() => removeNotification(n.id)} className="flex-shrink-0 text-secondary hover:text-secondary">
             <X size={16} />
           </button>
         </div>
@@ -190,31 +190,31 @@ const MechanicsProfile: React.FC = () => {
 
   if (fetchLoading) {
     return (
-      <div className="p-6 flex items-center justify-center py-16 bg-[#EDF8FF] min-h-screen">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#42aeec]" />
+      <div className="p-6 flex items-center justify-center py-16 bg-main min-h-screen">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--accent-blue)]" />
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-[#EDF8FF] min-h-screen">
+    <div className="p-6 bg-main min-h-screen">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">My Profile</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage your account information</p>
+        <h1 className="text-xl font-bold text-headings">My Profile</h1>
+        <p className="text-sm text-secondary mt-1">Manage your account information</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Personal Information */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-[#42aeec]/5 to-transparent flex items-center justify-between">
+        <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+          <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <User className="text-[#42aeec]" size={20} />
-              <h2 className="text-sm font-bold text-gray-900">Personal Information</h2>
+              <User className="text-[var(--accent-blue)]" size={20} />
+              <h2 className="text-sm font-bold text-headings">Personal Information</h2>
             </div>
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-3 py-1.5 text-sm font-medium text-[#42aeec] hover:bg-[#42aeec]/10 rounded-lg transition"
+                className="px-3 py-1.5 text-sm font-medium text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/10 rounded-lg transition"
               >
                 Edit Profile
               </button>
@@ -222,54 +222,54 @@ const MechanicsProfile: React.FC = () => {
           </div>
           <div className="p-4 space-y-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Full Name</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Full Name</label>
               {isEditing ? (
                 <input
                   type="text"
                   name="name"
                   value={editForm.name || ""}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                   placeholder="Enter your full name"
                 />
               ) : (
-                <div className="px-3 py-2 bg-gray-50 rounded-lg text-sm">{profile.name || "Not set"}</div>
+                <div className="px-3 py-2 bg-card rounded-lg text-sm">{profile.name || "Not set"}</div>
               )}
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Email Address</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Email Address</label>
               {isEditing ? (
                 <input
                   type="email"
                   name="email"
                   value={editForm.email || ""}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                   placeholder="Enter your email"
                 />
               ) : (
-                <div className="px-3 py-2 bg-gray-50 rounded-lg text-sm">{profile.email || "Not set"}</div>
+                <div className="px-3 py-2 bg-card rounded-lg text-sm">{profile.email || "Not set"}</div>
               )}
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Phone Number</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Phone Number</label>
               {isEditing ? (
                 <input
                   type="text"
                   name="phone"
                   value={editForm.phone || ""}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                   placeholder="Enter your phone"
                 />
               ) : (
-                <div className="px-3 py-2 bg-gray-50 rounded-lg text-sm">{profile.phone || "Not set"}</div>
+                <div className="px-3 py-2 bg-card rounded-lg text-sm">{profile.phone || "Not set"}</div>
               )}
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Role</label>
-              <div className="px-3 py-2 bg-gray-50 rounded-lg">
-                <span className="px-2 py-0.5 bg-[#42aeec]/20 text-[#42aeec] rounded text-xs font-medium">
+              <label className="block text-xs font-medium text-secondary mb-1">Role</label>
+              <div className="px-3 py-2 bg-card rounded-lg">
+                <span className="px-2 py-0.5 bg-[var(--accent-blue)]/20 text-[var(--accent-blue)] rounded text-xs font-medium">
                   {profile.role || "Not set"}
                 </span>
               </div>
@@ -278,70 +278,70 @@ const MechanicsProfile: React.FC = () => {
         </div>
 
         {/* Location */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-[#42aeec]/5 to-transparent flex items-center gap-2">
-            <MapPin className="text-[#42aeec]" size={20} />
-            <h2 className="text-sm font-bold text-gray-900">Location</h2>
+        <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+          <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent flex items-center gap-2">
+            <MapPin className="text-[var(--accent-navyblue)]" size={20} />
+            <h2 className="text-sm font-bold text-headings">Location</h2>
           </div>
           <div className="p-4 space-y-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Address</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Address</label>
               {isEditing ? (
                 <input
                   type="text"
                   name="address"
                   value={editForm.location?.address || ""}
                   onChange={(e) => setEditForm((prev) => ({ ...prev, location: { ...prev.location, address: e.target.value } }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                   placeholder="Enter address"
                 />
               ) : (
-                <div className="px-3 py-2 bg-gray-50 rounded-lg text-sm">{profile.location?.address || "Not set"}</div>
+                <div className="px-3 py-2 bg-card rounded-lg text-sm">{profile.location?.address || "Not set"}</div>
               )}
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">City</label>
+              <label className="block text-xs font-medium text-secondary mb-1">City</label>
               {isEditing ? (
                 <input
                   type="text"
                   name="city"
                   value={editForm.city || ""}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                   placeholder="Enter city"
                 />
               ) : (
-                <div className="px-3 py-2 bg-gray-50 rounded-lg text-sm">{profile.city || "Not set"}</div>
+                <div className="px-3 py-2 bg-card rounded-lg text-sm">{profile.city || "Not set"}</div>
               )}
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">State / Province</label>
+              <label className="block text-xs font-medium text-secondary mb-1">State / Province</label>
               {isEditing ? (
                 <input
                   type="text"
                   name="state"
                   value={editForm.state || ""}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                   placeholder="Enter state"
                 />
               ) : (
-                <div className="px-3 py-2 bg-gray-50 rounded-lg text-sm">{profile.state || "Not set"}</div>
+                <div className="px-3 py-2 bg-card rounded-lg text-sm">{profile.state || "Not set"}</div>
               )}
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Country</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Country</label>
               {isEditing ? (
                 <input
                   type="text"
                   name="country"
                   value={editForm.country || ""}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                   placeholder="Enter country"
                 />
               ) : (
-                <div className="px-3 py-2 bg-gray-50 rounded-lg text-sm">{profile.country || "Not set"}</div>
+                <div className="px-3 py-2 bg-card rounded-lg text-sm">{profile.country || "Not set"}</div>
               )}
             </div>
           </div>
@@ -350,13 +350,13 @@ const MechanicsProfile: React.FC = () => {
 
       {/* Company (if exists) */}
       {profile.company && (
-        <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-            <Building className="text-[#42aeec]" size={20} />
-            <h2 className="text-sm font-bold text-gray-900">Company</h2>
+        <div className="mt-6 bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+          <div className="px-4 py-3 border-b border-theme flex items-center gap-2">
+            <Building className="text-[var(--accent-navyblue)]" size={20} />
+            <h2 className="text-sm font-bold text-headings">Company</h2>
           </div>
           <div className="p-4">
-            <div className="px-3 py-2 bg-gray-50 rounded-lg text-sm">
+            <div className="px-3 py-2 bg-card rounded-lg text-sm">
               {typeof profile.company === "object" ? profile.company.companyName : profile.company}
             </div>
           </div>
@@ -364,16 +364,16 @@ const MechanicsProfile: React.FC = () => {
       )}
 
       {/* Password Section */}
-      <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div className="mt-6 bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+        <div className="px-4 py-3 border-b border-theme flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Key className="text-[#42aeec]" size={20} />
-            <h2 className="text-sm font-bold text-gray-900">Password</h2>
+            <Key className="text-[var(--accent-navyblue)]" size={20} />
+            <h2 className="text-sm font-bold text-headings">Password</h2>
           </div>
           {!showPasswordSection && (
             <button
               onClick={() => setShowPasswordSection(true)}
-              className="px-3 py-1.5 text-sm font-medium text-[#42aeec] hover:bg-[#42aeec]/10 rounded-lg transition"
+              className="px-3 py-1.5 text-sm font-medium text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/10 rounded-lg transition"
             >
               Change Password
             </button>
@@ -382,38 +382,38 @@ const MechanicsProfile: React.FC = () => {
         {showPasswordSection && (
           <div className="p-4 space-y-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">New Password</label>
+              <label className="block text-xs font-medium text-secondary mb-1">New Password</label>
               <div className="relative">
                 <input
                   type={showNewPassword ? "text" : "password"}
                   value={passwordForm.newPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg pr-10 text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg pr-10 text-sm"
                   placeholder="Enter new password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary"
                 >
                   {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Confirm New Password</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Confirm New Password</label>
               <div className="relative">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   value={passwordForm.confirmPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg pr-10 text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg pr-10 text-sm"
                   placeholder="Confirm new password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary"
                 >
                   {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -428,20 +428,20 @@ const MechanicsProfile: React.FC = () => {
                   ) : (
                     <>
                       <XCircle size={16} className="text-red-500" />
-                      <span className="text-xs text-red-600">Passwords do not match</span>
+                      <span className="text-xs text-[#A855F7]">Passwords do not match</span>
                     </>
                   )}
                 </div>
               )}
             </div>
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-              <button onClick={handleCancelPassword} disabled={loading} className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium disabled:opacity-50">
+            <div className="flex justify-end gap-3 pt-4 border-t border-theme">
+              <button onClick={handleCancelPassword} disabled={loading} className="px-4 py-2 text-headings bg-card hover:bg-gray-200 rounded-lg text-sm font-medium disabled:opacity-50">
                 Cancel
               </button>
               <button
                 onClick={handleChangePassword}
                 disabled={loading}
-                className="px-4 py-2 bg-[#42aeec] text-white hover:bg-[#3598c4] rounded-lg text-sm font-medium disabled:opacity-50"
+                className="px-4 py-2 bg-[var(--accent-blue)] text-white hover:bg-[#3598c4] rounded-lg text-sm font-medium disabled:opacity-50"
               >
                 {loading ? "Updating..." : "Update Password"}
               </button>
@@ -453,13 +453,13 @@ const MechanicsProfile: React.FC = () => {
       {/* Edit Actions */}
       {isEditing && (
         <div className="mt-6 flex justify-end gap-3">
-          <button onClick={handleCancelEdit} disabled={loading} className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium disabled:opacity-50">
+          <button onClick={handleCancelEdit} disabled={loading} className="px-4 py-2 text-primary bg-card hover:bg-gray-200 rounded-lg text-sm font-medium disabled:opacity-50">
             Cancel
           </button>
           <button
             onClick={handleSaveProfile}
             disabled={loading}
-            className="px-4 py-2 bg-[#42aeec] text-white hover:bg-[#3598c4] rounded-lg text-sm font-medium disabled:opacity-50"
+            className="px-4 py-2 bg-[var(--accent-navyblue)] text-white hover:bg-[#3598c4] rounded-lg text-sm font-medium disabled:opacity-50"
           >
             {loading ? "Saving..." : "Save Changes"}
           </button>

@@ -70,7 +70,7 @@ const HRRoleBasedTraining: React.FC = () => {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   // Q&A Modal states
   const [qaTitle, setQATitle] = useState('');
   const [qaDescription, setQADescription] = useState('');
@@ -97,7 +97,7 @@ const HRRoleBasedTraining: React.FC = () => {
       if (contentResponse?.success && Array.isArray(contentResponse.data)) {
         setTrainingContent((prev) => ({
           ...prev,
-          [role]: contentResponse.data.filter((item: TrainingContent) => 
+          [role]: contentResponse.data.filter((item: TrainingContent) =>
             !item.assignedRoles || item.assignedRoles.length === 0 || item.assignedRoles.includes(role)
           )
         }));
@@ -108,7 +108,7 @@ const HRRoleBasedTraining: React.FC = () => {
       if (qaResponse?.success && Array.isArray(qaResponse.data)) {
         setQAContent((prev) => ({
           ...prev,
-          [role]: qaResponse.data.filter((item: QAItem) => 
+          [role]: qaResponse.data.filter((item: QAItem) =>
             !item.assignedRoles || item.assignedRoles.length === 0 || item.assignedRoles.includes(role)
           )
         }));
@@ -189,7 +189,7 @@ const HRRoleBasedTraining: React.FC = () => {
       alert('Please fill in the question and all options');
       return;
     }
-    
+
     setQAQuestions((prev) => [
       ...prev,
       {
@@ -198,7 +198,7 @@ const HRRoleBasedTraining: React.FC = () => {
         correctAnswer: currentQCorrectAnswer,
       }
     ]);
-    
+
     setCurrentQQuestion('');
     setCurrentQOptions(['', '', '', '']);
     setCurrentQCorrectAnswer(0);
@@ -289,30 +289,29 @@ const HRRoleBasedTraining: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-[#EDF8FF] min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <div className="p-6 bg-main min-h-screen">
+      <div className="w-full mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Role-Based Training</h1>
-          <p className="text-gray-600">Upload and manage training materials for different roles</p>
+          <h1 className="text-3xl font-bold text-[var(--accent-navyblue)] mb-2">Role-Based Training</h1>
+          <p className="text-secondary">Upload and manage training materials for different roles</p>
         </div>
 
         <div className="flex gap-6">
           {/* Vertical Role Sidebar */}
           <div className="w-64 flex-shrink-0">
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-4 border-b border-gray-200">
-                <h2 className="font-semibold text-gray-900">Roles</h2>
+            <div className="bg-card rounded-lg shadow-sm">
+              <div className="p-4 border-b border-theme">
+                <h2 className="font-semibold text-[var(--accent-navyblue)]">Roles</h2>
               </div>
               <div className="p-2">
                 {roles.map((role) => (
                   <button
                     key={role.value}
                     onClick={() => setActiveRole(role.value)}
-                    className={`w-full text-left px-4 py-3 rounded-lg mb-1 transition-colors ${
-                      activeRole === role.value
-                        ? "bg-[#0ea3d8] !text-white"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
+                    className={`w-full text-left px-4 py-3 rounded-lg mb-1 transition-colors ${activeRole === role.value
+                      ? "bg-[rgba(0,209,255,0.15)] !text-white"
+                      : "text-primary hover:bg-[rgba(255,255,255,0.03)]"
+                      }`}
                   >
                     {role.label}
                   </button>
@@ -323,179 +322,179 @@ const HRRoleBasedTraining: React.FC = () => {
 
           {/* Tab Content */}
           <div className="flex-1 space-y-6">
-          {roles.map((role) => (
-            <div
-              key={role.value}
-              className={activeRole === role.value ? 'block' : 'hidden'}
-            >
-              {loading ? (
-                <div className="text-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#0ea3d8] mx-auto mb-4" />
-                  <p className="text-gray-600">Loading...</p>
-                </div>
-              ) : (
-                <>
-              {/* Training Materials Section */}
-              <div className="bg-white rounded-lg shadow-sm mb-6">
-                <div className="p-6 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900">Training Materials</h2>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Upload videos, PDFs, and images for {role.label} training
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setShowUploadModal(true);
-                        setUploadType('VIDEO');
-                        setUploadTitle('');
-                        setUploadDescription('');
-                        setUploadFile(null);
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Upload Content
-                    </button>
+            {roles.map((role) => (
+              <div
+                key={role.value}
+                className={activeRole === role.value ? 'block' : 'hidden'}
+              >
+                {loading ? (
+                  <div className="text-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-[rgba(0,209,255,0.15)] mx-auto mb-4" />
+                    <p className="text-secondary">Loading...</p>
                   </div>
-                </div>
-                <div className="p-6">
-                  {trainingContent[role.value]?.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
-                      <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                      <p>No training materials uploaded yet</p>
-                      <p className="text-sm">Click "Upload Content" to add materials</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {trainingContent[role.value].map((item) => (
-                        <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2 flex-1">
-                              <div className="text-[#0ea3d8]">{getIcon(item.type)}</div>
-                              <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={() => handleViewContent(item)}
-                                className="text-blue-600 hover:text-blue-700 p-1"
-                                title="View"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteContent(item._id)}
-                                className="text-red-600 hover:text-red-700 p-1"
-                                title="Delete"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
+                ) : (
+                  <>
+                    {/* Training Materials Section */}
+                    <div className="bg-card rounded-lg shadow-sm mb-6">
+                      <div className="p-6 border-b border-theme">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h2 className="text-xl font-semibold text-[var(--accent-navyblue)]">Training Materials</h2>
+                            <p className="text-sm text-secondary mt-1">
+                              Upload videos, PDFs, and images for {role.label} training
+                            </p>
                           </div>
-                          {item.description && (
-                            <p className="text-sm text-gray-600 mt-2 mb-3">{item.description}</p>
-                          )}
-                          <div className="flex items-center justify-between text-sm text-gray-500 mt-3">
-                            <span className="capitalize bg-gray-200 px-2 py-1 rounded">{getTypeLabel(item.type)}</span>
-                            <span>
-                              {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
-                            </span>
-                          </div>
+                          <button
+                            onClick={() => {
+                              setShowUploadModal(true);
+                              setUploadType('VIDEO');
+                              setUploadTitle('');
+                              setUploadDescription('');
+                              setUploadFile(null);
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Upload Content
+                          </button>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Q&A Section */}
-              <div className="bg-white rounded-lg shadow-sm mt-6">
-                <div className="p-6 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900">Q&A Content</h2>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Manage questions and answers for {role.label} training
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setShowQAModal(true);
-                        setQATitle('');
-                        setQADescription('');
-                        setQAQuestions([]);
-                        setCurrentQQuestion('');
-                        setCurrentQOptions(['', '', '', '']);
-                        setCurrentQCorrectAnswer(0);
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Q&A
-                    </button>
-                  </div>
-                </div>
-                <div className="p-6">
-                  {qaContent[role.value]?.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
-                      <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                      <p>No Q&A content added yet</p>
-                      <p className="text-sm">Click "Add Q&A" to create questions and answers</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {qaContent[role.value].map((item) => (
-                        <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-gray-900 mb-1">{item.testName}</h3>
-                              <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                                <span>Passing: {item.passingPercentage}%</span>
-                                <span>Questions: {item.questions.length}</span>
-                                {item.mandatory && <span className="text-red-600">Mandatory</span>}
+                      </div>
+                      <div className="p-6">
+                        {trainingContent[role.value]?.length === 0 ? (
+                          <div className="text-center py-12 text-secondary">
+                            <Upload className="w-12 h-12 mx-auto mb-4 text-secondary" />
+                            <p>No training materials uploaded yet</p>
+                            <p className="text-sm">Click "Upload Content" to add materials</p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {trainingContent[role.value].map((item) => (
+                              <div key={item._id} className="bg-card rounded-lg p-4 border border-theme relative">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <div className="text-[rgba(0,209,255,0.15)]">{getIcon(item.type)}</div>
+                                    <h3 className="font-semibold text-primary">{item.name}</h3>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      onClick={() => handleViewContent(item)}
+                                      className="text-[#00D1FF] hover:text-blue-700 p-1"
+                                      title="View"
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteContent(item._id)}
+                                      className="text-[#A855F7] hover:text-red-700 p-1"
+                                      title="Delete"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                                {item.description && (
+                                  <p className="text-sm text-secondary mt-2 mb-3">{item.description}</p>
+                                )}
+                                <div className="flex items-center justify-between text-sm text-secondary mt-3">
+                                  <span className="capitalize bg-gray-200 px-2 py-1 rounded">{getTypeLabel(item.type)}</span>
+                                  <span>
+                                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
+                                  </span>
+                                </div>
                               </div>
-                              <div className="space-y-3 mt-3">
-                                {item.questions.map((q, idx) => (
-                                  <div key={idx} className="bg-white rounded p-3 border border-gray-200">
-                                    <p className="font-medium text-gray-900 mb-2">Q{idx + 1}: {q.question}</p>
-                                    <div className="space-y-1">
-                                      {q.options.map((option, optIdx) => (
-                                        <div key={optIdx} className="flex items-center gap-2">
-                                          <input
-                                            type="radio"
-                                            checked={q.correctAnswer === optIdx}
-                                            readOnly
-                                            className="w-4 h-4"
-                                          />
-                                          <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-green-600 font-medium' : 'text-gray-600'}`}>
-                                            {String.fromCharCode(65 + optIdx)}. {option}
-                                            {q.correctAnswer === optIdx && ' ✓'}
-                                          </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Q&A Section */}
+                    <div className="bg-card rounded-lg shadow-sm mt-6">
+                      <div className="p-6 border-b border-theme">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h2 className="text-xl font-semibold text-[var(--accent-navyblue)]">Q&A Content</h2>
+                            <p className="text-sm text-secondary mt-1">
+                              Manage questions and answers for {role.label} training
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setShowQAModal(true);
+                              setQATitle('');
+                              setQADescription('');
+                              setQAQuestions([]);
+                              setCurrentQQuestion('');
+                              setCurrentQOptions(['', '', '', '']);
+                              setCurrentQCorrectAnswer(0);
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Add Q&A
+                          </button>
+                        </div>
+                      </div>
+                      <div className="p-6">
+                        {qaContent[role.value]?.length === 0 ? (
+                          <div className="text-center py-12 text-secondary">
+                            <MessageSquare className="w-12 h-12 mx-auto mb-4 text-secondary" />
+                            <p>No Q&A content added yet</p>
+                            <p className="text-sm">Click "Add Q&A" to create questions and answers</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {qaContent[role.value].map((item) => (
+                              <div key={item._id} className="bg-card rounded-lg p-4 border border-theme relative">
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="flex-1">
+                                    <h3 className="font-semibold text-primary mb-1">{item.testName}</h3>
+                                    <div className="flex items-center gap-4 text-sm text-secondary mb-3">
+                                      <span>Passing: {item.passingPercentage}%</span>
+                                      <span>Questions: {item.questions.length}</span>
+                                      {item.mandatory && <span className="text-[#A855F7]">Mandatory</span>}
+                                    </div>
+                                    <div className="space-y-3 mt-3">
+                                      {item.questions.map((q, idx) => (
+                                        <div key={idx} className="bg-card rounded p-3 border border-theme">
+                                          <p className="font-medium text-primary mb-2">Q{idx + 1}: {q.question}</p>
+                                          <div className="space-y-1">
+                                            {q.options.map((option, optIdx) => (
+                                              <div key={optIdx} className="flex items-center gap-2">
+                                                <input
+                                                  type="radio"
+                                                  checked={q.correctAnswer === optIdx}
+                                                  readOnly
+                                                  className="w-4 h-4"
+                                                />
+                                                <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-green-600 font-medium' : 'text-secondary'}`}>
+                                                  {String.fromCharCode(65 + optIdx)}. {option}
+                                                  {q.correctAnswer === optIdx && ' ✓'}
+                                                </span>
+                                              </div>
+                                            ))}
+                                          </div>
                                         </div>
                                       ))}
                                     </div>
                                   </div>
-                                ))}
+                                  <button
+                                    onClick={() => handleDeleteQA(item._id)}
+                                    className="text-[#A855F7] hover:text-red-700 p-1 ml-4"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                            <button
-                              onClick={() => handleDeleteQA(item._id)}
-                              className="text-red-600 hover:text-red-700 p-1 ml-4"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            ))}
                           </div>
-                        </div>
-                      ))}
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
+                  </>
+                )}
               </div>
-                </>
-              )}
-            </div>
-          ))}
+            ))}
           </div>
         </div>
       </div>
@@ -503,33 +502,32 @@ const HRRoleBasedTraining: React.FC = () => {
       {/* Upload Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => !uploading && setShowUploadModal(false)}>
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-card rounded-lg shadow-lg w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-theme">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Upload Training Content</h3>
+                <h3 className="text-lg font-semibold text-[var(--accent-navyblue)]">Upload Training Content</h3>
                 <button
                   onClick={() => !uploading && setShowUploadModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-secondary hover:text-secondary"
                   disabled={uploading}
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <p className="text-sm text-gray-600 mt-1">Add a new training material</p>
+              <p className="text-sm text-secondary mt-1">Add a new training material</p>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Content Type</label>
+                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-2">Content Type</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setUploadType('VIDEO')}
                     disabled={uploading}
-                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      uploadType === 'VIDEO'
-                        ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                    } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${uploadType === 'VIDEO'
+                      ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
+                      : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
+                      } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Video className="w-4 h-4 inline mr-2" />
                     Video
@@ -538,11 +536,10 @@ const HRRoleBasedTraining: React.FC = () => {
                     type="button"
                     onClick={() => setUploadType('PDF')}
                     disabled={uploading}
-                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      uploadType === 'PDF'
-                        ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                    } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${uploadType === 'PDF'
+                      ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
+                      : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
+                      } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <FileText className="w-4 h-4 inline mr-2" />
                     PDF
@@ -551,11 +548,10 @@ const HRRoleBasedTraining: React.FC = () => {
                     type="button"
                     onClick={() => setUploadType('IMAGE')}
                     disabled={uploading}
-                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      uploadType === 'IMAGE'
-                        ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                    } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${uploadType === 'IMAGE'
+                      ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
+                      : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
+                      } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Image className="w-4 h-4 inline mr-2" />
                     Image
@@ -563,7 +559,7 @@ const HRRoleBasedTraining: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="title" className="block text-sm font-medium text-[var(--accent-navyblue)] mb-2">
                   Title *
                 </label>
                 <input
@@ -573,11 +569,11 @@ const HRRoleBasedTraining: React.FC = () => {
                   onChange={(e) => setUploadTitle(e.target.value)}
                   placeholder="Enter content title"
                   disabled={uploading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                 />
               </div>
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="description" className="block text-sm font-medium text-[var(--accent-navyblue)] mb-2">
                   Description
                 </label>
                 <textarea
@@ -587,11 +583,11 @@ const HRRoleBasedTraining: React.FC = () => {
                   placeholder="Enter content description (optional)"
                   rows={3}
                   disabled={uploading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                 />
               </div>
               <div>
-                <label htmlFor="file" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="file" className="block text-sm font-medium text-[var(--accent-navyblue)] mb-2">
                   File *
                 </label>
                 <input
@@ -600,21 +596,21 @@ const HRRoleBasedTraining: React.FC = () => {
                   accept={uploadType === 'VIDEO' ? 'video/*' : uploadType === 'PDF' ? 'application/pdf' : 'image/*'}
                   onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                   disabled={uploading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                 />
               </div>
               <div className="flex gap-2 justify-end pt-4">
                 <button
                   onClick={() => !uploading && setShowUploadModal(false)}
                   disabled={uploading}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleUpload}
                   disabled={uploading || !uploadTitle.trim() || !uploadFile}
-                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {uploading ? (
                     <>
@@ -637,24 +633,24 @@ const HRRoleBasedTraining: React.FC = () => {
       {/* Q&A Modal */}
       {showQAModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => !creatingQA && setShowQAModal(false)}>
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
+          <div className="bg-card rounded-lg shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-theme sticky top-0 bg-card">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Add Q&A</h3>
+                <h3 className="text-lg font-semibold text-primary">Add Q&A</h3>
                 <button
                   onClick={() => !creatingQA && setShowQAModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-secondary hover:text-secondary"
                   disabled={creatingQA}
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <p className="text-sm text-gray-600 mt-1">Create questions with multiple choice answers</p>
+              <p className="text-sm text-secondary mt-1">Create questions with multiple choice answers</p>
             </div>
             <div className="p-6 space-y-6">
               {/* Title */}
               <div>
-                <label htmlFor="qa-title" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="qa-title" className="block text-sm font-medium text-primary mb-2">
                   Title *
                 </label>
                 <input
@@ -664,13 +660,13 @@ const HRRoleBasedTraining: React.FC = () => {
                   onChange={(e) => setQATitle(e.target.value)}
                   placeholder="Enter Q&A title"
                   disabled={creatingQA}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label htmlFor="qa-description" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="qa-description" className="block text-sm font-medium text-primary mb-2">
                   Description
                 </label>
                 <textarea
@@ -680,26 +676,26 @@ const HRRoleBasedTraining: React.FC = () => {
                   placeholder="Enter description (optional)"
                   rows={3}
                   disabled={creatingQA}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                 />
               </div>
 
               {/* Existing Questions */}
               {qaQuestions.length > 0 && (
-                <div className="border-t border-gray-200 pt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                <div className="border-t border-theme pt-4">
+                  <label className="block text-sm font-medium text-primary mb-3">
                     Added Questions ({qaQuestions.length})
                   </label>
                   <div className="space-y-3 max-h-60 overflow-y-auto">
                     {qaQuestions.map((q, index) => (
-                      <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div key={index} className="bg-card rounded-lg p-4 border border-theme">
                         <div className="flex items-start justify-between mb-2">
-                          <p className="font-medium text-gray-900 flex-1">Q{index + 1}: {q.question}</p>
+                          <p className="font-medium text-primary flex-1">Q{index + 1}: {q.question}</p>
                           <button
                             type="button"
                             onClick={() => handleRemoveQuestionFromQA(index)}
                             disabled={creatingQA}
-                            className="text-red-600 hover:text-red-700 ml-2 disabled:opacity-50"
+                            className="text-[#A855F7] hover:text-red-700 ml-2 disabled:opacity-50"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -713,7 +709,7 @@ const HRRoleBasedTraining: React.FC = () => {
                                 readOnly
                                 className="w-4 h-4"
                               />
-                              <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-green-600 font-medium' : 'text-gray-600'}`}>
+                              <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-green-600 font-medium' : 'text-secondary'}`}>
                                 {String.fromCharCode(65 + optIdx)}. {option}
                                 {q.correctAnswer === optIdx && ' ✓ (Correct)'}
                               </span>
@@ -727,13 +723,13 @@ const HRRoleBasedTraining: React.FC = () => {
               )}
 
               {/* Add New Question */}
-              <div className="border-t border-gray-200 pt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+              <div className="border-t border-theme pt-4">
+                <label className="block text-sm font-medium text-primary mb-3">
                   Add New Question
                 </label>
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="new-question" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="new-question" className="block text-sm font-medium text-primary mb-2">
                       Question *
                     </label>
                     <textarea
@@ -743,13 +739,13 @@ const HRRoleBasedTraining: React.FC = () => {
                       placeholder="Enter question"
                       rows={2}
                       disabled={creatingQA}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                     />
                   </div>
 
                   {/* Options */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       Options (at least 2 required) *
                     </label>
                     <div className="space-y-2">
@@ -763,7 +759,7 @@ const HRRoleBasedTraining: React.FC = () => {
                             disabled={creatingQA}
                             className="w-4 h-4"
                           />
-                          <span className="text-sm font-medium text-gray-700 w-6">
+                          <span className="text-sm font-medium text-primary w-6">
                             {String.fromCharCode(65 + idx)}.
                           </span>
                           <input
@@ -776,12 +772,12 @@ const HRRoleBasedTraining: React.FC = () => {
                             }}
                             placeholder={`Option ${String.fromCharCode(65 + idx)}`}
                             disabled={creatingQA}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                            className="flex-1 px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                           />
                         </div>
                       ))}
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-secondary mt-2">
                       Select the radio button next to the correct answer
                     </p>
                   </div>
@@ -790,7 +786,7 @@ const HRRoleBasedTraining: React.FC = () => {
                     type="button"
                     onClick={handleAddQuestionToQA}
                     disabled={creatingQA || !currentQQuestion.trim() || currentQOptions.filter(opt => opt.trim()).length < 2}
-                    className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full px-4 py-2 bg-card text-primary rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Add Question
@@ -798,18 +794,18 @@ const HRRoleBasedTraining: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex gap-2 justify-end pt-4 border-t border-gray-200">
+              <div className="flex gap-2 justify-end pt-4 border-t border-theme">
                 <button
                   onClick={() => !creatingQA && setShowQAModal(false)}
                   disabled={creatingQA}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddQA}
                   disabled={creatingQA || !qaTitle.trim() || qaQuestions.length === 0}
-                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {creatingQA ? (
                     <>

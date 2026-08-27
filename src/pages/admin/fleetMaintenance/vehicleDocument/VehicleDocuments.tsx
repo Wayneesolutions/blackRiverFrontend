@@ -15,8 +15,8 @@ import { FLEET_COLORS } from "../colorUtils";
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
 const ACCENT_GRADIENT = FLEET_COLORS.gradient;
-const CUSTOM_GRADIENT = 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)';
-const CUSTOM_BLUE = '#0ea3d8';
+const CUSTOM_GRADIENT = 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)';
+const CUSTOM_BLUE = 'rgba(0,209,255,0.15)';
 
 const focusRingStyle = {
   "--tw-ring-color": ACCENT_PRIMARY
@@ -150,7 +150,7 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
+    error: 'bg-card border-red-200',
     info: ''
   };
 
@@ -170,10 +170,10 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -926,7 +926,7 @@ function VehicleDocument() {
       case "expiring-soon":
         return "bg-yellow-100 text-yellow-700 border border-yellow-200";
       default:
-        return "bg-gray-100 text-gray-700 border border-gray-200";
+        return "bg-card text-primary border border-theme";
     }
   };
 
@@ -1117,28 +1117,28 @@ function VehicleDocument() {
         onScroll={(e) => e.stopPropagation()}
       >
         <div
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative max-h-[90vh] flex flex-col"
+          className="bg-card rounded-2xl shadow-2xl w-full max-w-lg relative max-h-[90vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Modal Header */}
-          <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl flex-shrink-0">
+          <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between rounded-t-2xl flex-shrink-0">
             <div className="flex items-center gap-3">
               {getVehicleTypeIcon(currentAssetType)}
               <div>
-                <h3 className="text-xl font-bold text-gray-800">
+                <h3 className="text-xl font-bold text-primary">
                   {editingDoc ? "Update Document" : "Add New Document"}
                 </h3>
-                <p className="text-sm text-gray-500 mt-0.5">
+                <p className="text-sm text-secondary mt-0.5">
                   {assetInfo.name} Documents
                 </p>
               </div>
             </div>
             <button
               onClick={() => setShowDocModal(false)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+              className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors flex-shrink-0"
               disabled={submitting}
             >
-              <FaTimes className="text-gray-500" size={20} />
+              <FaTimes className="text-secondary" size={20} />
             </button>
           </div>
 
@@ -1152,7 +1152,7 @@ function VehicleDocument() {
             {/* Asset Type Selector */}
             {activeTab === "all" && (
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-primary mb-2">
                   Asset Type <span className="text-red-500">*</span>
                 </label>
                 <div className="flex items-center gap-3">
@@ -1170,7 +1170,7 @@ function VehicleDocument() {
                         }}
                         className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${isActive
                           ? "shadow-sm"
-                          : "bg-white border-gray-200 text-gray-600 hover:border-[#016ab2]/40"
+                          : "bg-card border-theme text-secondary hover:border-[#016ab2]/40"
                           }`}
                         style={isActive ? { ...info.bgStyle, color: info.textStyle.color } : undefined}
                       >
@@ -1191,7 +1191,7 @@ function VehicleDocument() {
                   <h4 className="font-bold text-lg" style={assetInfo.textStyle}>
                     {assetInfo.name} Documents
                   </h4>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-secondary">
                     {currentAssetType === "trailer"
                       ? "Adding documentation for company trailers"
                       : "Adding documentation for company vehicles"}
@@ -1202,7 +1202,7 @@ function VehicleDocument() {
 
             {/* Select Vehicle/Trailer */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-primary mb-2">
                 Select {currentAssetType === "trailer" ? "Trailer" : "Vehicle"} <span className="text-red-500">*</span>
                 {currentAssetType === "trailer" && (
                   <span className="ml-2 px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: 'rgba(14, 163, 216, 0.1)', color: CUSTOM_BLUE }}>
@@ -1211,7 +1211,7 @@ function VehicleDocument() {
                 )}
               </label>
               <select
-                className="w-full border border-gray-300 rounded-lg p-3 bg-white focus:ring-2 focus:border-transparent transition-all"
+                className="w-full border border-theme rounded-lg p-3 bg-card focus:ring-2 focus:border-transparent transition-all"
                 style={focusRingStyle}
                 value={selectedAssetId || ""}
                 onChange={handleAssetSelectChange}
@@ -1261,19 +1261,19 @@ function VehicleDocument() {
                         <span className={`font-bold text-lg`} style={getVehicleTypeInfo(selectedAsset.assetType).textStyle}>
                           {getVehicleTypeInfo(selectedAsset.assetType).name.toUpperCase()}
                         </span>
-                        <span className="text-xs bg-white bg-opacity-50 px-2 py-1 rounded-full font-medium">
+                        <span className="text-xs bg-card bg-opacity-50 px-2 py-1 rounded-full font-medium">
                           {getVehicleTypeInfo(selectedAsset.assetType).description}
                         </span>
                       </div>
-                      <p className="font-semibold text-gray-800 text-lg">
+                      <p className="font-semibold text-primary text-lg">
                         {selectedAsset.assetType === "trailer"
                           ? selectedAsset.trailerName || selectedAsset.make
                           : `${selectedAsset.make ?? ""} ${selectedAsset.model ?? ""}`}
                         {selectedAsset.sourceType === "fleetUnit" && (
-                          <span className="text-xs text-gray-500 font-medium ml-2">(Fleet Unit)</span>
+                          <span className="text-xs text-secondary font-medium ml-2">(Fleet Unit)</span>
                         )}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-secondary">
                         {selectedAsset.assetType === "trailer"
                           ? `${selectedAsset.type || "Type N/A"}${selectedAsset.capacity ? ` • Capacity: ${selectedAsset.capacity}` : ""}`
                           : `${selectedAsset.year ?? "Year N/A"} • Plate: ${selectedAsset.plateNumber || "N/A"}`}
@@ -1286,17 +1286,17 @@ function VehicleDocument() {
 
             {/* Document Type */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-primary mb-2">
                 Document Type <span className="text-red-500">*</span>
                 {selectedAsset && (
-                  <span className="text-xs text-gray-500 ml-2">
+                  <span className="text-xs text-secondary ml-2">
                     ({selectedAsset.assetType === "trailer" ? "Trailer" : "Vehicle"} Documents)
                   </span>
                 )}
               </label>
               <select
                 name="documentType"
-                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
+                className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
                 style={focusRingStyle}
                 value={formData.documentType}
                 onChange={handleInputChange}
@@ -1334,13 +1334,13 @@ function VehicleDocument() {
 
             {/* Document Number */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-primary mb-2">
                 Document Number <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="documentNumber"
-                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
+                className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
                 style={focusRingStyle}
                 value={formData.documentNumber}
                 onChange={handleInputChange}
@@ -1364,13 +1364,13 @@ function VehicleDocument() {
             {/* Issued Date & Expiry Date */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-primary mb-2">
                   Issued Date <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
                   name="issuedAt"
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
+                  className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
                   style={focusRingStyle}
                   value={formData.issuedAt}
                   onChange={handleInputChange}
@@ -1391,13 +1391,13 @@ function VehicleDocument() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-primary mb-2">
                   Expiry Date <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
                   name="expiryDate"
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
+                  className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
                   style={focusRingStyle}
                   value={formData.expiryDate}
                   onChange={handleInputChange}
@@ -1420,13 +1420,13 @@ function VehicleDocument() {
 
             {/* Upload Document */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-primary mb-2">
                 Upload Document
               </label>
               <div className="relative">
                 <input
                   type="file"
-                  className="w-full border border-gray-300 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#016ab2]/10 file:text-[#016ab2] hover:file:bg-[#016ab2]/20 transition-all"
+                  className="w-full border border-theme rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#016ab2]/10 file:text-[#016ab2] hover:file:bg-[#016ab2]/20 transition-all"
                   style={focusRingStyle}
                   onChange={handleFileChange}
                   onFocus={(e) => e.stopPropagation()}
@@ -1442,10 +1442,10 @@ function VehicleDocument() {
           </div>
 
           {/* Modal Footer - Fixed at bottom */}
-          <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl flex-shrink-0">
+          <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl flex-shrink-0">
             <button
               type="button"
-              className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+              className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
               onClick={() => setShowDocModal(false)}
               disabled={submitting}
             >
@@ -1468,10 +1468,10 @@ function VehicleDocument() {
 
   const ViewDocumentModal = () => (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl relative max-h-[90vh] flex flex-col">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-4xl relative max-h-[90vh] flex flex-col">
         {/* Modal Header */}
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-2xl z-10 flex-shrink-0">
-          <h3 className="text-xl font-bold text-gray-800">
+        <div className="sticky top-0 bg-card border-b px-6 py-4 flex items-center justify-between rounded-t-2xl z-10 flex-shrink-0">
+          <h3 className="text-xl font-bold text-primary">
             Document Details: {getDocumentTypeDisplayName(viewingDoc?.documentType || '')}
           </h3>
           <button
@@ -1480,9 +1480,9 @@ function VehicleDocument() {
               setViewingFile(null);
               setSignedFileUrl(null);
             }}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
           >
-            <FaTimes className="text-gray-500" size={20} />
+            <FaTimes className="text-secondary" size={20} />
           </button>
         </div>
 
@@ -1490,29 +1490,29 @@ function VehicleDocument() {
         <div className="flex-1 overflow-y-auto">
           <div className="p-6 space-y-6">
             {/* Document Information */}
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h4 className="text-lg font-bold text-gray-800 mb-4">Document Information</h4>
+            <div className="bg-card rounded-xl p-6">
+              <h4 className="text-lg font-bold text-primary mb-4">Document Information</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Document Number</label>
-                  <p className="text-lg font-semibold text-gray-800">{viewingDoc?.documentNumber}</p>
+                  <label className="block text-sm font-medium text-secondary mb-1">Document Number</label>
+                  <p className="text-lg font-semibold text-primary">{viewingDoc?.documentNumber}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Document Type</label>
-                  <p className="text-lg font-semibold text-gray-800 capitalize">{getDocumentTypeDisplayName(viewingDoc?.documentType || '')}</p>
+                  <label className="block text-sm font-medium text-secondary mb-1">Document Type</label>
+                  <p className="text-lg font-semibold text-primary capitalize">{getDocumentTypeDisplayName(viewingDoc?.documentType || '')}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Issued Date</label>
-                  <p className="text-lg font-semibold text-gray-800">{formatDate(viewingDoc?.issuedAt || '')}</p>
+                  <label className="block text-sm font-medium text-secondary mb-1">Issued Date</label>
+                  <p className="text-lg font-semibold text-primary">{formatDate(viewingDoc?.issuedAt || '')}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Expiry Date</label>
-                  <p className="text-lg font-semibold text-gray-800">{formatDate(viewingDoc?.expiryDate || '')}</p>
+                  <label className="block text-sm font-medium text-secondary mb-1">Expiry Date</label>
+                  <p className="text-lg font-semibold text-primary">{formatDate(viewingDoc?.expiryDate || '')}</p>
                 </div>
               </div>
               {viewingDoc?.status && (
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Status</label>
+                  <label className="block text-sm font-medium text-secondary mb-1">Status</label>
                   <span className={`text-sm px-3 py-1 rounded-full font-semibold ${getStatusBadgeColor(viewingDoc.status)}`}>
                     {viewingDoc.status}
                   </span>
@@ -1522,22 +1522,22 @@ function VehicleDocument() {
 
             {/* Document Files */}
             <div>
-              <h4 className="text-lg font-bold text-gray-800 mb-4">Uploaded Files</h4>
+              <h4 className="text-lg font-bold text-primary mb-4">Uploaded Files</h4>
               {viewingDoc?.files && viewingDoc.files.length > 0 ? (
                 <div className="space-y-3">
                   {viewingDoc.files.map((file) => (
-                    <div key={file._id || file.fileUrl} className="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all bg-white">
+                    <div key={file._id || file.fileUrl} className="border border-theme rounded-xl p-4 hover:shadow-lg transition-all bg-card">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="p-2 rounded-lg" style={{ backgroundColor: "rgba(1, 106, 178, 0.1)" }}>
                             <FaFileAlt size={18} style={{ color: ACCENT_PRIMARY }} />
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-800">{file.fileName}</p>
-                            <p className="text-sm text-gray-500">
+                            <p className="font-semibold text-primary">{file.fileName}</p>
+                            <p className="text-sm text-secondary">
                               {(file.fileSize / 1024 / 1024).toFixed(2)} MB • {file.fileType.toUpperCase()}
                             </p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-secondary">
                               Uploaded: {formatDate(file.uploadedAt)}
                             </p>
                           </div>
@@ -1642,7 +1642,7 @@ function VehicleDocument() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl">
+                <div className="text-center py-12 text-secondary bg-card rounded-xl">
                   <FaFileAlt size={40} className="mx-auto mb-3 opacity-30" />
                   <p className="text-sm font-medium">No files uploaded for this document</p>
                   {viewingDoc?.documentLocation && (
@@ -1707,9 +1707,9 @@ function VehicleDocument() {
 
               {/* File Preview Section */}
               {viewingFile && (
-                <div className="p-6 border-t border-gray-200 bg-gray-50">
+                <div className="p-6 border-t border-theme bg-card">
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-lg font-bold text-gray-800">Preview: {viewingFile.fileName}</h4>
+                    <h4 className="text-lg font-bold text-primary">Preview: {viewingFile.fileName}</h4>
                     <button
                       onClick={() => {
                         setViewingFile(null);
@@ -1718,22 +1718,22 @@ function VehicleDocument() {
                       }}
                       className="p-2 hover:bg-gray-200 rounded-full transition-colors"
                     >
-                      <FaTimes className="text-gray-500" size={16} />
+                      <FaTimes className="text-secondary" size={16} />
                     </button>
                   </div>
 
                   {loadingFileUrl ? (
-                    <div className="flex flex-col items-center justify-center h-[60vh] bg-white rounded-lg">
+                    <div className="flex flex-col items-center justify-center h-[60vh] bg-card rounded-lg">
                       <div
                         className="animate-spin rounded-full h-12 w-12 border-b-4 mb-4"
                         style={{ borderColor: "rgba(1, 106, 178, 0.2)", borderBottomColor: ACCENT_PRIMARY }}
                       ></div>
-                      <p className="text-gray-600">Loading file...</p>
+                      <p className="text-secondary">Loading file...</p>
                     </div>
                   ) : !signedFileUrl ? (
-                    <div className="flex flex-col items-center justify-center h-[60vh] bg-white rounded-lg border-2 border-dashed border-gray-300">
-                      <FaFileAlt className="text-gray-400 mb-4" size={48} />
-                      <p className="text-sm text-gray-600 mb-4">No file URL available.</p>
+                    <div className="flex flex-col items-center justify-center h-[60vh] bg-card rounded-lg border-2 border-dashed border-theme">
+                      <FaFileAlt className="text-secondary mb-4" size={48} />
+                      <p className="text-sm text-secondary mb-4">No file URL available.</p>
                       <button
                         onClick={async () => {
                           try {
@@ -1762,9 +1762,9 @@ function VehicleDocument() {
                       // Ensure we have a valid URL
                       if (!signedFileUrl) {
                         return (
-                          <div className="flex flex-col items-center justify-center h-[60vh] bg-white rounded-lg border-2 border-dashed border-gray-300">
-                            <FaFileAlt className="text-gray-400 mb-4" size={48} />
-                            <p className="text-sm text-gray-600 mb-4">No file URL available.</p>
+                          <div className="flex flex-col items-center justify-center h-[60vh] bg-card rounded-lg border-2 border-dashed border-theme">
+                            <FaFileAlt className="text-secondary mb-4" size={48} />
+                            <p className="text-sm text-secondary mb-4">No file URL available.</p>
                           </div>
                         );
                       }
@@ -1780,7 +1780,7 @@ function VehicleDocument() {
                           <iframe
                             title="PDF Preview"
                             src={pdfUrl}
-                            className="w-full h-[60vh] border rounded-lg bg-white"
+                            className="w-full h-[60vh] border rounded-lg bg-card"
                             style={{ minHeight: '60vh' }}
                             onError={(e) => {
                               console.error('❌ PDF iframe load error:', e);
@@ -1839,10 +1839,10 @@ function VehicleDocument() {
                             </button>
                           </div>
                           {viewerError && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 rounded-lg">
+                            <div className="absolute inset-0 flex items-center justify-center bg-card bg-opacity-90 rounded-lg">
                               <div className="text-center p-4">
                                 <FaFileAlt className="text-yellow-500 mb-2 mx-auto" size={32} />
-                                <p className="text-sm text-gray-600 mb-3">PDF could not be displayed in viewer.</p>
+                                <p className="text-sm text-secondary mb-3">PDF could not be displayed in viewer.</p>
                                 <button
                                   onClick={() => {
                                     window.open(signedFileUrl, '_blank', 'noopener,noreferrer');
@@ -1858,7 +1858,7 @@ function VehicleDocument() {
                       );
                     } else if (isImage) {
                       return (
-                        <div className="flex flex-col items-center justify-center bg-white rounded-lg border p-4">
+                        <div className="flex flex-col items-center justify-center bg-card rounded-lg border p-4">
                           <img
                             src={signedFileUrl}
                             alt={viewingFile.fileName}
@@ -1873,9 +1873,9 @@ function VehicleDocument() {
                       );
                     } else {
                       return (
-                        <div className="flex flex-col items-center justify-center h-[60vh] bg-white rounded-lg border-2 border-dashed border-gray-300">
-                          <FaFileAlt className="text-gray-400 mb-4" size={48} />
-                          <p className="text-sm text-gray-600 mb-4">This file type cannot be previewed in the browser.</p>
+                        <div className="flex flex-col items-center justify-center h-[60vh] bg-card rounded-lg border-2 border-dashed border-theme">
+                          <FaFileAlt className="text-secondary mb-4" size={48} />
+                          <p className="text-sm text-secondary mb-4">This file type cannot be previewed in the browser.</p>
                           <button
                             onClick={async () => {
                               try {
@@ -1910,10 +1910,10 @@ function VehicleDocument() {
         </div>
 
         {/* Modal Footer */}
-        <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl flex-shrink-0">
+        <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl flex-shrink-0">
           <button
             type="button"
-            className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+            className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
             onClick={() => {
               setShowViewModal(false);
               setViewingFile(null);
@@ -1929,27 +1929,27 @@ function VehicleDocument() {
 
   const DeleteConfirmationModal = () => (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md relative">
         {/* Modal Header */}
-        <div className="bg-red-50 border-b border-red-100 px-6 py-4 flex items-center gap-3 rounded-t-2xl">
+        <div className="bg-card border-b border-red-100 px-6 py-4 flex items-center gap-3 rounded-t-2xl">
           <div className="p-2 bg-red-100 rounded-full">
-            <FaTrash className="text-red-600" size={20} />
+            <FaTrash className="text-[#A855F7]" size={20} />
           </div>
           <h3 className="text-xl font-bold text-red-900">Delete Document</h3>
         </div>
 
         {/* Modal Body */}
         <div className="p-6">
-          <p className="text-gray-700 text-base">
+          <p className="text-primary text-base">
             Are you sure you want to delete this document? This action cannot be undone.
           </p>
         </div>
 
         {/* Modal Footer */}
-        <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
+        <div className="bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
           <button
             type="button"
-            className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+            className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
             onClick={cancelDelete}
           >
             Cancel
@@ -1967,7 +1967,7 @@ function VehicleDocument() {
   );
 
   return (
-    <div className="p-6  min-h-screen bg-[#EDF8FF]" >
+    <div className="p-6  min-h-screen bg-main" >
       {/* Notifications Container */}
       <div className="fixed top-4 right-4 z-[200] space-y-3 max-w-md">
         {notifications.map(notification => (
@@ -1980,7 +1980,7 @@ function VehicleDocument() {
       </div>
 
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Vehicle Documents</h1>
+        <h1 className="text-3xl font-bold text-primary">Vehicle Documents</h1>
         <button
           onClick={handleAddDocument}
           className="flex items-center gap-2 px-5 py-3 !text-white rounded-lg shadow-lg hover:shadow-xl transition-all font-medium hover:opacity-90"
@@ -1992,23 +1992,23 @@ function VehicleDocument() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4">
+        <div className="bg-card rounded-lg shadow-md border border-theme p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gray-100 rounded-lg">
-              <FaCar className="text-gray-600" size={18} />
+            <div className="p-2 bg-card rounded-lg">
+              <FaCar className="text-secondary" size={18} />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-gray-800">
+              <h3 className="text-xl font-bold text-primary">
                 {tabStats.vehicles}
               </h3>
-              <p className="text-gray-600 text-xs font-medium">
+              <p className="text-secondary text-xs font-medium">
                 Total Vehicles
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4">
+        <div className="bg-card rounded-lg shadow-md border border-theme p-4">
           <div className="flex items-center gap-3">
             <div
               className="p-2 rounded-lg"
@@ -2020,7 +2020,7 @@ function VehicleDocument() {
               <h3 className="text-xl font-bold" style={{ color: CUSTOM_BLUE }}>
                 {tabStats.trailers}
               </h3>
-              <p className="text-gray-600 text-xs font-medium">
+              <p className="text-secondary text-xs font-medium">
                 Trailers
               </p>
             </div>
@@ -2030,13 +2030,13 @@ function VehicleDocument() {
 
 
       {/* Tabs */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 mb-6">
-        <div className="flex flex-col md:flex-row border-b border-gray-200 divide-y md:divide-y-0">
+      <div className="bg-card rounded-xl shadow-lg border border-theme mb-6">
+        <div className="flex flex-col md:flex-row border-b border-theme divide-y md:divide-y-0">
           <button
             onClick={() => setActiveTab('all')}
             className={`flex-1 px-6 py-4 text-sm font-semibold transition-all ${activeTab === 'all'
               ? 'border-b-2 md:border-b-0 md:border-r-2'
-              : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+              : 'text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.03)]'
               }`}
             style={
               activeTab === 'all'
@@ -2045,9 +2045,9 @@ function VehicleDocument() {
             }
           >
             <div className="flex items-center justify-center gap-2">
-              <FaCar className="text-gray-500" size={16} />
+              <FaCar className="text-secondary" size={16} />
               All Units
-              <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">
+              <span className="bg-card text-secondary px-2 py-1 rounded-full text-xs font-medium">
                 {tabStats.total}
               </span>
             </div>
@@ -2056,7 +2056,7 @@ function VehicleDocument() {
             onClick={() => setActiveTab('vehicles')}
             className={`flex-1 px-6 py-4 text-sm font-semibold transition-all ${activeTab === 'vehicles'
               ? 'border-b-2 md:border-b-0 md:border-r-2'
-              : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+              : 'text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.03)]'
               }`}
             style={
               activeTab === 'vehicles'
@@ -2067,7 +2067,7 @@ function VehicleDocument() {
             <div className="flex items-center justify-center gap-2">
               <FaCar className="text-blue-500" size={16} />
               Trucks
-              <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs font-medium">
+              <span className="bg-blue-100 text-[#00D1FF] px-2 py-1 rounded-full text-xs font-medium">
                 {tabStats.vehicles}
               </span>
             </div>
@@ -2076,7 +2076,7 @@ function VehicleDocument() {
             onClick={() => setActiveTab('trailers')}
             className={`flex-1 px-6 py-4 text-sm font-semibold transition-all ${activeTab === 'trailers'
               ? 'border-b-2'
-              : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+              : 'text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.03)]'
               }`}
             style={activeTab === 'trailers' ? {
               color: CUSTOM_BLUE,
@@ -2101,10 +2101,10 @@ function VehicleDocument() {
             className="animate-spin rounded-full h-16 w-16 border-b-4 mx-auto mb-4"
             style={{ borderColor: "rgba(1, 106, 178, 0.2)", borderBottomColor: ACCENT_PRIMARY }}
           ></div>
-          <p className="text-gray-500 text-lg">Loading vehicles and documents...</p>
+          <p className="text-secondary text-lg">Loading vehicles and documents...</p>
         </div>
       ) : getFilteredVehicles().length === 0 ? (
-        <div className="bg-white shadow-lg rounded-2xl p-16 text-center text-gray-500">
+        <div className="bg-card shadow-lg rounded-2xl p-16 text-center text-secondary">
           {activeTab === 'all' ? (
             <>
               <FaCar size={64} className="mx-auto mb-4 text-gray-300" />
@@ -2114,7 +2114,7 @@ function VehicleDocument() {
             <>
               <FaTrailer size={64} className="mx-auto mb-4" color={CUSTOM_BLUE} style={{ opacity: 0.5 }} />
               <p className="text-xl font-semibold">No trailer documents found</p>
-              <p className="text-gray-400 mt-2">Add documents for your trailers to see them here</p>
+              <p className="text-secondary mt-2">Add documents for your trailers to see them here</p>
             </>
           )}
         </div>
@@ -2142,12 +2142,12 @@ function VehicleDocument() {
             return (
               <div
                 key={`${item.assetType}:${item._id}`}
-                className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-200"
+                className="bg-card shadow-md rounded-xl overflow-hidden border border-theme"
               >
                 {/* Asset Header */}
                 <div className="p-4 text-white" style={headerStyle}>
                   <div className="flex items-center gap-3">
-                    <div className="p-3 bg-white text-black bg-opacity-20 rounded-lg backdrop-blur-sm">
+                    <div className="p-3 bg-card text-black bg-opacity-20 rounded-lg backdrop-blur-sm">
                       {getVehicleTypeIcon(assetType)}
                     </div>
 
@@ -2160,7 +2160,7 @@ function VehicleDocument() {
                       </p>
                     </div>
 
-                    <span className="px-3 py-1 text-black bg-white bg-opacity-20 rounded-full text-xs font-semibold capitalize backdrop-blur-sm">
+                    <span className="px-3 py-1 text-black bg-card bg-opacity-20 rounded-full text-xs font-semibold capitalize backdrop-blur-sm">
                       {statusLabel}
                     </span>
                   </div>
@@ -2169,14 +2169,14 @@ function VehicleDocument() {
                 {/* Documents List */}
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-bold text-gray-800 flex items-center gap-2 text-base">
+                    <h3 className="font-bold text-primary flex items-center gap-2 text-base">
                       <FaFileAlt style={{ color: ACCENT_PRIMARY }} />
                       Documents ({item.documents?.length || 0})
                     </h3>
                   </div>
 
                   {!item.documents || item.documents.length === 0 ? (
-                    <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-lg">
+                    <div className="text-center py-8 text-secondary bg-card rounded-lg">
                       <FaFileAlt size={28} className="mx-auto mb-2 opacity-30" />
                       <p className="text-xs font-medium">No documents available</p>
                     </div>
@@ -2185,7 +2185,7 @@ function VehicleDocument() {
                       {item.documents.map((doc) => (
                         <div
                           key={doc._id}
-                          className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50"
+                          className="border border-theme rounded-lg p-3 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50"
                         >
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-2">
@@ -2197,7 +2197,7 @@ function VehicleDocument() {
                               </div>
 
                               <div>
-                                <span className="font-semibold text-gray-800 capitalize block text-sm">
+                                <span className="font-semibold text-primary capitalize block text-sm">
                                   {getDocumentTypeDisplayName(doc.documentType)}
                                 </span>
 
@@ -2215,7 +2215,7 @@ function VehicleDocument() {
 
                             <div className="flex gap-1.5">
                               <button
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-all border border-blue-200"
+                                className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-md transition-all border border-blue-200"
                                 onClick={() => handleViewDocument(doc)}
                                 title="View Document"
                               >
@@ -2235,7 +2235,7 @@ function VehicleDocument() {
                               </button>
 
                               <button
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-all border border-red-200"
+                                className="p-2 text-[#A855F7] hover:bg-red-50 rounded-md transition-all border border-red-200"
                                 onClick={() => handleDeleteDocument(doc._id)}
                                 title="Delete Document"
                               >
@@ -2244,19 +2244,19 @@ function VehicleDocument() {
                             </div>
                           </div>
 
-                          <div className="text-xs text-gray-600 space-y-1 ml-8">
+                          <div className="text-xs text-secondary space-y-1 ml-8">
                             <p className="flex items-center gap-1.5">
-                              <span className="font-semibold text-gray-700">Number:</span>
-                              <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded">
+                              <span className="font-semibold text-primary">Number:</span>
+                              <span className="font-mono bg-card px-1.5 py-0.5 rounded">
                                 {doc.documentNumber}
                               </span>
                             </p>
 
                             <p className="flex items-center gap-1.5">
-                              <span className="font-semibold text-gray-700">Issued:</span>
+                              <span className="font-semibold text-primary">Issued:</span>
                               <span>{formatDate(doc.issuedAt)}</span>
-                              <span className="text-gray-400">•</span>
-                              <span className="font-semibold text-gray-700">Expiry:</span>
+                              <span className="text-secondary">•</span>
+                              <span className="font-semibold text-primary">Expiry:</span>
                               <span>{formatDate(doc.expiryDate)}</span>
                             </p>
                           </div>

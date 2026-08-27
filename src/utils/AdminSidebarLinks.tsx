@@ -54,7 +54,7 @@ export const AdminSidebarLinks: AdminSidebarLink[] = [
     {
         key: "subscription",
         icon: <MdCreditCard />,
-        label: "Subscription & Plans",
+        label: "My Subscription",
     },
     {
         key: "company-documents",

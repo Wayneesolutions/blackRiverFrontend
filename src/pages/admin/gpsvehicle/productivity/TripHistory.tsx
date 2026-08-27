@@ -67,7 +67,7 @@ const TripHistory = () => {
 
   const OptionsModal = () => (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm  z-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-lg w-96 max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-lg shadow-lg w-96 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="text-lg font-semibold">Display Options</h3>
           <button onClick={() => setShowOptionsModal(false)}>
@@ -78,7 +78,7 @@ const TripHistory = () => {
         <div className="p-6 space-y-6">
           {/* Data Period Section */}
           <div>
-            <h4 className="font-medium text-gray-900 mb-3">Data Period</h4>
+            <h4 className="font-medium text-primary mb-3">Data Period</h4>
             <div className="space-y-2">
               {datePeriodOptions.map((period) => (
                 <button
@@ -87,7 +87,7 @@ const TripHistory = () => {
                   className={`w-full text-left px-3 py-2 rounded transition-colors ${
                     selectedPeriod === period 
                       ? 'bg-purple-100 text-purple-700 border border-purple-300' 
-                      : 'hover:bg-gray-50 text-gray-700'
+                      : 'hover:bg-[rgba(255,255,255,0.03)] text-primary'
                   }`}
                 >
                   {period}
@@ -98,20 +98,20 @@ const TripHistory = () => {
 
           {/* Display Options */}
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">Display Settings</h4>
+            <h4 className="font-medium text-primary">Display Settings</h4>
             
             {/* Include Archived Data */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Include Archived (Historical) Data</span>
+              <span className="text-sm text-primary">Include Archived (Historical) Data</span>
               <div className="flex items-center space-x-2">
-                <span className="text-xs text-gray-500">On</span>
+                <span className="text-xs text-secondary">On</span>
                 <button
                   onClick={() => setIncludeArchived(!includeArchived)}
                   className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
                     includeArchived ? 'bg-purple-600' : 'bg-gray-300'
                   }`}
                 >
-                  <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                  <span className={`inline-block h-3 w-3 transform rounded-full bg-card transition-transform ${
                     includeArchived ? 'translate-x-5' : 'translate-x-1'
                   }`} />
                 </button>
@@ -120,12 +120,12 @@ const TripHistory = () => {
 
             {/* Exclude Stops */}
             <div className="space-y-2">
-              <label className="text-sm text-gray-700">Exclude Stops</label>
+              <label className="text-sm text-primary">Exclude Stops</label>
               <div className="flex items-center space-x-4">
                 <select
                   value={excludeStops}
                   onChange={(e) => setExcludeStops(e.target.value)}
-                  className="text-xs border border-gray-300 rounded px-2 py-1"
+                  className="text-xs border border-theme rounded px-2 py-1"
                 >
                   <option>Under</option>
                   <option>Over</option>
@@ -134,32 +134,32 @@ const TripHistory = () => {
                   type="number"
                   value={stopDuration}
                   onChange={(e) => setStopDuration(e.target.value)}
-                  className="w-16 text-xs border border-gray-300 rounded px-2 py-1"
+                  className="w-16 text-xs border border-theme rounded px-2 py-1"
                 />
-                <span className="text-xs text-gray-500">Minutes</span>
+                <span className="text-xs text-secondary">Minutes</span>
               </div>
             </div>
 
             {/* Over Duration */}
             <div className="space-y-2">
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-700">Over</span>
+                <span className="text-sm text-primary">Over</span>
                 <input
                   type="number"
                   value={overStopDuration}
                   onChange={(e) => setOverStopDuration(e.target.value)}
-                  className="w-16 text-xs border border-gray-300 rounded px-2 py-1"
+                  className="w-16 text-xs border border-theme rounded px-2 py-1"
                 />
-                <span className="text-xs text-gray-500">Minutes</span>
+                <span className="text-xs text-secondary">Minutes</span>
               </div>
             </div>
 
             {/* Trip Categories */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Trip Categories</span>
+              <span className="text-sm text-primary">Trip Categories</span>
               <div className="flex items-center space-x-2">
-                <span className="text-xs text-gray-500">Show</span>
-                <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">Hide</span>
+                <span className="text-xs text-secondary">Show</span>
+                <span className="text-xs bg-gray-200 text-secondary px-2 py-1 rounded">Hide</span>
               </div>
             </div>
           </div>
@@ -167,7 +167,7 @@ const TripHistory = () => {
           <div className="flex space-x-3">
             <button
               onClick={() => setShowOptionsModal(false)}
-              className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded hover:bg-gray-300 transition-colors"
+              className="flex-1 bg-gray-200 text-primary py-2 px-4 rounded hover:bg-gray-300 transition-colors"
             >
               Cancel
             </button>
@@ -185,7 +185,7 @@ const TripHistory = () => {
 
   const ReportModal = () => (
     <div className="fixed inset-0  bg-gray-900/50 backdrop-blur-sm  z-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-lg w-96">
+      <div className="bg-card rounded-lg shadow-lg w-96">
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="text-lg font-semibold">Prepare For Download</h3>
           <button onClick={() => setShowReportModal(false)}>
@@ -195,15 +195,15 @@ const TripHistory = () => {
         
         <div className="p-6">
           <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Report Formats</h4>
+            <h4 className="text-sm font-medium text-primary mb-3">Report Formats</h4>
             <div className="space-y-3">
               {reportFormats.map((format, index) => {
                 const IconComponent = format.icon;
                 return (
-                  <div key={index} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                  <div key={index} className="flex items-center justify-between p-2 hover:bg-[rgba(255,255,255,0.03)] rounded">
                     <div className="flex items-center space-x-2">
-                      <IconComponent className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">{format.name}</span>
+                      <IconComponent className="h-4 w-4 text-secondary" />
+                      <span className="text-sm text-primary">{format.name}</span>
                     </div>
                     <div className="flex space-x-2">
                       <button
@@ -230,9 +230,9 @@ const TripHistory = () => {
   );
 
   const SummaryView = () => (
-    <div className="bg-white rounded-lg shadow-sm border mt-6">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">
+    <div className="bg-card rounded-lg shadow-sm border mt-6">
+      <div className="px-6 py-4 border-b border-theme">
+        <h2 className="text-lg font-semibold text-primary">
           Activity and Trips Summary Report
         </h2>
       </div>
@@ -240,18 +240,18 @@ const TripHistory = () => {
       <div className="p-6">
         {tripData.map((trip) => (
           <div key={trip.id} className="mb-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">{trip.id}</h3>
+            <h3 className="text-lg font-medium text-primary mb-4">{trip.id}</h3>
             
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2 w-32">
                   <div className="w-3 h-3 rounded bg-red-400"></div>
-                  <span className="text-sm font-medium text-gray-700">Idling</span>
+                  <span className="text-sm font-medium text-primary">Idling</span>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center space-x-2">
                     <div className="h-4 rounded-full bg-red-400" style={{width: '30%'}}></div>
-                    <span className="text-sm text-gray-600">{trip.totalIdlingDuration}</span>
+                    <span className="text-sm text-secondary">{trip.totalIdlingDuration}</span>
                   </div>
                 </div>
               </div>
@@ -259,12 +259,12 @@ const TripHistory = () => {
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2 w-32">
                   <div className="w-3 h-3 rounded bg-green-400"></div>
-                  <span className="text-sm font-medium text-gray-700">On Trip Stopped</span>
+                  <span className="text-sm font-medium text-primary">On Trip Stopped</span>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center space-x-2">
                     <div className="h-4 rounded-full bg-green-400" style={{width: '40%'}}></div>
-                    <span className="text-sm text-gray-600">{trip.totalStopDuration}</span>
+                    <span className="text-sm text-secondary">{trip.totalStopDuration}</span>
                   </div>
                 </div>
               </div>
@@ -272,12 +272,12 @@ const TripHistory = () => {
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2 w-32">
                   <div className="w-3 h-3 rounded bg-blue-400"></div>
-                  <span className="text-sm font-medium text-gray-700">Tracking</span>
+                  <span className="text-sm font-medium text-primary">Tracking</span>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center space-x-2">
                     <div className="h-4 rounded-full bg-blue-400" style={{width: '60%'}}></div>
-                    <span className="text-sm text-gray-600">{trip.totalDrivingDuration}</span>
+                    <span className="text-sm text-secondary">{trip.totalDrivingDuration}</span>
                   </div>
                 </div>
               </div>
@@ -290,7 +290,7 @@ const TripHistory = () => {
                 <div className="bg-green-400 h-full" style={{width: '70%'}}></div>
                 <div className="bg-blue-400 h-full" style={{width: '20%'}}></div>
               </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <div className="flex justify-between text-xs text-secondary mt-1">
                 <span>Start</span>
                 <span>End</span>
               </div>
@@ -302,23 +302,23 @@ const TripHistory = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-card p-6">
       <div className="max-w-7xl mx-auto">
         {/* Top Navigation Bar */}
-        <div className="bg-white rounded-lg shadow-sm border mb-6">
+        <div className="bg-card rounded-lg shadow-sm border mb-6">
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center space-x-4">
               {/* Search By Trip */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary" />
                 <input
                   type="text"
                   placeholder="Search By Trip"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
-                <Settings className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Settings className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary" />
               </div>
 
               {/* Filter By Group */}
@@ -326,20 +326,20 @@ const TripHistory = () => {
                 <select 
                   value={selectedGroup}
                   onChange={(e) => setSelectedGroup(e.target.value)}
-                  className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="appearance-none bg-card border border-theme rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
                   <option>Filter By Group</option>
                   <option>All Groups</option>
                   <option>Group A</option>
                   <option>Group B</option>
                 </select>
-                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary" />
               </div>
 
               {/* Options */}
               <button 
                 onClick={() => setShowOptionsModal(true)}
-                className="flex items-center space-x-1 px-4 py-2 border !mr-3 border-gray-300 rounded-lg hover:bg-gray-50"
+                className="flex items-center space-x-1 px-4 py-2 border !mr-3 border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
               >
                 <span>Options</span>
                 <ChevronDown className="h-4 w-4" />
@@ -348,7 +348,7 @@ const TripHistory = () => {
               {/* Summary */}
               <button 
                 onClick={() => setShowSummary(!showSummary)}
-                className="px-4 py-2 border !mr-3 border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 border !mr-3 border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
               >
                 Summary
               </button>
@@ -359,7 +359,7 @@ const TripHistory = () => {
               <div className="relative">
                 <button 
                   onClick={() => setShowReportModal(true)}
-                  className="flex items-center space-x-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="flex items-center space-x-1 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                 >
                   <span>Report</span>
                   <ChevronDown className="h-4 w-4" />
@@ -371,8 +371,8 @@ const TripHistory = () => {
             <button className="flex items-center space-x-2 bg-gray-800 !text-white px-4 py-2 rounded-lg hover:bg-gray-900">
               <span>Show All Trips</span>
               <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-white rounded"></div>
-                <div className="w-2 h-2 bg-white rounded"></div>
+                <div className="w-2 h-2 bg-card rounded"></div>
+                <div className="w-2 h-2 bg-card rounded"></div>
               </div>
             </button>
           </div>
@@ -381,7 +381,7 @@ const TripHistory = () => {
         {/* Trip History List */}
         <div className="space-y-4">
           {tripData.map((trip) => (
-            <div key={trip.id} className="bg-white rounded-lg shadow-sm border">
+            <div key={trip.id} className="bg-card rounded-lg shadow-sm border">
               {/* Trip Header */}
               <div className="bg-purple-500 text-white px-6 py-3 rounded-t-lg">
                 <div className="flex items-center justify-between">
@@ -403,7 +403,7 @@ const TripHistory = () => {
                       <span>Total Distance</span>
                       <span className="font-medium">{trip.totalDistance}</span>
                     </div>
-                    {/* <button className="bg-white text-gray-800 px-3 py-1 rounded text-sm font-medium hover:bg-gray-100">
+                    {/* <button className="bg-card text-primary px-3 py-1 rounded text-sm font-medium hover:bg-[rgba(255,255,255,0.03)]">
                       Show Trips
                       <div className="inline-flex ml-2 space-x-1">
                         <div className="w-1 h-1 bg-gray-800 rounded"></div>
@@ -418,21 +418,21 @@ const TripHistory = () => {
               <div className="px-6 py-4">
                 <div className="space-y-3">
                   {trip.activities.map((activity, index) => (
-                    <div key={index} className="grid grid-cols-6 gap-4 py-2 border-b border-gray-100 last:border-b-0">
+                    <div key={index} className="grid grid-cols-6 gap-4 py-2 border-b border-theme last:border-b-0">
                       <div className="flex items-center space-x-2">
                         <span className="text-lg">{activity.icon}</span>
                       </div>
-                      <div className="font-medium text-gray-900">{activity.type}</div>
-                      <div className="text-gray-600">{activity.time}</div>
-                      <div className="text-gray-600">Stop Duration</div>
-                      <div className="text-gray-600">{activity.stopDuration}</div>
-                      <div className="text-gray-600">Idling</div>
+                      <div className="font-medium text-primary">{activity.type}</div>
+                      <div className="text-secondary">{activity.time}</div>
+                      <div className="text-secondary">Stop Duration</div>
+                      <div className="text-secondary">{activity.stopDuration}</div>
+                      <div className="text-secondary">Idling</div>
                       <div></div>
                       <div></div>
                       <div></div>
                       <div></div>
                       <div></div>
-                      <div className="text-gray-600">{activity.idling}</div>
+                      <div className="text-secondary">{activity.idling}</div>
                     </div>
                   ))}
                 </div>

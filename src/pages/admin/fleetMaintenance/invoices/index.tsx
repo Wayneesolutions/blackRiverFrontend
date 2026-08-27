@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import jsPDF from 'jspdf';
+import DocLogo from '../../../../assets/doclogo.png';
 import {
   FaFileInvoice,
   FaPlus,
@@ -669,9 +670,9 @@ const FleetInvoicesPage = () => {
       }
 
       if (response?.success) {
-        setNotification({ 
-          type: 'success', 
-          message: editingInvoiceId ? 'Invoice updated successfully' : 'Invoice created successfully' 
+        setNotification({
+          type: 'success',
+          message: editingInvoiceId ? 'Invoice updated successfully' : 'Invoice created successfully'
         });
         setSidebarOpen(false);
         resetForm();
@@ -680,9 +681,9 @@ const FleetInvoicesPage = () => {
         setNotification({ type: 'error', message: response?.message || 'Failed to save invoice' });
       }
     } catch (err: any) {
-      setNotification({ 
-        type: 'error', 
-        message: err?.response?.data?.message || err?.message || 'Failed to save invoice' 
+      setNotification({
+        type: 'error',
+        message: err?.response?.data?.message || err?.message || 'Failed to save invoice'
       });
     } finally {
       setSaving(false);
@@ -704,9 +705,9 @@ const FleetInvoicesPage = () => {
         setNotification({ type: 'error', message: response?.message || 'Failed to delete invoice' });
       }
     } catch (err: any) {
-      setNotification({ 
-        type: 'error', 
-        message: err?.response?.data?.message || err?.message || 'Failed to delete invoice' 
+      setNotification({
+        type: 'error',
+        message: err?.response?.data?.message || err?.message || 'Failed to delete invoice'
       });
     } finally {
       setDeleting(null);
@@ -726,24 +727,24 @@ const FleetInvoicesPage = () => {
     for (const item of items) {
       if (item.productService) {
         const [type, id] = item.productService.split(':');
-        
+
         if (type === 'service' && id) {
           try {
             const serviceRes = await listVehicleServices({});
             if (serviceRes?.success && Array.isArray(serviceRes.data)) {
               const service = (serviceRes.data as any[]).find((s: any) => s._id === id);
               if (service) {
-                const unitNo = service.unitNumber || 
-                              service.vehicleId?.internalId || 
-                              service.vehicleId?.plateNumber || 
-                              '';
+                const unitNo = service.unitNumber ||
+                  service.vehicleId?.internalId ||
+                  service.vehicleId?.plateNumber ||
+                  '';
                 if (unitNo && !vehicleMap.has(unitNo)) {
                   vehicleMap.set(unitNo, {
                     unitNumber: unitNo,
                     unitType: service.unitType || service.vehicleId?.type || 'Truck',
-                    makeModel: service.makeModel || 
-                               (service.vehicleId ? `${service.vehicleId.make || ''} ${service.vehicleId.model || ''}`.trim() : '') ||
-                               '',
+                    makeModel: service.makeModel ||
+                      (service.vehicleId ? `${service.vehicleId.make || ''} ${service.vehicleId.model || ''}`.trim() : '') ||
+                      '',
                     vinNumber: service.vehicleId?.vinNumber || '',
                     plateNumber: service.vehicleId?.plateNumber || ''
                   });
@@ -763,9 +764,9 @@ const FleetInvoicesPage = () => {
                   vehicleMap.set(repair.unitNumber, {
                     unitNumber: repair.unitNumber,
                     unitType: repair.unitType || 'Truck',
-                    makeModel: repair.makeModel || 
-                               (repair.vehicleId ? `${repair.vehicleId.make || ''} ${repair.vehicleId.model || ''}`.trim() : '') ||
-                               '',
+                    makeModel: repair.makeModel ||
+                      (repair.vehicleId ? `${repair.vehicleId.make || ''} ${repair.vehicleId.model || ''}`.trim() : '') ||
+                      '',
                     vinNumber: repair.vehicleId?.vinNumber || repair.vinNumber || '',
                     plateNumber: repair.vehicleId?.plateNumber || repair.plateNumber || ''
                   });
@@ -788,7 +789,7 @@ const FleetInvoicesPage = () => {
       if (response?.success && response.data) {
         const invoice = response.data;
         setEditingInvoiceId(invoice._id);
-        
+
         // Fetch vehicle information from invoice items
         if (Array.isArray(invoice.items) && invoice.items.length > 0) {
           const vehicles = await fetchVehicleInfoFromItems(invoice.items);
@@ -796,14 +797,14 @@ const FleetInvoicesPage = () => {
         } else {
           setVehicleInfo([]);
         }
-        
+
         // Set customer
-        const customerIdValue = invoice.customerId 
-          ? (typeof invoice.customerId === 'object' && invoice.customerId._id 
-              ? invoice.customerId._id 
-              : invoice.customerId)
+        const customerIdValue = invoice.customerId
+          ? (typeof invoice.customerId === 'object' && invoice.customerId._id
+            ? invoice.customerId._id
+            : invoice.customerId)
           : null;
-        
+
         if (customerIdValue) {
           setCustomerId(customerIdValue);
           const customer = customers.find(c => c._id === customerIdValue);
@@ -835,24 +836,24 @@ const FleetInvoicesPage = () => {
           setCustomerEmail(invoice.customerEmail || '');
           setBillingAddress(invoice.customerAddress || '');
         }
-        
+
         // Set dates and terms
-        const invoiceDateStr = invoice.invoiceDate 
-          ? (typeof invoice.invoiceDate === 'string' 
-              ? invoice.invoiceDate.split('T')[0] 
-              : new Date(invoice.invoiceDate).toISOString().split('T')[0])
+        const invoiceDateStr = invoice.invoiceDate
+          ? (typeof invoice.invoiceDate === 'string'
+            ? invoice.invoiceDate.split('T')[0]
+            : new Date(invoice.invoiceDate).toISOString().split('T')[0])
           : new Date().toISOString().split('T')[0];
-        const dueDateStr = invoice.dueDate 
-          ? (typeof invoice.dueDate === 'string' 
-              ? invoice.dueDate.split('T')[0] 
-              : new Date(invoice.dueDate).toISOString().split('T')[0])
+        const dueDateStr = invoice.dueDate
+          ? (typeof invoice.dueDate === 'string'
+            ? invoice.dueDate.split('T')[0]
+            : new Date(invoice.dueDate).toISOString().split('T')[0])
           : '';
         setInvoiceDate(invoiceDateStr);
         setDueDate(dueDateStr);
         setTerms(invoice.terms || '');
         setInvoiceNo(invoice.invoiceNumber || '');
         setMessageOnInvoice(invoice.messageOnInvoice || '');
-        
+
         // Set line items
         if (Array.isArray(invoice.items) && invoice.items.length > 0) {
           const items: LineItem[] = invoice.items.map((item: any, idx: number) => {
@@ -869,7 +870,7 @@ const FleetInvoicesPage = () => {
             };
           });
           setLineItems(items);
-          
+
           // Fetch vehicle info when items are loaded
           fetchVehicleInfoFromItems(invoice.items).then(vehicles => {
             setVehicleInfo(vehicles);
@@ -887,15 +888,15 @@ const FleetInvoicesPage = () => {
         } else {
           setLabourTax('gst');
         }
-        
+
         setSidebarOpen(true);
       } else {
         setNotification({ type: 'error', message: 'Failed to load invoice details' });
       }
     } catch (err: any) {
-      setNotification({ 
-        type: 'error', 
-        message: err?.response?.data?.message || err?.message || 'Failed to load invoice details' 
+      setNotification({
+        type: 'error',
+        message: err?.response?.data?.message || err?.message || 'Failed to load invoice details'
       });
     }
   };
@@ -992,12 +993,12 @@ const FleetInvoicesPage = () => {
     const contentWidth = pageWidth - margin * 2;
 
     // Palette
-    const blue: [number, number, number]    = [1, 106, 178];
-    const dark: [number, number, number]    = [31, 41, 55];
-    const gray: [number, number, number]    = [107, 114, 128];
+    const blue: [number, number, number] = [1, 106, 178];
+    const dark: [number, number, number] = [31, 41, 55];
+    const gray: [number, number, number] = [107, 114, 128];
     const lightBlue: [number, number, number] = [235, 246, 255];
-    const rowAlt: [number, number, number]  = [249, 250, 251];
-    const white: [number, number, number]   = [255, 255, 255];
+    const rowAlt: [number, number, number] = [249, 250, 251];
+    const white: [number, number, number] = [255, 255, 255];
     const lineGray: [number, number, number] = [209, 213, 219];
 
     let yPos = 0;
@@ -1041,6 +1042,31 @@ const FleetInvoicesPage = () => {
         });
         doc.addImage(base64, 'PNG', margin, 5, 24, 14);
         logoEndX = margin + 28;
+      } catch { /* skip */ }
+    } else {
+      try {
+        const img = new Image();
+        img.src = DocLogo;
+        await new Promise<void>((resolve) => {
+          img.onload = () => {
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.drawImage(img, 0, 0);
+                const imgData = canvas.toDataURL('image/png');
+                const logoWidth = 24;
+                const logoHeight = (img.height / img.width) * logoWidth;
+                doc.addImage(imgData, 'PNG', margin, 5, logoWidth, logoHeight);
+                logoEndX = margin + logoWidth + 4;
+              }
+            } catch { /* skip */ }
+            resolve();
+          };
+          img.onerror = () => resolve();
+        });
       } catch { /* skip */ }
     }
 
@@ -1144,9 +1170,9 @@ const FleetInvoicesPage = () => {
         if (parts.length > 1) vehRows.push(['Model', parts.slice(1).join(' ')]);
       }
       if (v.unitNumber) vehRows.push(['Unit', v.unitNumber]);
-      if (v.unitType)   vehRows.push(['Type', v.unitType]);
+      if (v.unitType) vehRows.push(['Type', v.unitType]);
       if (v.plateNumber) vehRows.push(['Plate', v.plateNumber]);
-      if (v.vinNumber)  vehRows.push(['VIN', v.vinNumber]);
+      if (v.vinNumber) vehRows.push(['VIN', v.vinNumber]);
     } else {
       vehRows.push(['', 'N/A']);
     }
@@ -1215,17 +1241,17 @@ const FleetInvoicesPage = () => {
 
     // Column layout: Type | Description | Qty/Hrs | Rate | Amount
     const tRight = pageWidth - margin;
-    const typeW  = 20;
-    const qtyW   = 18;
-    const rateW  = 24;
-    const amtW   = 24;
-    const descW  = contentWidth - typeW - qtyW - rateW - amtW;
+    const typeW = 20;
+    const qtyW = 18;
+    const rateW = 24;
+    const amtW = 24;
+    const descW = contentWidth - typeW - qtyW - rateW - amtW;
 
     const xType = margin;
     const xDesc = margin + typeW;
-    const xQty  = xDesc + descW + qtyW / 2;
+    const xQty = xDesc + descW + qtyW / 2;
     const xRate = xDesc + descW + qtyW + rateW;
-    const xAmt  = tRight;
+    const xAmt = tRight;
 
     // Table header row
     doc.setFillColor(...lightBlue);
@@ -1233,11 +1259,11 @@ const FleetInvoicesPage = () => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
     doc.setTextColor(...blue);
-    doc.text('Type',      xType + 1,     yPos);
-    doc.text('Description', xDesc + 1,   yPos);
-    doc.text('Qty/Hrs',   xQty,          yPos, { align: 'center' });
-    doc.text('Rate',      xRate,         yPos, { align: 'right' });
-    doc.text('Amount',    xAmt,          yPos, { align: 'right' });
+    doc.text('Type', xType + 1, yPos);
+    doc.text('Description', xDesc + 1, yPos);
+    doc.text('Qty/Hrs', xQty, yPos, { align: 'center' });
+    doc.text('Rate', xRate, yPos, { align: 'right' });
+    doc.text('Amount', xAmt, yPos, { align: 'right' });
     yPos += 2;
     hRule(yPos, blue, 0.4);
     yPos += 4;
@@ -1248,9 +1274,9 @@ const FleetInvoicesPage = () => {
 
     let rowIdx = 0;
     for (const item of items) {
-      const desc     = (item.description || '—').toString().trim();
+      const desc = (item.description || '—').toString().trim();
       const dLines: string[] = doc.splitTextToSize(desc, descW - 3);
-      const rh       = Math.max(dLines.length * 5.5, 7);
+      const rh = Math.max(dLines.length * 5.5, 7);
       checkPageBreak(rh + 3);
 
       // Alternating row background
@@ -1261,18 +1287,18 @@ const FleetInvoicesPage = () => {
 
       const qty = Number(item.quantity) || 1;
       const rate = Number(item.unitPrice) || 0;
-      const amt  = Number(item.totalPrice) || rate * qty;
-      const ps   = item.productService || '';
+      const amt = Number(item.totalPrice) || rate * qty;
+      const ps = item.productService || '';
       const itemType = ps.startsWith('service:') ? 'Labor' : ps.startsWith('repair:') ? 'Part' : 'Item';
 
       doc.setTextColor(...gray);
       doc.setFont('helvetica', 'normal');
-      doc.text(itemType,         xType + 1, yPos);
+      doc.text(itemType, xType + 1, yPos);
       doc.setTextColor(...dark);
-      doc.text(dLines,           xDesc + 1, yPos);
-      doc.text(String(qty),      xQty,      yPos, { align: 'center' });
+      doc.text(dLines, xDesc + 1, yPos);
+      doc.text(String(qty), xQty, yPos, { align: 'center' });
       doc.text(`$${rate.toFixed(2)}`, xRate, yPos, { align: 'right' });
-      doc.text(`$${amt.toFixed(2)}`,  xAmt,  yPos, { align: 'right' });
+      doc.text(`$${amt.toFixed(2)}`, xAmt, yPos, { align: 'right' });
 
       // Tax badge on second line if applicable
       if (item.taxName && Number(item.taxPercent) > 0) {
@@ -1288,8 +1314,8 @@ const FleetInvoicesPage = () => {
     }
 
     // Labour row if applicable
-    const labourHrs    = Number(invoice.labourHours)  || 0;
-    const labourRate   = Number(invoice.labourRate)   || 0;
+    const labourHrs = Number(invoice.labourHours) || 0;
+    const labourRate = Number(invoice.labourRate) || 0;
     const labourAmount = Number(invoice.labourAmount) || labourHrs * labourRate;
     const labourTaxPct = Number(invoice.labourTaxPercent) || 0;
     const labourTaxAmt = labourAmount * (labourTaxPct / 100);
@@ -1322,13 +1348,13 @@ const FleetInvoicesPage = () => {
       const base = (Number(it.quantity) || 1) * (Number(it.unitPrice) || 0);
       return sum + base * (Number(it.taxPercent) || 0) / 100;
     }, 0);
-    const subtotal  = Number(invoice.subtotal)  || (itemsSubtotal + labourAmount);
+    const subtotal = Number(invoice.subtotal) || (itemsSubtotal + labourAmount);
     const taxAmount = Number(invoice.taxAmount) || (itemsTax + labourTaxAmt);
-    const total     = Number(invoice.total)     || subtotal + taxAmount;
+    const total = Number(invoice.total) || subtotal + taxAmount;
 
     const sumLabelX = pageWidth - margin - 55;
-    const sumValX   = tRight;
-    const sumRowH   = 6.5;
+    const sumValX = tRight;
+    const sumRowH = 6.5;
 
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
@@ -1459,8 +1485,8 @@ const FleetInvoicesPage = () => {
           amount: Number(item.totalPrice) || (Number(item.quantity) || 1) * (Number(item.unitPrice) || 0),
           salesTax: d.taxName?.toLowerCase().includes('gst') ? 'gst'
             : d.taxName?.toLowerCase().includes('hst') ? 'hst'
-            : d.taxName?.toLowerCase().includes('pst') ? 'pst'
-            : 'none',
+              : d.taxName?.toLowerCase().includes('pst') ? 'pst'
+                : 'none',
         }));
         setLineItems(mapped);
       }
@@ -1510,12 +1536,12 @@ const FleetInvoicesPage = () => {
   };
 
   return (
-    <div className="p-6 min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
+    <div className="p-6 min-h-screen bg-main" >
 
       {/* Professional Email Sent Toast */}
       {emailToast && (
         <div
-          className="fixed top-6 right-6 z-[9999] w-[360px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
+          className="fixed top-6 right-6 z-[9999] w-[360px] bg-card rounded-2xl shadow-2xl border border-theme overflow-hidden"
           style={{ animation: 'slideInToast .3s cubic-bezier(.21,1.02,.73,1) forwards' }}
         >
           <style>{`@keyframes slideInToast{from{opacity:0;transform:translateX(110%)}to{opacity:1;transform:translateX(0)}}`}</style>
@@ -1529,26 +1555,26 @@ const FleetInvoicesPage = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-gray-900">Email Sent Successfully</p>
+                  <p className="text-sm font-semibold text-headings">Email Sent Successfully</p>
                   <button
                     onClick={() => setEmailToast(null)}
-                    className="flex-shrink-0 p-1 rounded-full hover:bg-gray-100 text-gray-400 transition-colors"
+                    className="flex-shrink-0 p-1 rounded-full hover:bg-[rgba(255,255,255,0.03)] text-secondary transition-colors"
                   >
                     <FaTimes size={11} />
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-0.5">Invoice emailed to the customer</p>
-                <div className="mt-2.5 space-y-1.5 bg-gray-50 rounded-lg p-2.5">
+                <p className="text-xs text-secondary mt-0.5">Invoice emailed to the customer</p>
+                <div className="mt-2.5 space-y-1.5 bg-card rounded-lg p-2.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-20 flex-shrink-0">Invoice</span>
-                    <span className="text-xs font-semibold text-gray-800 truncate">{emailToast.invoiceNumber}</span>
+                    <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider w-20 flex-shrink-0">Invoice</span>
+                    <span className="text-xs font-semibold text-headings truncate">{emailToast.invoiceNumber}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-20 flex-shrink-0">Client</span>
-                    <span className="text-xs text-gray-700 truncate">{emailToast.customerName}</span>
+                    <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider w-20 flex-shrink-0">Client</span>
+                    <span className="text-xs text-headings truncate">{emailToast.customerName}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-20 flex-shrink-0">Sent To</span>
+                    <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider w-20 flex-shrink-0">Sent To</span>
                     <span className="text-xs text-emerald-700 font-medium truncate">{emailToast.customerEmail}</span>
                   </div>
                 </div>
@@ -1556,7 +1582,7 @@ const FleetInvoicesPage = () => {
             </div>
           </div>
           {/* Auto-dismiss progress bar */}
-          <div className="h-0.5 bg-gray-100">
+          <div className="h-0.5 bg-card">
             <div
               className="h-full bg-emerald-400"
               style={{ animation: 'shrink 6s linear forwards' }}
@@ -1568,17 +1594,17 @@ const FleetInvoicesPage = () => {
       <div className="mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <FaFileInvoice className="text-blue-600" size={28} />
+            <h1 className="text-2xl font-bold text-headings flex items-center gap-2">
+              <FaFileInvoice className="text-[var(--accent-navyblue)]" size={28} />
               Fleet Invoices
             </h1>
-            <p className="text-gray-600 mt-1">Create and manage fleet invoices</p>
+            <p className="text-secondary mt-1">Create and manage fleet invoices</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => { setUploadFile(null); setUploadError(null); setUploadModalOpen(true); }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:border-blue-400 hover:text-blue-600 font-medium shadow-sm transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-card border border-theme text-headings rounded-lg hover:border-blue-400 hover:text-[#00D1FF] font-medium shadow-sm transition-colors"
             >
               <FaUpload size={13} /> Upload Invoice
             </button>
@@ -1588,7 +1614,7 @@ const FleetInvoicesPage = () => {
                 resetForm();
                 setSidebarOpen(true);
               }}
-              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent-navyblue)] !text-headings rounded-lg hover:bg-blue-700 font-medium shadow-sm transition-colors"
             >
               <FaPlus size={14} /> New Invoice
             </button>
@@ -1597,19 +1623,19 @@ const FleetInvoicesPage = () => {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+          <div className="bg-card rounded-xl shadow-sm border border-theme p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Paid</p>
+                <p className="text-sm font-medium  uppercase tracking-wide text-[var(--accent-green)]">Paid</p>
                 {summaryLoading ? (
-                  <p className="mt-1 text-xl font-bold text-gray-400">—</p>
+                  <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
-                  <p className="mt-1 text-2xl font-bold text-green-600">
+                  <p className="mt-1 text-2xl font-bold text-[var(--accent-green)]">
                     ${(summary?.paidAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                 )}
                 {!summaryLoading && summary && (
-                  <p className="mt-0.5 text-xs text-gray-500">{summary.paidCount} invoice{summary.paidCount !== 1 ? 's' : ''}</p>
+                  <p className="mt-0.5 text-xs text-secondary">{summary.paidCount} invoice{summary.paidCount !== 1 ? 's' : ''}</p>
                 )}
               </div>
               <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
@@ -1618,19 +1644,19 @@ const FleetInvoicesPage = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+          <div className="bg-card rounded-xl shadow-sm border border-theme p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Unpaid</p>
+                <p className="text-sm font-medium text-[var(--accent-orange)] uppercase tracking-wide">Unpaid</p>
                 {summaryLoading ? (
-                  <p className="mt-1 text-xl font-bold text-gray-400">—</p>
+                  <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
-                  <p className="mt-1 text-2xl font-bold text-amber-600">
+                  <p className="mt-1 text-2xl font-bold text-[var(--accent-orange)]">
                     ${(summary?.unpaidAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                 )}
                 {!summaryLoading && summary && (
-                  <p className="mt-0.5 text-xs text-gray-500">{summary.unpaidCount} invoice{summary.unpaidCount !== 1 ? 's' : ''}</p>
+                  <p className="mt-0.5 text-xs text-secondary">{summary.unpaidCount} invoice{summary.unpaidCount !== 1 ? 's' : ''}</p>
                 )}
               </div>
               <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
@@ -1639,53 +1665,53 @@ const FleetInvoicesPage = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+          <div className="bg-card rounded-xl shadow-sm border border-theme p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Overdue</p>
+                <p className="text-sm font-medium text-[var(--accent-orange)] uppercase tracking-wide">Overdue</p>
                 {summaryLoading ? (
-                  <p className="mt-1 text-xl font-bold text-gray-400">—</p>
+                  <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
-                  <p className="mt-1 text-2xl font-bold text-orange-600">
+                  <p className="mt-1 text-2xl font-bold text-[var(--accent-orange)]">
                     ${(summary?.overdueAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                 )}
                 {!summaryLoading && summary && (
-                  <p className="mt-0.5 text-xs text-gray-500">{summary.overdueCount} invoice{summary.overdueCount !== 1 ? 's' : ''}</p>
+                  <p className="mt-0.5 text-xs text-secondary">{summary.overdueCount} invoice{summary.overdueCount !== 1 ? 's' : ''}</p>
                 )}
               </div>
               <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
-                <FaClock className="text-orange-600" size={24} />
+                <FaClock className="text-[#F59E0B]" size={24} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+          <div className="bg-card rounded-xl shadow-sm border border-theme p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Total</p>
+                <p className="text-sm font-medium text-[var(--accent-blue)] uppercase tracking-wide">Total</p>
                 {summaryLoading ? (
-                  <p className="mt-1 text-xl font-bold text-gray-400">—</p>
+                  <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
-                  <p className="mt-1 text-2xl font-bold text-blue-600">
+                  <p className="mt-1 text-2xl font-bold text-[var(--accent-blue)]">
                     ${(summary?.totalAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                 )}
                 {!summaryLoading && summary && (
-                  <p className="mt-0.5 text-xs text-gray-500">{summary.totalCount} invoice{summary.totalCount !== 1 ? 's' : ''}</p>
+                  <p className="mt-0.5 text-xs text-secondary">{summary.totalCount} invoice{summary.totalCount !== 1 ? 's' : ''}</p>
                 )}
               </div>
               <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                <FaFileInvoice className="text-blue-600" size={24} />
+                <FaFileInvoice className="text-[#00D1FF]" size={24} />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-600 uppercase text-xs font-semibold tracking-wide">
+              <thead className=" text-headings uppercase text-xs font-semibold tracking-wide">
                 <tr>
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4">No.</th>
@@ -1696,57 +1722,57 @@ const FleetInvoicesPage = () => {
                   <th className="px-6 py-4">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-theme divide-white/5 ">
                 {invoicesLoading ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-12 text-center text-secondary">
                       Loading invoices...
                     </td>
                   </tr>
                 ) : invoicesError ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-red-600">
+                    <td colSpan={7} className="px-6 py-12 text-center text-secondary">
                       {invoicesError}
                     </td>
                   </tr>
                 ) : invoices.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-12 text-center text-secondary">
                       No invoices yet. Create one using &quot;New Invoice&quot;.
                     </td>
                   </tr>
                 ) : (
                   invoices.map((row) => {
-                    const isOverdue = row.status === 'overdue' || 
+                    const isOverdue = row.status === 'overdue' ||
                       (row.status !== 'paid' && row.dueDate && new Date(row.dueDate) < new Date());
                     const displayStatus = isOverdue ? 'overdue' : row.status;
-                    
+
                     return (
                       <tr
                         key={row._id}
-                        className={`hover:bg-blue-50/30 ${displayStatus === 'overdue' ? 'border-t-4 border-t-orange-500 bg-orange-50/20' : ''}`}
+                        className={`  ${displayStatus === 'overdue' ? 'border border-theme ' : ''}`}
                       >
-                        <td className="px-6 py-4 text-gray-900">
-                          {row.invoiceDate 
+                        <td className="px-6 py-4 text-secondary">
+                          {row.invoiceDate
                             ? formatDisplayDate(typeof row.invoiceDate === 'string' ? row.invoiceDate.split('T')[0] : new Date(row.invoiceDate).toISOString().split('T')[0])
                             : '—'}
                         </td>
-                        <td className="px-6 py-4 font-medium text-gray-900">{row.invoiceNumber || '—'}</td>
-                        <td className="px-6 py-4 text-gray-700">{row.customerName || '—'}</td>
-                        <td className="px-6 py-4 text-gray-700">
+                        <td className="px-6 py-4 font-medium text-secondary">{row.invoiceNumber || '—'}</td>
+                        <td className="px-6 py-4 text-secondary">{row.customerName || '—'}</td>
+                        <td className="px-6 py-4 text-secondary">
                           {row.vehicleInfo && row.vehicleInfo.length > 0 ? (
                             <div className="space-y-1">
                               {row.vehicleInfo.map((vehicle, idx) => (
                                 <div key={idx} className="text-xs">
-                                  <div className="font-semibold text-gray-900">
+                                  <div className="font-semibold text-secondary">
                                     {vehicle.unitNumber || '—'}
-                                    {vehicle.unitType && <span className="text-gray-500 ml-1">({vehicle.unitType})</span>}
+                                    {vehicle.unitType && <span className="text-secondary ml-1">({vehicle.unitType})</span>}
                                   </div>
                                   {vehicle.makeModel && (
-                                    <div className="text-gray-600">{vehicle.makeModel}</div>
+                                    <div className="text-secondary">{vehicle.makeModel}</div>
                                   )}
                                   {(vehicle.plateNumber || vehicle.vinNumber) && (
-                                    <div className="text-gray-500">
+                                    <div className="text-secondary">
                                       {vehicle.plateNumber && <span>Plate: {vehicle.plateNumber}</span>}
                                       {vehicle.plateNumber && vehicle.vinNumber && <span> • </span>}
                                       {vehicle.vinNumber && <span>VIN: {vehicle.vinNumber}</span>}
@@ -1756,76 +1782,85 @@ const FleetInvoicesPage = () => {
                               ))}
                             </div>
                           ) : (
-                            <span className="text-gray-400">—</span>
+                            <span className="text-secondary">—</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-gray-700 font-medium">${(row.total || 0).toFixed(2)}</td>
+                        <td className="px-6 py-4 text-secondary font-medium">${(row.total || 0).toFixed(2)}</td>
                         <td className="px-6 py-4">
                           <select
                             value={INVOICE_STATUS_OPTIONS.some((o) => o.value === row.status) ? row.status : 'draft'}
                             onChange={(e) => handleStatusChange(row._id, e.target.value)}
                             disabled={updatingStatusId === row._id}
-                            className={`min-w-[100px] px-2.5 py-1.5 text-sm font-medium rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed ${
-                              row.status === 'paid'
-                                ? 'border-green-200 bg-green-50 text-green-700'
+                            className={`min-w-[110px] px-3 py-1.5 text-sm font-medium rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] disabled:opacity-60 disabled:cursor-not-allowed ${row.status === 'paid'
+                                ? 'bg-[rgba(16,185,129,0.15)] text-[#34D399] border-[rgba(16,185,129,0.3)]'
                                 : row.status === 'sent'
-                                ? 'border-blue-200 bg-blue-50 text-blue-700'
-                                : row.status === 'cancelled'
-                                ? 'border-gray-200 bg-gray-50 text-gray-600'
-                                : displayStatus === 'overdue'
-                                ? 'border-orange-200 bg-orange-50 text-orange-600'
-                                : 'border-gray-200 bg-gray-50 text-gray-600'
-                            }`}
+                                  ? 'bg-[rgba(59,130,246,0.15)] text-[#60A5FA] border-[rgba(59,130,246,0.3)]'
+                                  : row.status === 'cancelled'
+                                    ? 'bg-[rgba(239,68,68,0.12)] text-[#F87171] border-[rgba(239,68,68,0.3)]'
+                                    : displayStatus === 'overdue'
+                                      ? 'bg-[rgba(245,158,11,0.15)] text-[#FBBF24] border-[rgba(245,158,11,0.3)]'
+                                      : 'bg-[rgba(255,255,255,0.05)] text-secondary border border-theme hover:bg-[rgba(255,255,255,0.08)]'
+                              }`}
                           >
                             {INVOICE_STATUS_OPTIONS.map((opt) => (
-                              <option key={opt.value} value={opt.value}>
+                              <option key={opt.value} value={opt.value} className="form-option">
                                 {opt.label}
                               </option>
                             ))}
                           </select>
+
                           {updatingStatusId === row._id && (
-                            <span className="ml-2 text-xs text-gray-500">Updating…</span>
+                            <span className="ml-2 text-xs text-secondary">Updating…</span>
                           )}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <button 
-                              type="button" 
+
+                            {/* Edit */}
+                            <button
+                              type="button"
                               onClick={() => handleEditInvoice(row._id)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
+                              className="p-2 text-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] rounded-lg transition-all"
                               title="View/Edit"
                             >
                               <FaEdit size={14} />
                             </button>
+
+                            {/* Email */}
                             <button
                               type="button"
                               onClick={() => handleSendInvoiceEmail(row)}
                               disabled={emailingId === row._id}
-                              className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50"
+                              className="p-2 text-emerald-400 hover:bg-[rgba(16,185,129,0.1)] rounded-lg transition-all disabled:opacity-50"
                               title={emailingId === row._id ? 'Sending…' : 'Send Invoice Email'}
                             >
                               {emailingId === row._id
                                 ? <FaSpinner size={14} className="animate-spin" />
                                 : <FaEnvelope size={14} />}
                             </button>
-                            <button 
-                              type="button" 
+
+                            {/* Delete */}
+                            <button
+                              type="button"
                               onClick={() => handleDeleteInvoice(row._id)}
                               disabled={deleting === row._id}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50" 
+                              className="p-2 text-red-400 hover:bg-[rgba(239,68,68,0.1)] rounded-lg transition-all disabled:opacity-50"
                               title="Delete"
                             >
                               <FaTrash size={14} />
                             </button>
+
+                            {/* PDF */}
                             <button
                               type="button"
                               onClick={() => handleDownloadInvoicePDF(row._id)}
                               disabled={printingPdfId === row._id}
-                              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                              className="p-2 text-secondary hover:text-white hover:bg-[rgba(255,255,255,0.08)] rounded-lg transition-all disabled:opacity-50"
                               title={printingPdfId === row._id ? 'Generating PDF…' : 'Download PDF'}
                             >
                               <FaPrint size={14} />
                             </button>
+
                           </div>
                         </td>
                       </tr>
@@ -1842,51 +1877,50 @@ const FleetInvoicesPage = () => {
       {sidebarOpen && (
         <>
           <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
-          <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-white shadow-xl z-50 flex flex-col">
-            <div className="flex-shrink-0 px-8 py-5 border-b border-gray-200 flex items-center justify-between bg-white">
-              <h2 className="text-xl font-semibold text-gray-900">{editingInvoiceId ? 'Edit Invoice' : 'New Invoice'}</h2>
-              <button type="button" onClick={() => setSidebarOpen(false)} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Close">
+          <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-card shadow-xl z-50 flex flex-col">
+            <div className="flex-shrink-0 px-8 py-5 border-b border-theme flex items-center justify-between bg-card">
+              <h2 className="text-xl font-semibold text-headings">{editingInvoiceId ? 'Edit Invoice' : 'New Invoice'}</h2>
+              <button type="button" onClick={() => setSidebarOpen(false)} className="p-2 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors" aria-label="Close">
                 <FaTimes size={20} />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-8 py-6 space-y-8">
               {notification && (
-                <div className={`rounded-lg border px-4 py-3 ${
-                  notification.type === 'success'
-                    ? 'border-green-200 bg-green-50 text-green-800'
-                    : 'border-red-200 bg-red-50 text-red-800'
-                }`}>
+                <div className={`rounded-lg border px-4 py-3 ${notification.type === 'success'
+                  ? 'border-green-200 bg-green-50 text-green-800'
+                  : 'border-red-200 bg-card text-red-800'
+                  }`}>
                   {notification.message}
                 </div>
               )}
               {/* Vehicle Information */}
               {vehicleInfo.length > 0 && (
                 <section>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Vehicle Information</h3>
+                  <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Vehicle Information</h3>
                   <div className="space-y-3">
                     {vehicleInfo.map((vehicle, idx) => (
-                      <div key={idx} className="rounded-lg border border-blue-200 bg-blue-50/50 p-4">
+                      <div key={idx} className="rounded-lg  p-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Unit Number</p>
-                            <p className="text-sm font-semibold text-gray-900">{vehicle.unitNumber || '—'}</p>
+                            <p className="text-xs text-secondary mb-1">Unit Number</p>
+                            <p className="text-sm font-semibold text-headings">{vehicle.unitNumber || '—'}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Unit Type</p>
-                            <p className="text-sm font-semibold text-gray-900">{vehicle.unitType || '—'}</p>
+                            <p className="text-xs text-secondary mb-1">Unit Type</p>
+                            <p className="text-sm font-semibold text-headings">{vehicle.unitType || '—'}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Make / Model</p>
-                            <p className="text-sm font-semibold text-gray-900">{vehicle.makeModel || '—'}</p>
+                            <p className="text-xs text-secondary mb-1">Make / Model</p>
+                            <p className="text-sm font-semibold text-headings">{vehicle.makeModel || '—'}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Plate Number</p>
-                            <p className="text-sm font-semibold text-gray-900">{vehicle.plateNumber || '—'}</p>
+                            <p className="text-xs text-secondary mb-1">Plate Number</p>
+                            <p className="text-sm font-semibold text-headings">{vehicle.plateNumber || '—'}</p>
                           </div>
                           {vehicle.vinNumber && (
                             <div>
-                              <p className="text-xs text-gray-500 mb-1">VIN Number</p>
-                              <p className="text-sm font-semibold text-gray-900">{vehicle.vinNumber}</p>
+                              <p className="text-xs text-secondary mb-1">VIN Number</p>
+                              <p className="text-sm font-semibold text-headings">{vehicle.vinNumber}</p>
                             </div>
                           )}
                         </div>
@@ -1898,19 +1932,19 @@ const FleetInvoicesPage = () => {
 
               {/* Header Information */}
               <section>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Bill To &amp; Dates</h3>
+                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Bill To &amp; Dates</h3>
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+                      <label className="block text-sm font-medium text-headings mb-1">Customer</label>
                       <select
                         value={customerId}
                         onChange={(e) => handleCustomerChange(e.target.value)}
-                        className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 ${extractedVendorName && !customerId ? 'border-amber-400 bg-amber-50' : 'border-gray-300'}`}
+                        className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-headings ${extractedVendorName && !customerId ? 'border-amber-400 bg-amber-50' : 'border-theme'}`}
                       >
-                        <option value="">{extractedVendorName ? `— Using: ${extractedVendorName} —` : 'Select client...'}</option>
+                        <option className='form-option' value="">{extractedVendorName ? `— Using: ${extractedVendorName} —` : 'Select client...'}</option>
                         {customers.map((c) => (
-                          <option key={c._id} value={c._id}>{c.name}</option>
+                          <option className='form-option' key={c._id} value={c._id}>{c.name}</option>
                         ))}
                       </select>
                       {extractedVendorName && !customerId && (
@@ -1920,78 +1954,78 @@ const FleetInvoicesPage = () => {
                         </p>
                       )}
                       {customersLoading && (
-                        <p className="mt-1 text-xs text-gray-500">Loading customers...</p>
+                        <p className="mt-1 text-xs text-secondary">Loading customers...</p>
                       )}
                       {customersError && !customersLoading && (
-                        <p className="mt-1 text-xs text-red-600">{customersError}</p>
+                        <p className="mt-1 text-xs text-[#A855F7]">{customersError}</p>
                       )}
                       {!showAddCustomer ? (
                         <button
                           type="button"
                           onClick={() => { setShowAddCustomer(true); setAddCustomerError(null); }}
-                          className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                          className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[#00D1FF] hover:text-blue-700 transition-colors"
                         >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth="2"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v8M8 12h8"/></svg>
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth="2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v8M8 12h8" /></svg>
                           Add New Customer
                         </button>
                       ) : (
-                        <div className="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                          <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-200">
-                            <span className="text-xs font-semibold text-gray-700 tracking-wide uppercase">New Customer</span>
+                        <div className="mt-2 rounded-xl border border-theme bg-card shadow-sm overflow-hidden">
+                          <div className="flex items-center justify-between px-4 py-2.5 bg-card border-b border-theme">
+                            <span className="text-xs font-semibold text-headings tracking-wide uppercase">New Customer</span>
                             <button
                               type="button"
                               onClick={() => { setShowAddCustomer(false); setAddCustomerError(null); setNewCustomerName(''); setNewCustomerEmail(''); setNewCustomerPhone(''); }}
-                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                              className="text-secondary hover:text-secondary transition-colors"
                               aria-label="Close"
                             >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                           </div>
                           <div className="px-4 py-3 space-y-2.5">
                             <div>
-                              <label className="block text-xs font-medium text-gray-600 mb-1">Name <span className="text-red-500">*</span></label>
+                              <label className="block text-xs font-medium text-secondary mb-1">Name <span className="text-red-500">*</span></label>
                               <input
                                 type="text"
                                 placeholder="e.g. Acme Corp"
                                 value={newCustomerName}
                                 onChange={(e) => setNewCustomerName(e.target.value)}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                                className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
                               />
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                               <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                                <label className="block text-xs font-medium text-secondary mb-1">Email</label>
                                 <input
                                   type="email"
                                   placeholder="email@example.com"
                                   value={newCustomerEmail}
                                   onChange={(e) => setNewCustomerEmail(e.target.value)}
-                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                                  className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
                                 />
                               </div>
                               <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                                <label className="block text-xs font-medium text-secondary mb-1">Phone</label>
                                 <input
                                   type="text"
                                   placeholder="+1 (555) 000-0000"
                                   value={newCustomerPhone}
                                   onChange={(e) => setNewCustomerPhone(e.target.value)}
-                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                                  className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
                                 />
                               </div>
                             </div>
                             {addCustomerError && (
-                              <p className="text-xs text-red-600 flex items-center gap-1">
-                                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
+                              <p className="text-xs text-[#A855F7] flex items-center gap-1">
+                                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
                                 {addCustomerError}
                               </p>
                             )}
                           </div>
-                          <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-end gap-2">
+                          <div className="px-4 py-3 bg-card border-t border-theme flex items-center justify-end gap-2">
                             <button
                               type="button"
                               onClick={() => { setShowAddCustomer(false); setAddCustomerError(null); setNewCustomerName(''); setNewCustomerEmail(''); setNewCustomerPhone(''); }}
-                              className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                              className="px-3 py-1.5 text-xs font-medium text-secondary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                             >
                               Cancel
                             </button>
@@ -1999,11 +2033,11 @@ const FleetInvoicesPage = () => {
                               type="button"
                               onClick={handleAddNewCustomer}
                               disabled={addingCustomer}
-                              className="px-4 py-1.5 text-xs font-semibold bg-blue-600 !text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors flex items-center gap-1.5"
+                              className="px-4 py-1.5 text-xs font-semibold bg-blue-600 !text-headings rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors flex items-center gap-1.5"
                             >
                               {addingCustomer ? (
                                 <>
-                                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
                                   Saving...
                                 </>
                               ) : 'Save Customer'}
@@ -2013,66 +2047,66 @@ const FleetInvoicesPage = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Customer Email</label>
+                      <label className="block text-sm font-medium text-headings mb-1">Customer Email</label>
                       <input
                         type="email"
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="e.g. Accounting@blackriverlogistics.com"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Billing Address</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Billing Address</label>
                     <textarea
                       value={billingAddress}
                       onChange={(e) => setBillingAddress(e.target.value)}
                       rows={2}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                      className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                       placeholder="From customer profile"
                     />
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Terms</label>
+                      <label className="block text-sm font-medium text-headings mb-1">Terms</label>
                       <select
                         value={terms}
                         onChange={(e) => handleTermsChange(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="">Payment window...</option>
+                        <option className='form-option' value="">Payment window...</option>
                         {TERMS_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>{o.value}</option>
+                          <option className='form-option' key={o.value} value={o.value}>{o.value}</option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Date</label>
+                      <label className="block text-sm font-medium text-headings mb-1">Invoice Date</label>
                       <input
                         type="date"
                         value={invoiceDate}
                         onChange={(e) => handleInvoiceDateChange(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                      <label className="block text-sm font-medium text-headings mb-1">Due Date</label>
                       <input
                         type="text"
                         readOnly
                         value={dueDate ? formatDisplayDate(dueDate) : '—'}
-                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-700"
+                        className="w-full px-3 py-2.5 border border-theme rounded-lg bg-card text-headings"
                       />
-                      <p className="text-xs text-gray-500 mt-0.5">Calculated from Terms</p>
+                      <p className="text-xs text-secondary mt-0.5">Calculated from Terms</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Invoice No.</label>
+                      <label className="block text-sm font-medium text-headings mb-1">Invoice No.</label>
                       <input
                         type="text"
                         value={invoiceNo}
                         onChange={(e) => setInvoiceNo(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="e.g. RTTR777"
                       />
                     </div>
@@ -2082,135 +2116,135 @@ const FleetInvoicesPage = () => {
 
               {/* Line Item Details */}
               <section>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Line Items</h3>
+                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Line Items</h3>
                 <div className="space-y-4">
                   {lineItems.map((item) => (
-                    <div key={item.id} className="rounded-lg border border-gray-200 bg-gray-50/50 p-4 space-y-4">
+                    <div key={item.id} className="rounded-lg border border-theme bg-card p-4 space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Service Date</label>
+                          <label className="block text-sm font-medium text-headings mb-1">Service Date</label>
                           <input
                             type="date"
                             value={item.serviceDate}
                             onChange={(e) => updateLineItem(item.id, { serviceDate: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                           />
                         </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Product / Service</label>
-                        <select
-                          value={item.productService}
-                          onChange={async (e) => {
-                            updateLineItem(item.id, { productService: e.target.value });
-                            // Update vehicle info when a service/repair is selected
-                            if (e.target.value) {
-                              const [type, id] = e.target.value.split(':');
-                              if (type === 'service' && id) {
-                                try {
-                                  const serviceRes = await listVehicleServices({});
-                                  if (serviceRes?.success && Array.isArray(serviceRes.data)) {
-                                    const service = (serviceRes.data as any[]).find((s: any) => s._id === id);
-                                    if (service) {
-                                      const unitNo = service.unitNumber || 
-                                                    service.vehicleId?.internalId || 
-                                                    service.vehicleId?.plateNumber || 
-                                                    '';
-                                      if (unitNo) {
-                                        const existingVehicle = vehicleInfo.find(v => v.unitNumber === unitNo);
+                        <div>
+                          <label className="block text-sm font-medium text-headings mb-1">Product / Service</label>
+                          <select
+                            value={item.productService}
+                            onChange={async (e) => {
+                              updateLineItem(item.id, { productService: e.target.value });
+                              // Update vehicle info when a service/repair is selected
+                              if (e.target.value) {
+                                const [type, id] = e.target.value.split(':');
+                                if (type === 'service' && id) {
+                                  try {
+                                    const serviceRes = await listVehicleServices({});
+                                    if (serviceRes?.success && Array.isArray(serviceRes.data)) {
+                                      const service = (serviceRes.data as any[]).find((s: any) => s._id === id);
+                                      if (service) {
+                                        const unitNo = service.unitNumber ||
+                                          service.vehicleId?.internalId ||
+                                          service.vehicleId?.plateNumber ||
+                                          '';
+                                        if (unitNo) {
+                                          const existingVehicle = vehicleInfo.find(v => v.unitNumber === unitNo);
+                                          if (!existingVehicle) {
+                                            setVehicleInfo(prev => [...prev, {
+                                              unitNumber: unitNo,
+                                              unitType: service.unitType || service.vehicleId?.type || 'Truck',
+                                              makeModel: service.makeModel ||
+                                                (service.vehicleId ? `${service.vehicleId.make || ''} ${service.vehicleId.model || ''}`.trim() : '') ||
+                                                '',
+                                              vinNumber: service.vehicleId?.vinNumber || '',
+                                              plateNumber: service.vehicleId?.plateNumber || ''
+                                            }]);
+                                          }
+                                        }
+                                      }
+                                    }
+                                  } catch (err) {
+                                    console.error('Error fetching service for vehicle info:', err);
+                                  }
+                                } else if (type === 'repair' && id) {
+                                  try {
+                                    const repairRes = await listGeneralRepairs();
+                                    if (repairRes?.success && Array.isArray(repairRes.data)) {
+                                      const repair = (repairRes.data as any[]).find((r: any) => r._id === id);
+                                      if (repair && repair.unitNumber) {
+                                        const existingVehicle = vehicleInfo.find(v => v.unitNumber === repair.unitNumber);
                                         if (!existingVehicle) {
                                           setVehicleInfo(prev => [...prev, {
-                                            unitNumber: unitNo,
-                                            unitType: service.unitType || service.vehicleId?.type || 'Truck',
-                                            makeModel: service.makeModel || 
-                                                       (service.vehicleId ? `${service.vehicleId.make || ''} ${service.vehicleId.model || ''}`.trim() : '') ||
-                                                       '',
-                                            vinNumber: service.vehicleId?.vinNumber || '',
-                                            plateNumber: service.vehicleId?.plateNumber || ''
+                                            unitNumber: repair.unitNumber,
+                                            unitType: repair.unitType || 'Truck',
+                                            makeModel: repair.makeModel ||
+                                              (repair.vehicleId ? `${repair.vehicleId.make || ''} ${repair.vehicleId.model || ''}`.trim() : '') ||
+                                              '',
+                                            vinNumber: repair.vehicleId?.vinNumber || repair.vinNumber || '',
+                                            plateNumber: repair.vehicleId?.plateNumber || repair.plateNumber || ''
                                           }]);
                                         }
                                       }
                                     }
+                                  } catch (err) {
+                                    console.error('Error fetching repair for vehicle info:', err);
                                   }
-                                } catch (err) {
-                                  console.error('Error fetching service for vehicle info:', err);
-                                }
-                              } else if (type === 'repair' && id) {
-                                try {
-                                  const repairRes = await listGeneralRepairs();
-                                  if (repairRes?.success && Array.isArray(repairRes.data)) {
-                                    const repair = (repairRes.data as any[]).find((r: any) => r._id === id);
-                                    if (repair && repair.unitNumber) {
-                                      const existingVehicle = vehicleInfo.find(v => v.unitNumber === repair.unitNumber);
-                                      if (!existingVehicle) {
-                                        setVehicleInfo(prev => [...prev, {
-                                          unitNumber: repair.unitNumber,
-                                          unitType: repair.unitType || 'Truck',
-                                          makeModel: repair.makeModel || 
-                                                     (repair.vehicleId ? `${repair.vehicleId.make || ''} ${repair.vehicleId.model || ''}`.trim() : '') ||
-                                                     '',
-                                          vinNumber: repair.vehicleId?.vinNumber || repair.vinNumber || '',
-                                          plateNumber: repair.vehicleId?.plateNumber || repair.plateNumber || ''
-                                        }]);
-                                      }
-                                    }
-                                  }
-                                } catch (err) {
-                                  console.error('Error fetching repair for vehicle info:', err);
                                 }
                               }
-                            }
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                        >
-                          <option value="">Select...</option>
-                          {productOptions.map((opt) => (
-                            <option key={opt.id} value={opt.id}>{opt.label}</option>
-                          ))}
-                        </select>
-                        {productOptionsLoading && (
-                          <p className="mt-1 text-xs text-gray-500">Loading services and maintenance orders...</p>
-                        )}
-                      </div>
+                            }}
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                          >
+                            <option className='form-option' value="">Select...</option>
+                            {productOptions.map((opt) => (
+                              <option className='form-option' key={opt.id} value={opt.id}>{opt.label}</option>
+                            ))}
+                          </select>
+                          {productOptionsLoading && (
+                            <p className="mt-1 text-xs text-secondary">Loading services and maintenance orders...</p>
+                          )}
+                        </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label className="block text-sm font-medium text-headings mb-1">Description</label>
                         <textarea
                           value={item.description}
                           onChange={(e) => updateLineItem(item.id, { description: e.target.value })}
                           rows={2}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm resize-none"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm resize-none"
                           placeholder="e.g. Checked lights, brakes, steering..."
                         />
                       </div>
                       <div className="grid grid-cols-4 gap-4 items-end">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">QTY</label>
+                          <label className="block text-sm font-medium text-headings mb-1">QTY</label>
                           <input
                             type="number"
                             min={1}
                             value={item.qty}
                             onChange={(e) => updateLineItem(item.id, { qty: Number(e.target.value) || 1 })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Rate</label>
+                          <label className="block text-sm font-medium text-headings mb-1">Rate</label>
                           <input
                             type="number"
                             min={0}
                             step={0.01}
                             value={item.rate || ''}
                             onChange={(e) => updateLineItem(item.id, { rate: Number(e.target.value) || 0 })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                             placeholder="0"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                          <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700">${item.amount.toFixed(2)}</div>
+                          <label className="block text-sm font-medium text-headings mb-1">Amount</label>
+                          <div className="px-3 py-2 bg-card border border-theme rounded-lg text-sm font-medium text-headings">${item.amount.toFixed(2)}</div>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Tax</label>
+                          <label className="block text-sm font-medium text-headings mb-1">Tax</label>
                           <select
                             value={item.salesTax}
                             onChange={(e) => {
@@ -2218,23 +2252,23 @@ const FleetInvoicesPage = () => {
                               if (v === '__add__') setAddingTaxForLineId(item.id);
                               else updateLineItem(item.id, { salesTax: v });
                             }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                           >
                             {allTaxes.map((t) => (
-                              <option key={t.id} value={t.id}>{t.name} ({t.percent}%)</option>
+                              <option className='form-option' key={t.id} value={t.id}>{t.name} ({t.percent}%)</option>
                             ))}
-                            <option value="__add__">+ Add custom tax...</option>
+                            <option className='form-option' value="__add__">+ Add custom tax...</option>
                           </select>
                         </div>
                       </div>
                       {lineItems.length > 1 && (
-                        <button type="button" onClick={() => removeLineItem(item.id)} className="text-sm text-red-600 hover:text-red-700 font-medium">
+                        <button type="button" onClick={() => removeLineItem(item.id)} className="text-sm text-[#A855F7] hover:text-red-700 font-medium">
                           Remove line
                         </button>
                       )}
                     </div>
                   ))}
-                  <button type="button" onClick={addLineItem} className="text-sm font-medium text-blue-600 hover:text-blue-700">
+                  <button type="button" onClick={addLineItem} className="text-sm font-medium text-[#00D1FF] hover:text-blue-700">
                     + Add line item
                   </button>
                 </div>
@@ -2242,23 +2276,23 @@ const FleetInvoicesPage = () => {
 
               {/* Custom taxes: add form + list with delete */}
               <section>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Custom taxes</h3>
+                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-3">Custom taxes</h3>
                 {addingTaxForLineId && (
                   <div className="mb-4 p-4 rounded-lg border border-blue-200 bg-blue-50/50">
-                    <p className="text-xs font-medium text-gray-700 mb-3">Add custom tax (percentage) — will apply to current line</p>
+                    <p className="text-xs font-medium text-headings mb-3">Add custom tax (percentage) — will apply to current line</p>
                     <div className="flex flex-wrap gap-3 items-end">
                       <div className="w-40">
-                        <label className="block text-xs text-gray-600 mb-1">Tax name</label>
+                        <label className="block text-xs text-secondary mb-1">Tax name</label>
                         <input
                           type="text"
                           value={newTaxName}
                           onChange={(e) => setNewTaxName(e.target.value)}
                           placeholder="e.g. VAT"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div className="w-24">
-                        <label className="block text-xs text-gray-600 mb-1">%</label>
+                        <label className="block text-xs text-secondary mb-1">%</label>
                         <input
                           type="number"
                           min={0}
@@ -2266,20 +2300,20 @@ const FleetInvoicesPage = () => {
                           step={0.01}
                           value={newTaxPercent}
                           onChange={(e) => setNewTaxPercent(Number(e.target.value) || 0)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <button
                         type="button"
                         onClick={() => addCustomTax(addingTaxForLineId)}
-                        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
+                        className="px-4 py-2 bg-blue-600 text-headings text-sm font-medium rounded-lg hover:bg-blue-700"
                       >
                         Add
                       </button>
                       <button
                         type="button"
                         onClick={() => { setAddingTaxForLineId(null); setNewTaxName(''); setNewTaxPercent(5); }}
-                        className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50"
+                        className="px-4 py-2 border border-theme text-sm font-medium rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                       >
                         Cancel
                       </button>
@@ -2289,12 +2323,12 @@ const FleetInvoicesPage = () => {
                 {customTaxes.length > 0 && (
                   <ul className="space-y-2">
                     {customTaxes.map((t) => (
-                      <li key={t.id} className="flex items-center justify-between py-2 px-3 rounded-lg border border-gray-200 bg-white">
-                        <span className="text-sm font-medium text-gray-800">{t.name} ({t.percent}%)</span>
+                      <li key={t.id} className="flex items-center justify-between py-2 px-3 rounded-lg border border-theme bg-card">
+                        <span className="text-sm font-medium text-headings">{t.name} ({t.percent}%)</span>
                         <button
                           type="button"
                           onClick={() => removeCustomTax(t.id)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                          className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded"
                           title="Delete this tax"
                         >
                           <FaTrash size={14} />
@@ -2304,16 +2338,16 @@ const FleetInvoicesPage = () => {
                   </ul>
                 )}
                 {customTaxes.length === 0 && !addingTaxForLineId && (
-                  <p className="text-sm text-gray-500">No custom taxes. Use “+ Add custom tax...” in a line item above.</p>
+                  <p className="text-sm text-secondary">No custom taxes. Use “+ Add custom tax...” in a line item above.</p>
                 )}
               </section>
 
               {/* Labour Charges */}
               <section>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Labour Charges</h3>
+                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Labour Charges</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-headings mb-1">
                       Hours <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -2322,12 +2356,12 @@ const FleetInvoicesPage = () => {
                       step="0.5"
                       value={labourHours || ''}
                       onChange={(e) => setLabourHours(Number(e.target.value) || 0)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="0.0"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-headings mb-1">
                       Hourly Rate ($) <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -2336,19 +2370,19 @@ const FleetInvoicesPage = () => {
                       step="0.01"
                       value={labourRate || ''}
                       onChange={(e) => setLabourRate(Number(e.target.value) || 0)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="0.00"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tax</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Tax</label>
                     <select
                       value={labourTax}
                       onChange={(e) => setLabourTax(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       {allTaxes.map((tax) => (
-                        <option key={tax.id} value={tax.id}>
+                        <option className='form-option' key={tax.id} value={tax.id}>
                           {tax.name} {tax.percent > 0 ? `(${tax.percent}%)` : ''}
                         </option>
                       ))}
@@ -2356,17 +2390,17 @@ const FleetInvoicesPage = () => {
                   </div>
                 </div>
                 {labourAmount > 0 && (
-                  <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="mt-3 p-3 bg-card rounded-lg border border-blue-200">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">Labour Amount:</span>
-                      <span className="text-lg font-semibold text-blue-600">
+                      <span className="text-sm font-medium text-headings">Labour Amount:</span>
+                      <span className="text-lg font-semibold text-[#00D1FF]">
                         ${labourAmount.toFixed(2)}
                       </span>
                     </div>
                     {labourTaxAmount > 0 && (
                       <div className="flex justify-between items-center mt-1">
-                        <span className="text-sm text-gray-600">Labour Tax:</span>
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-sm text-secondary">Labour Tax:</span>
+                        <span className="text-sm font-medium text-headings">
                           ${labourTaxAmount.toFixed(2)}
                         </span>
                       </div>
@@ -2377,52 +2411,52 @@ const FleetInvoicesPage = () => {
 
               {/* Message & Totals */}
               <section>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Message &amp; Totals</h3>
+                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Message &amp; Totals</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Message on Invoice</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Message on Invoice</label>
                     <textarea
                       value={messageOnInvoice}
                       onChange={(e) => setMessageOnInvoice(e.target.value)}
                       rows={3}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                      className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                       placeholder="e.g. UNIT, VIN NO, CURRENT KM/HOURS"
                     />
                   </div>
-                  <div className="max-w-xs ml-auto rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-2">
+                  <div className="max-w-xs ml-auto rounded-lg border border-theme bg-card p-4 space-y-2">
                     {itemsSubtotal > 0 && (
-                      <div className="flex justify-between text-sm text-gray-600">
+                      <div className="flex justify-between text-sm text-secondary">
                         <span>Items Subtotal</span>
-                        <span className="font-medium text-gray-900">${itemsSubtotal.toFixed(2)}</span>
+                        <span className="font-medium text-headings">${itemsSubtotal.toFixed(2)}</span>
                       </div>
                     )}
                     {labourAmount > 0 && (
-                      <div className="flex justify-between text-sm text-gray-600">
+                      <div className="flex justify-between text-sm text-secondary">
                         <span>Labour Charges</span>
-                        <span className="font-medium text-gray-900">${labourAmount.toFixed(2)}</span>
+                        <span className="font-medium text-headings">${labourAmount.toFixed(2)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-sm text-gray-600">
+                    <div className="flex justify-between text-sm text-secondary">
                       <span>Subtotal</span>
-                      <span className="font-medium text-gray-900">${subtotal.toFixed(2)}</span>
+                      <span className="font-medium text-headings">${subtotal.toFixed(2)}</span>
                     </div>
                     {itemsTax > 0 && labourTaxAmount > 0 && (
                       <>
-                        <div className="flex justify-between text-xs text-gray-500 pl-2">
+                        <div className="flex justify-between text-xs text-secondary pl-2">
                           <span>Items Tax</span>
                           <span>${itemsTax.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between text-xs text-gray-500 pl-2">
+                        <div className="flex justify-between text-xs text-secondary pl-2">
                           <span>Labour Tax</span>
                           <span>${labourTaxAmount.toFixed(2)}</span>
                         </div>
                       </>
                     )}
-                    <div className="flex justify-between text-sm text-gray-600">
+                    <div className="flex justify-between text-sm text-secondary">
                       <span>Tax</span>
-                      <span className="font-medium text-gray-900">${totalTax.toFixed(2)}</span>
+                      <span className="font-medium text-headings">${totalTax.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-base font-semibold text-gray-900 border-t border-gray-200 pt-2 mt-2">
+                    <div className="flex justify-between text-base font-semibold text-headings border-t border-theme pt-2 mt-2">
                       <span>Total Balance Due</span>
                       <span>${totalBalance.toFixed(2)}</span>
                     </div>
@@ -2430,22 +2464,22 @@ const FleetInvoicesPage = () => {
                 </div>
               </section>
             </div>
-            <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3">
-              <button 
-                type="button" 
+            <div className="flex-shrink-0 px-8 py-4 border-t border-theme bg-card flex items-center justify-end gap-3">
+              <button
+                type="button"
                 onClick={() => {
                   setSidebarOpen(false);
                   resetForm();
-                }} 
-                className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                }}
+                className="px-5 py-2.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >
                 Cancel
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={handleSaveAndClose}
                 disabled={saving}
-                className={`px-5 py-2.5 text-sm font-medium !text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : ''}`}
+                className={`px-5 py-2.5 text-sm font-medium !text-headings bg-[var(--accent-navyblue)] rounded-lg hover:bg-blue-700 transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
                 {saving ? 'Saving...' : editingInvoiceId ? 'Update Invoice' : 'Save and close'}
               </button>
@@ -2457,23 +2491,23 @@ const FleetInvoicesPage = () => {
       {/* Upload & Extract Invoice Modal */}
       {uploadModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
               <div className="flex items-center gap-2">
-                <FaUpload className="text-blue-600" size={18} />
-                <h3 className="text-base font-semibold text-gray-900">Upload Invoice</h3>
+                <FaUpload className="text-[#00D1FF]" size={18} />
+                <h3 className="text-base font-semibold text-headings">Upload Invoice</h3>
               </div>
               <button
                 onClick={() => { setUploadModalOpen(false); setUploadFile(null); setUploadError(null); }}
-                className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"
+                className="p-1.5 hover:bg-[rgba(255,255,255,0.03)] rounded-lg text-secondary"
               >
                 <FaTimes size={16} />
               </button>
             </div>
 
             <div className="p-6 space-y-4">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-secondary">
                 Upload a PDF or image of an invoice. The system will automatically extract the data and pre-fill the invoice form.
               </p>
 
@@ -2488,9 +2522,8 @@ const FleetInvoicesPage = () => {
                   if (f) { setUploadFile(f); setUploadError(null); }
                 }}
                 onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-                  uploadDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                }`}
+                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${uploadDragging ? 'border-blue-400 bg-card' : 'border-theme hover:border-blue-300 hover:bg-[rgba(255,255,255,0.03)]'
+                  }`}
               >
                 <input
                   ref={fileInputRef}
@@ -2506,8 +2539,8 @@ const FleetInvoicesPage = () => {
                 {uploadFile ? (
                   <div className="flex flex-col items-center gap-2">
                     <FaFilePdf className="text-red-500" size={32} />
-                    <p className="text-sm font-medium text-gray-800">{uploadFile.name}</p>
-                    <p className="text-xs text-gray-400">{(uploadFile.size / 1024).toFixed(1)} KB</p>
+                    <p className="text-sm font-medium text-headings">{uploadFile.name}</p>
+                    <p className="text-xs text-secondary">{(uploadFile.size / 1024).toFixed(1)} KB</p>
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); setUploadFile(null); }}
@@ -2517,26 +2550,26 @@ const FleetInvoicesPage = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-2 text-gray-400">
+                  <div className="flex flex-col items-center gap-2 text-secondary">
                     <FaUpload size={28} />
-                    <p className="text-sm font-medium text-gray-600">Drag & drop or click to select</p>
+                    <p className="text-sm font-medium text-secondary">Drag & drop or click to select</p>
                     <p className="text-xs">PDF, JPEG, PNG, WebP · Max 10 MB</p>
                   </div>
                 )}
               </div>
 
               {uploadError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                <div className="p-3 bg-card border border-red-200 rounded-lg text-sm text-red-700">
                   {uploadError}
                 </div>
               )}
             </div>
 
-            <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100">
+            <div className="flex justify-end gap-2 px-6 py-4 border-t border-theme">
               <button
                 type="button"
                 onClick={() => { setUploadModalOpen(false); setUploadFile(null); setUploadError(null); }}
-                className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+                className="px-4 py-2 text-sm text-secondary bg-card rounded-lg hover:bg-gray-200"
               >
                 Cancel
               </button>
@@ -2544,7 +2577,7 @@ const FleetInvoicesPage = () => {
                 type="button"
                 onClick={handleUploadExtract}
                 disabled={!uploadFile || uploading}
-                className="flex items-center gap-2 px-5 py-2 text-sm font-medium !text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-2 px-5 py-2 text-sm font-medium !text-headings bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {uploading ? (
                   <><FaSpinner className="animate-spin" size={13} /> Extracting...</>

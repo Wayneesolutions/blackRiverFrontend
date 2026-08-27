@@ -83,9 +83,9 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
-    warning: 'bg-yellow-50 border-yellow-200'
+    error: 'bg-card border-red-200',
+    info: 'bg-card border-blue-200',
+    warning: 'bg-card border-yellow-200'
   };
 
   useEffect(() => {
@@ -100,10 +100,10 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -147,7 +147,7 @@ const CUSTOM_COLORS = {
   primary: '#016ab2',
   dark: '#063f6f',
   light: '#398bc3',
-  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradient: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
   gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
 };
 
@@ -188,7 +188,7 @@ const TrainingCertificates = () => {
       case 'expiring': return 'bg-yellow-100 text-yellow-800';
       case 'expired': return 'bg-red-100 text-red-800';
       case 'in-progress': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-card text-primary';
     }
   };
 
@@ -311,19 +311,16 @@ const TrainingCertificates = () => {
     const employees = Array.from(new Set(trainingData.map(t => t.employeeName)));
 
     return (
-      <div className="bg-white rounded-xl shadow-lg p-6">
+      <div className="bg-card rounded-xl shadow-lg p-6">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Compliance Training Matrix 📊</h2>
-            <p className="text-gray-600 mt-1">Real-time compliance status for all employees and required certifications</p>
+            <h2 className="text-2xl font-bold text-primary">Compliance Training Matrix 📊</h2>
+            <p className="text-secondary mt-1">Real-time compliance status for all employees and required certifications</p>
           </div>
           <button
             onClick={() => setShowUploadModal(true)}
-            className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2"
-            style={{
-              background: CUSTOM_COLORS.gradient,
-              boxShadow: `0 4px 6px ${CUSTOM_COLORS.light}40`
-            }}
+            className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2 bg-[var(--accent-navyblue)]"
+
           >
             <FaPlus /> Upload Certificate
           </button>
@@ -336,31 +333,31 @@ const TrainingCertificates = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-theme divide-white/5">
+            <thead className="bg-card">
               <tr>
-                <th className="sticky left-0 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase z-10">
+                <th className="sticky left-0 bg-card px-4 py-3 text-left text-xs font-medium text-headings uppercase z-10">
                   Employee
                 </th>
                 {REQUIRED_TRAININGS.map(train => (
                   <th key={train.name} className="px-3 py-3 text-center" style={{ minWidth: '120px' }}>
                     <div className="flex flex-col items-center">
-                      <span className="text-xs font-medium text-gray-700 text-center">{train.name}</span>
-                      <span className="text-xs text-gray-500">({train.renewalMonths}mo)</span>
+                      <span className="text-xs font-medium text-headings text-center">{train.name}</span>
+                      <span className="text-xs text-secondary">({train.renewalMonths}mo)</span>
                     </div>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-card divide-y divide-theme divide-white/5">
               {employees.map(employee => {
                 const employeeData = trainingData.find(t => t.employeeName === employee);
                 return (
-                  <tr key={employee} className="hover:bg-gray-50">
-                    <td className="sticky left-0 bg-white px-4 py-4 whitespace-nowrap border-r border-gray-200">
+                  <tr key={employee} className="hover:bg-[rgba(255,255,255,0.03)]">
+                    <td className="sticky left-0 bg-card px-4 py-4 whitespace-nowrap border-r border-theme">
                       <div>
-                        <div className="text-sm font-semibold text-gray-900">{employee}</div>
-                        <div className="text-xs text-gray-500">{employeeData?.employeeRole}</div>
+                        <div className="text-sm font-semibold text-primary">{employee}</div>
+                        <div className="text-xs text-secondary">{employeeData?.employeeRole}</div>
                       </div>
                     </td>
                     {REQUIRED_TRAININGS.map(train => {
@@ -385,7 +382,7 @@ const TrainingCertificates = () => {
                                 {record.status === 'expired' && <FaTimesCircle />}
                                 {record.status === 'in-progress' && <FaSyncAlt className="animate-spin" />}
                               </span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-secondary">
                                 {new Date(record.expiryDate).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}
                               </span>
                             </div>
@@ -394,7 +391,7 @@ const TrainingCertificates = () => {
                       }
                       return (
                         <td key={train.name} className="px-3 py-4 text-center whitespace-nowrap">
-                          <span className="h-8 w-8 inline-flex items-center justify-center rounded-full bg-gray-200 text-gray-500 text-xs" title="Missing">
+                          <span className="h-8 w-8 inline-flex items-center justify-center rounded-full bg-gray-200 text-secondary text-xs" title="Missing">
                             <FaTimesCircle />
                           </span>
                         </td>
@@ -535,9 +532,9 @@ const TrainingCertificates = () => {
 
     return (
       <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
-            <h2 className="text-2xl font-bold text-gray-900">Upload New Certificate</h2>
+        <div className="bg-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-card">
+            <h2 className="text-2xl font-bold text-primary">Upload New Certificate</h2>
             <button
               onClick={() => {
                 setShowUploadModal(false);
@@ -550,7 +547,7 @@ const TrainingCertificates = () => {
                 setIssuingAuthority('');
                 setNotes('');
               }}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-secondary hover:text-primary"
             >
               <FaTimes size={24} />
             </button>
@@ -559,7 +556,7 @@ const TrainingCertificates = () => {
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Employee *</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Employee *</label>
                 <select
                   value={employeeId}
                   onChange={(e) => {
@@ -573,89 +570,89 @@ const TrainingCertificates = () => {
                       setEmployeeId('');
                     }
                   }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="">Select Employee...</option>
+                  <option className='form-option' value="">Select Employee...</option>
                   {employees.length === 0 ? (
                     <option disabled>No employees available</option>
                   ) : (
                     employees.map(emp => (
-                      <option key={emp._id} value={emp._id}>
+                      <option className='form-option' key={emp._id} value={emp._id}>
                         {emp.name || 'Unknown'} {emp.role ? `(${emp.role})` : ''}
                       </option>
                     ))
                   )}
                 </select>
                 {employees.length === 0 && (
-                  <p className="text-xs text-red-600 mt-1">No employees found. Please check your company settings.</p>
+                  <p className="text-xs text-[#A855F7] mt-1">No employees found. Please check your company settings.</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Training Type *</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Training Type *</label>
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="">Select Training...</option>
+                  <option className='form-option' value="">Select Training...</option>
                   {REQUIRED_TRAININGS.map(t => (
-                    <option key={t.name} value={t.name}>{t.name} ({t.renewalMonths} months renewal)</option>
+                    <option className='form-option' key={t.name} value={t.name}>{t.name} ({t.renewalMonths} months renewal)</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Issue Date *</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Issue Date *</label>
                 <input
                   type="date"
                   value={issueDate}
                   onChange={(e) => setIssueDate(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Expiry Date *</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Expiry Date *</label>
                 <input
                   type="date"
                   value={expiryDate}
                   onChange={(e) => setExpiryDate(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Issuing Authority</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Issuing Authority</label>
                 <input
                   type="text"
                   value={issuingAuthority}
                   onChange={(e) => setIssuingAuthority(e.target.value)}
                   placeholder="e.g., Red Cross, OSHA"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Notes</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Notes</label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   placeholder="Additional notes..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Certificate File (PDF/JPG)</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Certificate File (PDF/JPG)</label>
                 <div
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-500 transition cursor-pointer"
+                  className="border-2 border-dashed border-theme rounded-lg p-8 text-center hover:border-indigo-500 transition cursor-pointer"
                   onClick={() => document.getElementById('certificate-file-input')?.click()}
                 >
-                  <FaUpload size={32} className="mx-auto mb-3 text-gray-400" />
-                  <p className="text-sm text-gray-600 mb-2">Click to upload or drag and drop</p>
-                  <p className="text-xs text-gray-500">PDF, JPG, PNG up to 10MB</p>
+                  <FaUpload size={32} className="mx-auto mb-3 text-secondary" />
+                  <p className="text-sm text-secondary mb-2">Click to upload or drag and drop</p>
+                  <p className="text-xs text-secondary">PDF, JPG, PNG up to 10MB</p>
                   {certificateFile && (
                     <p className="text-sm text-indigo-600 mt-2 font-semibold">
                       Selected: {certificateFile.name} ({(certificateFile.size / 1024 / 1024).toFixed(2)} MB)
@@ -702,7 +699,7 @@ const TrainingCertificates = () => {
                   setIssuingAuthority('');
                   setNotes('');
                 }}
-                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+                className="px-6 py-3 bg-gray-200 !text-black rounded-lg font-semibold hover:bg-gray-300 transition"
               >
                 Cancel
               </button>
@@ -719,37 +716,37 @@ const TrainingCertificates = () => {
 
       {/* Renewal Reminders */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-yellow-900">
-            <FaBell className="text-yellow-600" /> Expiring Soon (60 days)
+        <div className="bg-[var(--accent-orange)]/20 border-2 border-theme rounded-xl p-6">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-[var(--accent-orange)]">
+            <FaBell className="text-[var(--accent-orange)]" /> Expiring Soon (60 days)
           </h3>
-          <div className="text-4xl font-bold text-yellow-700 mb-2">{stats.expiring}</div>
-          <p className="text-sm text-gray-700 mb-4">Certificates expiring in next 60 days</p>
+          <div className="text-4xl font-bold text-[var(--accent-orange)] mb-2">{stats.expiring}</div>
+          <p className="text-sm text-secondary mb-4">Certificates expiring in next 60 days</p>
           <div className="space-y-2">
             {trainingData.filter(t => t.status === 'expiring').slice(0, 3).map(record => (
-              <div key={record._id} className="bg-white p-3 rounded-lg text-sm">
+              <div key={record._id} className="bg-card p-3 rounded-lg text-sm">
                 <div className="font-semibold">{record.employeeName}</div>
-                <div className="text-gray-600">{record.trainingName} - Expires {new Date(record.expiryDate).toLocaleDateString()}</div>
+                <div className="text-secondary">{record.trainingName} - Expires {new Date(record.expiryDate).toLocaleDateString()}</div>
               </div>
             ))}
           </div>
-          <button className="mt-4 w-full !mt-5 py-2 bg-yellow-600 !text-white rounded-lg hover:bg-yellow-700 transition text-sm font-semibold">
+          <button className="mt-4 w-full !mt-5 py-2 bg-[var(--accent-orange)] !text-white rounded-lg hover:bg-yellow-700 transition text-sm font-semibold">
             Send Reminders to All
           </button>
         </div>
 
-        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-red-900">
-            <FaExclamationTriangle className="text-red-600" /> Expired Certificates
+        <div className="bg-card border-2 border-red-200 rounded-xl p-6">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-[var(--accent-red)]">
+            <FaExclamationTriangle className="text-[var(--accent-red)]" /> Expired Certificates
           </h3>
-          <div className="text-4xl font-bold text-red-700 mb-2">{stats.expired}</div>
-          <p className="text-sm text-gray-700 mb-4">IMMEDIATE ACTION REQUIRED</p>
+          <div className="text-4xl font-bold text-[var(--accent-red)] mb-2">{stats.expired}</div>
+          <p className="text-sm text-primary mb-4">IMMEDIATE ACTION REQUIRED</p>
           <div className="space-y-2">
             {trainingData.filter(t => t.status === 'expired').map(record => (
-              <div key={record._id} className="bg-white p-3 rounded-lg text-sm border-l-4 border-red-500">
+              <div key={record._id} className="bg-card p-3 rounded-lg text-sm border-l-4 border-red-500">
                 <div className="font-semibold">{record.employeeName}</div>
-                <div className="text-gray-600">{record.trainingName} - Expired {new Date(record.expiryDate).toLocaleDateString()}</div>
-                <div className="text-xs text-red-600 mt-1">Reminders sent: {record.remindersSent}</div>
+                <div className="text-secondary">{record.trainingName} - Expired {new Date(record.expiryDate).toLocaleDateString()}</div>
+                <div className="text-xs text-[#A855F7] mt-1">Reminders sent: {record.remindersSent}</div>
               </div>
             ))}
           </div>
@@ -760,29 +757,29 @@ const TrainingCertificates = () => {
       </div>
 
       {/* Reminder Settings */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-lg font-bold mb-4 text-gray-900">⚙️ Automated Reminder Settings</h3>
+      <div className="bg-card rounded-xl shadow-lg p-6">
+        <h3 className="text-lg font-bold mb-4 text-primary">⚙️ Automated Reminder Settings</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+          <div className="bg-card p-4 rounded-lg">
+            <label className="flex items-center gap-2 text-sm font-semibold text-primary mb-2">
               <input type="checkbox" checked readOnly className="rounded" />
               60-Day Reminder
             </label>
-            <p className="text-xs text-gray-600">Send email 60 days before expiry</p>
+            <p className="text-xs text-secondary">Send email 60 days before expiry</p>
           </div>
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+          <div className="bg-card p-4 rounded-lg">
+            <label className="flex items-center gap-2 text-sm font-semibold text-primary mb-2">
               <input type="checkbox" checked readOnly className="rounded" />
               30-Day Reminder
             </label>
-            <p className="text-xs text-gray-600">Send email 30 days before expiry</p>
+            <p className="text-xs text-secondary">Send email 30 days before expiry</p>
           </div>
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+          <div className="bg-card p-4 rounded-lg">
+            <label className="flex items-center gap-2 text-sm font-semibold text-primary mb-2">
               <input type="checkbox" checked readOnly className="rounded" />
               7-Day Final Notice
             </label>
-            <p className="text-xs text-gray-600">Final reminder 7 days before expiry</p>
+            <p className="text-xs text-secondary">Final reminder 7 days before expiry</p>
           </div>
         </div>
       </div>
@@ -794,8 +791,8 @@ const TrainingCertificates = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Internal Training Modules</h2>
-          <p className="text-gray-600">Create and manage company-specific training content</p>
+          <h2 className="text-2xl font-bold text-primary">Internal Training Modules</h2>
+          <p className="text-secondary">Create and manage company-specific training content</p>
         </div>
         <button
           onClick={() => setShowModuleModal(true)}
@@ -808,45 +805,45 @@ const TrainingCertificates = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {internalModules.map(module => (
-          <div key={module._id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
+          <div key={module._id} className="bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="font-bold text-lg text-gray-900 mb-1">{module.moduleName}</h3>
-                  <p className="text-xs text-gray-500 mb-2">{module.moduleCode}
+                  <h3 className="font-bold text-lg text-primary mb-1">{module.moduleName}</h3>
+                  <p className="text-xs text-secondary mb-2">{module.moduleCode}
                   </p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${module.status === 'active' ? 'bg-green-100 text-green-800' :
-                  module.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                  module.status === 'draft' ? 'bg-card text-primary' :
                     'bg-red-100 text-red-800'
                   }`}>
                   {module.status.toUpperCase()}
                 </span>
               </div>
 
-              <p className="text-sm text-gray-600 mb-4 line-clamp-2">{module.description}</p>
+              <p className="text-sm text-secondary mb-4 line-clamp-2">{module.description}</p>
 
               <div className="space-y-2 text-sm mb-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Duration:</span>
+                  <span className="text-secondary">Duration:</span>
                   <span className="font-semibold">{module.duration} minutes</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Type:</span>
+                  <span className="text-secondary">Type:</span>
                   <span className="font-semibold">{module.contentType}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Current Version:</span>
+                  <span className="text-secondary">Current Version:</span>
                   <span className="font-semibold" style={{ color: CUSTOM_COLORS.primary }}>{module.currentVersion.versionNumber}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Completion Rate:</span>
+                  <span className="text-secondary">Completion Rate:</span>
                   <span className="font-semibold text-green-600">{module.completionRate}%</span>
                 </div>
               </div>
 
               <div className="mb-4">
-                <div className="text-xs text-gray-500 mb-2">Assigned Roles:</div>
+                <div className="text-xs text-secondary mb-2">Assigned Roles:</div>
                 <div className="flex flex-wrap gap-1">
                   {module.assignedRoles.map(role => (
                     <span key={role} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
@@ -859,7 +856,7 @@ const TrainingCertificates = () => {
               {/* Version History */}
               {module.versionHistory.length > 0 && (
                 <div className="mb-4 border-t pt-4">
-                  <div className="text-xs text-gray-500 mb-2 flex items-center gap-2">
+                  <div className="text-xs text-secondary mb-2 flex items-center gap-2">
                     <FaHistory /> Version History ({module.versionHistory.length + 1} versions)
                   </div>
                   <div className="space-y-1 max-h-24 overflow-y-auto">
@@ -867,15 +864,15 @@ const TrainingCertificates = () => {
                       <div className="font-semibold" style={{ color: CUSTOM_COLORS.dark }}>
                         {module.currentVersion.versionNumber} (Current)
                       </div>
-                      <div className="text-gray-600">
+                      <div className="text-secondary">
                         {new Date(module.currentVersion.publishedDate).toLocaleDateString()}
                       </div>
-                      <div className="text-gray-500 mt-1">{module.currentVersion.changes}</div>
+                      <div className="text-secondary mt-1">{module.currentVersion.changes}</div>
                     </div>
                     {module.versionHistory.slice(0, 2).map(version => (
-                      <div key={version.versionNumber} className="text-xs bg-gray-50 p-2 rounded">
+                      <div key={version.versionNumber} className="text-xs bg-card p-2 rounded">
                         <div className="font-semibold">{version.versionNumber}</div>
-                        <div className="text-gray-600">
+                        <div className="text-secondary">
                           {new Date(version.publishedDate).toLocaleDateString()}
                         </div>
                       </div>
@@ -888,10 +885,10 @@ const TrainingCertificates = () => {
                 <button className="flex-1 px-4 py-2 text-white rounded-lg hover:opacity-90 transition text-sm font-semibold" style={{ background: CUSTOM_COLORS.primary }}>
                   Assign to Employees
                 </button>
-                <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm">
+                <button className="px-4 py-2 bg-gray-200 text-primary rounded-lg hover:bg-gray-300 transition text-sm">
                   <FaEdit />
                 </button>
-                <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm">
+                <button className="px-4 py-2 bg-gray-200 text-primary rounded-lg hover:bg-gray-300 transition text-sm">
                   <FaDownload />
                 </button>
               </div>
@@ -908,13 +905,13 @@ const TrainingCertificates = () => {
 
     return (
       <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
+        <div className="bg-card rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-card">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{selectedRecord.trainingName}</h2>
-              <p className="text-gray-600">{selectedRecord.employeeName} - {selectedRecord.employeeRole}</p>
+              <h2 className="text-2xl font-bold text-primary">{selectedRecord.trainingName}</h2>
+              <p className="text-secondary">{selectedRecord.employeeName} - {selectedRecord.employeeRole}</p>
             </div>
-            <button onClick={() => setShowDetailModal(false)} className="text-gray-500 hover:text-gray-700">
+            <button onClick={() => setShowDetailModal(false)} className="text-secondary hover:text-primary">
               <FaTimes size={24} />
             </button>
           </div>
@@ -922,22 +919,22 @@ const TrainingCertificates = () => {
           <div className="p-6 space-y-6">
             {/* Status Overview */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="text-xs text-gray-600 mb-1">Status</div>
+              <div className="bg-card p-4 rounded-lg">
+                <div className="text-xs text-secondary mb-1">Status</div>
                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(selectedRecord.status)}`}>
                   {selectedRecord.status.toUpperCase()}
                 </span>
               </div>
               <div className="bg-green-50 p-4 rounded-lg">
-                <div className="text-xs text-gray-600 mb-1">Issue Date</div>
+                <div className="text-xs text-secondary mb-1">Issue Date</div>
                 <div className="font-semibold">{new Date(selectedRecord.issueDate).toLocaleDateString()}</div>
               </div>
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <div className="text-xs text-gray-600 mb-1">Expiry Date</div>
+              <div className="bg-card p-4 rounded-lg">
+                <div className="text-xs text-secondary mb-1">Expiry Date</div>
                 <div className="font-semibold">{new Date(selectedRecord.expiryDate).toLocaleDateString()}</div>
               </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <div className="text-xs text-gray-600 mb-1">Type</div>
+              <div className="bg-card p-4 rounded-lg">
+                <div className="text-xs text-secondary mb-1">Type</div>
                 <div className="font-semibold text-sm">{selectedRecord.trainingType}</div>
               </div>
             </div>
@@ -950,21 +947,21 @@ const TrainingCertificates = () => {
                 </h3>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <span className="text-gray-600">Acknowledged By:</span>
+                    <span className="text-secondary">Acknowledged By:</span>
                     <div className="font-semibold">{selectedRecord.acknowledgment.acknowledgedBy}</div>
                   </div>
                   <div>
-                    <span className="text-gray-600">Date & Time:</span>
+                    <span className="text-secondary">Date & Time:</span>
                     <div className="font-semibold">
                       {new Date(selectedRecord.acknowledgment.acknowledgedDate).toLocaleString()}
                     </div>
                   </div>
                   <div>
-                    <span className="text-gray-600">Digital Signature:</span>
+                    <span className="text-secondary">Digital Signature:</span>
                     <div className="font-semibold italic">{selectedRecord.acknowledgment.signature}</div>
                   </div>
                   <div>
-                    <span className="text-gray-600">IP Address:</span>
+                    <span className="text-secondary">IP Address:</span>
                     <div className="font-mono text-xs">{selectedRecord.acknowledgment.ipAddress}</div>
                   </div>
                 </div>
@@ -973,12 +970,12 @@ const TrainingCertificates = () => {
 
             {/* No Acknowledgment Warning */}
             {!selectedRecord.acknowledgment && (
-              <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+              <div className="bg-card border border-yellow-200 p-4 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <FaExclamationTriangle className="text-yellow-600" size={24} />
+                  <FaExclamationTriangle className="text-[#00FFA3]" size={24} />
                   <div>
                     <h4 className="font-semibold text-yellow-900">No Acknowledgment on Record</h4>
-                    <p className="text-sm text-gray-700">Employee has not digitally acknowledged this training</p>
+                    <p className="text-sm text-primary">Employee has not digitally acknowledged this training</p>
                   </div>
                 </div>
                 <button className="mt-3 px-4 py-2 bg-yellow-600 !text-white rounded-lg hover:bg-yellow-700 text-sm font-semibold">
@@ -994,7 +991,7 @@ const TrainingCertificates = () => {
                   <FaFileAlt /> Version Information
                 </h3>
                 <div className="text-sm">
-                  <span className="text-gray-600">Completed Version:</span>
+                  <span className="text-secondary">Completed Version:</span>
                   <span className="font-semibold ml-2">{selectedRecord.currentVersion}</span>
                 </div>
               </div>
@@ -1002,18 +999,18 @@ const TrainingCertificates = () => {
 
             {/* Completion Details */}
             {selectedRecord.completionDate && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-bold text-gray-900 mb-3">Completion Details</h3>
+              <div className="bg-card p-4 rounded-lg">
+                <h3 className="font-bold text-primary mb-3">Completion Details</h3>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <span className="text-gray-600">Completion Date:</span>
+                    <span className="text-secondary">Completion Date:</span>
                     <div className="font-semibold">
                       {new Date(selectedRecord.completionDate).toLocaleDateString()}
                     </div>
                   </div>
                   {selectedRecord.score !== undefined && (
                     <div>
-                      <span className="text-gray-600">Score:</span>
+                      <span className="text-secondary">Score:</span>
                       <div className="font-semibold text-green-600">{selectedRecord.score}%</div>
                     </div>
                   )}
@@ -1022,18 +1019,18 @@ const TrainingCertificates = () => {
             )}
 
             {/* Reminder History */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+            <div className="bg-card p-4 rounded-lg">
+              <h3 className="font-bold text-primary mb-3 flex items-center gap-2">
                 <FaBell /> Reminder History
               </h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Total Reminders Sent:</span>
+                  <span className="text-secondary">Total Reminders Sent:</span>
                   <span className="font-semibold">{selectedRecord.remindersSent}</span>
                 </div>
                 {selectedRecord.lastReminderDate && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Last Reminder:</span>
+                    <span className="text-secondary">Last Reminder:</span>
                     <span className="font-semibold">
                       {new Date(selectedRecord.lastReminderDate).toLocaleDateString()}
                     </span>
@@ -1044,16 +1041,16 @@ const TrainingCertificates = () => {
 
             {/* Certificate Download */}
             {selectedRecord.certificateUrl && (
-              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+              <div className="bg-card border border-blue-200 p-4 rounded-lg">
                 <h3 className="font-bold text-blue-900 mb-3">Certificate Document</h3>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <FaFileAlt className="text-blue-600" size={24} />
+                    <FaFileAlt className="text-[#00D1FF]" size={24} />
                     <div>
                       <div className="font-semibold text-sm">
                         {selectedRecord.certificateUrl.split('/').pop() || 'Certificate_File.pdf'}
                       </div>
-                      <div className="text-xs text-gray-600">Uploaded: {new Date(selectedRecord.issueDate).toLocaleDateString()}</div>
+                      <div className="text-xs text-secondary">Uploaded: {new Date(selectedRecord.issueDate).toLocaleDateString()}</div>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -1110,16 +1107,16 @@ const TrainingCertificates = () => {
             )}
           </div>
 
-          <div className="p-6 border-t bg-gray-50 flex gap-3">
+          <div className="p-6 border-t bg-card flex gap-3">
             <button className="flex-1 px-6 py-3 bg-indigo-600 !text-white rounded-lg font-semibold hover:bg-indigo-700 transition">
               Send Reminder
             </button>
-            <button className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition">
+            <button className="flex-1 px-6 py-3 bg-gray-200 text-primary rounded-lg font-semibold hover:bg-gray-300 transition">
               Edit Record
             </button>
             <button
               onClick={() => setShowDetailModal(false)}
-              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+              className="px-6 py-3 bg-gray-200 text-primary rounded-lg font-semibold hover:bg-gray-300 transition"
             >
               Close
             </button>
@@ -1208,9 +1205,9 @@ const TrainingCertificates = () => {
 
     return (
       <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
-            <h2 className="text-2xl font-bold text-gray-900">Create New Training Module</h2>
+        <div className="bg-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-card">
+            <h2 className="text-2xl font-bold text-primary">Create New Training Module</h2>
             <button
               onClick={() => {
                 setShowModuleModal(false);
@@ -1222,7 +1219,7 @@ const TrainingCertificates = () => {
                 setSelectedRoles([]);
                 setTrainingFile(null);
               }}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-secondary hover:text-primary"
             >
               <FaTimes size={24} />
             </button>
@@ -1231,66 +1228,66 @@ const TrainingCertificates = () => {
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Module Name *</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Module Name *</label>
                 <input
                   type="text"
                   value={moduleName}
                   onChange={(e) => setModuleName(e.target.value)}
                   placeholder="e.g., Advanced Load Securement"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Module Code *</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Module Code *</label>
                 <input
                   type="text"
                   value={moduleCode}
                   onChange={(e) => setModuleCode(e.target.value)}
                   placeholder="e.g., ALS-2024"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Description *</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Description *</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe the training content and objectives..."
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Duration (minutes) *</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Duration (minutes) *</label>
                 <input
                   type="number"
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
                   placeholder="30"
                   min="1"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Content Type *</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Content Type *</label>
                 <select
                   value={contentType}
                   onChange={(e) => setContentType(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="Video">Video</option>
-                  <option value="Document">Document</option>
-                  <option value="Interactive">Interactive</option>
-                  <option value="Quiz">Quiz</option>
+                  <option className='form-option' value="Video">Video</option>
+                  <option className='form-option' value="Document">Document</option>
+                  <option className='form-option' value="Interactive">Interactive</option>
+                  <option className='form-option' value="Quiz">Quiz</option>
                 </select>
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Assign to Roles</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Assign to Roles</label>
                 <div className="grid grid-cols-3 gap-3">
                   {EMPLOYEE_ROLES.map(role => (
                     <label key={role} className="flex items-center gap-2 cursor-pointer">
@@ -1307,14 +1304,14 @@ const TrainingCertificates = () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Upload Training Content *</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Upload Training Content *</label>
                 <div
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-500 transition cursor-pointer"
+                  className="border-2 border-dashed border-theme rounded-lg p-8 text-center hover:border-indigo-500 transition cursor-pointer"
                   onClick={() => document.getElementById('training-file-input')?.click()}
                 >
-                  <FaUpload size={32} className="mx-auto mb-3 text-gray-400" />
-                  <p className="text-sm text-gray-600 mb-2">Click to upload training materials</p>
-                  <p className="text-xs text-gray-500">PDF, Video, SCORM packages up to 100MB</p>
+                  <FaUpload size={32} className="mx-auto mb-3 text-secondary" />
+                  <p className="text-sm text-secondary mb-2">Click to upload training materials</p>
+                  <p className="text-xs text-secondary">PDF, Video, SCORM packages up to 100MB</p>
                   {trainingFile && (
                     <p className="text-sm text-indigo-600 mt-2 font-semibold">
                       Selected: {trainingFile.name} ({(trainingFile.size / 1024 / 1024).toFixed(2)} MB)
@@ -1360,7 +1357,7 @@ const TrainingCertificates = () => {
                   setSelectedRoles([]);
                   setTrainingFile(null);
                 }}
-                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+                className="px-6 py-3 bg-gray-200 !text-black rounded-lg font-semibold hover:bg-gray-300 transition"
               >
                 Cancel
               </button>
@@ -1373,41 +1370,41 @@ const TrainingCertificates = () => {
 
   return (
 
-    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
+    <div className="min-h-screen p-6 bg-main" >
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3" style={{ color: CUSTOM_COLORS.dark }}>
-          <FaGraduationCap style={{ color: CUSTOM_COLORS.primary }} />
+        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3 text-headings" >
+          <FaGraduationCap className='text-heaidings' />
           Safety Training & Compliance
         </h1>
-        <p className="text-gray-600">Manage employee certifications, training modules, and compliance tracking</p>
+        <p className="text-secondary">Manage employee certifications, training modules, and compliance tracking</p>
       </div>
 
       {/* Stats Dashboard */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-          <div className="text-sm text-gray-600 mb-1">Total Records</div>
-          <div className="text-2xl font-bold text-gray-900">{stats.totalRecords}</div>
+        <div className="bg-card p-4 rounded-xl shadow-sm border border-theme">
+          <div className="text-sm text-secondary mb-1">Total Records</div>
+          <div className="text-2xl font-bold text-primary">{stats.totalRecords}</div>
         </div>
-        <div className="bg-green-50 p-4 rounded-xl shadow-sm border border-green-200">
-          <div className="text-sm text-green-600 mb-1">Valid</div>
-          <div className="text-2xl font-bold text-green-900">{stats.valid}</div>
+        <div className="bg-[var(--accent-green)]/20 p-4 rounded-xl shadow-sm border border-theme">
+          <div className="text-sm text-[var(--accent-green)] mb-1">Valid</div>
+          <div className="text-2xl font-bold text-[var(--accent-green)]">{stats.valid}</div>
         </div>
-        <div className="bg-yellow-50 p-4 rounded-xl shadow-sm border border-yellow-200">
-          <div className="text-sm text-yellow-600 mb-1">Expiring Soon</div>
-          <div className="text-2xl font-bold text-yellow-900">{stats.expiring}</div>
+        <div className="bg-[var(--accent-orange)]/20 p-4 rounded-xl shadow-sm border border-theme">
+          <div className="text-sm text-[var(--accent-orange)] mb-1">Expiring Soon</div>
+          <div className="text-2xl font-bold text-[var(--accent-orange)]">{stats.expiring}</div>
         </div>
-        <div className="bg-red-50 p-4 rounded-xl shadow-sm border border-red-200">
-          <div className="text-sm text-red-600 mb-1">Expired</div>
-          <div className="text-2xl font-bold text-red-900">{stats.expired}</div>
+        <div className="bg-[var(--accent-red)]/20 p-4 rounded-xl shadow-sm border border-theme">
+          <div className="text-sm text-[var(--accent-red)] mb-1">Expired</div>
+          <div className="text-2xl font-bold text-[var(--accent-red)]">{stats.expired}</div>
         </div>
-        <div className="bg-blue-50 p-4 rounded-xl shadow-sm border border-blue-200">
-          <div className="text-sm text-blue-600 mb-1">In Progress</div>
-          <div className="text-2xl font-bold text-blue-900">{stats.inProgress}</div>
+        <div className="bg-[var(--accent-blue)]/20 p-4 rounded-xl shadow-sm border border-theme">
+          <div className="text-sm text-[var(--accent-blue)] mb-1">In Progress</div>
+          <div className="text-2xl font-bold text-[var(--accent-blue)]">{stats.inProgress}</div>
         </div>
-        <div className="bg-purple-50 p-4 rounded-xl shadow-sm border border-purple-200">
-          <div className="text-sm text-purple-600 mb-1">Active Modules</div>
-          <div className="text-2xl font-bold text-purple-900">{stats.activeModules}</div>
+        <div className="bg-[var(--accent-purple)]/20 p-4 rounded-xl shadow-sm border border-theme">
+          <div className="text-sm text-[var(--accent-purple)] mb-1">Active Modules</div>
+          <div className="text-2xl font-bold text-[var(--accent-purple)]">{stats.activeModules}</div>
         </div>
       </div>
 
@@ -1415,7 +1412,7 @@ const TrainingCertificates = () => {
       <div className="flex gap-2 mb-6 overflow-x-auto">
         <button
           onClick={() => setActiveTab('matrix')}
-          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'matrix' ? '!text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'matrix' ? '!text-white' : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)]'
             }`}
           style={activeTab === 'matrix' ? { background: CUSTOM_COLORS.primary } : {}}
         >
@@ -1423,7 +1420,7 @@ const TrainingCertificates = () => {
         </button>
         <button
           onClick={() => setActiveTab('management')}
-          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'management' ? '!text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'management' ? '!text-white' : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)]'
             }`}
           style={activeTab === 'management' ? { background: CUSTOM_COLORS.primary } : {}}
         >
@@ -1431,7 +1428,7 @@ const TrainingCertificates = () => {
         </button>
         <button
           onClick={() => setActiveTab('modules')}
-          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'modules' ? '!text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'modules' ? '!text-white' : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)]'
             }`}
           style={activeTab === 'modules' ? { background: CUSTOM_COLORS.primary } : {}}
         >

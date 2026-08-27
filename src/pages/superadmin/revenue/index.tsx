@@ -5,7 +5,6 @@ import {
     TrendingUp,
     Users,
     Calendar,
-    Download,
     Eye,
     MoreHorizontal,
     Building2,
@@ -70,9 +69,9 @@ const RevenueDashboard = () => {
             setLoading(true);
             setError(null);
             const response = await getSuperAdminRevenue(revenueFilter, currentPage, limit);
-            
+
             console.log('Full API Response:', response);
-            
+
             if (response?.success && response?.data) {
                 console.log('Setting revenue data:', response.data);
                 setRevenueData(response.data);
@@ -92,7 +91,7 @@ const RevenueDashboard = () => {
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading revenue data...</p>
+                    <p className="mt-4 text-secondary">Loading revenue data...</p>
                 </div>
             </div>
         );
@@ -102,7 +101,7 @@ const RevenueDashboard = () => {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                    <p className="text-red-600 mb-4">{error}</p>
+                    <p className="text-[#A855F7] mb-4">{error}</p>
                     <button
                         onClick={fetchRevenueData}
                         className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
@@ -117,7 +116,7 @@ const RevenueDashboard = () => {
     if (!revenueData) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <p className="text-gray-600">No data available</p>
+                <p className="text-secondary">No data available</p>
             </div>
         );
     }
@@ -133,23 +132,23 @@ const RevenueDashboard = () => {
     console.log('Revenue Entries:', revenueEntries);
 
     // Revenue metrics from API - ensure proper number handling
-    const totalRevenue = typeof metrics.totalRevenue === 'number' 
-        ? metrics.totalRevenue 
+    const totalRevenue = typeof metrics.totalRevenue === 'number'
+        ? metrics.totalRevenue
         : (metrics.totalRevenue != null ? parseFloat(String(metrics.totalRevenue)) : 0);
-    const monthlyRecurring = typeof metrics.monthlyRecurring === 'number' 
-        ? metrics.monthlyRecurring 
+    const monthlyRecurring = typeof metrics.monthlyRecurring === 'number'
+        ? metrics.monthlyRecurring
         : (metrics.monthlyRecurring != null ? parseFloat(String(metrics.monthlyRecurring)) : 0);
-    const overdueAmount = typeof metrics.overdueAmount === 'number' 
-        ? metrics.overdueAmount 
+    const overdueAmount = typeof metrics.overdueAmount === 'number'
+        ? metrics.overdueAmount
         : (metrics.overdueAmount != null ? parseFloat(String(metrics.overdueAmount)) : 0);
-    const trialRevenuePotential = typeof metrics.trialRevenuePotential === 'number' 
-        ? metrics.trialRevenuePotential 
+    const trialRevenuePotential = typeof metrics.trialRevenuePotential === 'number'
+        ? metrics.trialRevenuePotential
         : (metrics.trialRevenuePotential != null ? parseFloat(String(metrics.trialRevenuePotential)) : 0);
-    const revenueGrowth = typeof metrics.revenueGrowth === 'number' 
-        ? metrics.revenueGrowth 
+    const revenueGrowth = typeof metrics.revenueGrowth === 'number'
+        ? metrics.revenueGrowth
         : (metrics.revenueGrowth != null ? parseFloat(String(metrics.revenueGrowth)) : 0);
-    const monthlyRecurringGrowth = typeof metrics.monthlyRecurringGrowth === 'number' 
-        ? metrics.monthlyRecurringGrowth 
+    const monthlyRecurringGrowth = typeof metrics.monthlyRecurringGrowth === 'number'
+        ? metrics.monthlyRecurringGrowth
         : (metrics.monthlyRecurringGrowth != null ? parseFloat(String(metrics.monthlyRecurringGrowth)) : 0);
 
     console.log('Metrics object:', metrics);
@@ -162,7 +161,7 @@ const RevenueDashboard = () => {
             case 'Overdue': return 'bg-red-100 text-red-800';
             case 'Trial': return 'bg-blue-100 text-blue-800';
             case 'Pending': return 'bg-yellow-100 text-yellow-800';
-            default: return 'bg-gray-100 text-gray-800';
+            default: return 'bg-card text-primary';
         }
     };
 
@@ -172,7 +171,7 @@ const RevenueDashboard = () => {
             case 'Paid': return <CheckCircle className="w-4 h-4 text-green-500" />;
             case 'Overdue': return <AlertCircle className="w-4 h-4 text-red-500" />;
             case 'Trial': return <Clock className="w-4 h-4 text-blue-500" />;
-            default: return <Clock className="w-4 h-4 text-gray-500" />;
+            default: return <Clock className="w-4 h-4 text-secondary" />;
         }
     };
 
@@ -185,15 +184,11 @@ const RevenueDashboard = () => {
         setShowViewModal(true);
     };
 
-    
+
 
     const handleCopyId = (id: string) => {
         navigator.clipboard.writeText(id);
         message.success('ID copied to clipboard');
-    };
-
-    const handleExport = (_revenue: any) => {
-        message.info('Export functionality coming soon');
     };
 
     const handleMoreActions = (revenueId: string, event: React.MouseEvent) => {
@@ -202,16 +197,16 @@ const RevenueDashboard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-card">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="bg-card border-b border-theme px-6 py-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-semibold text-gray-900 flex items-center">
+                        <h1 className="text-2xl font-semibold text-primary flex items-center">
                             <DollarSign className="w-8 h-8 text-green-600 mr-3" />
                             Revenue Dashboard
                         </h1>
-                        <p className="text-gray-600 mt-1">Track revenue, payments, and financial metrics</p>
+                        <p className="text-secondary mt-1">Track revenue, payments, and financial metrics</p>
                     </div>
 
                 </div>
@@ -221,11 +216,11 @@ const RevenueDashboard = () => {
                 {/* Revenue Metrics Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                     {/* Total Revenue */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600 mb-1">Total Revenue</p>
-                                <p className="text-2xl font-bold text-gray-900">
+                                <p className="text-sm text-secondary mb-1">Total Revenue</p>
+                                <p className="text-2xl font-bold text-primary">
                                     ${typeof totalRevenue === 'number' && !isNaN(totalRevenue) ? totalRevenue.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
                                 </p>
                                 <div className="flex items-center mt-2">
@@ -242,51 +237,51 @@ const RevenueDashboard = () => {
                     </div>
 
                     {/* Monthly Recurring Revenue */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600 mb-1">Monthly Recurring</p>
-                                <p className="text-2xl font-bold text-gray-900">
+                                <p className="text-sm text-secondary mb-1">Monthly Recurring</p>
+                                <p className="text-2xl font-bold text-primary">
                                     ${typeof monthlyRecurring === 'number' && !isNaN(monthlyRecurring) ? monthlyRecurring.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
                                 </p>
                                 <div className="flex items-center mt-2">
                                     <TrendingUp className="w-4 h-4 text-blue-500 mr-1" />
-                                    <span className="text-sm text-blue-600">
+                                    <span className="text-sm text-[#00D1FF]">
                                         {monthlyRecurringGrowth >= 0 ? '+' : ''}{monthlyRecurringGrowth}% growth
                                     </span>
                                 </div>
                             </div>
                             <div className="bg-blue-100 p-3 rounded-lg">
-                                <Calendar className="w-6 h-6 text-blue-600" />
+                                <Calendar className="w-6 h-6 text-[#00D1FF]" />
                             </div>
                         </div>
                     </div>
 
                     {/* Overdue Payments */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600 mb-1">Overdue Amount</p>
-                                <p className="text-2xl font-bold text-gray-900">
+                                <p className="text-sm text-secondary mb-1">Overdue Amount</p>
+                                <p className="text-2xl font-bold text-primary">
                                     ${typeof overdueAmount === 'number' && !isNaN(overdueAmount) ? overdueAmount.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
                                 </p>
                                 <div className="flex items-center mt-2">
                                     <AlertCircle className="w-4 h-4 text-red-500 mr-1" />
-                                    <span className="text-sm text-red-600">Needs attention</span>
+                                    <span className="text-sm text-[#A855F7]">Needs attention</span>
                                 </div>
                             </div>
                             <div className="bg-red-100 p-3 rounded-lg">
-                                <AlertCircle className="w-6 h-6 text-red-600" />
+                                <AlertCircle className="w-6 h-6 text-[#A855F7]" />
                             </div>
                         </div>
                     </div>
 
                     {/* Trial Potential */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600 mb-1">Trial Potential</p>
-                                <p className="text-2xl font-bold text-gray-900">
+                                <p className="text-sm text-secondary mb-1">Trial Potential</p>
+                                <p className="text-2xl font-bold text-primary">
                                     ${typeof trialRevenuePotential === 'number' && !isNaN(trialRevenuePotential) ? trialRevenuePotential.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
                                 </p>
                                 <div className="flex items-center mt-2">
@@ -308,106 +303,102 @@ const RevenueDashboard = () => {
                     <div className="flex space-x-2">
                         <button
                             onClick={() => setRevenueFilter('all')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                revenueFilter === 'all'
-                                    ? 'bg-green-600 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${revenueFilter === 'all'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-card text-primary hover:bg-gray-200'
+                                }`}
                         >
                             All
                         </button>
                         <button
                             onClick={() => setRevenueFilter('paid')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                revenueFilter === 'paid'
-                                    ? 'bg-green-600 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${revenueFilter === 'paid'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-card text-primary hover:bg-gray-200'
+                                }`}
                         >
                             Paid
                         </button>
                         <button
                             onClick={() => setRevenueFilter('overdue')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                revenueFilter === 'overdue'
-                                    ? 'bg-green-600 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${revenueFilter === 'overdue'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-card text-primary hover:bg-gray-200'
+                                }`}
                         >
                             Overdue
                         </button>
                         <button
                             onClick={() => setRevenueFilter('trial')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                revenueFilter === 'trial'
-                                    ? 'bg-green-600 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${revenueFilter === 'trial'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-card text-primary hover:bg-gray-200'
+                                }`}
                         >
                             Trial
                         </button>
                     </div>
-                    <p className="text-gray-600">
+                    <p className="text-secondary">
                         Showing <span className="font-medium">{filteredRevenue.length}</span> revenue entries
                     </p>
                 </div>
 
                 {/* Revenue Table */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
                     <div className="overflow-x-auto max-w-full">
                         <table className="w-full table-auto">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-card border-b border-theme">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-64">
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider w-64">
                                         Customer
                                     </th>
 
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider w-32">
                                         Amount
                                     </th>
 
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider w-40">
                                         Payment Date
                                     </th>
 
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider w-32">
                                         Status
                                     </th>
 
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider w-32">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-card  divide-theme">
                                 {filteredRevenue.map((revenue: any) => (
-                                    <tr key={revenue.id} className="hover:bg-gray-50">
+                                    <tr key={revenue.id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                         <td className="px-6 py-4 whitespace-nowrap w-64">
                                             <div className="flex items-center">
                                                 <div className="bg-green-100 p-2 rounded-lg mr-3">
                                                     <Building2 className="w-5 h-5 text-green-600" />
                                                 </div>
                                                 <div>
-                                                    <div className="text-sm font-medium text-gray-900">{revenue.customer || revenue.adminName || 'N/A'}</div>
-                                                    <div className="text-sm text-gray-500">{revenue.customerId}</div>
+                                                    <div className="text-sm font-medium text-primary">{revenue.customer || revenue.adminName || 'N/A'}</div>
+                                                    <div className="text-sm text-secondary">{revenue.customerId}</div>
                                                     {revenue.companyName && (
-                                                        <div className="text-xs text-gray-400 mt-0.5">Company: {revenue.companyName}</div>
+                                                        <div className="text-xs text-secondary mt-0.5">Company: {revenue.companyName}</div>
                                                     )}
                                                 </div>
                                             </div>
                                         </td>
 
                                         <td className="px-6 py-4 whitespace-nowrap w-32">
-                                            <div className="text-sm font-medium text-gray-900">
+                                            <div className="text-sm font-medium text-primary">
                                                 ${typeof revenue.amount === 'number' && !isNaN(revenue.amount) ? revenue.amount.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
                                             </div>
-                                            <div className="text-xs text-gray-500">
+                                            <div className="text-xs text-secondary">
                                                 {revenue.recurring ? 'Monthly' : 'One-time'}
                                             </div>
                                         </td>
 
                                         <td className="px-6 py-4 whitespace-nowrap w-40">
-                                            <div className="text-sm text-gray-900">{revenue.paymentDate}</div>
+                                            <div className="text-sm text-primary">{revenue.paymentDate}</div>
                                         </td>
 
                                         <td className="px-6 py-4 whitespace-nowrap w-32">
@@ -423,7 +414,7 @@ const RevenueDashboard = () => {
                                             <div className="flex items-center space-x-2">
                                                 <button
                                                     onClick={() => handleViewDetails(revenue)}
-                                                    className="text-gray-400 hover:text-green-600 p-1 rounded transition-colors"
+                                                    className="text-secondary hover:text-green-600 p-1 rounded transition-colors"
                                                     title="View Details"
                                                 >
                                                     <Eye className="w-4 h-4" />
@@ -431,54 +422,44 @@ const RevenueDashboard = () => {
                                                 <div className="relative" ref={(el) => { dropdownRefs.current[revenue.id] = el; }}>
                                                     <button
                                                         onClick={(e) => handleMoreActions(revenue.id, e)}
-                                                        className="text-gray-400 hover:text-gray-600 p-1 rounded transition-colors"
+                                                        className="text-secondary hover:text-secondary p-1 rounded transition-colors"
                                                         title="More Actions"
                                                     >
-                                                    <MoreHorizontal className="w-4 h-4" />
-                                                </button>
+                                                        <MoreHorizontal className="w-4 h-4" />
+                                                    </button>
                                                     {activeDropdown === revenue.id && (
                                                         <>
                                                             {/* Backdrop to close on click outside */}
-                                                            <div 
-                                                                className="fixed inset-0 z-[9998]" 
+                                                            <div
+                                                                className="fixed inset-0 z-[9998]"
                                                                 onClick={() => setActiveDropdown(null)}
                                                             />
                                                             {/* Dropdown menu */}
-                                                            <div className="absolute right-0 bottom-full mb-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-[9999] py-1 overflow-hidden">
+                                                            <div className="absolute right-0 bottom-full mb-2 w-48 bg-card rounded-lg shadow-xl border border-theme z-[9999] py-1 overflow-hidden">
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         handleCopyId(revenue.id);
                                                                         setActiveDropdown(null);
                                                                     }}
-                                                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                                                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
                                                                 >
                                                                     <Copy className="w-4 h-4" />
                                                                     <span>Copy Revenue ID</span>
                                                                 </button>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleExport(revenue);
-                                                                        setActiveDropdown(null);
-                                                                    }}
-                                                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 transition-colors"
-                                                                >
-                                                                    <Download className="w-4 h-4" />
-                                                                    <span>Export Details</span>
-                                                                </button>
+                                                               
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         handleCopyId(revenue.customerId);
                                                                         setActiveDropdown(null);
                                                                     }}
-                                                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                                                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
                                                                 >
                                                                     <Copy className="w-4 h-4" />
                                                                     <span>Copy Customer ID</span>
                                                                 </button>
-                                                                <div className="border-t border-gray-200 my-1"></div>
+                                                                <div className="border-t border-theme my-1"></div>
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
@@ -493,7 +474,7 @@ const RevenueDashboard = () => {
                                                                             });
                                                                         }, 300);
                                                                     }}
-                                                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                                                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
                                                                 >
                                                                     <ExternalLink className="w-4 h-4" />
                                                                     <span>View Customer Profile</span>
@@ -513,14 +494,14 @@ const RevenueDashboard = () => {
 
                 {/* Pagination */}
                 <div className="mt-6 flex items-center justify-between">
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-secondary">
                         Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, pagination.total)} of {pagination.total} revenue entries
                     </div>
                     <div className="flex space-x-2">
-                        <button 
+                        <button
                             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                             disabled={currentPage === 1}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-2 border border-theme rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Previous
                         </button>
@@ -530,20 +511,19 @@ const RevenueDashboard = () => {
                                 <button
                                     key={pageNum}
                                     onClick={() => setCurrentPage(pageNum)}
-                                    className={`px-3 py-2 rounded-lg text-sm ${
-                                        currentPage === pageNum
-                                            ? 'bg-green-600 text-white hover:bg-green-700'
-                                            : 'border border-gray-300 hover:bg-gray-50'
-                                    }`}
+                                    className={`px-3 py-2 rounded-lg text-sm ${currentPage === pageNum
+                                        ? 'bg-green-600 text-white hover:bg-green-700'
+                                        : 'border border-theme hover:bg-[rgba(255,255,255,0.03)]'
+                                        }`}
                                 >
                                     {pageNum}
-                        </button>
+                                </button>
                             );
                         })}
-                        <button 
+                        <button
                             onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
                             disabled={currentPage >= pagination.totalPages}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-2 border border-theme rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Next
                         </button>
@@ -554,8 +534,8 @@ const RevenueDashboard = () => {
             {/* View Revenue Details Modal */}
             <Modal
                 title={
-                    <div className="flex items-center gap-2">
-                        <DollarSign className="w-5 h-5 text-green-600" />
+                    <div className="flex items-center gap-2 text-slate-200">
+                        <DollarSign className="w-5 h-5 text-blue-500" />
                         <span>Revenue Details</span>
                     </div>
                 }
@@ -565,99 +545,135 @@ const RevenueDashboard = () => {
                     setSelectedRevenue(null);
                 }}
                 footer={[
-                    <Button key="close" onClick={() => {
-                        setShowViewModal(false);
-                        setSelectedRevenue(null);
-                    }}>
-                        Close
-                    </Button>,
                     <Button
-                        key="export"
-                        type="primary"
-                        icon={<Download className="w-4 h-4" />}
+                        key="close"
                         onClick={() => {
-                            if (selectedRevenue) handleExport(selectedRevenue);
+                            setShowViewModal(false);
+                            setSelectedRevenue(null);
                         }}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700"
                     >
-                        Export
+                        Close
                     </Button>
                 ]}
                 width={700}
+                styles={{
+                    content: {
+                        backgroundColor: "#0f172a",
+                        border: "1px solid #1e293b",
+                    },
+                    header: {
+                        backgroundColor: "#0f172a",
+                        borderBottom: "1px solid #1e293b",
+                    },
+                    body: {
+                        backgroundColor: "#0f172a",
+                    },
+                    footer: {
+                        backgroundColor: "#0f172a",
+                        borderTop: "1px solid #1e293b",
+                    }
+                }}
             >
                 {selectedRevenue && (
                     <div className="space-y-6 py-4">
+
                         {/* Customer Information */}
-                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200">
-                            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                                <Building2 className="w-4 h-4" />
+                        <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                            <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+                                <Building2 className="w-4 h-4 text-slate-400" />
                                 Customer Information
                             </h3>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-1">Customer Name</p>
-                                    <p className="text-sm font-medium text-gray-900">{selectedRevenue.customer || selectedRevenue.adminName || 'N/A'}</p>
+                                    <p className="text-xs text-slate-400 mb-1">Customer Name</p>
+                                    <p className="text-sm font-medium text-slate-200">
+                                        {selectedRevenue.customer || selectedRevenue.adminName || 'N/A'}
+                                    </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-1">Customer ID</p>
+                                    <p className="text-xs text-slate-400 mb-1">Customer ID</p>
                                     <div className="flex items-center gap-2">
-                                        <p className="text-sm font-medium text-gray-900">{selectedRevenue.customerId}</p>
+                                        <p className="text-sm font-medium text-slate-200">
+                                            {selectedRevenue.customerId}
+                                        </p>
                                         <button
                                             onClick={() => handleCopyId(selectedRevenue.customerId)}
-                                            className="text-gray-400 hover:text-gray-600"
-                                            title="Copy ID"
+                                            className="text-slate-400 hover:text-slate-200"
                                         >
                                             <Copy className="w-3 h-3" />
                                         </button>
                                     </div>
                                 </div>
+
                                 {selectedRevenue.companyName && (
                                     <div className="col-span-2">
-                                        <p className="text-xs text-gray-600 mb-1">Company Name</p>
-                                        <p className="text-sm font-medium text-gray-900">{selectedRevenue.companyName}</p>
+                                        <p className="text-xs text-slate-400 mb-1">Company Name</p>
+                                        <p className="text-sm font-medium text-slate-200">
+                                            {selectedRevenue.companyName}
+                                        </p>
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         {/* Payment Information */}
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
-                            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                                <CreditCard className="w-4 h-4" />
+                        <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-lg p-4 border border-slate-700">
+                            <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+                                <CreditCard className="w-4 h-4 text-slate-400" />
                                 Payment Information
                             </h3>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-1">Amount</p>
-                                    <p className="text-lg font-bold text-gray-900">
-                                        ${typeof selectedRevenue.amount === 'number' && !isNaN(selectedRevenue.amount) 
-                                            ? selectedRevenue.amount.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) 
+                                    <p className="text-xs text-slate-400 mb-1">Amount</p>
+                                    <p className="text-lg font-bold text-slate-100">
+                                        ${typeof selectedRevenue.amount === 'number' && !isNaN(selectedRevenue.amount)
+                                            ? selectedRevenue.amount.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
                                             : '0'}
                                     </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-1">Payment Type</p>
-                                    <p className="text-sm font-medium text-gray-900">
+                                    <p className="text-xs text-slate-400 mb-1">Payment Type</p>
+                                    <p className="text-sm font-medium text-slate-200">
                                         {selectedRevenue.recurring ? 'Monthly Recurring' : 'One-time'}
                                     </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-1">Payment Date</p>
-                                    <p className="text-sm font-medium text-gray-900">{selectedRevenue.paymentDate}</p>
+                                    <p className="text-xs text-slate-400 mb-1">Payment Date</p>
+                                    <p className="text-sm font-medium text-slate-200">
+                                        {selectedRevenue.paymentDate}
+                                    </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-1">Next Payment</p>
-                                    <p className="text-sm font-medium text-gray-900">{selectedRevenue.nextPayment || 'N/A'}</p>
+                                    <p className="text-xs text-slate-400 mb-1">Next Payment</p>
+                                    <p className="text-sm font-medium text-slate-200">
+                                        {selectedRevenue.nextPayment || 'N/A'}
+                                    </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-1">Payment Method</p>
-                                    <p className="text-sm font-medium text-gray-900">{selectedRevenue.method || 'N/A'}</p>
+                                    <p className="text-xs text-slate-400 mb-1">Payment Method</p>
+                                    <p className="text-sm font-medium text-slate-200">
+                                        {selectedRevenue.method || 'N/A'}
+                                    </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-1">Status</p>
+                                    <p className="text-xs text-slate-400 mb-1">Status</p>
                                     <div className="flex items-center gap-2">
                                         {getStatusIcon(selectedRevenue.status)}
-                                        <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(selectedRevenue.status)}`}>
+                                        <span
+                                            className={`px-2 py-1 rounded text-xs font-medium ${selectedRevenue.status === "active"
+                                                    ? "bg-green-900 text-green-400"
+                                                    : "bg-slate-700 text-slate-300"
+                                                }`}
+                                        >
                                             {selectedRevenue.status}
                                         </span>
                                     </div>
@@ -666,19 +682,23 @@ const RevenueDashboard = () => {
                         </div>
 
                         {/* Plan Information */}
-                        <div className="bg-white rounded-lg p-4 border border-gray-200">
-                            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                                <FileText className="w-4 h-4" />
+                        <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                            <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+                                <FileText className="w-4 h-4 text-slate-400" />
                                 Plan Information
                             </h3>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-1">Plan Name</p>
-                                    <p className="text-sm font-medium text-gray-900">{selectedRevenue.plan || 'N/A'}</p>
+                                    <p className="text-xs text-slate-400 mb-1">Plan Name</p>
+                                    <p className="text-sm font-medium text-slate-200">
+                                        {selectedRevenue.plan || 'N/A'}
+                                    </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-1">Plan Type</p>
-                                    <p className="text-sm font-medium text-gray-900">
+                                    <p className="text-xs text-slate-400 mb-1">Plan Type</p>
+                                    <p className="text-sm font-medium text-slate-200">
                                         {selectedRevenue.recurring ? 'Monthly' : 'Lifetime'}
                                     </p>
                                 </div>
@@ -686,21 +706,24 @@ const RevenueDashboard = () => {
                         </div>
 
                         {/* Revenue ID */}
-                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                        <div className="bg-slate-900 rounded-lg p-3 border border-slate-700">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs text-gray-600 mb-1">Revenue Entry ID</p>
-                                    <p className="text-sm font-mono text-gray-900">{selectedRevenue.id}</p>
+                                    <p className="text-xs text-slate-400 mb-1">Revenue Entry ID</p>
+                                    <p className="text-sm font-mono text-slate-200">
+                                        {selectedRevenue.id}
+                                    </p>
                                 </div>
+
                                 <button
                                     onClick={() => handleCopyId(selectedRevenue.id)}
-                                    className="text-gray-400 hover:text-gray-600 p-1 rounded"
-                                    title="Copy Revenue ID"
+                                    className="text-slate-400 hover:text-slate-200 p-1 rounded"
                                 >
                                     <Copy className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>
+
                     </div>
                 )}
             </Modal>

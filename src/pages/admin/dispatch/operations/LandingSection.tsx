@@ -109,39 +109,39 @@ const LandingSection = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-card p-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Landing Section</h1>
-        <p className="text-gray-600 mt-1">Rate Summary & Delivered Loads</p>
+        <h1 className="text-3xl font-bold text-primary">Landing Section</h1>
+        <p className="text-secondary mt-1">Rate Summary & Delivered Loads</p>
       </div>
 
       {/* Rate Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="bg-card rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm mb-1">Total Load Amount</p>
+              <p className="text-secondary text-sm mb-1">Total Load Amount</p>
               <p className="text-3xl font-bold text-green-600">{formatCurrency(totalAmount)}</p>
             </div>
             <FaDollarSign className="text-green-600" size={32} />
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="bg-card rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm mb-1">Due Amount</p>
-              <p className="text-3xl font-bold text-red-600">{formatCurrency(dueAmount)}</p>
+              <p className="text-secondary text-sm mb-1">Due Amount</p>
+              <p className="text-3xl font-bold text-[#A855F7]">{formatCurrency(dueAmount)}</p>
             </div>
             <PaymentStatusBadge status="due" />
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="bg-card rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm mb-1">Paid Amount</p>
+              <p className="text-secondary text-sm mb-1">Paid Amount</p>
               <p className="text-3xl font-bold text-green-600">{formatCurrency(paidAmount)}</p>
             </div>
             <PaymentStatusBadge status="paid" />
@@ -150,15 +150,15 @@ const LandingSection = () => {
       </div>
 
       {/* Filters & Table */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
+      <div className="bg-card rounded-xl shadow-lg p-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">Delivered Loads</h3>
+          <h3 className="text-lg font-semibold text-primary">Delivered Loads</h3>
           <div className="flex items-center gap-3">
-            <FaFilter className="text-gray-600" />
+            <FaFilter className="text-secondary" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Delivered</option>
               <option value="delivered">Delivered (Due)</option>
@@ -169,20 +169,20 @@ const LandingSection = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-card border-b border-theme">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Load #</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Order #</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Customer</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Amount</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Delivery Date</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Payment Status</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Load #</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Order #</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Customer</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Amount</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Delivery Date</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Payment Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {filteredLoads.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-secondary">
                     <FaTruck className="mx-auto mb-3 text-gray-300" size={48} />
                     <p>No delivered loads found</p>
                   </td>
@@ -190,13 +190,13 @@ const LandingSection = () => {
               ) : (
                 filteredLoads.map((load) => (
                   <tr key={load._id} className="hover:bg-blue-50">
-                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-blue-600">
+                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-[#00D1FF]">
                       {load.loadNumber || load._id}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                       {load.orderNumber || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
                       {load.customer || load.customerName || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -204,7 +204,7 @@ const LandingSection = () => {
                         {formatCurrency(load.amount || load.rate || 0)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                       {load.deliveryDate ? new Date(load.deliveryDate).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

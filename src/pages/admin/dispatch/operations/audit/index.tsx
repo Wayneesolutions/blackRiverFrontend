@@ -128,22 +128,22 @@ const AuditTrail = () => {
       case "Created":
         return <FaPlus className="text-green-600" />;
       case "Updated":
-        return <FaEdit className="text-blue-600" />;
+        return <FaEdit className="text-[var(--accent-navyblue)]" />;
       case "Deleted":
-        return <FaTrash className="text-red-600" />;
+        return <FaTrash className="text-[#A855F7]" />;
       case "Assigned":
         return <FaCheckCircle className="text-purple-600" />;
       case "Uploaded":
-        return <FaFileAlt className="text-orange-600" />;
+        return <FaFileAlt className="text-[#F59E0B]" />;
       default:
-        return <FaClock className="text-gray-600" />;
+        return <FaClock className="text-secondary" />;
     }
   };
 
   const getEntityIcon = (entityType: string) => {
     switch (entityType) {
       case "Order":
-        return <FaFileAlt className="text-blue-500" />;
+        return <FaFileAlt className="text-[var(--accent-navyblue)]" />;
       case "Trip":
         return <FaRoute className="text-green-500" />;
       case "Driver":
@@ -155,9 +155,9 @@ const AuditTrail = () => {
       case "Customer":
         return <FaUser className="text-teal-500" />;
       case "Document":
-        return <FaFileAlt className="text-gray-500" />;
+        return <FaFileAlt className="text-secondary" />;
       default:
-        return <FaFileAlt className="text-gray-400" />;
+        return <FaFileAlt className="text-secondary" />;
     }
   };
 
@@ -187,32 +187,32 @@ const AuditTrail = () => {
   };
 
   return (
-    <div className="p-6 min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
+    <div className="p-6 min-h-screen" >
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
-            <FaHistory className="text-2xl text-gray-700" />
-            <h1 className="text-3xl font-bold text-gray-900">Audit Trail</h1>
+            <FaHistory className="text-2xl text-primary" />
+            <h1 className="text-3xl font-bold text-primary">Audit Trail</h1>
           </div>
-          <p className="text-gray-600">
+          <p className="text-secondary">
             Track all changes made in the dispatch system. Monitor order modifications, assignments, and updates.
           </p>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div className="bg-card rounded-lg shadow-sm p-4 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Search */}
             <div className="lg:col-span-2">
               <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
                 <input
                   type="text"
                   placeholder="Search by order, user, or details..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                 />
               </div>
             </div>
@@ -222,7 +222,7 @@ const AuditTrail = () => {
               <select
                 value={filterUser}
                 onChange={(e) => setFilterUser(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
               >
                 <option value="all">All Users</option>
                 {uniqueUsers.map((user) => (
@@ -238,7 +238,7 @@ const AuditTrail = () => {
               <select
                 value={filterEntityType}
                 onChange={(e) => setFilterEntityType(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
               >
                 <option value="all">All Types</option>
                 {uniqueEntityTypes.map((type) => (
@@ -254,7 +254,7 @@ const AuditTrail = () => {
               <select
                 value={filterAction}
                 onChange={(e) => setFilterAction(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
               >
                 <option value="all">All Actions</option>
                 {uniqueActions.map((action) => (
@@ -268,83 +268,29 @@ const AuditTrail = () => {
 
           {/* Date Filter */}
           <div className="mt-4 flex gap-2">
-            <button
-              onClick={() => setDateFilter("all")}
-              style={
-                dateFilter === "all"
-                  ? {
-                    background:
-                      "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
-                  }
-                  : undefined
-              }
-              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${dateFilter === "all"
-                ? "!text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-            >
-              All Time
-            </button>
-
-            <button
-              onClick={() => setDateFilter("today")}
-              style={
-                dateFilter === "today"
-                  ? {
-                    background:
-                      "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
-                  }
-                  : undefined
-              }
-              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${dateFilter === "today"
-                ? "!text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-            >
-              Today
-            </button>
-
-            <button
-              onClick={() => setDateFilter("week")}
-              style={
-                dateFilter === "week"
-                  ? {
-                    background:
-                      "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
-                  }
-                  : undefined
-              }
-              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${dateFilter === "week"
-                ? "!text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-            >
-              Last 7 Days
-            </button>
-
-            <button
-              onClick={() => setDateFilter("month")}
-              style={
-                dateFilter === "month"
-                  ? {
-                    background:
-                      "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
-                  }
-                  : undefined
-              }
-              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${dateFilter === "month"
-                ? "!text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-            >
-              Last 30 Days
-            </button>
+            {[
+              { label: "All Time", value: "all" },
+              { label: "Today", value: "today" },
+              { label: "Last 7 Days", value: "week" },
+              { label: "Last 30 Days", value: "month" },
+            ].map((item) => (
+              <button
+                key={item.value}
+                onClick={() => setDateFilter(item.value)}
+                className={`px-4 py-1 rounded-lg text-sm font-medium transition-all ${dateFilter === item.value
+                    ? "bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] text-white"
+                    : "bg-card border border-theme text-primary hover:bg-[rgba(255,255,255,0.08)]"
+                  }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
 
         </div>
 
         {/* Results Count */}
-        <div className="mb-4 text-sm text-gray-600">
+        <div className="mb-4 text-sm text-secondary">
           Showing <span className="font-semibold">{filteredAuditTrail.length}</span> of{" "}
           <span className="font-semibold">{auditTrail.length}</span> audit trail entries
         </div>
@@ -352,27 +298,27 @@ const AuditTrail = () => {
         {/* Audit Trail List */}
         <div className="space-y-4">
           {loading ? (
-            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-              <Loader2 className="mx-auto w-8 h-8 animate-spin text-blue-500 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">Loading audit trail...</h3>
-              <p className="text-gray-500">Please wait while we fetch the audit trail entries.</p>
+            <div className="bg-card rounded-lg shadow-sm p-12 text-center">
+              <Loader2 className="mx-auto w-8 h-8 animate-spin text-[var(--accent-navyblue)] mb-4" />
+              <h3 className="text-lg font-semibold text-primary mb-2">Loading audit trail...</h3>
+              <p className="text-secondary">Please wait while we fetch the audit trail entries.</p>
             </div>
           ) : filteredAuditTrail.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <div className="bg-card rounded-lg shadow-sm p-12 text-center">
               <FaHistory className="mx-auto text-4xl text-gray-300 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">No audit trail entries found</h3>
-              <p className="text-gray-500">Try adjusting your filters to see more results.</p>
+              <h3 className="text-lg font-semibold text-primary mb-2">No audit trail entries found</h3>
+              <p className="text-secondary">Try adjusting your filters to see more results.</p>
             </div>
           ) : (
             filteredAuditTrail.map((entry) => (
               <div
                 key={entry.id}
-                className="bg-white rounded-lg shadow-sm p-5 hover:shadow-md transition-shadow"
+                className="bg-card rounded-lg shadow-sm p-5 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start gap-4">
                   {/* Icon */}
                   <div className="flex-shrink-0 mt-1">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-card border border-theme flex items-center justify-center">
                       {getActionIcon(entry.action)}
                     </div>
                   </div>
@@ -383,13 +329,13 @@ const AuditTrail = () => {
                       <div className="flex items-center gap-2">
                         {getEntityIcon(entry.entityType)}
                         <div>
-                          <h3 className="font-semibold text-gray-900">{entry.entityName}</h3>
-                          <p className="text-sm text-gray-500">{entry.entityId}</p>
+                          <h3 className="font-semibold text-primary">{entry.entityName}</h3>
+                          <p className="text-sm text-secondary">{entry.entityId}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-medium text-gray-900">{formatTimestamp(entry.timestamp)}</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-sm font-medium text-primary">{formatTimestamp(entry.timestamp)}</div>
+                        <div className="text-xs text-secondary">
                           {new Date(entry.timestamp).toLocaleString("en-US", {
                             month: "short",
                             day: "numeric",
@@ -403,26 +349,26 @@ const AuditTrail = () => {
 
                     <div className="mb-3">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-[var(--accent-blue)]/10 text-[var(--accent-navyblue)]">
                           {entry.action}
                         </span>
-                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-card border border-theme text-primary">
                           {entry.entityType}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600">{entry.details}</p>
+                      <p className="text-sm text-secondary">{entry.details}</p>
                     </div>
 
                     {/* Changes */}
                     {entry.changes.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-gray-200">
-                        <div className="text-xs font-semibold text-gray-500 mb-2">Changes:</div>
+                      <div className="mt-3 pt-3 border-t border-theme">
+                        <div className="text-xs font-semibold text-secondary mb-2">Changes:</div>
                         <div className="space-y-1">
                           {entry.changes.map((change, idx) => (
                             <div key={idx} className="flex items-center gap-2 text-sm">
-                              <span className="font-medium text-gray-700">{change.field}:</span>
-                              <span className="text-red-600 line-through">{change.oldValue}</span>
-                              <span className="text-gray-400">→</span>
+                              <span className="font-medium text-primary">{change.field}:</span>
+                              <span className="text-[#A855F7] line-through">{change.oldValue}</span>
+                              <span className="text-secondary">→</span>
                               <span className="text-green-600 font-medium">{change.newValue}</span>
                             </div>
                           ))}
@@ -431,10 +377,10 @@ const AuditTrail = () => {
                     )}
 
                     {/* User */}
-                    <div className="mt-3 pt-3 border-t border-gray-100">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <FaUser className="text-gray-400" />
-                        <span>Changed by: <span className="font-medium text-gray-900">{entry.user}</span></span>
+                    <div className="mt-3 pt-3 border-t border-theme">
+                      <div className="flex items-center gap-2 text-sm text-secondary">
+                        <FaUser className="text-secondary" />
+                        <span>Changed by: <span className="font-medium text-primary">{entry.user}</span></span>
                       </div>
                     </div>
                   </div>

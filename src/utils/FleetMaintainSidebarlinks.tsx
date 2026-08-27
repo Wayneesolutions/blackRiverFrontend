@@ -3,6 +3,7 @@ import { FaTruck,  FaTrailer, FaGraduationCap, FaUsers } from "react-icons/fa"; 
 import { GiGearHammer } from "react-icons/gi"; // Spare Parts Inventory
 import { FaWrench, FaTools, FaFileInvoiceDollar } from "react-icons/fa"; // New icons
 import { FaWarehouse } from "react-icons/fa"; // Yards
+import { FaSatelliteDish, FaSlidersH } from "react-icons/fa"; // GPS Dashboard, Maintenance Settings
 
 type FleetMaintainSidebarlinks = {
     key: string;
@@ -80,4 +81,14 @@ export const FleetMaintainSidebarlinks: FleetMaintainSidebarlinks[] = [
         icon: <FaGraduationCap />,
         label: "Training Content",
       },
+    {
+        key: "/admin/fleetmaintenance/maintenance-settings",
+        icon: <FaSlidersH />,
+        label: "Maintenance Settings",
+    },
+    {
+        key: "/gps-dashboard",
+        icon: <FaSatelliteDish />,
+        label: "GPS Dashboard",
+    },
 ];

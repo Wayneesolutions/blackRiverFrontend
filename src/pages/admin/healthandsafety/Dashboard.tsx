@@ -39,10 +39,12 @@ interface StatCardProps {
   value: number | string;
   icon: React.ReactNode;
   color: string;
+  className: string;
   trend?: {
     value: number;
     direction: 'up' | 'down';
     label: string;
+
   };
   onClick?: () => void;
   urgent?: boolean;
@@ -56,29 +58,30 @@ const StatCard: React.FC<StatCardProps> = ({
   trend,
   onClick,
   urgent,
+  className
 }) => {
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-lg p-3 shadow-sm border border-gray-200
-                 hover:shadow-md hover:border-[#42aeec]/20
-                 transition-all cursor-pointer
-                 hover:scale-[1.02] active:scale-[0.98]"
+      className={` ${className} rounded-lg p-3 shadow-sm border border-theme
+  hover:shadow-md hover:border-[var(--accent-blue)]/20
+  transition-all cursor-pointer
+  hover:scale-[1.02] active:scale-[0.98]`}
     >
       <div className="flex items-start justify-between mb-2">
         <div>
-          <h3 className="text-sm font-bold text-gray-900 mb-1">
+          <h3 className="text-sm font-bold text-primary mb-1">
             {title}
           </h3>
 
-          <span className="text-xl font-bold text-gray-900">
+          <span className="text-xl font-bold text-primary">
             {value}
           </span>
 
           {trend && (
             <p
               className={`text-xs mt-0.5 ${trend.direction === 'up'
-                ? 'text-red-600'
+                ? 'text-[#A855F7]'
                 : 'text-green-600'
                 }`}
             >
@@ -96,7 +99,7 @@ const StatCard: React.FC<StatCardProps> = ({
       </div>
 
       {urgent && (
-        <span className="text-xs font-semibold text-red-600">
+        <span className="text-xs font-semibold text-[#A855F7]">
           Requires attention
         </span>
       )}
@@ -155,16 +158,16 @@ const Dashboard: React.FC = () => {
   };
 
   // Check if GPS data has values
-  const hasWatchingData = gpsDashboardData?.watchingReport && 
-    Array.isArray(gpsDashboardData.watchingReport) && 
+  const hasWatchingData = gpsDashboardData?.watchingReport &&
+    Array.isArray(gpsDashboardData.watchingReport) &&
     gpsDashboardData.watchingReport.some((item: any) => item.value > 0);
 
-  const hasUtilizationData = gpsDashboardData?.driverUtilizationData && 
-    Array.isArray(gpsDashboardData.driverUtilizationData) && 
+  const hasUtilizationData = gpsDashboardData?.driverUtilizationData &&
+    Array.isArray(gpsDashboardData.driverUtilizationData) &&
     gpsDashboardData.driverUtilizationData.some((item: any) => item.value > 0);
 
-  const hasSpeedingData = gpsDashboardData?.speedingData && 
-    Array.isArray(gpsDashboardData.speedingData) && 
+  const hasSpeedingData = gpsDashboardData?.speedingData &&
+    Array.isArray(gpsDashboardData.speedingData) &&
     gpsDashboardData.speedingData.some((item: any) => item.speeding > 0 || item.events > 0);
 
   // Use real data if available, otherwise use placeholder data
@@ -234,16 +237,16 @@ const Dashboard: React.FC = () => {
           />
           <defs>
             <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#42aeec" />
-              <stop offset="100%" stopColor="#1db5f5" />
+              <stop offset="0%" stopColor="var(--accent-blue)" />
+              <stop offset="100%" stopColor="var(--accent-blue)" />
             </linearGradient>
           </defs>
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`text-base mb-2 ${hasData ? 'text-gray-500' : 'text-gray-400'}`}>
+          <span className={`text-base mb-2 ${hasData ? 'text-secondary' : 'text-secondary'}`}>
             Safety Score
           </span>
-          <span className={`text-2xl font-bold ${hasData ? 'text-gray-800' : 'text-gray-400'}`}>
+          <span className={`text-2xl font-bold ${hasData ? 'text-primary' : 'text-secondary'}`}>
             {percentage}%
           </span>
         </div>
@@ -253,7 +256,7 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#EDF8FF]">
+      <div className="min-h-screen flex items-center justify-center bg-main">
         <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-500"></div>
       </div>
     );
@@ -261,321 +264,350 @@ const Dashboard: React.FC = () => {
 
   return (
     <>
-    <div className="min-h-screen bg-[#EDF8FF]">
-      <div className="relative w-full mx-auto p-2">
-        {/* Gradient Header */}
-        <div
-          className="absolute inset-x-0 top-0 h-[101px]"
-          style={{
-            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
-            height: '101px'
-          }}
-        />
+      <div className="min-h-screen bg-main">
+        <div className="relative w-full mx-auto p-2">
+          {/* Gradient Header */}
+          <div
+            className="absolute inset-x-0 top-0 h-[101px]"
 
-        <div className="relative z-10 px-4 pt-3 pb-6">
-          {/* Header */}
-          <div className="mb-4 flex items-center justify-between">
-            <h1 className="text-xl font-bold text-white">
-              Health & Safety Dashboard
-            </h1>
+          />
+
+          <div className="relative z-10 px-4 pt-3 pb-6">
+            {/* Header */}
+            <div className="mb-4 flex items-center justify-between">
+              <h1 className="text-xl font-bold text-white">
+                Health & Safety Dashboard
+              </h1>
 
 
-          </div>
-
-          {/* Critical Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            <StatCard
-              title="Overdue CAPA"
-              value={stats.overdueCAPA}
-              icon={<FaTools size={21} />}
-              color={COLORS.status.danger}
-              urgent={stats.overdueCAPA > 0}
-              onClick={() =>
-                navigate(`${basePath}/committee-capa?filter=overdue`)
-              }
-            />
-            <StatCard
-              title="Policy Gaps"
-              value={stats.policyGaps}
-              icon={<FaFileContract size={21} />}
-              color={COLORS.status.warning}
-            />
-            <StatCard
-              title="Expired Certificates"
-              value={stats.expiredCertificates}
-              icon={<FaClipboardList size={21} />}
-              color={COLORS.status.warning}
-            />
-            <StatCard
-              title="Open Incidents"
-              value={stats.openIncidents}
-              icon={<FaExclamationTriangle size={21} />}
-              color={COLORS.modules.incident}
-            />
-          </div>
-
-          {/* Secondary Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <StatCard
-              title="Total Incidents"
-              value={stats.totalIncidents}
-              icon={<FaChartLine size={21} />}
-              color={COLORS.modules.reports}
-            />
-            <StatCard
-              title="Open Hazards"
-              value={stats.openHazards}
-              icon={<FaShieldAlt size={21} />}
-              color={COLORS.modules.hazard}
-            />
-            <StatCard
-              title="Overdue Inspections"
-              value={stats.overdueInspections}
-              icon={<FaClipboardList size={21} />}
-              color={COLORS.modules.inspection}
-            />
-            <StatCard
-              title="RTW Cases"
-              value={stats.activeRTWCases}
-              icon={<FaUserInjured size={21} />}
-              color={COLORS.modules.committee}
-            />
-          </div>
-
-          {/* Charts Section - Moved from GPS Dashboard */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
-            {/* Watching Report */}
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h3 className="text-sm font-bold text-gray-900 mb-3">Watching Report</h3>
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={watchingReportData} barCategoryGap="20%">
-                    <XAxis 
-                      dataKey="name" 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                    />
-                    <YAxis hide />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#1F2937', 
-                        border: 'none', 
-                        borderRadius: '8px',
-                        color: 'white'
-                      }}
-                    />
-                    <Bar 
-                      dataKey="value" 
-                      fill={hasWatchingData ? "url(#barGradient)" : "#E0F2FE"}
-                      radius={[4, 4, 4, 4]}
-                    />
-                    <defs>
-                      <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#42aeec" />
-                        <stop offset="100%" stopColor="#1db5f5" />
-                      </linearGradient>
-                    </defs>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
             </div>
 
-            {/* Driver Utilization */}
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h3 className="text-sm font-bold text-gray-900 mb-3">Driver Utilization</h3>
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={driverUtilizationData}>
-                    <XAxis 
-                      dataKey="day" 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                    />
-                    <YAxis hide />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#1F2937', 
-                        border: 'none', 
-                        borderRadius: '8px',
-                        color: 'white'
-                      }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke={hasUtilizationData ? "#42aeec" : "#BAE6FD"}
-                      strokeWidth={3}
-                      dot={{ fill: hasUtilizationData ? '#42aeec' : '#BAE6FD', strokeWidth: 0, r: 4 }}
-                      activeDot={{ r: 6, fill: hasUtilizationData ? '#42aeec' : '#BAE6FD' }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+            {/* Critical Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+              <StatCard
+                title="Overdue CAPA"
+                value={stats.overdueCAPA}
+                icon={<FaTools size={21} />}
+                color={COLORS.status.danger}
+                className="bg-[var(--accent-red)]/20"
+                urgent={stats.overdueCAPA > 0}
+                onClick={() =>
+                  navigate(`${basePath}/committee-capa?filter=overdue`)
+                }
+              />
+
+              <StatCard
+                title="Policy Gaps"
+                value={stats.policyGaps}
+                icon={<FaFileContract size={21} />}
+                color={COLORS.status.warning}
+                className="bg-[var(--accent-orange)]/20"
+              />
+
+              <StatCard
+                title="Expired Certificates"
+                value={stats.expiredCertificates}
+                icon={<FaClipboardList size={21} />}
+                color={COLORS.status.warning}
+                className="bg-[var(--accent-amber)]/20"
+              />
+
+              <StatCard
+                title="Open Incidents"
+                value={stats.openIncidents}
+                icon={<FaExclamationTriangle size={21} />}
+                color={COLORS.modules.incident}
+                className="bg-[var(--accent-red)]/20"
+              />
             </div>
 
-            {/* Driver Safety Scorecard */}
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h3 className="text-sm font-bold text-gray-900 mb-3">Driver Safety Scorecard</h3>
-              <div className="flex justify-center items-center h-48">
-                <CircularProgress percentage={safetyScore} />
-              </div>
-            </div>
-          </div>
+            {/* Secondary Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6 border border-theme rounded-xl p-3">
 
-          {/* Speeding Violations */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-6">
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h3 className="text-sm font-bold text-gray-900 mb-3">Speeding Violations</h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={speedingData}>
-                    <XAxis 
-                      dataKey="month" 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                    />
-                    <YAxis hide />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#1F2937', 
-                        border: 'none', 
-                        borderRadius: '8px',
-                        color: 'white'
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="speeding"
-                      stackId="1"
-                      stroke={hasSpeedingData ? "#42aeec" : "#E0F2FE"}
-                      fill={hasSpeedingData ? "url(#speedingGradient)" : "#F0F9FF"}
-                      strokeWidth={2}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="events"
-                      stackId="2"
-                      stroke={hasSpeedingData ? "#1db5f5" : "#BAE6FD"}
-                      fill={hasSpeedingData ? "url(#eventsGradient)" : "#E0F2FE"}
-                      strokeWidth={2}
-                    />
-                    <defs>
-                      <linearGradient id="speedingGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#42aeec" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#42aeec" stopOpacity={0.1} />
-                      </linearGradient>
-                      <linearGradient id="eventsGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#1db5f5" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#1db5f5" stopOpacity={0.1} />
-                      </linearGradient>
-                    </defs>
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex items-center justify-center space-x-6 mt-4">
-                <div className="flex items-center space-x-2">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: hasSpeedingData ? '#42aeec' : '#E0F2FE' }}
-                  ></div>
-                  <span className={`text-sm ${hasSpeedingData ? 'text-gray-600' : 'text-gray-400'}`}>
-                    Speeding %
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: hasSpeedingData ? '#1db5f5' : '#BAE6FD' }}
-                  ></div>
-                  <span className={`text-sm ${hasSpeedingData ? 'text-gray-600' : 'text-gray-400'}`}>
-                    Speeding Events
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+              <StatCard
+                title="Total Incidents"
+                value={stats.totalIncidents}
+                icon={<FaChartLine size={21} />}
+                color={COLORS.modules.reports}
+                className="bg-[var(--accent-blue)]/20"
+              />
 
-          {/* Bottom Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Recent Activity */}
-            <div className="lg:col-span-2 bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-              <h2 className="text-sm font-bold text-gray-900 mb-3">
-                Recent Activity
-              </h2>
+              <StatCard
+                title="Open Hazards"
+                value={stats.openHazards}
+                icon={<FaShieldAlt size={21} />}
+                color={COLORS.modules.hazard}
+                className="bg-[var(--accent-amber)]/20"
+              />
 
-              <div className="space-y-2">
-                {recentActivity.length === 0 ? (
-                  <p className="text-xs text-gray-500 text-center py-4">
-                    No recent activity
-                  </p>
-                ) : (
-                  recentActivity.map((a) => {
-                    const status = getStatusColor(a.status);
-                    return (
-                      <div
-                        key={a.id}
-                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 border border-gray-200"
-                      >
-                        <div
-                          className="p-2 rounded-lg"
-                          style={{
-                            backgroundColor: status.bg,
-                            color: status.text,
-                          }}
-                        >
-                          <FaExclamationTriangle size={14} />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">
-                            {a.title}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {a.description}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+              <StatCard
+                title="Overdue Inspections"
+                value={stats.overdueInspections}
+                icon={<FaClipboardList size={21} />}
+                color={COLORS.modules.inspection}
+                className="bg-[var(--accent-navyblue)]/20"
+              />
+
+              <StatCard
+                title="RTW Cases"
+                value={stats.activeRTWCases}
+                icon={<FaUserInjured size={21} />}
+                color={COLORS.modules.committee}
+                className="bg-[var(--accent-purple)]/20"
+              />
+
             </div>
 
-            {/* Upcoming Tasks */}
-            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-              <h2 className="text-sm font-bold text-gray-900 mb-3">
-                Upcoming Tasks
-              </h2>
-
-              <div className="space-y-2">
-                {upcomingTasks.length === 0 ? (
-                  <p className="text-xs text-gray-500 text-center py-4">
-                    No upcoming tasks
-                  </p>
-                ) : (
-                  upcomingTasks.map((t) => (
-                    <div
-                      key={t.id}
-                      className="flex items-center justify-between p-2 rounded-lg border border-gray-200 hover:bg-gray-50"
+            {/* Charts Section - Moved from GPS Dashboard */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+              {/* Watching Report */}
+              <div className="bg-card p-4 rounded-lg shadow-sm">
+                <h3 className="text-sm font-bold text-headings mb-3">Watching Report</h3>
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={watchingReportData}
+                      barCategoryGap="20%"
+                      style={{ backgroundColor: 'transparent' }} // ✅ remove bg
                     >
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {t.title}
-                        </p>
-                        <p className="text-xs text-gray-500">{t.date}</p>
+                      <XAxis
+                        dataKey="name"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+                      />
+
+                      <YAxis hide />
+
+                      <Tooltip
+                        cursor={{ fill: 'transparent' }} // 🚀 MOST IMPORTANT (removes grey hover)
+                        wrapperStyle={{
+                          background: 'transparent',
+                          outline: 'none'
+                        }}
+                        contentStyle={{
+                          backgroundColor: 'var(--bg-card)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '8px',
+                          color: 'var(--text-primary)',
+                          boxShadow: '0 8px 20px rgba(0,0,0,0.4)'
+                        }}
+                        itemStyle={{ color: 'var(--text-primary)' }}
+                        labelStyle={{ color: 'var(--text-secondary)' }}
+                      />
+
+                      <Bar
+                        dataKey="value"
+                        fill={hasWatchingData ? "url(#barGradient)" : "var(--bg-secondary)"}
+                        radius={[6, 6, 6, 6]}
+                      />
+
+                      <defs>
+                        <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="var(--accent-blue)" />
+                          <stop offset="100%" stopColor="var(--accent-blue)" />
+                        </linearGradient>
+                      </defs>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Driver Utilization */}
+              <div className="bg-card p-4 rounded-lg shadow-sm">
+                <h3 className="text-sm font-bold text-primary mb-3">Driver Utilization</h3>
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={driverUtilizationData}>
+                      <XAxis
+                        dataKey="day"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                      />
+                      <YAxis hide />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1F2937',
+                          border: 'none',
+                          borderRadius: '8px',
+                          color: 'white'
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke={hasUtilizationData ? "var(--accent-blue)" : "#BAE6FD"}
+                        strokeWidth={3}
+                        dot={{ fill: hasUtilizationData ? 'var(--accent-blue)' : '#BAE6FD', strokeWidth: 0, r: 4 }}
+                        activeDot={{ r: 6, fill: hasUtilizationData ? 'var(--accent-blue)' : '#BAE6FD' }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Driver Safety Scorecard */}
+              <div className="bg-card p-4 rounded-lg shadow-sm">
+                <h3 className="text-sm font-bold text-headings mb-3">Driver Safety Scorecard</h3>
+                <div className="flex justify-center items-center h-48">
+                  <CircularProgress percentage={safetyScore} />
+                </div>
+              </div>
+            </div>
+
+            {/* Speeding Violations */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-6">
+              <div className="bg-card p-4 rounded-lg shadow-sm">
+                <h3 className="text-sm font-bold text-headings mb-3">Speeding Violations</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={speedingData}>
+                      <XAxis
+                        dataKey="month"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                      />
+                      <YAxis hide />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1F2937',
+                          border: 'none',
+                          borderRadius: '8px',
+                          color: 'white'
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="speeding"
+                        stackId="1"
+                        stroke={hasSpeedingData ? "var(--accent-blue)" : "#E0F2FE"}
+                        fill={hasSpeedingData ? "url(#speedingGradient)" : "#F0F9FF"}
+                        strokeWidth={2}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="events"
+                        stackId="2"
+                        stroke={hasSpeedingData ? "var(--accent-blue)" : "#BAE6FD"}
+                        fill={hasSpeedingData ? "url(#eventsGradient)" : "#E0F2FE"}
+                        strokeWidth={2}
+                      />
+                      <defs>
+                        <linearGradient id="speedingGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="var(--accent-blue)" stopOpacity={0.3} />
+                          <stop offset="100%" stopColor="var(--accent-blue)" stopOpacity={0.1} />
+                        </linearGradient>
+                        <linearGradient id="eventsGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="var(--accent-blue)" stopOpacity={0.3} />
+                          <stop offset="100%" stopColor="var(--accent-blue)" stopOpacity={0.1} />
+                        </linearGradient>
+                      </defs>
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex items-center justify-center space-x-6 mt-4">
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: hasSpeedingData ? 'var(--accent-blue)' : '#E0F2FE' }}
+                    ></div>
+                    <span className={`text-sm ${hasSpeedingData ? 'text-secondary' : 'text-secondary'}`}>
+                      Speeding %
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: hasSpeedingData ? 'var(--accent-blue)' : '#BAE6FD' }}
+                    ></div>
+                    <span className={`text-sm ${hasSpeedingData ? 'text-secondary' : 'text-secondary'}`}>
+                      Speeding Events
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Recent Activity */}
+              <div className="lg:col-span-2 bg-card rounded-lg p-4 shadow-sm border border-theme">
+                <h2 className="text-sm font-bold text-primary mb-3">
+                  Recent Activity
+                </h2>
+
+                <div className="space-y-2">
+                  {recentActivity.length === 0 ? (
+                    <p className="text-xs text-secondary text-center py-4">
+                      No recent activity
+                    </p>
+                  ) : (
+                    recentActivity.map((a) => {
+                      const status = getStatusColor(a.status);
+                      return (
+                        <div
+                          key={a.id}
+                          className="flex items-start gap-3 p-3 rounded-lg hover:bg-[rgba(255,255,255,0.03)] border border-theme"
+                        >
+                          <div
+                            className="p-2 rounded-lg"
+                            style={{
+                              backgroundColor: status.bg,
+                              color: status.text,
+                            }}
+                          >
+                            <FaExclamationTriangle size={14} />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-primary">
+                              {a.title}
+                            </p>
+                            <p className="text-xs text-secondary">
+                              {a.description}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Upcoming Tasks */}
+              <div className="bg-card rounded-lg p-4 shadow-sm border border-theme">
+                <h2 className="text-sm font-bold text-primary mb-3">
+                  Upcoming Tasks
+                </h2>
+
+                <div className="space-y-2">
+                  {upcomingTasks.length === 0 ? (
+                    <p className="text-xs text-secondary text-center py-4">
+                      No upcoming tasks
+                    </p>
+                  ) : (
+                    upcomingTasks.map((t) => (
+                      <div
+                        key={t.id}
+                        className="flex items-center justify-between p-2 rounded-lg border border-theme hover:bg-[rgba(255,255,255,0.03)]"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-primary">
+                            {t.title}
+                          </p>
+                          <p className="text-xs text-secondary">{t.date}</p>
+                        </div>
+                        <FaChevronRight size={14} className="text-secondary" />
                       </div>
-                      <FaChevronRight size={14} className="text-gray-400" />
-                    </div>
-                  ))
-                )}
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
     </>
   );
 };

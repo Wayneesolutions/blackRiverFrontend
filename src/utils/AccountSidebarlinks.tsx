@@ -10,6 +10,7 @@ import {
     FaPercentage,
     FaGraduationCap
 } from "react-icons/fa";
+import { FaSatelliteDish } from "react-icons/fa";
 import { RiOilLine } from "react-icons/ri";
 import { BarChart3 } from "lucide-react";
 import { Sparkles } from "lucide-react";
@@ -109,6 +110,11 @@ export const AccountSidebarlinks: AccountSidebarlinks[] = [
         key: "/admin/accounts/training",
         icon: <FaGraduationCap />,
         label: "Training Content",
+    },
+    {
+        key: "/gps-dashboard",
+        icon: <FaSatelliteDish />,
+        label: "GPS Dashboard",
     },
 ];
 

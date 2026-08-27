@@ -66,11 +66,11 @@ const statusBgColors: Record<string, string> = {
 // Component to handle map center updates
 const MapController: React.FC<{ center: [number, number]; zoom: number }> = ({ center, zoom }) => {
     const map = useMap();
-    
+
     useEffect(() => {
         map.setView(center, zoom);
     }, [map, center, zoom]);
-    
+
     return null;
 };
 
@@ -88,7 +88,7 @@ const createTruckIcon = (color: string) => {
             </g>
         </svg>
     `;
-    
+
     return L.divIcon({
         html: svg,
         className: 'custom-truck-icon',
@@ -114,13 +114,13 @@ const ProfessionalTruckTracker: React.FC = () => {
         setLoading(true);
         try {
             // Fetch vehicles from Vehicle model (not requiring trackingKey)
-            const res = await getVehiclesWithTracking({ 
+            const res = await getVehiclesWithTracking({
                 limit: 1000
             });
-            
+
             if (res?.success && res.data) {
                 const vehiclesData = Array.isArray(res.data) ? res.data : [];
-                
+
                 // Map Vehicle model data to Vehicle format for display
                 const formatted = vehiclesData.map((v: any): Vehicle => {
                     // Map status from Vehicle model to tracking status
@@ -169,9 +169,9 @@ const ProfessionalTruckTracker: React.FC = () => {
                         ownership: v.ownership || ''
                     };
                 });
-                
+
                 setVehicles(formatted);
-                
+
                 // Set map center to first vehicle if available with valid location
                 if (formatted.length > 0 && formatted[0].currentLocation) {
                     const firstVehicle = formatted[0];
@@ -190,7 +190,7 @@ const ProfessionalTruckTracker: React.FC = () => {
                     setMapCenter([56.1304, -106.3468]);
                     setMapZoom(6);
                 }
-                
+
                 if (formatted.length > 0 && !selectedVehicle) {
                     handleVehicleClick(formatted[0]);
                 }
@@ -276,56 +276,62 @@ const ProfessionalTruckTracker: React.FC = () => {
 
     if (loading && vehicles.length === 0) {
         return (
-            <div className="flex items-center justify-center h-screen bg-gray-100">
+            <div className="flex items-center justify-center h-screen bg-main">
                 <div className="text-center">
-                    <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-                    <p className="text-gray-600">Loading truck tracking data...</p>
+                    <RefreshCw className="w-8 h-8 animate-spin text-accent mx-auto mb-4" />
+                    <p className="text-secondary">Loading truck tracking data...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="flex h-screen bg-[#EDF8FF] overflow-hidden">
+        <div className="flex h-screen bg-main overflow-hidden">
             {/* Left Sidebar */}
             <div
-                className={`bg-white shadow-xl transition-all duration-300 ease-in-out ${sidebarCollapsed ? "w-0" : "w-72"
+                className={`bg-card shadow-xl transition-all duration-300 ease-in-out ${sidebarCollapsed ? "w-0" : "w-72"
                     } overflow-hidden`}
             >
                 <div className="h-full flex flex-col">
                     {/* Header */}
-                    <div className="bg-[linear-gradient(90deg,#42aeec_0%,#1db5f5_40%,#0ea3d8_100%)] p-4 text-white">
+                    <div className="bg-gradient-to-r from-[rgba(0,209,255,0.2)] via-[rgba(0,209,255,0.15)] to-[rgba(168,85,247,0.2)] p-4 border border-theme rounded-lg">
+
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold flex items-center gap-2">
-                                <Truck className="w-5 h-5" />
+                            <h2 className="text-xl font-bold flex items-center gap-2 text-[var(--accent-navyblue)]">
+                                <Truck className="w-5 h-5 text-[var(--accent-navyblue)]" />
                                 Truck Tracker
                             </h2>
+
                             <button
                                 onClick={() => setSidebarCollapsed(true)}
-                                className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+                                className="p-1 hover:bg-[rgba(255,255,255,0.08)] rounded-lg transition-colors"
                             >
-                                <ChevronLeft className="w-5 h-5" />
+                                <ChevronLeft className="w-5 h-5 text-secondary hover:text-primary" />
                             </button>
                         </div>
 
                         {/* Search Bar */}
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-secondary" />
+
                             <input
                                 type="text"
                                 placeholder="Search by plate number..."
-                                className="w-full pl-10 pr-4 py-1.5 text-sm rounded-lg bg-white/90 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
+                                className="w-full pl-10 pr-4 py-1.5 text-sm rounded-lg 
+      bg-card text-primary placeholder:text-secondary 
+      border border-theme 
+      focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                    </div>
 
+                    </div>
                     {/* Vehicle List */}
-                    <div className="flex-1 overflow-y-auto p-3 bg-[#EDF8FF]">
+                    <div className="flex-1 overflow-y-auto p-3 bg-main">
                         {filteredVehicles.length === 0 ? (
                             <div className="text-center py-8">
-                                <p className="text-gray-500">No vehicles found</p>
+                                <p className="text-secondary">No vehicles found</p>
                             </div>
                         ) : (
                             <div className="space-y-3">
@@ -334,13 +340,13 @@ const ProfessionalTruckTracker: React.FC = () => {
                                         key={v._id}
                                         onClick={() => handleVehicleClick(v)}
                                         className={`p-3 rounded-xl cursor-pointer transition-all duration-200 border-2 ${selectedVehicle?._id === v._id
-                                            ? "bg-[#EDF8FF] border-[#42aeec] shadow-md"
-                                            : "bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm"
+                                            ? "bg-main border-[var(--accent-blue)] shadow-md"
+                                            : "bg-card border-theme hover:border-blue-300 hover:shadow-sm"
                                             }`}
                                     >
                                         {/* Plate Number & Status */}
                                         <div className="flex items-center justify-between mb-3">
-                                            <h3 className="font-bold text-base text-gray-800">
+                                            <h3 className="font-bold text-base text-[var(--accent-navyblue)]">
                                                 {v.plateNumber}
                                             </h3>
                                             <span
@@ -356,17 +362,17 @@ const ProfessionalTruckTracker: React.FC = () => {
 
                                         {/* Vehicle Details */}
                                         <div className="space-y-2 text-xs">
-                                            <div className="flex items-center gap-2 text-gray-600">
+                                            <div className="flex items-center gap-2 text-secondary">
                                                 <User className="w-3 h-3" />
                                                 <span>
                                                     {v.driver ? v.driver.name : "No driver assigned"}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-2 text-gray-600">
+                                            <div className="flex items-center gap-2 text-secondary">
                                                 <MapPin className="w-3 h-3" />
                                                 <span className="truncate">{v.currentLocation?.address || 'Location unavailable'}</span>
                                             </div>
-                                            <div className="flex items-center justify-between text-gray-500 mt-2 pt-2 border-t border-gray-200">
+                                            <div className="flex items-center justify-between text-secondary mt-2 pt-2 border-t border-theme">
                                                 <span className="flex items-center gap-1">
                                                     <Gauge className="w-3 h-3" />
                                                     {v.speed} km/h
@@ -389,7 +395,7 @@ const ProfessionalTruckTracker: React.FC = () => {
             {sidebarCollapsed && (
                 <button
                     onClick={() => setSidebarCollapsed(false)}
-                    className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white p-2 rounded-r-lg shadow-lg hover:bg-blue-700 transition-colors z-10"
+                    className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-[rgba(0,209,255,0.15)] text-white p-2 rounded-r-lg shadow-lg hover:bg-[rgba(0,209,255,0.25)] transition-colors z-10"
                 >
                     <ChevronRight className="w-5 h-5" />
                 </button>
@@ -408,18 +414,18 @@ const ProfessionalTruckTracker: React.FC = () => {
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
                     <MapController center={mapCenter} zoom={mapZoom} />
-                    
+
                     {/* Vehicle Markers */}
                     {filteredVehicles.map((vehicle) => {
                         const lat = Number(vehicle.currentLocation?.latitude);
                         const lng = Number(vehicle.currentLocation?.longitude);
-                        
+
                         if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
                             return null;
                         }
-                        
+
                         const markerColor = statusColors[vehicle.status] || '#6b7280';
-                        
+
                         return (
                             <Marker
                                 key={vehicle._id}
@@ -436,7 +442,7 @@ const ProfessionalTruckTracker: React.FC = () => {
                                         <h3 className="font-bold text-sm mb-2">{vehicle.plateNumber}</h3>
                                         <div className="space-y-1 text-xs">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-gray-600">Status:</span>
+                                                <span className="text-secondary">Status:</span>
                                                 <span
                                                     className="px-2 py-0.5 rounded-full text-xs font-semibold"
                                                     style={{
@@ -448,16 +454,16 @@ const ProfessionalTruckTracker: React.FC = () => {
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-gray-600">Speed:</span>
+                                                <span className="text-secondary">Speed:</span>
                                                 <span className="font-medium">{vehicle.speed} km/h</span>
                                             </div>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-gray-600">Fuel:</span>
+                                                <span className="text-secondary">Fuel:</span>
                                                 <span className="font-medium">{vehicle.fuelLevel}%</span>
                                             </div>
                                             {vehicle.driver && (
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-gray-600">Driver:</span>
+                                                    <span className="text-secondary">Driver:</span>
                                                     <span className="font-medium">{vehicle.driver.name}</span>
                                                 </div>
                                             )}
@@ -471,19 +477,19 @@ const ProfessionalTruckTracker: React.FC = () => {
 
                 {/* Selected Vehicle Info Panel */}
                 {selectedVehicle && (
-                    <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 max-w-xs z-[1000]">
+                    <div className="absolute top-4 right-4 bg-card rounded-lg shadow-lg p-3 max-w-xs z-[1000]">
                         <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-base font-bold text-gray-800">{selectedVehicle.plateNumber}</h3>
+                            <h3 className="text-base font-bold text-[var(--accent-navyblue)]">{selectedVehicle.plateNumber}</h3>
                             <button
                                 onClick={() => setSelectedVehicle(null)}
-                                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded transition-colors"
                             >
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
                         <div className="space-y-2 text-sm">
                             <div className="flex items-center justify-between">
-                                <span className="text-gray-600">Status</span>
+                                <span className="text-secondary">Status</span>
                                 <span
                                     className="px-2 py-1 rounded-full text-xs font-semibold"
                                     style={{
@@ -495,21 +501,21 @@ const ProfessionalTruckTracker: React.FC = () => {
                                 </span>
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className="text-gray-600">Speed</span>
+                                <span className="text-secondary">Speed</span>
                                 <span className="font-medium">{selectedVehicle.speed} km/h</span>
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className="text-gray-600">Fuel</span>
+                                <span className="text-secondary">Fuel</span>
                                 <span className="font-medium">{selectedVehicle.fuelLevel}%</span>
                             </div>
                             {selectedVehicle.driver && (
                                 <div className="flex items-center justify-between">
-                                    <span className="text-gray-600">Driver</span>
+                                    <span className="text-secondary">Driver</span>
                                     <span className="font-medium">{selectedVehicle.driver.name}</span>
                                 </div>
                             )}
-                            <div className="pt-2 border-t border-gray-200">
-                                <p className="text-xs text-gray-500 truncate">
+                            <div className="pt-2 border-t border-theme">
+                                <p className="text-xs text-secondary truncate">
                                     {selectedVehicle.currentLocation?.address || 'Location unavailable'}
                                 </p>
                             </div>
@@ -518,8 +524,8 @@ const ProfessionalTruckTracker: React.FC = () => {
                 )}
 
                 {/* Status Legend */}
-                <div className="absolute bottom-4 left-4 bg-white p-2 rounded-lg shadow-lg text-xs z-[1000]">
-                    <div className="font-semibold mb-2">Vehicle Status:</div>
+                <div className="absolute bottom-4 left-4 bg-card p-2 rounded-lg shadow-lg text-xs z-[1000]">
+                    <div className="font-semibold mb-2 text-[var(--accent-navyblue)]">Vehicle Status:</div>
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#10b981' }}></div>

@@ -183,12 +183,37 @@ export interface Truck {
     } | null;
 }
 
+export interface deliverLocation {
+    placeId: string,
+    place: string,
+    latitude: number,
+    longitude: number
+}
+
+export interface RecentTrips {
+    _id: string;
+    tripNo: string;
+    customerOrderNo?: string;
+    driver: {
+        name: string;
+    };
+    status: string;
+    deliveryLocation: {
+        place: string;
+        latitude: number;
+        longitude: number;
+    };
+    createdAt: string;
+    driverAcceptanceStatus: string;
+}
+
 export interface AdminDashboardResponse {
     success: boolean;
     data?: {
         stats: DashboardStats;
         trips: Trip[];
         trucks: Truck[];
+        recentTrips: RecentTrips[]
     };
     message?: string;
 }
@@ -196,6 +221,7 @@ export interface AdminDashboardResponse {
 export const quickStats = async () => {
     try {
         const res: AxiosResponse = await apiClient.get("admin/stats");
+
         return res.data;
     } catch (error) {
         console.error(error);

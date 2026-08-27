@@ -462,14 +462,14 @@ const Company = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading company settings...</p>
+          <p className="text-secondary">Loading company settings...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF] px-6">
+    <div className="min-h-screen bg-main px-6">
       <div className="py-8">
         {/* Success/Error Messages */}
         {success && (
@@ -515,11 +515,11 @@ const Company = () => {
         )}
 
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="bg-card rounded-xl shadow-sm border border-theme p-6 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Company Settings</h1>
-              <p className="text-gray-600">Manage your company information and preferences</p>
+              <h1 className="text-3xl font-bold text-primary mb-2">Company Settings</h1>
+              <p className="text-secondary">Manage your company information and preferences</p>
             </div>
             <div className="flex gap-3">
               {activeTab === 'company' && (
@@ -528,7 +528,7 @@ const Company = () => {
                     <button
                       onClick={handleCancel}
                       disabled={loading}
-                      className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
+                      className="px-4 py-2 text-primary bg-card hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
                     >
                       <X size={16} />
                       Cancel
@@ -554,10 +554,8 @@ const Company = () => {
                 ) : (
                   <button
                     onClick={() => setIsEditing(true)}
-                    style={{
-                      background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
-                    }}
-                    className="px-4 py-2   !text-white rounded-lg transition-all font-medium flex items-center gap-2"
+                   
+                    className="px-4 py-2 bg-[var(--accent-navyblue)]   !text-white rounded-lg transition-all font-medium flex items-center gap-2"
                   >
                     <Edit size={16} />
                     Edit Settings
@@ -567,13 +565,13 @@ const Company = () => {
             </div>
           </div>
           {/* Tabs */}
-          <div className="flex border-b border-gray-200 mt-6 -mb-px">
+          <div className="flex border-b border-theme mt-6 -mb-px">
             <button
               type="button"
               onClick={() => setActiveTab('company')}
               className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'company'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-blue-600 text-[#00D1FF]'
+                : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                 }`}
             >
               Company & API
@@ -582,8 +580,8 @@ const Company = () => {
               type="button"
               onClick={() => setActiveTab('maintenance')}
               className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'maintenance'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-blue-600 text-[#00D1FF]'
+                : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                 }`}
             >
               Maintenance Policy Settings
@@ -594,11 +592,11 @@ const Company = () => {
         {activeTab === 'company' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Company Information */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
+            <div className="bg-card rounded-xl shadow-sm border border-theme">
+              <div className="p-6 border-b border-theme">
                 <div className="flex items-center gap-3">
-                  <Building className="text-blue-600" size={24} />
-                  <h2 className="text-xl font-bold text-gray-900">Company Information</h2>
+                  <Building className="text-[#00D1FF]" size={24} />
+                  <h2 className="text-xl font-bold text-primary">Company Information</h2>
                 </div>
               </div>
 
@@ -606,7 +604,7 @@ const Company = () => {
                 {/* Company Logo */}
                 <div className="flex flex-col items-center">
                   <div className="relative group">
-                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-200 bg-gray-100">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-theme bg-card">
                       <img
                         src={previewUrl || companyInfo.logoUrl || 'https://via.placeholder.com/200x200/3B82F6/FFFFFF?text=LOGO'}
                         alt="Company Logo"
@@ -629,7 +627,7 @@ const Company = () => {
                       </label>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500 mt-2">Company Logo</p>
+                  <p className="text-sm text-secondary mt-2">Company Logo</p>
                   {selectedFile && (
                     <p className="text-xs text-green-600 mt-1">New logo selected: {selectedFile.name}</p>
                   )}
@@ -638,43 +636,43 @@ const Company = () => {
                 {/* Company Details */}
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Company Name</label>
+                    <label className="block text-sm font-semibold text-primary mb-2">Company Name</label>
                     {isEditing ? (
                       <input
                         type="text"
                         name="companyName"
                         value={editForm.companyName}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter company name"
                       />
                     ) : (
-                      <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                        <p className="text-gray-900 font-medium">{companyInfo.companyName || 'Not set'}</p>
+                      <div className="px-4 py-3 bg-card rounded-lg">
+                        <p className="text-primary font-medium">{companyInfo.companyName || 'Not set'}</p>
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Company Code</label>
+                    <label className="block text-sm font-semibold text-primary mb-2">Company Code</label>
                     {isEditing ? (
                       <input
                         type="text"
                         name="companyCode"
                         value={editForm.companyCode}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter company code"
                       />
                     ) : (
-                      <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                        <p className="text-gray-900 font-medium">{companyInfo.companyCode || 'Not set'}</p>
+                      <div className="px-4 py-3 bg-card rounded-lg">
+                        <p className="text-primary font-medium">{companyInfo.companyCode || 'Not set'}</p>
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-primary mb-2">
                       <MapPin size={16} className="inline mr-1" />
                       Address
                     </label>
@@ -691,14 +689,14 @@ const Company = () => {
                         }}
                       />
                     ) : (
-                      <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                        <p className="text-gray-900">{companyInfo.address || 'Not set'}</p>
+                      <div className="px-4 py-3 bg-card rounded-lg">
+                        <p className="text-primary">{companyInfo.address || 'Not set'}</p>
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-primary mb-2">
                       <Mail size={16} className="inline mr-1" />
                       Contact Email
                     </label>
@@ -708,18 +706,18 @@ const Company = () => {
                         name="contactEmail"
                         value={editForm.contactEmail}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter contact email"
                       />
                     ) : (
-                      <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                        <p className="text-gray-900">{companyInfo.contactEmail || 'Not set'}</p>
+                      <div className="px-4 py-3 bg-card rounded-lg">
+                        <p className="text-primary">{companyInfo.contactEmail || 'Not set'}</p>
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-primary mb-2">
                       <Phone size={16} className="inline mr-1" />
                       Contact Phone
                     </label>
@@ -729,12 +727,12 @@ const Company = () => {
                         name="contactPhone"
                         value={editForm.contactPhone}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter contact phone"
                       />
                     ) : (
-                      <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                        <p className="text-gray-900">{companyInfo.contactPhone || 'Not set'}</p>
+                      <div className="px-4 py-3 bg-card rounded-lg">
+                        <p className="text-primary">{companyInfo.contactPhone || 'Not set'}</p>
                       </div>
                     )}
                   </div>
@@ -743,12 +741,12 @@ const Company = () => {
             </div>
 
             {/* API Configuration */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
+            <div className="bg-card rounded-xl shadow-sm border border-theme">
+              <div className="p-6 border-b border-theme">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Settings className="text-blue-600" size={24} />
-                    <h2 className="text-xl font-bold text-gray-900">API Configuration</h2>
+                    <Settings className="text-[#00D1FF]" size={24} />
+                    <h2 className="text-xl font-bold text-primary">API Configuration</h2>
                   </div>
                   <button
                     onClick={handleSaveApiCredentials}
@@ -774,27 +772,27 @@ const Company = () => {
                 {/* Samsara Configuration */}
                 <div>
                   <div className="flex items-center gap-2 mb-4">
-                    <Key className="text-blue-600" size={20} />
-                    <h3 className="text-lg font-semibold text-gray-900">Samsara API</h3>
+                    <Key className="text-[#00D1FF]" size={20} />
+                    <h3 className="text-lg font-semibold text-primary">Samsara API</h3>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">API Base URL</label>
+                      <label className="block text-sm font-semibold text-primary mb-2">API Base URL</label>
                       <input
                         type="text"
                         value={samsaraConfig.apiBaseUrl}
                         onChange={(e) => handleSamsaraChange('apiBaseUrl', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="https://api.samsara.com"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">API Token</label>
+                      <label className="block text-sm font-semibold text-primary mb-2">API Token</label>
                       <input
                         type="password"
                         value={samsaraConfig.apiToken}
                         onChange={(e) => handleSamsaraChange('apiToken', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter Samsara API token"
                       />
                     </div>
@@ -802,49 +800,49 @@ const Company = () => {
                 </div>
 
                 {/* ThermoKing Configuration */}
-                <div className="border-t border-gray-200 pt-6">
+                <div className="border-t border-theme pt-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <Key className="text-orange-600" size={20} />
-                    <h3 className="text-lg font-semibold text-gray-900">ThermoKing API</h3>
+                    <Key className="text-[#F59E0B]" size={20} />
+                    <h3 className="text-lg font-semibold text-primary">ThermoKing API</h3>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">API Base URL</label>
+                      <label className="block text-sm font-semibold text-primary mb-2">API Base URL</label>
                       <input
                         type="text"
                         value={thermokingConfig.apiBaseUrl}
                         onChange={(e) => handleThermokingChange('apiBaseUrl', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                         placeholder="https://api.thermoking.com"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">API Key</label>
+                      <label className="block text-sm font-semibold text-primary mb-2">API Key</label>
                       <input
                         type="password"
                         value={thermokingConfig.apiKey}
                         onChange={(e) => handleThermokingChange('apiKey', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                         placeholder="Enter ThermoKing API key"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">API Secret</label>
+                      <label className="block text-sm font-semibold text-primary mb-2">API Secret</label>
                       <input
                         type="password"
                         value={thermokingConfig.apiSecret}
                         onChange={(e) => handleThermokingChange('apiSecret', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                         placeholder="Enter ThermoKing API secret"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">API Version</label>
+                      <label className="block text-sm font-semibold text-primary mb-2">API Version</label>
                       <input
                         type="text"
                         value={thermokingConfig.apiVersion}
                         onChange={(e) => handleThermokingChange('apiVersion', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                         placeholder="v1"
                       />
                     </div>
@@ -852,7 +850,7 @@ const Company = () => {
                 </div>
 
                 {/* Info Note */}
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="mt-6 p-4 bg-card border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-800">
                     <strong>Note:</strong> API configurations are stored securely and linked to your company.
                     These settings are required for integrating with Samsara and ThermoKing services.
@@ -864,12 +862,12 @@ const Company = () => {
         )}
 
         {activeTab === 'maintenance' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-card rounded-xl shadow-sm border border-theme">
+            <div className="p-6 border-b border-theme">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Wrench className="text-green-600" size={24} />
-                  <h2 className="text-xl font-bold text-gray-900">Maintenance Policy Settings</h2>
+                  <h2 className="text-xl font-bold text-primary">Maintenance Policy Settings</h2>
                 </div>
                 <div className="flex gap-3">
                   {isEditingPolicy ? (
@@ -877,7 +875,7 @@ const Company = () => {
                       <button
                         onClick={handleCancelPolicy}
                         disabled={policyLoading}
-                        className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
+                        className="px-4 py-2 text-primary bg-card hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
                       >
                         <X size={16} />
                         Cancel
@@ -915,9 +913,9 @@ const Company = () => {
 
             <div className="p-6 space-y-8">
               {/* Info Banner */}
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="p-4 bg-card border border-blue-200 rounded-lg">
                 <div className="flex items-start gap-3">
-                  <Info className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
+                  <Info className="text-[#00D1FF] flex-shrink-0 mt-0.5" size={20} />
                   <div className="text-sm text-blue-800">
                     <p className="font-semibold mb-1">Maintenance Policy Configuration</p>
                     <p>Configure maintenance intervals for trucks and trailers. Add services with your own names (e.g., "Oil Change", "Full Inspection", "Service A", "Preventive Maintenance"). Each service can be configured for trucks and trailers with intervals based on days, miles, or kilometers. You can also exclude specific trailer types (reefer, dryvan, flatbed) from certain services.</p>
@@ -926,11 +924,11 @@ const Company = () => {
               </div>
 
               {/* Services - All Dynamic */}
-              <div className="border-t border-gray-200 pt-6">
+              <div className="border-t border-theme pt-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <Wrench className="text-purple-600" size={20} />
-                    <h3 className="text-lg font-semibold text-gray-900">Services</h3>
+                    <h3 className="text-lg font-semibold text-primary">Services</h3>
                   </div>
                   {isEditingPolicy && (
                     <button
@@ -944,10 +942,10 @@ const Company = () => {
                 </div>
 
                 {maintenancePolicy.customServices.length === 0 ? (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                    <Wrench className="text-gray-400 mx-auto mb-3" size={48} />
-                    <p className="text-gray-600 font-medium mb-2">No services configured</p>
-                    <p className="text-sm text-gray-500 mb-4">Add your first service to get started (e.g., Oil Change, Full Inspection, etc.)</p>
+                  <div className="border-2 border-dashed border-theme rounded-lg p-8 text-center">
+                    <Wrench className="text-secondary mx-auto mb-3" size={48} />
+                    <p className="text-secondary font-medium mb-2">No services configured</p>
+                    <p className="text-sm text-secondary mb-4">Add your first service to get started (e.g., Oil Change, Full Inspection, etc.)</p>
                     {isEditingPolicy && (
                       <button
                         onClick={addCustomService}
@@ -961,7 +959,7 @@ const Company = () => {
                 ) : (
                   <div className="space-y-6">
                     {maintenancePolicy.customServices.map((service, index) => (
-                      <div key={index} className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                      <div key={index} className="border border-theme rounded-lg p-6 bg-card">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex-1">
                             {isEditingPolicy ? (
@@ -969,17 +967,17 @@ const Company = () => {
                                 type="text"
                                 value={service.name}
                                 onChange={(e) => handleCustomServiceChange(index, 'name', undefined, e.target.value)}
-                                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-semibold text-lg w-full max-w-md"
+                                className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-semibold text-lg w-full max-w-md"
                                 placeholder="Service Name (e.g., Full Inspection, Service A)"
                               />
                             ) : (
-                              <h4 className="text-lg font-semibold text-gray-900">{service.name || 'Unnamed Service'}</h4>
+                              <h4 className="text-lg font-semibold text-primary">{service.name || 'Unnamed Service'}</h4>
                             )}
                           </div>
                           {isEditingPolicy && (
                             <button
                               onClick={() => removeCustomService(index)}
-                              className="ml-4 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className="ml-4 p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
                               title="Remove Service"
                             >
                               <Trash2 size={20} />
@@ -989,43 +987,43 @@ const Company = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Truck Configuration */}
-                          <div className="border border-gray-200 rounded-lg p-4 bg-white">
-                            <label className="block text-sm font-semibold text-gray-700 mb-3">
+                          <div className="border border-theme rounded-lg p-4 bg-card">
+                            <label className="block text-sm font-semibold text-primary mb-3">
                               Truck Configuration
                             </label>
                             <div className="space-y-3">
                               <div>
-                                <label className="block text-xs text-gray-600 mb-1">Interval Value</label>
+                                <label className="block text-xs text-secondary mb-1">Interval Value</label>
                                 {isEditingPolicy ? (
                                   <input
                                     type="number"
                                     value={service.truck.value}
                                     onChange={(e) => handleCustomServiceChange(index, 'truck', 'value', parseInt(e.target.value) || 0)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                                     placeholder="30"
                                     min="0"
                                   />
                                 ) : (
-                                  <div className="px-3 py-2 bg-gray-50 rounded-lg">
-                                    <p className="text-gray-900 font-medium">{service.truck.value.toLocaleString()}</p>
+                                  <div className="px-3 py-2 bg-card rounded-lg">
+                                    <p className="text-primary font-medium">{service.truck.value.toLocaleString()}</p>
                                   </div>
                                 )}
                               </div>
                               <div>
-                                <label className="block text-xs text-gray-600 mb-1">Unit</label>
+                                <label className="block text-xs text-secondary mb-1">Unit</label>
                                 {isEditingPolicy ? (
                                   <select
                                     value={service.truck.unit}
                                     onChange={(e) => handleCustomServiceChange(index, 'truck', 'unit', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                                   >
                                     <option value="days">Days</option>
                                     <option value="miles">Miles</option>
                                     <option value="km">Kilometers</option>
                                   </select>
                                 ) : (
-                                  <div className="px-3 py-2 bg-gray-50 rounded-lg">
-                                    <p className="text-gray-900 font-medium uppercase">{service.truck.unit}</p>
+                                  <div className="px-3 py-2 bg-card rounded-lg">
+                                    <p className="text-primary font-medium uppercase">{service.truck.unit}</p>
                                   </div>
                                 )}
                               </div>
@@ -1033,43 +1031,43 @@ const Company = () => {
                           </div>
 
                           {/* Trailer Configuration */}
-                          <div className="border border-gray-200 rounded-lg p-4 bg-white">
-                            <label className="block text-sm font-semibold text-gray-700 mb-3">
+                          <div className="border border-theme rounded-lg p-4 bg-card">
+                            <label className="block text-sm font-semibold text-primary mb-3">
                               Trailer Configuration
                             </label>
                             <div className="space-y-3">
                               <div>
-                                <label className="block text-xs text-gray-600 mb-1">Interval Value</label>
+                                <label className="block text-xs text-secondary mb-1">Interval Value</label>
                                 {isEditingPolicy ? (
                                   <input
                                     type="number"
                                     value={service.trailer.value}
                                     onChange={(e) => handleCustomServiceChange(index, 'trailer', 'value', parseInt(e.target.value) || 0)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                                     placeholder="30"
                                     min="0"
                                   />
                                 ) : (
-                                  <div className="px-3 py-2 bg-gray-50 rounded-lg">
-                                    <p className="text-gray-900 font-medium">{service.trailer.value.toLocaleString()}</p>
+                                  <div className="px-3 py-2 bg-card rounded-lg">
+                                    <p className="text-primary font-medium">{service.trailer.value.toLocaleString()}</p>
                                   </div>
                                 )}
                               </div>
                               <div>
-                                <label className="block text-xs text-gray-600 mb-1">Unit</label>
+                                <label className="block text-xs text-secondary mb-1">Unit</label>
                                 {isEditingPolicy ? (
                                   <select
                                     value={service.trailer.unit}
                                     onChange={(e) => handleCustomServiceChange(index, 'trailer', 'unit', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                                   >
                                     <option value="days">Days</option>
                                     <option value="miles">Miles</option>
                                     <option value="km">Kilometers</option>
                                   </select>
                                 ) : (
-                                  <div className="px-3 py-2 bg-gray-50 rounded-lg">
-                                    <p className="text-gray-900 font-medium uppercase">{service.trailer.unit}</p>
+                                  <div className="px-3 py-2 bg-card rounded-lg">
+                                    <p className="text-primary font-medium uppercase">{service.trailer.unit}</p>
                                   </div>
                                 )}
                               </div>
@@ -1078,11 +1076,11 @@ const Company = () => {
                         </div>
 
                         {/* Excluded Trailer Types */}
-                        <div className="mt-4 border border-gray-200 rounded-lg p-4 bg-yellow-50">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <div className="mt-4 border border-theme rounded-lg p-4 bg-card">
+                          <label className="block text-sm font-semibold text-primary mb-2">
                             Trailer Types Excluded (Optional)
                           </label>
-                          <p className="text-xs text-gray-600 mb-3">
+                          <p className="text-xs text-secondary mb-3">
                             Select trailer types that do not require this service
                           </p>
                           {isEditingPolicy ? (
@@ -1102,15 +1100,15 @@ const Company = () => {
                                       }
                                       handleCustomServiceChange(index, 'excludeTypes', undefined, newTypes);
                                     }}
-                                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                    className="w-4 h-4 text-purple-600 border-theme rounded focus:ring-purple-500"
                                   />
-                                  <span className="text-sm text-gray-700 capitalize">{type}</span>
+                                  <span className="text-sm text-primary capitalize">{type}</span>
                                 </label>
                               ))}
                             </div>
                           ) : (
-                            <div className="px-3 py-2 bg-white rounded-lg border border-gray-200">
-                              <p className="text-gray-900 font-medium">
+                            <div className="px-3 py-2 bg-card rounded-lg border border-theme">
+                              <p className="text-primary font-medium">
                                 {(service.excludeTypes || []).length > 0
                                   ? (service.excludeTypes || []).map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')
                                   : 'None'}
@@ -1125,35 +1123,35 @@ const Company = () => {
               </div>
 
               {/* Summary */}
-              <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Policy Summary</h3>
+              <div className="border-t border-theme pt-6">
+                <h3 className="text-lg font-semibold text-primary mb-4">Policy Summary</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-700 mb-2">Truck Maintenance</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
+                  <div className="bg-card rounded-lg p-4">
+                    <h4 className="font-semibold text-primary mb-2">Truck Maintenance</h4>
+                    <ul className="text-sm text-secondary space-y-1">
                       {maintenancePolicy.customServices.map((service, index) => (
                         <li key={index}>
                           • {service.name || 'Unnamed Service'}: Every {service.truck.value.toLocaleString()} {service.truck.unit}
                         </li>
                       ))}
                       {maintenancePolicy.customServices.length === 0 && (
-                        <li className="text-gray-400 italic">• No services configured</li>
+                        <li className="text-secondary italic">• No services configured</li>
                       )}
                     </ul>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-700 mb-2">Trailer Maintenance</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
+                  <div className="bg-card rounded-lg p-4">
+                    <h4 className="font-semibold text-primary mb-2">Trailer Maintenance</h4>
+                    <ul className="text-sm text-secondary space-y-1">
                       {maintenancePolicy.customServices.map((service, index) => (
                         <li key={index}>
                           • {service.name || 'Unnamed Service'}: Every {service.trailer.value.toLocaleString()} {service.trailer.unit}
                           {(service.excludeTypes || []).length > 0 && (
-                            <span className="text-orange-600 ml-1">(Excluded: {(service.excludeTypes || []).map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')})</span>
+                            <span className="text-[#F59E0B] ml-1">(Excluded: {(service.excludeTypes || []).map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')})</span>
                           )}
                         </li>
                       ))}
                       {maintenancePolicy.customServices.length === 0 && (
-                        <li className="text-gray-400 italic">• No services configured</li>
+                        <li className="text-secondary italic">• No services configured</li>
                       )}
                     </ul>
                   </div>

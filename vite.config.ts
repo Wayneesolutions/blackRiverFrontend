@@ -8,6 +8,8 @@ export default defineConfig({
     tailwindcss(),
   ],
   build: {
+    // Strip all console.log/debugger from production bundle (no extra package needed)
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -15,8 +17,17 @@ export default defineConfig({
           'vendor-redux': ['react-redux', '@reduxjs/toolkit'],
           'vendor-icons': ['lucide-react', 'react-icons'],
           'vendor-socket': ['socket.io-client'],
+          // Heavy libs split into separate chunks — loaded only when the page that uses them loads
+          'vendor-antd': ['antd'],
+          'vendor-charts': ['recharts'],
+          'vendor-maps': ['leaflet', 'react-leaflet'],
+          'vendor-export': ['exceljs', 'jspdf'],
         },
       },
     },
+  },
+  esbuild: {
+    // Drops all console.* and debugger statements in every build
+    drop: ['console', 'debugger'],
   },
 })

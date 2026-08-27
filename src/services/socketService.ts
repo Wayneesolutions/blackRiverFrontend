@@ -121,6 +121,8 @@ class SocketService {
         console.log("✅ [FRONTEND] User role:", data.role);
         console.log("✅ [FRONTEND] User company ID:", data.companyId);
         this.isAuthenticated = true;
+        // Signal GlobalCallHandler to attach its listeners now
+        window.dispatchEvent(new Event("socket-ready"));
         resolve();
       });
 
@@ -255,6 +257,38 @@ class SocketService {
       }
     }
   }
+
+  // ==================== WEBRTC CALL METHODS ====================
+
+// 📞 Send offer (caller → receiver)
+callUser(data: { to: string; offer: any }) {
+  if (this.socket && this.isAuthenticated) {
+    console.log("📡 Emitting call-user", data);
+    this.socket.emit("call-user", data);
+  } else {
+    console.error("❌ Socket not ready for call-user");
+  }
+}
+
+// 📲 Send answer (receiver → caller)
+answerCall(data: { to: string; answer: any }) {
+  if (this.socket && this.isAuthenticated) {
+    console.log("📡 Emitting answer-call", data);
+    this.socket.emit("answer-call", data);
+  } else {
+    console.error("❌ Socket not ready for answer-call");
+  }
+}
+
+// 🧊 Send ICE candidate (both sides)
+sendIceCandidate(data: { to: string; candidate: any }) {
+  if (this.socket && this.isAuthenticated) {
+    console.log("🧊 Emitting call-ice", data);
+    this.socket.emit("call-ice", data);
+  } else {
+    console.error("❌ Socket not ready for ICE");
+  }
+}
 
   // Listen to errors
   onError(callback: (error: { message: string }) => void) {
@@ -480,6 +514,7 @@ class SocketService {
       }
     }
   }
+
 }
 
 // Export singleton instance

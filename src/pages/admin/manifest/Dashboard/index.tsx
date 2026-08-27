@@ -14,29 +14,35 @@ interface Stats {
 }
 
 const StatCard = ({
-  icon, label, value, sub, color, bgColor, onClick,
+  icon, label, value, sub, color, onClick, bgStyle
 }: {
   icon: React.ReactNode;
   label: string;
   value: number | string;
   sub?: string;
   color: string;
-  bgColor: string;
+  bgStyle: React.CSSProperties;
   onClick?: () => void;
 }) => (
   <div
     onClick={onClick}
-    className={`bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-start gap-4 ${onClick ? "cursor-pointer hover:shadow-md hover:border-[#42aeec]/20 transition-all group" : ""}`}
+    style={bgStyle}
+    className={`rounded-xl p-5 shadow-sm border border-white/10 flex items-start gap-4 ${onClick ? "cursor-pointer hover:shadow-lg hover:brightness-110 transition-all group" : ""}`}
   >
-    <div className={`${bgColor} rounded-xl p-3 flex-shrink-0`}>
+    <div className="rounded-xl p-3 flex-shrink-0 bg-white/10">
       <span className={color}>{icon}</span>
     </div>
     <div className="flex-1 min-w-0">
-      <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">{label}</p>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+      <p className="text-xs text-white/60 font-medium uppercase tracking-wider mb-1">{label}</p>
+      <p className="text-2xl font-bold text-white">{value}</p>
+      {sub && <p className="text-xs text-white/50 mt-0.5">{sub}</p>}
     </div>
-    {onClick && <ArrowRight size={16} className="text-gray-300 group-hover:text-[#42aeec] transition-colors mt-1 flex-shrink-0" />}
+    {onClick && (
+      <ArrowRight
+        size={16}
+        className="text-white/30 group-hover:text-white/80 transition-colors mt-1 flex-shrink-0"
+      />
+    )}
   </div>
 );
 
@@ -61,9 +67,9 @@ const Dashboard = () => {
       ]);
 
       setStats({
-        totalTrucks:   tRes?.pagination?.total  || tRes?.data?.length  || 0,
+        totalTrucks: tRes?.pagination?.total || tRes?.data?.length || 0,
         totalTrailers: trRes?.pagination?.total || trRes?.data?.length || 0,
-        totalDrivers:  dRes?.pagination?.total  || dRes?.data?.length  || 0,
+        totalDrivers: dRes?.pagination?.total || dRes?.data?.length || 0,
       });
     } catch {
       setError("Failed to load dashboard data");
@@ -76,45 +82,45 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="p-6 min-h-screen bg-[#EDF8FF]">
+      <div className="p-6 min-h-screen bg-main">
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#42aeec]" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--accent-blue)]" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 min-h-screen bg-[#EDF8FF]">
+    <div className="p-6 min-h-screen bg-main">
       {/* Page header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Manifest portal overview</p>
+          <h1 className="text-xl font-bold text-headings">Dashboard</h1>
+          <p className="text-sm text-secondary mt-0.5">Manifest portal overview</p>
         </div>
         <button
           onClick={load}
-          className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200 text-sm text-gray-600 hover:border-[#42aeec] hover:text-[#42aeec] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg shadow-sm border border-theme text-sm text-secondary hover:border-[var(--accent-blue)] hover:text-[var(--accent-blue)] transition-colors"
         >
           <RefreshCw size={14} /> Refresh
         </button>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 text-sm mb-5">
+        <div className="flex items-center gap-2 p-4 bg-card border border-red-100 rounded-xl text-red-700 text-sm mb-5">
           <AlertCircle size={16} />{error}
         </div>
       )}
 
-      {/* Top stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <StatCard
           icon={<Truck size={22} />}
           label="Trucks"
           value={stats.totalTrucks}
           sub="In fleet"
-          color="text-teal-600"
-          bgColor="bg-teal-50"
+          color="text-[#4eecd8]"
+          bgStyle={{ background: "linear-gradient(135deg, #0d3d3a 0%, #0a4f4a 60%, #0d5e58 100%)" }}
           onClick={() => navigate("/admin/manifest/trucks")}
         />
         <StatCard
@@ -122,8 +128,8 @@ const Dashboard = () => {
           label="Trailers"
           value={stats.totalTrailers}
           sub="In fleet"
-          color="text-indigo-600"
-          bgColor="bg-indigo-50"
+          color="text-[#42aeec]"
+          bgStyle={{ background: "linear-gradient(135deg, #0a2a4a 0%, #0d3d6e 60%, #0f4d87 100%)" }}
           onClick={() => navigate("/admin/manifest/trailers")}
         />
         <StatCard
@@ -131,13 +137,11 @@ const Dashboard = () => {
           label="Drivers"
           value={stats.totalDrivers}
           sub="Active staff"
-          color="text-purple-600"
-          bgColor="bg-purple-50"
+          color="text-[#b78aff]"
+          bgStyle={{ background: "linear-gradient(135deg, #2a1060 0%, #3b1a7a 60%, #4a2090 100%)" }}
           onClick={() => navigate("/admin/manifest/drivers")}
         />
       </div>
-
-  
     </div>
   );
 };

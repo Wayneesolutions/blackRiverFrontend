@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, Upload, ChevronUp, ChevronDown, Clock, X, Image as ImageIcon, Calendar, ChevronLeft, ChevronRight, Edit, Trash2, FileText, Check, FileDown } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { getAllVehicles, createVehicle, updateVehicle, deleteVehicle, getVehicleById } from '../../../../axios/api/vehicle';
+import { importVehiclesFromFile } from '../../../../axios/api/distapcher';
+import ImportButton from '../../../../components/common/ImportButton';
 import { getAllDrivers, type Driver } from '../../../../axios/api/driver';
 import { createVehicleDocument, updateVehicleDocument, getVehicleDocument } from '../../../../axios/api/compilance.vehicledoc';
 import { getAllTrailers } from '../../../../axios/api/trailer';
@@ -10,6 +12,11 @@ import { getAllEmployees } from '../../../../axios/api/employee';
 import { getAllYards, type Yard } from '../../../../axios/api/fleet.yards';
 import apiClient from '../../../../axios/apiClient';
 import ConfirmationModal from '../../../../components/common/ConfirmationModal';
+import { useAutoSaveDraft } from '../../../../customHooks/useAutoSaveDraft';
+import DraftRestoreBanner from '../../../../components/common/DraftRestoreBanner';
+import AutoSaveIndicator from '../../../../components/common/AutoSaveIndicator';
+
+
 
 interface Truck {
     _id?: string;
@@ -54,8 +61,8 @@ interface Country {
 const Trucks: React.FC = () => {
     const { category: routeCategory } = useParams<{ category?: string }>();
     const navigate = useNavigate();
-    
-    
+
+
     // Initialize activeTab from route params, default to 'All'
     const getInitialTab = (cat?: string): 'All' | 'MB' | 'AB' | 'TX' | 'External' | 'Unassigned' => {
         if (cat && ['MB', 'AB', 'TX', 'External', 'Unassigned'].includes(cat)) {
@@ -63,7 +70,7 @@ const Trucks: React.FC = () => {
         }
         return 'All';
     };
-    
+
     const [activeTab, setActiveTab] = useState<string>(getInitialTab(routeCategory) || 'All');
     const [assignedTruckIds, setAssignedTruckIds] = useState<Set<string>>(new Set());
     const [searchTerm, setSearchTerm] = useState('');
@@ -84,7 +91,7 @@ const Trucks: React.FC = () => {
 
     // Sidebar modal state
     const [showSidebar, setShowSidebar] = useState(false);
-    const [activeStep, setActiveStep] = useState<'Details' | 'Inspections' | 'Documents' | 'Notes' | 'Payroll' | 'Deductions' | 'Additions'>('Details');
+    const [activeStep, setActiveStep] = useState<'Details' | 'Inspections' | 'Documents' | 'Invoice' | 'Notes' | 'Payroll' | 'Deductions' | 'Additions'>('Details');
     const [inspectionType, setInspectionType] = useState<'One Time' | 'Recurring'>('One Time');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -128,17 +135,17 @@ const Trucks: React.FC = () => {
         unit: '',
         file: null as File | null
     });
-    
+
     // State to track which inspection is being edited
     const [editingInspectionId, setEditingInspectionId] = useState<string | null>(null);
     const [editingInspectionType, setEditingInspectionType] = useState<'oneTime' | 'recurring' | null>(null);
-    
+
     // Function to handle clicking on an inspection row to edit it
     const handleEditInspection = (inspection: any, type: 'oneTime' | 'recurring') => {
         console.log('✏️ Editing inspection:', inspection, 'Type:', type);
         setEditingInspectionId(inspection.id);
         setEditingInspectionType(type);
-        
+
         if (type === 'oneTime') {
             setInspectionForm({
                 expiryDate: inspection.expiryDate || '',
@@ -161,13 +168,13 @@ const Trucks: React.FC = () => {
             });
         }
     };
-    
+
     // Function to save/update inspection
     const handleSaveInspection = () => {
         if (editingInspectionId && editingInspectionType === 'oneTime') {
             // Update existing one-time inspection
-            setOneTimeInspections(oneTimeInspections.map(insp => 
-                insp.id === editingInspectionId 
+            setOneTimeInspections(oneTimeInspections.map(insp =>
+                insp.id === editingInspectionId
                     ? {
                         ...insp,
                         expiryDate: inspectionForm.expiryDate,
@@ -224,13 +231,13 @@ const Trucks: React.FC = () => {
                 console.log('✅ Added new recurring inspection');
             }
         }
-        
+
         // Reset form and editing state
         setInspectionForm({ expiryDate: '', description: '', ignoreExpiration: false, scheduledOn: '', after: '', unit: '', file: null });
         setEditingInspectionId(null);
         setEditingInspectionType(null);
     };
-    
+
     // Function to delete inspection
     const handleDeleteInspection = (id: string, type: 'oneTime' | 'recurring') => {
         if (type === 'oneTime') {
@@ -241,11 +248,11 @@ const Trucks: React.FC = () => {
         console.log('🗑️ Deleted inspection:', id);
     };
 
-    // Documents data
-    const [documentType, setDocumentType] = useState<'General' | 'Ownership' | 'Cab Card' | 'Plate' | 'Safety' | 'Insurance'>('General');
-    const [documents, setDocuments] = useState<Record<string, Array<{
+    // Documents data (single list, no tabs)
+    const [documents, setDocuments] = useState<Array<{
         id: string;
         _id?: string;
+        title: string;
         expiryDate: string;
         description: string;
         file: File | null;
@@ -253,20 +260,15 @@ const Trucks: React.FC = () => {
         fileName?: string;
         ignoreExpiration: boolean;
         isExisting?: boolean;
-    }>>>({
-        General: [],
-        Ownership: [],
-        'Cab Card': [],
-        Plate: [],
-        Safety: [],
-        Insurance: []
-    });
+    }>>([]);
     const [documentForm, setDocumentForm] = useState({
+        title: '',
         expiryDate: '',
         description: '',
         file: null as File | null,
         ignoreExpiration: false
     });
+    const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null);
 
     // Invoices data
     const [invoices, setInvoices] = useState<Array<{
@@ -283,6 +285,17 @@ const Trucks: React.FC = () => {
         isExisting?: boolean;
     }>>([]);
 
+    const [invoiceForm, setInvoiceForm] = useState({
+        invoiceNumber: '',
+        vendorWorkshop: '',
+        amount: '',
+        invoiceDate: '',
+        file: null as File | null,
+        notes: ''
+    });
+
+    const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
+    const invoiceFileInputRef = useRef<HTMLInputElement>(null);
 
     // Notes data
     const [notes, setNotes] = useState<Array<{
@@ -294,6 +307,7 @@ const Trucks: React.FC = () => {
         note: '',
         category: 'Category'
     });
+    const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
 
     // Payroll data
     const [paymentMethod, setPaymentMethod] = useState<'PAID PER MILE' | 'PAID PERCENT' | 'PAID BY TRIP' | 'PAID PER HOUR'>('PAID PER MILE');
@@ -373,6 +387,27 @@ const Trucks: React.FC = () => {
         yard: '',
         subType: '' as '' | 'HIGHWAY USE' | 'CITY USE' | 'STORAGE USE' | 'RENTAL' | 'OTHER'
     });
+
+    // Auto-save draft protection (crash/power-loss safety net for the create/edit form)
+    const {
+        status: draftStatus,
+        lastSavedAt: draftLastSavedAt,
+        pendingRestore: draftPendingRestore,
+        restoreDraft: restoreTruckDraft,
+        discardDraft: discardTruckDraft,
+        clearDraft: clearTruckDraft,
+    } = useAutoSaveDraft({
+        entityType: 'trucks',
+        entityId: editingId || 'new',
+        formData,
+        enabled: showSidebar,
+    });
+
+    const handleRestoreTruckDraft = () => {
+        const draft = restoreTruckDraft();
+        if (!draft) return;
+        setFormData((prev) => ({ ...prev, ...draft }));
+    };
 
     // Update activeTab when route changes
     useEffect(() => {
@@ -476,7 +511,7 @@ const Trucks: React.FC = () => {
                 // Determine filter parameters based on activeTab
                 let yardFilter: string | undefined = undefined;
                 let ownershipFilter: string | undefined = undefined;
-                
+
                 if (activeTab === 'All') {
                     // No filters - fetch all
                 } else if (activeTab === 'External') {
@@ -488,9 +523,9 @@ const Trucks: React.FC = () => {
                     // Yard filter - activeTab is a yard ID
                     yardFilter = activeTab;
                 }
-                
+
                 const response = await getAllVehicles(
-                    1, 
+                    1,
                     1000,
                     undefined, // search
                     undefined, // type
@@ -499,7 +534,7 @@ const Trucks: React.FC = () => {
                     ownershipFilter, // ownership
                     yardFilter // yard
                 );
-                
+
                 if (response?.success && response?.data) {
                     // Transform backend data to match frontend interface
                     const transformedTrucks = response.data.map((truck: any) => ({
@@ -558,7 +593,7 @@ const Trucks: React.FC = () => {
                 console.log('🔄 Fetching operators...');
                 const response = await getAllEmployees(1, 1000, undefined, 'operator', 'active');
                 console.log('📥 Operators API response:', response);
-                
+
                 if (response?.success && response?.data && Array.isArray(response.data)) {
                     const operatorList = response.data.map((emp: any) => ({
                         _id: emp._id,
@@ -630,12 +665,12 @@ const Trucks: React.FC = () => {
         const loadTruckForEdit = async () => {
             console.log('🔄 loadTruckForEdit useEffect triggered');
             console.log('🔍 editingId:', editingId);
-            
+
             if (!editingId) {
                 console.log('⚠️ No editingId, skipping load');
                 return;
             }
-            
+
             console.log('📡 Fetching truck data for ID:', editingId);
             setLoading(true);
             try {
@@ -668,12 +703,12 @@ const Trucks: React.FC = () => {
                         yard: truck.yard?._id?.toString() || truck.yard?.toString() || ''
                     };
                     console.log('📝 Form data populated:', truckFormData);
-                    
+
                     setFormData(truckFormData);
                     setOriginalTruckData(truckFormData);
                     setSelectedImage(truck.imageUrl || null);
                     setSelectedImageFile(null);
-                    
+
                     // Load documents from separate API endpoint
                     console.log('📄 Fetching documents for vehicle:', editingId);
                     try {
@@ -685,83 +720,51 @@ const Trucks: React.FC = () => {
                             hasDocumentsByVehicle: !!documentsResponse?.documentsByVehicle,
                             documentsByVehicleCount: documentsResponse?.documentsByVehicle?.length
                         });
-                        
+
                         if (documentsResponse?.success && documentsResponse?.documentsByVehicle) {
                             // Find the vehicle entry that matches our editingId
-                            const vehicleEntry = documentsResponse.documentsByVehicle.find((entry: any) => 
-                                entry._id?.toString() === editingId || 
+                            const vehicleEntry = documentsResponse.documentsByVehicle.find((entry: any) =>
+                                entry._id?.toString() === editingId ||
                                 entry._id === editingId ||
                                 entry.vehicle?._id?.toString() === editingId ||
                                 entry.vehicle?._id === editingId
                             );
-                            
+
                             console.log('📄 Found vehicle entry:', vehicleEntry);
-                            
-                            const docsByType: Record<string, Array<any>> = {
-                                General: [],
-                                Ownership: [],
-                                'Cab Card': [],
-                                Plate: [],
-                                Safety: [],
-                                Insurance: []
-                            };
-                            
-                            // Extract documents from the vehicle entry
+
+                            // Flatten all document types into a single list (no tabs)
                             const vehicleDocuments = vehicleEntry?.documents || [];
                             console.log('📄 Vehicle documents:', vehicleDocuments);
-                            
-                            vehicleDocuments.forEach((doc: any) => {
-                                const type = doc.documentType || 'General';
-                                console.log('📄 Processing document:', { 
-                                    type, 
+                            const flatDocs = vehicleDocuments.map((doc: any) => {
+                                console.log('📄 Processing document:', {
                                     documentNumber: doc.documentNumber,
                                     hasFiles: !!doc.files?.length,
-                                    fileUrl: doc.documentLocation 
+                                    fileUrl: doc.documentLocation
                                 });
-                                if (docsByType[type]) {
-                                    docsByType[type].push({
-                                        id: doc._id,
-                                        _id: doc._id,
-                                        expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
-                                        description: doc.documentNumber || doc.description || '',
-                                        file: null,
-                                        fileUrl: doc.files?.[0]?.fileUrl || doc.documentLocation,
-                                        fileName: doc.files?.[0]?.fileName || (doc.files?.[0] ? 'Document' : null),
-                                        ignoreExpiration: doc.ignoreExpiration || false,
-                                        isExisting: true
-                                    });
-                                } else {
-                                    console.warn('⚠️ Unknown document type:', type);
-                                }
+                                return {
+                                    id: doc._id,
+                                    _id: doc._id,
+                                    title: doc.title || doc.documentType || doc.documentNumber || '',
+                                    expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
+                                    description: doc.documentNumber || doc.description || '',
+                                    file: null,
+                                    fileUrl: doc.files?.[0]?.fileUrl || doc.documentLocation,
+                                    fileName: doc.files?.[0]?.fileName || (doc.files?.[0] ? 'Document' : null),
+                                    ignoreExpiration: doc.ignoreExpiration || false,
+                                    isExisting: true
+                                };
                             });
-                            
-                            console.log('📄 Documents organized by type:', docsByType);
-                            setDocuments(docsByType);
+                            console.log('📄 Documents (flat list):', flatDocs);
+                            setDocuments(flatDocs);
                         } else {
                             console.log('📄 No documents found or API error');
-                            // Initialize empty documents
-                            setDocuments({
-                                General: [],
-                                Ownership: [],
-                                'Cab Card': [],
-                                Plate: [],
-                                Safety: [],
-                                Insurance: []
-                            });
+                            setDocuments([]);
                         }
                     } catch (error) {
                         console.error('❌ Error fetching documents:', error);
-                        // Initialize empty documents on error
-                        setDocuments({
-                            General: [],
-                            Ownership: [],
-                            'Cab Card': [],
-                            Plate: [],
-                            Safety: [],
-                            Insurance: []
-                        });
+                        setDocuments([]);
                     }
-                    
+
                     // Load inspections
                     if (truck.oneTimeInspections && Array.isArray(truck.oneTimeInspections) && truck.oneTimeInspections.length > 0) {
                         setOneTimeInspections(truck.oneTimeInspections.map((insp: any, index: number) => ({
@@ -791,8 +794,8 @@ const Trucks: React.FC = () => {
                     } else {
                         setRecurringInspections([]);
                     }
-                    
-                    
+
+
                     // Load notes
                     if (truck.notesArray && Array.isArray(truck.notesArray) && truck.notesArray.length > 0) {
                         setNotes(truck.notesArray.map((note: any, index: number) => ({
@@ -803,7 +806,7 @@ const Trucks: React.FC = () => {
                     } else {
                         setNotes([]);
                     }
-                    
+
                     // Load invoices
                     if (truck.invoices && Array.isArray(truck.invoices) && truck.invoices.length > 0) {
                         setInvoices(truck.invoices.map((invoice: any, index: number) => ({
@@ -821,7 +824,7 @@ const Trucks: React.FC = () => {
                     } else {
                         setInvoices([]);
                     }
-                    
+
                     console.log('✅ Opening sidebar with truck data');
                     setShowSidebar(true);
                     setActiveStep('Details');
@@ -836,7 +839,7 @@ const Trucks: React.FC = () => {
                 setLoading(false);
             }
         };
-        
+
         loadTruckForEdit();
     }, [editingId]);
 
@@ -919,20 +922,20 @@ const Trucks: React.FC = () => {
         const sheet = workbook.addWorksheet('Trucks', { views: [{ state: 'frozen', ySplit: 1 }] });
 
         sheet.columns = [
-            { header: 'Unit Number',       key: 'unitNumber',          width: 16 },
-            { header: 'Plate Number',       key: 'plateNumber',         width: 16 },
-            { header: 'VIN Number',         key: 'vinNumber',           width: 22 },
-            { header: 'Make',               key: 'make',                width: 14 },
-            { header: 'Model',              key: 'model',               width: 14 },
-            { header: 'Year',               key: 'year',                width: 10 },
-            { header: 'Ownership',          key: 'ownership',           width: 20 },
-            { header: 'Operating Status',   key: 'operatingStatus',     width: 18 },
-            { header: 'Dispatch Status',    key: 'dispatchStatus',      width: 18 },
-            { header: 'Compliance',         key: 'compliance',          width: 18 },
-            { header: 'Category',           key: 'category',            width: 14 },
-            { header: 'Reg. Country',       key: 'registrationCountry', width: 16 },
-            { header: 'Reg. Province',      key: 'registrationProvince',width: 16 },
-            { header: 'Notes',              key: 'notes',               width: 30 },
+            { header: 'Unit Number', key: 'unitNumber', width: 16 },
+            { header: 'Plate Number', key: 'plateNumber', width: 16 },
+            { header: 'VIN Number', key: 'vinNumber', width: 22 },
+            { header: 'Make', key: 'make', width: 14 },
+            { header: 'Model', key: 'model', width: 14 },
+            { header: 'Year', key: 'year', width: 10 },
+            { header: 'Ownership', key: 'ownership', width: 20 },
+            { header: 'Operating Status', key: 'operatingStatus', width: 18 },
+            { header: 'Dispatch Status', key: 'dispatchStatus', width: 18 },
+            { header: 'Compliance', key: 'compliance', width: 18 },
+            { header: 'Category', key: 'category', width: 14 },
+            { header: 'Reg. Country', key: 'registrationCountry', width: 16 },
+            { header: 'Reg. Province', key: 'registrationProvince', width: 16 },
+            { header: 'Notes', key: 'notes', width: 30 },
         ];
 
         const headerRow = sheet.getRow(1);
@@ -943,20 +946,20 @@ const Trucks: React.FC = () => {
 
         filteredTrucks.forEach((t: any) => {
             const row = sheet.addRow({
-                unitNumber:           t.unitNumber           || '',
-                plateNumber:          t.plateNumber          || '',
-                vinNumber:            t.vinNumber            || '',
-                make:                 t.make                 || '',
-                model:                t.model                || '',
-                year:                 t.year                 || '',
-                ownership:            t.ownership            || '',
-                operatingStatus:      t.operatingStatus      || '',
-                dispatchStatus:       t.dispatchStatus       || '',
-                compliance:           t.compliance           || '',
-                category:             t.category             || '',
-                registrationCountry:  t.registrationCountry  || '',
+                unitNumber: t.unitNumber || '',
+                plateNumber: t.plateNumber || '',
+                vinNumber: t.vinNumber || '',
+                make: t.make || '',
+                model: t.model || '',
+                year: t.year || '',
+                ownership: t.ownership || '',
+                operatingStatus: t.operatingStatus || '',
+                dispatchStatus: t.dispatchStatus || '',
+                compliance: t.compliance || '',
+                category: t.category || '',
+                registrationCountry: t.registrationCountry || '',
                 registrationProvince: t.registrationProvince || '',
-                notes:                t.notes                || '',
+                notes: t.notes || '',
             });
             row.alignment = { vertical: 'middle' };
         });
@@ -980,21 +983,21 @@ const Trucks: React.FC = () => {
 
     // Count trucks by category - fetch counts from backend
     const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
-    
+
     // Fetch counts for all categories
     useEffect(() => {
         const fetchCategoryCounts = async () => {
             try {
                 const counts: Record<string, number> = {};
-                
+
                 // Fetch All count
                 const allResponse = await getAllVehicles(1, 1);
                 counts['All'] = allResponse?.pagination?.total || 0;
-                
+
                 // Fetch External count
                 const externalResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, 'OWNER OPERATOR');
                 counts['External'] = externalResponse?.pagination?.total || 0;
-                
+
                 // Fetch Unassigned count (fetch all and filter)
                 const unassignedResponse = await getAllVehicles(1, 1000);
                 if (unassignedResponse?.success && unassignedResponse?.data) {
@@ -1006,30 +1009,26 @@ const Trucks: React.FC = () => {
                 } else {
                     counts['Unassigned'] = 0;
                 }
-                
+
                 // Fetch counts for each yard
                 for (const yard of yards) {
                     if (yard.status === 'active' && yard._id) {
-                        const yardId = yard._id.toString();
-                        console.log('🔍 [COUNT] Fetching count for yard:', yardId, yard.yardName);
-                        const yardResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, undefined, yardId);
-                        const yardCount = yardResponse?.pagination?.total || 0;
-                        console.log('📊 [COUNT] Yard count result:', { yardId, yardName: yard.yardName, count: yardCount });
-                        counts[yardId] = yardCount;
+                        const yardResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, undefined, yard._id);
+                        counts[yard._id] = yardResponse?.pagination?.total || 0;
                     }
                 }
-                
+
                 setCategoryCounts(counts);
             } catch (error) {
                 console.error('Error fetching category counts:', error);
             }
         };
-        
+
         if (yards.length > 0 || assignedTruckIds.size > 0) {
             fetchCategoryCounts();
         }
     }, [yards, assignedTruckIds]);
-    
+
     const getCountByCategory = (category: string) => {
         return categoryCounts[category] || 0;
     };
@@ -1037,7 +1036,7 @@ const Trucks: React.FC = () => {
     // Validate required fields
     const validateTruckForm = (): boolean => {
         const errors: string[] = [];
-        
+
         if (!formData.unitNumber.trim()) errors.push('Unit # is required');
         if (!formData.plateNumber.trim()) errors.push('Plate # is required');
         if (!formData.vinNumber.trim()) errors.push('VIN is required');
@@ -1048,7 +1047,7 @@ const Trucks: React.FC = () => {
         if (!formData.registrationCountry.trim()) errors.push('Registration Country is required');
         if (!formData.ownership.trim()) errors.push('Ownership is required');
         if (!formData.weight || formData.weight === '0') errors.push('Weight is required');
-        
+
         setValidationErrors(errors);
         return errors.length === 0;
     };
@@ -1063,7 +1062,7 @@ const Trucks: React.FC = () => {
         setLoading(true);
         try {
             const formDataToSend = new FormData();
-            
+
             if (editingId && originalTruckData) {
                 // Partial update - only send changed fields
                 if (formData.unitNumber !== originalTruckData.unitNumber) {
@@ -1110,61 +1109,11 @@ const Trucks: React.FC = () => {
                 if (formData.subType !== originalTruckData.subType) {
                     formDataToSend.append('subType', formData.subType || '');
                 }
-                
-                // Handle operator update - check if operator has changed
-                const currentOperatorId = formData.operator || '';
-                const originalOperatorId = originalTruckData.operator 
-                    ? (typeof originalTruckData.operator === 'string' 
-                        ? originalTruckData.operator 
-                        : originalTruckData.operator._id?.toString() || '')
-                    : '';
-                
-                if (currentOperatorId !== originalOperatorId) {
-                    console.log('🔄 [UPDATE] Operator changed:', { from: originalOperatorId, to: currentOperatorId });
-                    if (currentOperatorId) {
-                        formDataToSend.append('operator', currentOperatorId);
-                    } else {
-                        formDataToSend.append('operator', '');
-                    }
-                }
-                
-                // Handle coOperator update - check if coOperator has changed
-                const currentCoOperatorId = formData.coOperator || '';
-                const originalCoOperatorId = originalTruckData.coOperator 
-                    ? (typeof originalTruckData.coOperator === 'string' 
-                        ? originalTruckData.coOperator 
-                        : originalTruckData.coOperator._id?.toString() || '')
-                    : '';
-                
-                if (currentCoOperatorId !== originalCoOperatorId) {
-                    console.log('🔄 [UPDATE] CoOperator changed:', { from: originalCoOperatorId, to: currentCoOperatorId });
-                    if (currentCoOperatorId) {
-                        formDataToSend.append('coOperator', currentCoOperatorId);
-                    } else {
-                        formDataToSend.append('coOperator', '');
-                    }
-                }
-                
-                // Handle yard update - always send yard value (even if unchanged, to ensure it's saved)
-                const currentYardId = String(formData.yard || '').trim();
-                const originalYardId = String(originalTruckData.yard || '').trim();
-                
-                console.log('🔍 [UPDATE] Yard check:', { 
-                    currentYardId, 
-                    originalYardId, 
-                    formDataYard: formData.yard,
-                    originalTruckDataYard: originalTruckData.yard,
-                    hasChanged: currentYardId !== originalYardId
-                });
-                
-                // Always send yard to ensure it's updated (even if value is empty to clear it)
-                console.log('✅ [UPDATE] Adding yard to payload:', currentYardId || '(empty - will clear yard)');
-                formDataToSend.append('yard', currentYardId);
-                
+
                 if (selectedImageFile) {
                     formDataToSend.append('image', selectedImageFile);
                 }
-                
+
                 // Add inspections and notes
                 // Handle one-time inspections with files
                 console.log('🔍 [UPDATE] Processing oneTimeInspections:', oneTimeInspections);
@@ -1187,7 +1136,7 @@ const Trucks: React.FC = () => {
                         hasFile: hasNewFile
                     };
                 })));
-                
+
                 // Handle recurring inspections with files
                 console.log('🔍 [UPDATE] Processing recurringInspections:', recurringInspections);
                 recurringInspections.forEach((insp, index) => {
@@ -1216,7 +1165,7 @@ const Trucks: React.FC = () => {
                     note: note.note,
                     category: note.category
                 }))));
-                
+
                 // Handle invoices with files
                 console.log('🔍 [UPDATE] Processing invoices:', invoices);
                 invoices.forEach((invoice, index) => {
@@ -1238,41 +1187,12 @@ const Trucks: React.FC = () => {
                         hasFile: hasNewFile
                     };
                 })));
-                
+
                 const response = await updateVehicle(editingId, formDataToSend);
                 if (response?.success) {
                     // Refresh trucks list
                     const refreshResponse = await getAllVehicles(1, 1000);
                     if (refreshResponse?.success && refreshResponse?.data) {
-                        // Refresh category counts after update
-                        const counts: Record<string, number> = {};
-                        const allResponse = await getAllVehicles(1, 1);
-                        counts['All'] = allResponse?.pagination?.total || 0;
-                        
-                        const externalResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, 'OWNER OPERATOR');
-                        counts['External'] = externalResponse?.pagination?.total || 0;
-                        
-                        const unassignedResponse = await getAllVehicles(1, 1000);
-                        if (unassignedResponse?.success && unassignedResponse?.data) {
-                            const unassignedCount = unassignedResponse.data.filter((truck: any) => {
-                                const truckId = truck._id?.toString();
-                                return !truckId || !assignedTruckIds.has(truckId);
-                            }).length;
-                            counts['Unassigned'] = unassignedCount;
-                        } else {
-                            counts['Unassigned'] = 0;
-                        }
-                        
-                        // Fetch counts for each yard
-                        for (const yard of yards) {
-                            if (yard.status === 'active' && yard._id) {
-                                const yardId = yard._id.toString();
-                                const yardResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, undefined, yardId);
-                                counts[yardId] = yardResponse?.pagination?.total || 0;
-                            }
-                        }
-                        
-                        setCategoryCounts(counts);
                         const transformedTrucks = refreshResponse.data.map((truck: any) => ({
                             _id: truck._id,
                             id: truck._id,
@@ -1303,6 +1223,7 @@ const Trucks: React.FC = () => {
                         }));
                         setTrucks(transformedTrucks);
                     }
+                    clearTruckDraft();
                 } else {
                     alert(response?.message || 'Failed to update truck. Please try again.');
                 }
@@ -1324,7 +1245,7 @@ const Trucks: React.FC = () => {
                 formDataToSend.append('ownership', formData.ownership || 'COMPANY ASSET');
                 formDataToSend.append('subType', formData.subType || '');
                 formDataToSend.append('operationStatus', formData.status === 'In Service' ? 'IN SERVICE' : formData.status === 'Out of Service' ? 'OUT OF SERVICE' : 'MAINTENANCE');
-                
+
                 // Add optional fields
                 if (formData.trailer) {
                     formDataToSend.append('trailer', formData.trailer);
@@ -1350,11 +1271,11 @@ const Trucks: React.FC = () => {
                 if (formData.assetValue) {
                     formDataToSend.append('assetValue', formData.assetValue);
                 }
-                
+
                 if (selectedImageFile) {
                     formDataToSend.append('image', selectedImageFile);
                 }
-                
+
                 // Add inspections and notes
                 // Handle one-time inspections with files
                 console.log('🔍 [CREATE] Processing oneTimeInspections:', oneTimeInspections);
@@ -1375,7 +1296,7 @@ const Trucks: React.FC = () => {
                         hasFile: hasNewFile
                     };
                 })));
-                
+
                 // Handle recurring inspections with files
                 console.log('🔍 [CREATE] Processing recurringInspections:', recurringInspections);
                 recurringInspections.forEach((insp, index) => {
@@ -1402,7 +1323,7 @@ const Trucks: React.FC = () => {
                     note: note.note,
                     category: note.category
                 }))));
-                
+
                 // Handle invoices with files
                 console.log('🔍 [CREATE] Processing invoices:', invoices);
                 invoices.forEach((invoice, index) => {
@@ -1428,35 +1349,23 @@ const Trucks: React.FC = () => {
                 const response = await createVehicle(formDataToSend);
                 if (response?.success) {
                     const newTruckId = response?.data?._id || response?.data?.id;
-                    
-                    // Handle documents for newly created truck
+
+                    // Handle documents for newly created truck (single list, no tabs)
                     if (newTruckId) {
-                        const newDocuments: Array<{ type: string; doc: any }> = [];
-                        
-                        Object.entries(documents).forEach(([type, docs]) => {
-                            docs.forEach((doc) => {
-                                if (!doc.isExisting && (doc.file || doc.description)) {
-                                    newDocuments.push({ type, doc });
-                                }
-                            });
-                        });
-                        
-                        // Create new documents
-                        if (newDocuments.length > 0) {
+                        const docsToCreate = documents.filter(
+                            (doc) => !doc.isExisting && (doc.file || doc.description || doc.title)
+                        );
+                        if (docsToCreate.length > 0) {
                             try {
-                                await Promise.all(newDocuments.map(async ({ type, doc }) => {
+                                await Promise.all(docsToCreate.map(async (doc) => {
                                     const docFormData = new FormData();
                                     docFormData.append('vehicleId', newTruckId);
                                     docFormData.append('assetType', 'vehicle');
-                                    docFormData.append('documentType', type);
+                                    docFormData.append('documentType', 'General');
                                     docFormData.append('documentNumber', doc.description || '');
-                                    if (doc.expiryDate) {
-                                        docFormData.append('expiryDate', doc.expiryDate);
-                                    }
-                                    if (doc.file) {
-                                        docFormData.append('file', doc.file);
-                                    }
-                                    
+                                    if (doc.title) docFormData.append('title', doc.title);
+                                    if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                                    if (doc.file) docFormData.append('file', doc.file);
                                     await createVehicleDocument(docFormData);
                                 }));
                             } catch (docError) {
@@ -1464,7 +1373,7 @@ const Trucks: React.FC = () => {
                             }
                         }
                     }
-                    
+
                     // Refresh trucks list
                     const refreshResponse = await getAllVehicles(1, 1000);
                     if (refreshResponse?.success && refreshResponse?.data) {
@@ -1498,6 +1407,7 @@ const Trucks: React.FC = () => {
                         }));
                         setTrucks(transformedTrucks);
                     }
+                    clearTruckDraft();
                 } else if (response?.code === 'TRUCK_LIMIT_REACHED') {
                     setTruckLimitModal({
                         show: true,
@@ -1508,64 +1418,43 @@ const Trucks: React.FC = () => {
                     alert(response?.message || 'Failed to create truck. Please try again.');
                 }
             }
-            
-            // Handle documents for updates
+
+            // Handle documents for updates (single list, no tabs)
             if (editingId) {
-                const trailerId = editingId;
-                const newDocuments: Array<{ type: string; doc: any }> = [];
-                const updatedDocuments: Array<{ type: string; doc: any }> = [];
-                
-                Object.entries(documents).forEach(([type, docs]) => {
-                    docs.forEach((doc) => {
-                        if (doc.isExisting && doc._id) {
-                            updatedDocuments.push({ type, doc });
-                        } else if (!doc.isExisting && (doc.file || doc.description)) {
-                            newDocuments.push({ type, doc });
-                        }
-                    });
-                });
-                
-                // Create new documents
-                if (newDocuments.length > 0) {
+                const vehicleId = editingId;
+                const newDocs = documents.filter((doc) => !doc.isExisting && (doc.file || doc.description || doc.title));
+                const existingDocs = documents.filter((doc) => doc.isExisting && doc._id);
+
+                if (newDocs.length > 0) {
                     try {
-                        await Promise.all(newDocuments.map(async ({ type, doc }) => {
+                        await Promise.all(newDocs.map(async (doc) => {
                             const docFormData = new FormData();
-                            docFormData.append('vehicleId', trailerId);
+                            docFormData.append('vehicleId', vehicleId);
                             docFormData.append('assetType', 'vehicle');
-                            docFormData.append('documentType', type);
+                            docFormData.append('documentType', 'General');
                             docFormData.append('documentNumber', doc.description || '');
-                            if (doc.expiryDate) {
-                                docFormData.append('expiryDate', doc.expiryDate);
-                            }
-                            if (doc.file) {
-                                docFormData.append('file', doc.file);
-                            }
-                            
+                            if (doc.title) docFormData.append('title', doc.title);
+                            if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                            if (doc.file) docFormData.append('file', doc.file);
                             await createVehicleDocument(docFormData);
                         }));
                     } catch (docError) {
                         console.error('❌ Error creating documents:', docError);
                     }
                 }
-                
-                // Update existing documents
-                if (updatedDocuments.length > 0) {
+
+                if (existingDocs.length > 0) {
                     try {
-                        await Promise.all(updatedDocuments.map(async ({ type, doc }) => {
+                        await Promise.all(existingDocs.map(async (doc) => {
                             const docFormData = new FormData();
-                            docFormData.append('vehicleId', trailerId);
+                            docFormData.append('vehicleId', vehicleId);
                             docFormData.append('assetType', 'vehicle');
-                            docFormData.append('documentType', type);
+                            docFormData.append('documentType', 'General');
                             docFormData.append('documentNumber', doc.description || '');
-                            if (doc.expiryDate) {
-                                docFormData.append('expiryDate', doc.expiryDate);
-                            } else {
-                                docFormData.append('expiryDate', '');
-                            }
-                            if (doc.file && doc.file instanceof File) {
-                                docFormData.append('file', doc.file);
-                            }
-                            
+                            if (doc.title) docFormData.append('title', doc.title);
+                            if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                            else docFormData.append('expiryDate', '');
+                            if (doc.file && doc.file instanceof File) docFormData.append('file', doc.file);
                             await updateVehicleDocument(doc._id!, docFormData);
                         }));
                     } catch (docError) {
@@ -1573,7 +1462,7 @@ const Trucks: React.FC = () => {
                     }
                 }
             }
-            
+
             // Reset form
             setFormData({
                 unitNumber: '',
@@ -1603,17 +1492,12 @@ const Trucks: React.FC = () => {
             setSelectedImageFile(null);
             setEditingId(null);
             setOriginalTruckData(null);
-            setDocuments({
-                General: [],
-                Ownership: [],
-                'Cab Card': [],
-                Plate: [],
-                Safety: [],
-                Insurance: []
-            });
+            setDocuments([]);
             setOneTimeInspections([]);
             setRecurringInspections([]);
             setNotes([]);
+            setEditingDocumentId(null);
+            setEditingNoteId(null);
             setShowSidebar(false);
         } catch (error) {
             console.error('Error saving truck:', error);
@@ -1632,7 +1516,7 @@ const Trucks: React.FC = () => {
     // Handle delete truck after confirmation
     const handleDeleteTruck = async () => {
         if (!deleteTargetId) return;
-        
+
         setShowDeleteConfirmation(false);
         setLoading(true);
         try {
@@ -1656,13 +1540,13 @@ const Trucks: React.FC = () => {
         console.log('🔍 handleEditTruck called with ID:', id);
         console.log('🔍 Current editingId:', editingId);
         console.log('🔍 Current showSidebar:', showSidebar);
-        
+
         // If clicking the same truck and sidebar is already open, just return (don't reload)
         if (editingId === id && showSidebar) {
             console.log('⚠️ Already editing this truck with sidebar open, skipping...');
             return;
         }
-        
+
         // Always set the new editingId - this will trigger the useEffect to load the truck
         // If sidebar is closed, it will be opened by the useEffect
         // If sidebar is open for a different truck, it will reload with the new truck
@@ -1681,15 +1565,15 @@ const Trucks: React.FC = () => {
         if (sortConfig.key !== key) {
             return (
                 <div className="flex flex-col">
-                    <ChevronUp className="w-3 h-3 text-gray-400" />
-                    <ChevronDown className="w-3 h-3 text-gray-400 -mt-1" />
+                    <ChevronUp className="w-3 h-3 text-secondary" />
+                    <ChevronDown className="w-3 h-3 text-secondary -mt-1" />
                 </div>
             );
         }
         return sortConfig.direction === 'asc' ? (
-            <ChevronUp className="w-3 h-3 text-gray-700" />
+            <ChevronUp className="w-3 h-3 text-primary" />
         ) : (
-            <ChevronDown className="w-3 h-3 text-gray-700" />
+            <ChevronDown className="w-3 h-3 text-primary" />
         );
     };
 
@@ -1735,14 +1619,19 @@ const Trucks: React.FC = () => {
     };
 
     // Navigation helper functions for sidebar steps
-    const steps: Array<'Details' | 'Inspections' | 'Documents' | 'Notes'> = ['Details', 'Inspections', 'Documents', 'Notes'];
-    
+    const steps = [
+        'Details',
+        'Inspections',
+        'Documents',
+        'Invoice',
+        'Notes',
+        ...(formData.ownership === 'OWNER OPERATOR'
+            ? ['Payroll', 'Deductions', 'Additions']
+            : [])
+    ];
+
     const getNextStep = () => {
-        // If on a conditional step (Payroll, Deductions, Additions), return null (no next step)
-        if (['Payroll', 'Deductions', 'Additions'].includes(activeStep)) {
-            return null;
-        }
-        const currentIndex = steps.indexOf(activeStep as typeof steps[number]);
+        const currentIndex = steps.indexOf(activeStep);
         if (currentIndex < steps.length - 1) {
             return steps[currentIndex + 1];
         }
@@ -1750,11 +1639,7 @@ const Trucks: React.FC = () => {
     };
 
     const getPreviousStep = () => {
-        // If on a conditional step (Payroll, Deductions, Additions), navigate back to Notes
-        if (['Payroll', 'Deductions', 'Additions'].includes(activeStep)) {
-            return 'Notes' as const;
-        }
-        const currentIndex = steps.indexOf(activeStep as typeof steps[number]);
+        const currentIndex = steps.indexOf(activeStep);
         if (currentIndex > 0) {
             return steps[currentIndex - 1];
         }
@@ -1764,35 +1649,37 @@ const Trucks: React.FC = () => {
     const handleNext = () => {
         const next = getNextStep();
         if (next) {
-            setActiveStep(next);
+            setActiveStep(next as typeof activeStep);
         }
     };
 
     const handlePrevious = () => {
         const previous = getPreviousStep();
         if (previous) {
-            setActiveStep(previous);
+            setActiveStep(previous as typeof activeStep);
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#EDF8FF] p-6">
+        <div className="min-h-screen bg-main p-6">
             <div className="max-w-full mx-auto">
                 {/* Header Section */}
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h1 className="text-3xl font-bold text-gray-900">Trucks</h1>
+                        <h1 className="text-3xl font-bold text-[var(--accent-navyblue)]">Trucks</h1>
                         <div className="flex items-center gap-3">
-                            <span className="text-2xl font-bold text-gray-700">({filteredTrucks.length})</span>
+                            <span className="text-2xl font-bold text-[var(--accent-navyblue)]">({filteredTrucks.length})</span>
                             <button
                                 onClick={handleExportTrucks}
                                 title="Export to Excel"
-                                className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
+                                className="w-10 h-10 bg-[var(--accent-teal)] !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
                             >
                                 <FileDown className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => {
+                                    setEditingId(null);
+                                    setOriginalTruckData(null);
                                     setFormData({
                                         unitNumber: '',
                                         vinNumber: '',
@@ -1819,37 +1706,60 @@ const Trucks: React.FC = () => {
                                     });
                                     setSelectedImage(null);
                                     setSelectedImageFile(null);
-                                    setEditingId(null);
-                                    setOriginalTruckData(null);
-                                    setDocuments({
-                                        General: [],
-                                        Ownership: [],
-                                        'Cab Card': [],
-                                        Plate: [],
-                                        Safety: [],
-                                        Insurance: []
-                                    });
+                                    setDocuments([]);
                                     setOneTimeInspections([]);
                                     setRecurringInspections([]);
                                     setNotes([]);
-                                    setEditingId(null);
-                                    setOriginalTruckData(null);
-                                    setSelectedImage(null);
-                                    setSelectedImageFile(null);
+                                    setInvoices([]);
+                                    setInspectionForm({ expiryDate: '', description: '', ignoreExpiration: false, scheduledOn: '', after: '', unit: '', file: null });
+                                    setEditingInspectionId(null);
+                                    setEditingInspectionType(null);
+                                    setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
+                                    setEditingDocumentId(null);
+                                    setInvoiceForm({ invoiceNumber: '', vendorWorkshop: '', amount: '', invoiceDate: '', file: null, notes: '' });
+                                    setEditingInvoiceId(null);
+                                    setNoteForm({ note: '', category: 'Category' });
+                                    setEditingNoteId(null);
                                     setShowSidebar(true);
                                     setActiveStep('Details');
                                 }}
-                                className="w-10 h-10 bg-[#42aeec] !text-white rounded-lg flex items-center justify-center hover:bg-[#1db5f5] transition-colors shadow-md"
+                                className="w-10 h-10 bg-[var(--accent-navyblue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-navyblue)] transition-colors shadow-md"
                             >
                                 <Plus className="w-5 h-5" />
                             </button>
+                            <ImportButton
+                              onImport={async (file, fieldMap) => {
+                                const res = await importVehiclesFromFile(file, fieldMap);
+                                return res;
+                              }}
+                              templateFileName="trucks_template.csv"
+                              templateColumns={[
+                                { header: 'plate_number', example: 'ABC-1234', required: true },
+                                { header: 'unit_number', example: 'TRK-001', required: false },
+                                { header: 'internal_id', example: 'TRK-001', required: false },
+                                { header: 'make', example: 'Freightliner', required: false },
+                                { header: 'model', example: 'Cascadia', required: false },
+                                { header: 'year', example: '2022', required: false },
+                                { header: 'vin', example: '1FUJHHDR0CLBP8795', required: false },
+                                { header: 'type', example: 'Semi-Truck', required: false },
+                                { header: 'status', example: 'In Service', required: false },
+                                { header: 'ownership', example: 'COMPANY ASSET', required: false },
+                                { header: 'registration_country', example: 'Canada', required: false },
+                                { header: 'registration_province', example: 'Ontario', required: false },
+                                { header: 'weight', example: '36287', required: false },
+                                { header: 'odometer', example: '125000', required: false },
+                                { header: 'serial_number', example: 'SN-20221045', required: false },
+                                { header: 'notes', example: 'Assigned to northern route', required: false },
+                              ]}
+                              label="Import Trucks"
+                            />
                         </div>
                     </div>
                 </div>
 
                 {/* Navigation Tabs */}
-                <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="flex border-b border-gray-200 overflow-x-auto">
+                <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+                    <div className="flex border-b border-theme overflow-x-auto">
                         {/* All Tab */}
                         <button
                             type="button"
@@ -1859,17 +1769,17 @@ const Trucks: React.FC = () => {
                                 setActiveTab('All');
                             }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'All'
-                                    ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)]'
+                                : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
                             <div>
-                                <div className="font-semibold">
+                                <div className="font-semibold text-[var(--accent-navyblue)]">
                                     All ({getCountByCategory('All')})
                                 </div>
                             </div>
                         </button>
-                        
+
                         {/* Yard Tabs - Use state only, no navigation */}
                         {yards.filter(yard => yard.status === 'active').map((yard) => (
                             <button
@@ -1881,19 +1791,19 @@ const Trucks: React.FC = () => {
                                     setActiveTab(yard._id!.toString());
                                 }}
                                 className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === yard._id?.toString()
-                                        ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
-                                        : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)]'
+                                    : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                     }`}
                             >
                                 <div>
                                     <div className="font-semibold">
-                                        {yard.yardName} ({getCountByCategory(yard._id?.toString() || '')})
+                                        {yard.yardName} ({getCountByCategory(yard._id!)})
                                     </div>
-                                    <div className="text-xs text-gray-500 mt-1">Home to {yard.yardName}</div>
+                                    <div className="text-xs text-secondary mt-1">Home to {yard.yardName}</div>
                                 </div>
                             </button>
                         ))}
-                        
+
                         {/* External Tab */}
                         <button
                             type="button"
@@ -1903,17 +1813,17 @@ const Trucks: React.FC = () => {
                                 setActiveTab('External');
                             }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'External'
-                                    ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)]'
+                                : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
                             <div>
-                                <div className="font-semibold">
+                                <div className="font-semibold text-[var(--accent-navyblue)]">
                                     External ({getCountByCategory('External')})
                                 </div>
                             </div>
                         </button>
-                        
+
                         {/* Unassigned Tab */}
                         <button
                             type="button"
@@ -1923,12 +1833,12 @@ const Trucks: React.FC = () => {
                                 setActiveTab('Unassigned');
                             }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'Unassigned'
-                                    ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)]'
+                                : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
                             <div>
-                                <div className="font-semibold">
+                                <div className="font-semibold text-[var(--accent-navyblue)]">
                                     Unassigned ({getCountByCategory('Unassigned')})
                                 </div>
                             </div>
@@ -1937,28 +1847,28 @@ const Trucks: React.FC = () => {
                 </div>
 
                 {/* Search and Filter Bar */}
-                <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme p-4">
                     <div className="flex flex-wrap items-center gap-4">
                         {/* Search Input */}
                         <div className="flex items-center gap-2 flex-1 min-w-[300px]">
-                            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Unit #, Plate #, Make, VIN:</label>
+                            <label className="text-sm font-medium text-[var(--accent-navyblue)] whitespace-nowrap">Unit #, Plate #, Make, VIN:</label>
                             <input
                                 type="text"
                                 placeholder="Search..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-white"
+                                className="flex-1 px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent bg-card"
                             />
-                           
+
                         </div>
 
                         {/* Global Filters */}
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-gray-700">Category:</label>
+                            <label className="text-sm font-medium text-[var(--accent-navyblue)]">Category:</label>
                             <select
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-white"
+                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent bg-card"
                             >
                                 <option value="In Service Only">In Service Only</option>
                                 <option value="All">All</option>
@@ -1966,11 +1876,11 @@ const Trucks: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-gray-700">Compliance Status:</label>
+                            <label className="text-sm font-medium text-[var(--accent-navyblue)]">Compliance Status:</label>
                             <select
                                 value={complianceStatus}
                                 onChange={(e) => setComplianceStatus(e.target.value)}
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-white"
+                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent bg-card"
                             >
                                 <option value="All">All</option>
                                 <option value="Compliant">Compliant</option>
@@ -1980,11 +1890,11 @@ const Trucks: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-gray-700">Sort By:</label>
+                            <label className="text-sm font-medium text-[var(--accent-navyblue)]">Sort By:</label>
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-white"
+                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent bg-card"
                             >
                                 <option value="">Select</option>
                                 <option value="unitNumber">Unit #</option>
@@ -1997,13 +1907,13 @@ const Trucks: React.FC = () => {
                 </div>
 
                 {/* Data Table */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-card border-b border-theme">
                                 <tr>
                                     {/* Unit # */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Unit #</span>
                                             <button onClick={() => handleSort('unitNumber')} className="flex flex-col">
@@ -2015,12 +1925,12 @@ const Trucks: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.unitNumber}
                                             onChange={(e) => setFilters({ ...filters, unitNumber: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         />
                                     </th>
 
                                     {/* Plate # */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Plate #</span>
                                             <button onClick={() => handleSort('plateNumber')} className="flex flex-col">
@@ -2032,12 +1942,12 @@ const Trucks: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.plateNumber}
                                             onChange={(e) => setFilters({ ...filters, plateNumber: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         />
                                     </th>
 
                                     {/* Ownership */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Ownership</span>
                                             <button onClick={() => handleSort('ownership')} className="flex flex-col">
@@ -2047,7 +1957,7 @@ const Trucks: React.FC = () => {
                                         <select
                                             value={filters.ownership}
                                             onChange={(e) => setFilters({ ...filters, ownership: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="COMPANY ASSET">Company Asset</option>
@@ -2056,14 +1966,14 @@ const Trucks: React.FC = () => {
                                     </th>
 
                                     {/* Operating Status */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Operating Status</span>
                                         </div>
                                         <select
                                             value={filters.operatingStatus}
                                             onChange={(e) => setFilters({ ...filters, operatingStatus: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="IN SERVICE">In Service</option>
@@ -2073,14 +1983,14 @@ const Trucks: React.FC = () => {
                                     </th>
 
                                     {/* Dispatch Status */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Dispatch Status</span>
                                         </div>
                                         <select
                                             value={filters.dispatchStatus}
                                             onChange={(e) => setFilters({ ...filters, dispatchStatus: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="LOADED">Loaded</option>
@@ -2092,7 +2002,7 @@ const Trucks: React.FC = () => {
                                     </th>
 
                                     {/* Dispatch Info */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Dispatch Info</span>
                                         </div>
@@ -2101,19 +2011,19 @@ const Trucks: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.dispatchInfo}
                                             onChange={(e) => setFilters({ ...filters, dispatchInfo: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         />
                                     </th>
 
                                     {/* Compliance */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Compliance</span>
                                         </div>
                                         <select
                                             value={filters.compliance}
                                             onChange={(e) => setFilters({ ...filters, compliance: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="COMPLIANT">Compliant</option>
@@ -2123,26 +2033,26 @@ const Trucks: React.FC = () => {
                                     </th>
 
                                     {/* Actions */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <span>Actions</span>
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-theme divide-white/5">
                                 {filteredTrucks.length === 0 ? (
                                     <tr>
-                                        <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                                        <td colSpan={8} className="px-4 py-8 text-center text-secondary">
                                             No trucks found
                                         </td>
                                     </tr>
                                 ) : (
                                     filteredTrucks.map((truck) => (
-                                        <tr 
-                                        onClick={() => handleEditTruck((truck._id || truck.id) ?? '')}
-                                        key={truck.id} className="hover:bg-gray-50 transition-colors cursor-pointer">
-                                            <td className="px-4 py-3 text-sm text-gray-900">{truck.unitNumber}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{truck.plateNumber}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{truck.ownership}</td>
+                                        <tr
+                                            onClick={() => handleEditTruck((truck._id || truck.id) ?? '')}
+                                            key={truck.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer">
+                                            <td className="px-4 py-3 text-sm text-primary">{truck.unitNumber}</td>
+                                            <td className="px-4 py-3 text-sm text-primary">{truck.plateNumber}</td>
+                                            <td className="px-4 py-3 text-sm text-primary">{truck.ownership}</td>
                                             <td className="px-4 py-3">
                                                 <span className={`inline-block px-2.5 py-1.5 text-xs font-semibold rounded text-center min-w-[60px] ${getStatusBadgeColor(truck.operatingStatus, 'operating')}`}>
                                                     {formatStatusText(truck.operatingStatus, 'operating')}
@@ -2154,7 +2064,7 @@ const Trucks: React.FC = () => {
                                                     {truck.dispatchStatus}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{truck.dispatchInfo || ''}</td>
+                                            <td className="px-4 py-3 text-sm text-primary">{truck.dispatchInfo || ''}</td>
                                             <td className="px-4 py-3">
                                                 <span className={`inline-block px-2.5 py-1.5 text-xs font-semibold rounded text-center min-w-[70px] ${getStatusBadgeColor(truck.compliance, 'compliance')}`}>
                                                     {formatStatusText(truck.compliance, 'compliance')}
@@ -2167,7 +2077,7 @@ const Trucks: React.FC = () => {
                                                             e.stopPropagation();
                                                             handleEditTruck((truck._id || truck.id) ?? '');
                                                         }}
-                                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                                        className="p-1.5 text-[#00D1FF] hover:bg-[var(--accent-navyblue)] rounded transition-colors"
                                                         title="Edit"
                                                     >
                                                         <Edit className="w-4 h-4" />
@@ -2177,7 +2087,7 @@ const Trucks: React.FC = () => {
                                                             e.stopPropagation();
                                                             handleDeleteClick((truck._id || truck.id) ?? '');
                                                         }}
-                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                        className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)] rounded transition-colors"
                                                         title="Delete"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -2206,12 +2116,12 @@ const Trucks: React.FC = () => {
                             }, 300);
                         }}
                     />
-                    <div className="fixed top-0 right-0 h-full w-full sm:w-[75vw] lg:w-[70vw] xl:w-[65vw] bg-white shadow-2xl z-[101] flex overflow-hidden">
+                    <div className="fixed top-0 right-0 h-full w-full sm:w-[75vw] lg:w-[70vw] xl:w-[65vw] bg-card shadow-2xl z-[101] flex overflow-hidden">
                         {/* Left Sidebar - Image Upload & Navigation */}
-                        <div className="w-48 bg-white border-r border-gray-200 flex flex-col">
+                        <div className="w-48 bg-card border-r border-theme flex flex-col">
                             {/* Image Upload Section */}
-                            <div className="p-3 border-b border-gray-200 bg-white">
-                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-white"
+                            <div className="p-3 border-b border-theme bg-card">
+                                <div className="border-2 border-dashed border-theme rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-card"
                                     onClick={() => {
                                         const input = document.createElement('input');
                                         input.type = 'file';
@@ -2234,8 +2144,8 @@ const Trucks: React.FC = () => {
                                         <img src={selectedImage} alt="Truck" className="w-full h-20 object-cover rounded" />
                                     ) : (
                                         <>
-                                            <ImageIcon className="w-8 h-8 text-gray-400 mb-1" />
-                                            <span className="text-xs text-gray-500">Select Image</span>
+                                            <ImageIcon className="w-8 h-8 text-secondary mb-1" />
+                                            <span className="text-xs text-secondary">Select Image</span>
                                         </>
                                     )}
                                 </div>
@@ -2247,13 +2157,13 @@ const Trucks: React.FC = () => {
                             {/* Navigation Tabs */}
                             <div className="flex-1 overflow-y-auto p-2">
                                 <nav className="flex flex-col gap-1.5">
-                                    {(['Details', 'Inspections', 'Documents', 'Notes'] as const).map((step) => (
+                                    {(['Details', 'Inspections', 'Documents', 'Invoice', 'Notes'] as const).map((step) => (
                                         <button
                                             key={step}
                                             onClick={() => setActiveStep(step)}
                                             className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors ${activeStep === step
-                                                ? 'bg-[#42aeec] !text-white shadow-sm'
-                                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                                                ? 'bg-[var(--accent-navyblue)] !text-white shadow-sm'
+                                                : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                 }`}
                                         >
                                             {step}
@@ -2267,8 +2177,8 @@ const Trucks: React.FC = () => {
                                                     key={step}
                                                     onClick={() => setActiveStep(step)}
                                                     className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors ${activeStep === step
-                                                        ? 'bg-[#42aeec] !text-white shadow-sm'
-                                                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                                                        ? 'bg-[var(--accent-navyblue)] !text-white shadow-sm'
+                                                        : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                         }`}
                                                 >
                                                     {step}
@@ -2283,9 +2193,10 @@ const Trucks: React.FC = () => {
                         {/* Main Content Area */}
                         <div className="flex-1 flex flex-col overflow-hidden">
                             {/* Header */}
-                            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
-                                <h2 className="text-xl font-bold text-gray-900">{editingId ? 'Edit Truck' : 'New Truck'}</h2>
+                            <div className="flex items-center justify-between p-4 border-b border-theme bg-card">
+                                <h2 className="text-xl font-bold text-[var(--accent-navyblue)]">{editingId ? 'Edit Truck' : 'New Truck'}</h2>
                                 <div className="flex items-center gap-2">
+                                    <AutoSaveIndicator status={draftStatus} lastSavedAt={draftLastSavedAt} />
                                     <button
                                         onClick={handleSaveTruck}
                                         disabled={loading}
@@ -2295,28 +2206,35 @@ const Trucks: React.FC = () => {
                                     </button>
                                     <button
                                         onClick={() => {
-                            setShowSidebar(false);
-                            // Reset editingId after a short delay to allow sidebar to close
-                            setTimeout(() => {
-                                setEditingId(null);
-                            }, 300);
-                        }}
-                                        className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+                                            setShowSidebar(false);
+                                            // Reset editingId after a short delay to allow sidebar to close
+                                            setTimeout(() => {
+                                                setEditingId(null);
+                                            }, 300);
+                                        }}
+                                        className="p-1.5 text-secondary hover:text-secondary transition-colors"
                                     >
                                         <X className="w-5 h-5" />
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Content Area */}
-                            <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+                            {/* Content Area - scrollable; footer stays at bottom */}
+                            <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-card">
+                                {draftPendingRestore && (
+                                    <DraftRestoreBanner
+                                        updatedAt={draftPendingRestore.updatedAt}
+                                        onRestore={handleRestoreTruckDraft}
+                                        onDiscard={discardTruckDraft}
+                                    />
+                                )}
                                 {/* Details Step */}
                                 {activeStep === 'Details' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-gray-900">Basic Information</h3>
+                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Basic Information</h3>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Unit #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2324,11 +2242,11 @@ const Trucks: React.FC = () => {
                                                     placeholder="Unit #"
                                                     value={formData.unitNumber}
                                                     onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     VIN<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2336,11 +2254,11 @@ const Trucks: React.FC = () => {
                                                     placeholder="VIN"
                                                     value={formData.vinNumber}
                                                     onChange={(e) => setFormData({ ...formData, vinNumber: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Plate #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2348,28 +2266,28 @@ const Trucks: React.FC = () => {
                                                     placeholder="Plate #"
                                                     value={formData.plateNumber}
                                                     onChange={(e) => setFormData({ ...formData, plateNumber: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Registration Country<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
                                                     value={formData.registrationCountry}
                                                     onChange={(e) => setFormData({ ...formData, registrationCountry: e.target.value, registrationProvince: '' })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="">Select Registration Country</option>
+                                                    <option className="form-option" value="">Select Registration Country</option>
                                                     {countries.map((country) => (
-                                                        <option key={country.code} value={country.name}>
+                                                        <option className="form-option" key={country.code} value={country.name}>
                                                             {country.flag} {country.name}
                                                         </option>
                                                     ))}
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Registration Province/State
                                                 </label>
                                                 <input
@@ -2378,11 +2296,11 @@ const Trucks: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, registrationProvince: e.target.value })}
                                                     disabled={!formData.registrationCountry}
                                                     placeholder={formData.registrationCountry ? "Enter Province/State" : "Select country first"}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent disabled:bg-card disabled:cursor-not-allowed"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Make<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2390,11 +2308,11 @@ const Trucks: React.FC = () => {
                                                     placeholder="Make"
                                                     value={formData.make}
                                                     onChange={(e) => setFormData({ ...formData, make: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Model<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2402,11 +2320,11 @@ const Trucks: React.FC = () => {
                                                     placeholder="Model"
                                                     value={formData.model}
                                                     onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Year<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2414,71 +2332,71 @@ const Trucks: React.FC = () => {
                                                     placeholder="Year"
                                                     value={formData.year}
                                                     onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Type<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
                                                     type="text"
                                                     value={formData.type}
                                                     readOnly
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg bg-card"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Weight<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
                                                     type="text"
                                                     value={formData.weight}
                                                     onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     UoM
                                                 </label>
                                                 <select
                                                     value={formData.uom}
                                                     onChange={(e) => setFormData({ ...formData, uom: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="Kg">Kg</option>
-                                                    <option value="Lbs">Lbs</option>
+                                                    <option className="form-option" value="Kg">Kg</option>
+                                                    <option className="form-option" value="Lbs">Lbs</option>
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Asset Value
                                                 </label>
                                                 <input
                                                     type="text"
                                                     value={formData.assetValue}
                                                     onChange={(e) => setFormData({ ...formData, assetValue: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Status<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
                                                     value={formData.status}
                                                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="In Service">In Service</option>
-                                                    <option value="Out of Service">Out of Service</option>
-                                                    <option value="Maintenance">Maintenance</option>
+                                                    <option className="form-option" value="In Service">In Service</option>
+                                                    <option className="form-option" value="Out of Service">Out of Service</option>
+                                                    <option className="form-option" value="Maintenance">Maintenance</option>
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Odometer
                                                 </label>
                                                 <input
@@ -2486,11 +2404,11 @@ const Trucks: React.FC = () => {
                                                     placeholder="Odometer"
                                                     value={formData.odometer}
                                                     onChange={(e) => setFormData({ ...formData, odometer: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Tracking Key
                                                 </label>
                                                 <input
@@ -2498,21 +2416,21 @@ const Trucks: React.FC = () => {
                                                     placeholder="Tracking Key"
                                                     value={formData.trackingKey}
                                                     onChange={(e) => setFormData({ ...formData, trackingKey: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Trailer
                                                 </label>
                                                 <select
                                                     value={formData.trailer}
                                                     onChange={(e) => setFormData({ ...formData, trailer: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
                                                     <option value="">Select Trailer</option>
                                                     {trailers.map((trailer) => (
-                                                        <option key={trailer._id} value={trailer._id}>
+                                                        <option className="form-option" key={trailer._id} value={trailer._id}>
                                                             {trailer.unitNumber || trailer.trailer || `Trailer ${trailer._id}`}
                                                         </option>
                                                     ))}
@@ -2520,29 +2438,34 @@ const Trucks: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        <h3 className="text-base font-semibold text-gray-900 mt-6">Ownership Information</h3>
+                                        <h3 className="text-base font-semibold text-primary mt-6">Ownership Information</h3>
                                         <div className="space-y-3">
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => {
-                                                        setFormData({ ...formData, ownership: 'COMPANY ASSET' });
-                                                        // If switching to Company Asset and currently on conditional tabs, switch to Details
-                                                        if (['Payroll', 'Deductions', 'Additions'].includes(activeStep)) {
-                                                            setActiveStep('Details');
+                                                        setFormData({ ...formData, ownership: "COMPANY ASSET" });
+
+                                                        if (["Payroll", "Deductions", "Additions"].includes(activeStep)) {
+                                                            setActiveStep("Details");
                                                         }
                                                     }}
-                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'COMPANY ASSET'
-                                                        ? 'bg-gray-700 !text-white'
-                                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors duration-200
+    ${formData.ownership === "COMPANY ASSET"
+                                                            ? "bg-[var(--accent-navyblue)] text-white"
+                                                            : "bg-gray-700 text-white hover:bg-[var(--accent-navyblue)]"
                                                         }`}
                                                 >
                                                     COMPANY ASSET
                                                 </button>
+
                                                 <button
-                                                    onClick={() => setFormData({ ...formData, ownership: 'OWNER OPERATOR' })}
-                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'OWNER OPERATOR'
-                                                        ? 'bg-gray-700 !text-white'
-                                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                    onClick={() =>
+                                                        setFormData({ ...formData, ownership: "OWNER OPERATOR" })
+                                                    }
+                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors duration-200
+    ${formData.ownership === "OWNER OPERATOR"
+                                                            ? "bg-[var(--accent-navyblue)] text-white"
+                                                            : "bg-gray-700 text-white hover:bg-[var(--accent-navyblue)]"
                                                         }`}
                                                 >
                                                     OWNER OPERATOR
@@ -2550,55 +2473,55 @@ const Trucks: React.FC = () => {
                                             </div>
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    <label className="block text-sm font-medium text-primary mb-1">
                                                         Operator
                                                     </label>
                                                     <select
                                                         value={formData.operator}
                                                         onChange={(e) => setFormData({ ...formData, operator: e.target.value })}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     >
-                                                        <option value="">Select Operator</option>
+                                                        <option className="form-option" value="">Select Operator</option>
                                                         {operators.length > 0 ? operators.map((operator) => (
-                                                            <option key={operator._id} value={operator._id}>
+                                                            <option className="form-option" key={operator._id} value={operator._id}>
                                                                 {operator.name} {operator.email ? `(${operator.email})` : ''}
                                                             </option>
                                                         )) : (
-                                                            <option value="" disabled>No operators available</option>
+                                                            <option className="form-option" value="" disabled>No operators available</option>
                                                         )}
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    <label className="block text-sm font-medium text-primary mb-1">
                                                         Co-Operator
                                                     </label>
                                                     <select
                                                         value={formData.coOperator}
                                                         onChange={(e) => setFormData({ ...formData, coOperator: e.target.value })}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     >
-                                                        <option value="">Select Co-Operator</option>
+                                                        <option className="form-option" value="">Select Co-Operator</option>
                                                         {operators.length > 0 ? operators.map((operator) => (
-                                                            <option key={operator._id} value={operator._id}>
+                                                            <option className="form-option" key={operator._id} value={operator._id}>
                                                                 {operator.name} {operator.email ? `(${operator.email})` : ''}
                                                             </option>
                                                         )) : (
-                                                            <option value="" disabled>No operators available</option>
+                                                            <option className="form-option" value="" disabled>No operators available</option>
                                                         )}
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    <label className="block text-sm font-medium text-primary mb-1">
                                                         Yard
                                                     </label>
                                                     <select
                                                         value={formData.yard}
                                                         onChange={(e) => setFormData({ ...formData, yard: e.target.value })}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     >
-                                                        <option value="">Select</option>
+                                                        <option className="form-option" value="">Select</option>
                                                         {yards.filter(yard => yard.status === 'active').map((yard) => (
-                                                            <option key={yard._id} value={yard._id}>
+                                                            <option className="form-option" key={yard._id} value={yard._id}>
                                                                 {yard.yardName} ({yard.yardCode})
                                                             </option>
                                                         ))}
@@ -2612,7 +2535,7 @@ const Trucks: React.FC = () => {
                                 {/* Inspections Step */}
                                 {activeStep === 'Inspections' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-gray-900">Truck Inspections</h3>
+                                        <h3 className="text-base font-semibold text-primary">Truck Inspections</h3>
 
                                         {/* Inspection Type Tabs */}
                                         <div className="flex gap-2">
@@ -2620,8 +2543,8 @@ const Trucks: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setInspectionType('One Time')}
                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors border-2 ${inspectionType === 'One Time'
-                                                    ? 'bg-white border-gray-700 text-gray-900'
-                                                    : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                                                    ? 'bg-card border-gray-700 text-primary'
+                                                    : 'bg-card border-theme text-primary hover:border-gray-400'
                                                     }`}
                                             >
                                                 One Time
@@ -2630,8 +2553,8 @@ const Trucks: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setInspectionType('Recurring')}
                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors border-2 ${inspectionType === 'Recurring'
-                                                    ? 'bg-white border-gray-700 text-gray-900'
-                                                    : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                                                    ? 'bg-card border-gray-700 text-primary'
+                                                    : 'bg-card border-theme text-primary hover:border-gray-400'
                                                     }`}
                                             >
                                                 Recurring
@@ -2641,31 +2564,31 @@ const Trucks: React.FC = () => {
                                         {/* One Time Inspections */}
                                         {inspectionType === 'One Time' && (
                                             <div className="space-y-4">
-                                                <div className="flex gap-2 items-end bg-gray-100 p-4 rounded-lg">
+                                                <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
                                                         <div className="relative">
-                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                             <input
                                                                 type="date"
                                                                 value={inspectionForm.expiryDate}
                                                                 onChange={(e) => setInspectionForm({ ...inspectionForm, expiryDate: e.target.value })}
-                                                                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                                className="w-full pl-8 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                             />
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Description"
                                                             value={inspectionForm.description}
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, description: e.target.value })}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                         <button
                                                             type="button"
                                                             onClick={() => {
@@ -2676,13 +2599,13 @@ const Trucks: React.FC = () => {
                                                                 };
                                                                 input.click();
                                                             }}
-                                                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium bg-white"
+                                                            className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium bg-card"
                                                         >
                                                             {inspectionForm.file ? (
                                                                 <span className="flex items-center gap-1">
                                                                     <FileText className="w-4 h-4" />
-                                                                    {inspectionForm.file.name.length > 15 
-                                                                        ? inspectionForm.file.name.substring(0, 15) + '...' 
+                                                                    {inspectionForm.file.name.length > 15
+                                                                        ? inspectionForm.file.name.substring(0, 15) + '...'
                                                                         : inspectionForm.file.name}
                                                                 </span>
                                                             ) : (
@@ -2699,7 +2622,7 @@ const Trucks: React.FC = () => {
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, ignoreExpiration: e.target.checked })}
                                                             className="w-4 h-4"
                                                         />
-                                                        <label className="text-sm text-gray-700">Ignore Expiration</label>
+                                                        <label className="text-sm text-primary">Ignore Expiration</label>
                                                     </div>
                                                     <button
                                                         onClick={handleSaveInspection}
@@ -2722,67 +2645,73 @@ const Trucks: React.FC = () => {
                                                         </button>
                                                     )}
                                                 </div>
-                                                <p className="text-sm text-gray-500">Click row to edit • Drag to reorder</p>
-                                                <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+                                                <p className="text-sm text-secondary">Click row to edit • Drag to reorder</p>
+                                                <div className="bg-card rounded-lg border border-theme overflow-x-auto">
                                                     <table className="w-full min-w-[800px]">
-                                                        <thead className="bg-gray-50">
+                                                        <thead className="bg-card">
                                                             <tr>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Expiry Date</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Description</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">File</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Ignore Expiration</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Actions</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Expiry Date</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             {oneTimeInspections.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500">No Data</td>
+                                                                    <td colSpan={5} className="px-4 py-8 text-center text-secondary">No Data</td>
                                                                 </tr>
                                                             ) : (
                                                                 oneTimeInspections.map((inspection) => (
-                                                                    <tr 
-                                                                        key={inspection.id} 
-                                                                        className={`border-t border-gray-200 hover:bg-gray-50 cursor-pointer ${editingInspectionId === inspection.id ? 'bg-blue-50' : ''}`}
+                                                                    <tr
+                                                                        key={inspection.id}
+                                                                        className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${editingInspectionId === inspection.id ? 'bg-card' : ''}`}
                                                                         onClick={() => handleEditInspection(inspection, 'oneTime')}
                                                                     >
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.expiryDate}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.description}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.expiryDate}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.description}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">
                                                                             {inspection.fileName || inspection.fileUrl ? (
                                                                                 inspection.fileUrl ? (
                                                                                     <a
                                                                                         href={inspection.fileUrl}
                                                                                         target="_blank"
                                                                                         rel="noopener noreferrer"
-                                                                                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                                                                                        className="flex items-center gap-2 text-[#00D1FF] hover:text-blue-800 hover:underline"
                                                                                         onClick={(e) => e.stopPropagation()}
                                                                                     >
                                                                                         <FileText className="w-4 h-4" />
                                                                                         <span>{inspection.fileName || 'View File'}</span>
                                                                                     </a>
                                                                                 ) : (
-                                                                                    <div className="flex items-center gap-2 text-blue-600">
+                                                                                    <div className="flex items-center gap-2 text-[#00D1FF]">
                                                                                         <FileText className="w-4 h-4" />
                                                                                         <span>{inspection.fileName || 'File attached'}</span>
                                                                                     </div>
                                                                                 )
                                                                             ) : (
-                                                                                <span className="text-gray-400">No file</span>
+                                                                                <span className="text-secondary">No file</span>
                                                                             )}
                                                                         </td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    handleDeleteInspection(inspection.id, 'oneTime');
-                                                                                }}
-                                                                                className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                                                                title="Delete"
-                                                                            >
-                                                                                <Trash2 className="w-4 h-4" />
-                                                                            </button>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">
+                                                                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                                                <button
+                                                                                    onClick={() => handleEditInspection(inspection, 'oneTime')}
+                                                                                    className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                                                                                    title="Edit"
+                                                                                >
+                                                                                    <Edit className="w-4 h-4" />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleDeleteInspection(inspection.id, 'oneTime')}
+                                                                                    className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                                                                                    title="Delete"
+                                                                                >
+                                                                                    <Trash2 className="w-4 h-4" />
+                                                                                </button>
+                                                                            </div>
                                                                         </td>
                                                                     </tr>
                                                                 ))
@@ -2796,42 +2725,42 @@ const Trucks: React.FC = () => {
                                         {/* Recurring Inspections */}
                                         {inspectionType === 'Recurring' && (
                                             <div className="space-y-4">
-                                                <div className="bg-gray-100 p-4 rounded-lg space-y-4">
+                                                <div className="bg-card p-4 rounded-lg space-y-4">
                                                     {/* Row 1: Scheduled On, After, Unit */}
                                                     <div className="grid grid-cols-3 gap-4">
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">Scheduled On</label>
+                                                            <label className="block text-sm font-medium text-primary mb-1">Scheduled On</label>
                                                             <div className="relative">
-                                                                <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                                                <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                                 <input
                                                                     type="date"
                                                                     value={inspectionForm.scheduledOn}
                                                                     onChange={(e) => setInspectionForm({ ...inspectionForm, scheduledOn: e.target.value })}
-                                                                    className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                                    className="w-full pl-8 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                                 />
                                                             </div>
                                                         </div>
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">After</label>
+                                                            <label className="block text-sm font-medium text-primary mb-1">After</label>
                                                             <input
                                                                 type="text"
                                                                 placeholder="After"
                                                                 value={inspectionForm.after}
                                                                 onChange={(e) => setInspectionForm({ ...inspectionForm, after: e.target.value })}
-                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                             />
                                                         </div>
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                                            <label className="block text-sm font-medium text-primary mb-1">Unit</label>
                                                             <select
                                                                 value={inspectionForm.unit}
                                                                 onChange={(e) => setInspectionForm({ ...inspectionForm, unit: e.target.value })}
-                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                             >
-                                                                <option value="">Select Unit</option>
-                                                                <option value="Days">Days</option>
-                                                                <option value="Weeks">Weeks</option>
-                                                                <option value="Months">Months</option>
+                                                                <option className="form-option" value="">Select Unit</option>
+                                                                <option className="form-option" value="Days">Days</option>
+                                                                <option className="form-option" value="Weeks">Weeks</option>
+                                                                <option className="form-option" value="Months">Months</option>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -2839,29 +2768,29 @@ const Trucks: React.FC = () => {
                                                     {/* Row 2: Description and File */}
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                                            <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                                             <input
                                                                 type="text"
                                                                 placeholder="Description"
                                                                 value={inspectionForm.description}
                                                                 onChange={(e) => setInspectionForm({ ...inspectionForm, description: e.target.value })}
-                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                             />
                                                         </div>
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
+                                                            <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                             {inspectionForm.file ? (
-                                                                <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                                                                    <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                                                                    <span className="text-sm text-gray-700 truncate flex-1">
-                                                                        {inspectionForm.file.name.length > 20 
-                                                                            ? inspectionForm.file.name.substring(0, 20) + '...' 
+                                                                <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
+                                                                    <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
+                                                                    <span className="text-sm text-primary truncate flex-1">
+                                                                        {inspectionForm.file.name.length > 20
+                                                                            ? inspectionForm.file.name.substring(0, 20) + '...'
                                                                             : inspectionForm.file.name}
                                                                     </span>
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => setInspectionForm({ ...inspectionForm, file: null })}
-                                                                        className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                                                                        className="text-secondary hover:text-[#A855F7] transition-colors flex-shrink-0"
                                                                         title="Remove file"
                                                                     >
                                                                         <X className="w-4 h-4" />
@@ -2878,7 +2807,7 @@ const Trucks: React.FC = () => {
                                                                         };
                                                                         input.click();
                                                                     }}
-                                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium bg-white flex items-center justify-center gap-2"
+                                                                    className="w-full px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium bg-card flex items-center justify-center gap-2"
                                                                 >
                                                                     <Upload className="w-4 h-4" />
                                                                     <span>Select File</span>
@@ -2896,7 +2825,7 @@ const Trucks: React.FC = () => {
                                                                 onChange={(e) => setInspectionForm({ ...inspectionForm, ignoreExpiration: e.target.checked })}
                                                                 className="w-4 h-4"
                                                             />
-                                                            <label className="text-sm text-gray-700">Ignore Expiration</label>
+                                                            <label className="text-sm text-primary">Ignore Expiration</label>
                                                         </div>
                                                         <div className="flex gap-2">
                                                             <button
@@ -2924,71 +2853,77 @@ const Trucks: React.FC = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <p className="text-sm text-gray-500">Click row to edit • Drag to reorder</p>
-                                                <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+                                                <p className="text-sm text-secondary">Click row to edit • Drag to reorder</p>
+                                                <div className="bg-card rounded-lg border border-theme overflow-x-auto">
                                                     <table className="w-full min-w-[900px]">
-                                                        <thead className="bg-gray-50">
+                                                        <thead className="bg-card">
                                                             <tr>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Scheduled On</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">After</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Unit</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Description</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">File</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Ignore Expiration</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Actions</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Scheduled On</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">After</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Unit</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             {recurringInspections.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">No Data</td>
+                                                                    <td colSpan={7} className="px-4 py-8 text-center text-secondary">No Data</td>
                                                                 </tr>
                                                             ) : (
                                                                 recurringInspections.map((inspection) => (
-                                                                    <tr 
-                                                                        key={inspection.id} 
-                                                                        className={`border-t border-gray-200 hover:bg-gray-50 cursor-pointer ${editingInspectionId === inspection.id ? 'bg-blue-50' : ''}`}
+                                                                    <tr
+                                                                        key={inspection.id}
+                                                                        className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${editingInspectionId === inspection.id ? 'bg-card' : ''}`}
                                                                         onClick={() => handleEditInspection(inspection, 'recurring')}
                                                                     >
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.scheduledOn}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.after}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.unit}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.description}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.scheduledOn}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.after}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.unit}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.description}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">
                                                                             {inspection.fileName || inspection.fileUrl ? (
                                                                                 inspection.fileUrl ? (
                                                                                     <a
                                                                                         href={inspection.fileUrl}
                                                                                         target="_blank"
                                                                                         rel="noopener noreferrer"
-                                                                                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                                                                                        className="flex items-center gap-2 text-[#00D1FF] hover:text-blue-800 hover:underline"
                                                                                         onClick={(e) => e.stopPropagation()}
                                                                                     >
                                                                                         <FileText className="w-4 h-4" />
                                                                                         <span>{inspection.fileName || 'View File'}</span>
                                                                                     </a>
                                                                                 ) : (
-                                                                                    <div className="flex items-center gap-2 text-blue-600">
+                                                                                    <div className="flex items-center gap-2 text-[#00D1FF]">
                                                                                         <FileText className="w-4 h-4" />
                                                                                         <span>{inspection.fileName || 'File attached'}</span>
                                                                                     </div>
                                                                                 )
                                                                             ) : (
-                                                                                <span className="text-gray-400">No file</span>
+                                                                                <span className="text-secondary">No file</span>
                                                                             )}
                                                                         </td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    handleDeleteInspection(inspection.id, 'recurring');
-                                                                                }}
-                                                                                className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                                                                title="Delete"
-                                                                            >
-                                                                                <Trash2 className="w-4 h-4" />
-                                                                            </button>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">
+                                                                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                                                <button
+                                                                                    onClick={() => handleEditInspection(inspection, 'recurring')}
+                                                                                    className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                                                                                    title="Edit"
+                                                                                >
+                                                                                    <Edit className="w-4 h-4" />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleDeleteInspection(inspection.id, 'recurring')}
+                                                                                    className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                                                                                    title="Delete"
+                                                                                >
+                                                                                    <Trash2 className="w-4 h-4" />
+                                                                                </button>
+                                                                            </div>
                                                                         </td>
                                                                     </tr>
                                                                 ))
@@ -3001,78 +2936,62 @@ const Trucks: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Documents Step */}
+                                {/* Documents Step (no tabs; single list with Title) */}
                                 {activeStep === 'Documents' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-gray-900">Documents</h3>
-
-                                        {/* Document Type Tabs */}
-                                        <div className="flex gap-2 border-b border-gray-200">
-                                            {(['General', 'Ownership', 'Cab Card', 'Plate', 'Safety', 'Insurance'] as const).map((type) => (
-                                                <button
-                                                    key={type}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        console.log('📑 Switching to document type:', type);
-                                                        console.log('📑 Documents for', type, ':', documents[type]);
-                                                        setDocumentType(type);
-                                                    }}
-                                                    className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${documentType === type
-                                                        ? 'border-gray-700 text-gray-900'
-                                                        : 'border-transparent text-gray-500 hover:text-gray-700'
-                                                        }`}
-                                                >
-                                                    {type}
-                                                    {documents[type] && documents[type].length > 0 && (
-                                                        <span className="ml-2 px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">
-                                                            {documents[type].length}
-                                                        </span>
-                                                    )}
-                                                </button>
-                                            ))}
-                                        </div>
+                                        <h3 className="text-base font-semibold text-primary">Documents</h3>
 
                                         {/* Document Form */}
-                                        <div className="bg-gray-100 p-4 rounded-lg space-y-4">
-                                            {/* Row 1: Expiry Date and Description */}
-                                            <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-card p-4 rounded-lg space-y-4">
+                                            {/* Row 1: Title, Expiry Date, Description */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Title</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Title"
+                                                        value={documentForm.title}
+                                                        onChange={(e) => setDocumentForm({ ...documentForm, title: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
                                                     <div className="relative">
-                                                        <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                                        <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                         <input
                                                             type="date"
                                                             value={documentForm.expiryDate}
                                                             onChange={(e) => setDocumentForm({ ...documentForm, expiryDate: e.target.value })}
-                                                            className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                            className="w-full pl-8 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                         />
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                                     <input
                                                         type="text"
                                                         placeholder="Description"
                                                         value={documentForm.description}
                                                         onChange={(e) => setDocumentForm({ ...documentForm, description: e.target.value })}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     />
                                                 </div>
                                             </div>
 
                                             {/* Row 2: File Upload */}
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
+                                                <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                 {documentForm.file ? (
-                                                    <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                                                        <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                                                        <span className="text-sm text-gray-700 truncate flex-1">
+                                                    <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
+                                                        <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
+                                                        <span className="text-sm text-primary truncate flex-1">
                                                             {documentForm.file.name}
                                                         </span>
                                                         <button
                                                             type="button"
                                                             onClick={() => setDocumentForm({ ...documentForm, file: null })}
-                                                            className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                                                            className="text-secondary hover:text-[#A855F7] transition-colors flex-shrink-0"
                                                             title="Remove file"
                                                         >
                                                             <X className="w-4 h-4" />
@@ -3089,7 +3008,7 @@ const Trucks: React.FC = () => {
                                                             };
                                                             input.click();
                                                         }}
-                                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium bg-white flex items-center justify-center gap-2"
+                                                        className="w-full px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium bg-card flex items-center justify-center gap-2"
                                                     >
                                                         <Upload className="w-4 h-4" />
                                                         <span>Select File</span>
@@ -3097,7 +3016,7 @@ const Trucks: React.FC = () => {
                                                 )}
                                             </div>
 
-                                            {/* Row 3: Checkbox and Action Button */}
+                                            {/* Row 3: Checkbox and Action Buttons */}
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
                                                     <input
@@ -3106,78 +3025,100 @@ const Trucks: React.FC = () => {
                                                         onChange={(e) => setDocumentForm({ ...documentForm, ignoreExpiration: e.target.checked })}
                                                         className="w-4 h-4"
                                                     />
-                                                    <label className="text-sm text-gray-700">Ignore Expiration</label>
+                                                    <label className="text-sm text-primary">Ignore Expiration</label>
                                                 </div>
-                                                <button
-                                                    onClick={() => {
-                                                        console.log('📄 Adding document to type:', documentType);
-                                                        console.log('📄 Current documents:', documents);
-                                                        if (documentForm.description) {
-                                                            const newDoc = {
-                                                                id: Date.now().toString(),
-                                                                expiryDate: documentForm.expiryDate,
-                                                                description: documentForm.description,
-                                                                file: documentForm.file,
-                                                                fileName: documentForm.file?.name || '',
-                                                                ignoreExpiration: documentForm.ignoreExpiration
-                                                            };
-                                                            console.log('📄 New document:', newDoc);
-                                                            const updatedDocuments = {
-                                                                ...documents,
-                                                                [documentType]: [...(documents[documentType] || []), newDoc]
-                                                            };
-                                                            console.log('📄 Updated documents:', updatedDocuments);
-                                                            setDocuments(updatedDocuments);
-                                                            setDocumentForm({ expiryDate: '', description: '', file: null, ignoreExpiration: false });
-                                                        } else {
-                                                            console.warn('⚠️ Cannot add document: description is required');
-                                                        }
-                                                    }}
-                                                    className="px-4 py-2 bg-gray-700 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-800"
-                                                >
-                                                    <Plus className="w-4 h-4" />
-                                                    <span>Add</span>
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    {editingDocumentId && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingDocumentId(null);
+                                                                setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
+                                                            }}
+                                                            className="px-4 py-2 bg-gray-400 !text-white rounded-lg hover:bg-gray-500"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => {
+                                                            if (documentForm.description || documentForm.title || documentForm.file) {
+                                                                if (editingDocumentId) {
+                                                                    setDocuments(documents.map(d =>
+                                                                        d.id === editingDocumentId
+                                                                            ? {
+                                                                                ...d,
+                                                                                title: documentForm.title,
+                                                                                expiryDate: documentForm.expiryDate,
+                                                                                description: documentForm.description,
+                                                                                file: documentForm.file ?? d.file,
+                                                                                fileName: documentForm.file?.name ?? d.fileName,
+                                                                                ignoreExpiration: documentForm.ignoreExpiration
+                                                                            }
+                                                                            : d
+                                                                    ));
+                                                                    setEditingDocumentId(null);
+                                                                } else {
+                                                                    setDocuments([...documents, {
+                                                                        id: Date.now().toString(),
+                                                                        title: documentForm.title || '',
+                                                                        expiryDate: documentForm.expiryDate,
+                                                                        description: documentForm.description,
+                                                                        file: documentForm.file,
+                                                                        fileName: documentForm.file?.name || '',
+                                                                        ignoreExpiration: documentForm.ignoreExpiration
+                                                                    }]);
+                                                                }
+                                                                setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
+                                                            }
+                                                        }}
+                                                        className="px-4 py-2 bg-gray-700 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-800"
+                                                    >
+                                                        {editingDocumentId ? <Edit className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                                                        <span>{editingDocumentId ? 'Update' : 'Add'}</span>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
 
                                         {/* Documents Table */}
-                                        <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+                                        <div className="bg-card rounded-lg border border-theme overflow-x-auto">
                                             <table className="w-full min-w-[800px]">
-                                                <thead className="bg-gray-50">
+                                                <thead className="bg-card">
                                                     <tr>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Expiry Date</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Description</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">File</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Ignore Expiration</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Actions</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Title</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Expiry Date</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {(!documents[documentType] || documents[documentType].length === 0) ? (
+                                                    {documents.length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={5} className="px-4 py-8 text-center text-gray-500">No Data</td>
+                                                            <td colSpan={6} className="px-4 py-8 text-center text-secondary">No Data</td>
                                                         </tr>
                                                     ) : (
-                                                        documents[documentType].map((doc) => (
-                                                            <tr key={doc.id} className="border-t border-gray-200 hover:bg-gray-50">
-                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.expiryDate || '-'}</td>
-                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.description}</td>
-                                                                <td className="px-4 py-2 text-sm text-gray-900">
+                                                        documents.map((doc) => (
+                                                            <tr key={doc.id} className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] ${editingDocumentId === doc.id ? 'bg-card' : ''}`}>
+                                                                <td className="px-4 py-2 text-sm text-primary">{doc.title || '-'}</td>
+                                                                <td className="px-4 py-2 text-sm text-primary">{doc.expiryDate || '-'}</td>
+                                                                <td className="px-4 py-2 text-sm text-primary">{doc.description || '-'}</td>
+                                                                <td className="px-4 py-2 text-sm text-primary">
                                                                     {doc.fileName || doc.fileUrl || doc.file ? (
                                                                         doc.fileUrl ? (
                                                                             <a
                                                                                 href={doc.fileUrl}
                                                                                 target="_blank"
                                                                                 rel="noopener noreferrer"
-                                                                                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                                                                                className="flex items-center gap-2 text-[#00D1FF] hover:text-blue-800 hover:underline"
                                                                                 onClick={(e) => e.stopPropagation()}
                                                                             >
                                                                                 <FileText className="w-4 h-4" />
                                                                                 <span>{doc.fileName || 'View File'}</span>
                                                                             </a>
                                                                         ) : (
-                                                                            <div className="flex items-center gap-2 text-blue-600">
+                                                                            <div className="flex items-center gap-2 text-[#00D1FF]">
                                                                                 <FileText className="w-4 h-4" />
                                                                                 <span className="truncate max-w-[200px]">
                                                                                     {doc.fileName || (doc.file instanceof File ? doc.file.name : 'File attached')}
@@ -3185,24 +3126,336 @@ const Trucks: React.FC = () => {
                                                                             </div>
                                                                         )
                                                                     ) : (
-                                                                        <span className="text-gray-400">No file</span>
+                                                                        <span className="text-secondary">No file</span>
                                                                     )}
                                                                 </td>
-                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.ignoreExpiration ? 'Yes' : 'No'}</td>
-                                                                <td className="px-4 py-2 text-sm text-gray-900">
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            console.log('🗑️ Deleting document from type:', documentType, 'id:', doc.id);
-                                                                            setDocuments({
-                                                                                ...documents,
-                                                                                [documentType]: (documents[documentType] || []).filter(d => d.id !== doc.id)
-                                                                            });
-                                                                        }}
-                                                                        className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                                                        title="Delete"
-                                                                    >
-                                                                        <Trash2 className="w-4 h-4" />
-                                                                    </button>
+                                                                <td className="px-4 py-2 text-sm text-primary">{doc.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                <td className="px-4 py-2 text-sm text-primary">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setEditingDocumentId(doc.id);
+                                                                                setDocumentForm({
+                                                                                    title: doc.title || '',
+                                                                                    expiryDate: doc.expiryDate || '',
+                                                                                    description: doc.description || '',
+                                                                                    file: doc.file || null,
+                                                                                    ignoreExpiration: doc.ignoreExpiration
+                                                                                });
+                                                                            }}
+                                                                            className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <Edit className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setDocuments(documents.filter((d) => d.id !== doc.id));
+                                                                                if (editingDocumentId === doc.id) {
+                                                                                    setEditingDocumentId(null);
+                                                                                    setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
+                                                                                }
+                                                                            }}
+                                                                            className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ))
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Invoice Step */}
+                                {activeStep === 'Invoice' && (
+                                    <div className="space-y-4">
+
+                                        {/* Invoice Form */}
+                                        <div className="bg-card p-4 rounded-lg">
+                                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Invoice Number<span className="text-red-500">*</span></label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Invoice Number"
+                                                        value={invoiceForm.invoiceNumber}
+                                                        onChange={(e) => setInvoiceForm({ ...invoiceForm, invoiceNumber: e.target.value })}
+                                                        className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Vendor / Workshop<span className="text-red-500">*</span></label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Vendor / Workshop"
+                                                        value={invoiceForm.vendorWorkshop}
+                                                        onChange={(e) => setInvoiceForm({ ...invoiceForm, vendorWorkshop: e.target.value })}
+                                                        className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Amount<span className="text-red-500">*</span></label>
+                                                    <div className="relative">
+                                                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary">$</span>
+                                                        <input
+                                                            type="number"
+                                                            placeholder="0.00"
+                                                            value={invoiceForm.amount}
+                                                            onChange={(e) => {
+                                                                const value = e.target.value;
+                                                                if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                                                                    setInvoiceForm({ ...invoiceForm, amount: value });
+                                                                }
+                                                            }}
+                                                            min="0"
+                                                            step="0.01"
+                                                            className="w-full pl-7 pr-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Invoice Date<span className="text-red-500">*</span></label>
+                                                    <div className="relative">
+                                                        <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary pointer-events-none" />
+                                                        <input
+                                                            type="date"
+                                                            value={invoiceForm.invoiceDate}
+                                                            onChange={(e) => setInvoiceForm({ ...invoiceForm, invoiceDate: e.target.value })}
+                                                            className="w-full pl-8 pr-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="mb-4">
+                                                <label className="block text-sm font-medium text-primary mb-1">Upload Invoice (PDF / Image)</label>
+                                                {invoiceForm.file ? (
+                                                    <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
+                                                        <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
+                                                        <span className="text-sm text-primary truncate flex-1">
+                                                            {invoiceForm.file.name}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setInvoiceForm({ ...invoiceForm, file: null });
+                                                                if (invoiceFileInputRef.current) {
+                                                                    invoiceFileInputRef.current.value = '';
+                                                                }
+                                                            }}
+                                                            className="text-secondary hover:text-[#A855F7] transition-colors flex-shrink-0"
+                                                            title="Remove file"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <input
+                                                            ref={invoiceFileInputRef}
+                                                            type="file"
+                                                            accept=".pdf,.jpg,.jpeg,.png,.gif"
+                                                            onChange={(e) => {
+                                                                if (e.target.files && e.target.files[0]) {
+                                                                    setInvoiceForm({ ...invoiceForm, file: e.target.files[0] });
+                                                                }
+                                                            }}
+                                                            className="hidden"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => invoiceFileInputRef.current?.click()}
+                                                            className="w-full px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium bg-card flex items-center justify-center gap-2"
+                                                        >
+                                                            <Upload className="w-4 h-4" />
+                                                            <span>Select File</span>
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
+                                            <div className="mb-4">
+                                                <label className="block text-sm font-medium text-primary mb-1">Notes</label>
+                                                <textarea
+                                                    placeholder="Notes"
+                                                    value={invoiceForm.notes}
+                                                    onChange={(e) => setInvoiceForm({ ...invoiceForm, notes: e.target.value })}
+                                                    className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] min-h-[80px] text-sm resize-none"
+                                                />
+                                            </div>
+                                            <div className="flex justify-end gap-2">
+                                                {editingInvoiceId && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingInvoiceId(null);
+                                                            setInvoiceForm({
+                                                                invoiceNumber: '',
+                                                                vendorWorkshop: '',
+                                                                amount: '',
+                                                                invoiceDate: '',
+                                                                file: null,
+                                                                notes: ''
+                                                            });
+                                                            if (invoiceFileInputRef.current) {
+                                                                invoiceFileInputRef.current.value = '';
+                                                            }
+                                                        }}
+                                                        className="px-4 py-2 bg-gray-500 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-600 transition-colors"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                        <span>Cancel</span>
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => {
+                                                        if (invoiceForm.invoiceNumber && invoiceForm.vendorWorkshop && invoiceForm.amount && invoiceForm.invoiceDate) {
+                                                            if (editingInvoiceId) {
+                                                                setInvoices(invoices.map(inv =>
+                                                                    inv.id === editingInvoiceId
+                                                                        ? {
+                                                                            ...inv,
+                                                                            invoiceNumber: invoiceForm.invoiceNumber,
+                                                                            vendorWorkshop: invoiceForm.vendorWorkshop,
+                                                                            amount: invoiceForm.amount,
+                                                                            invoiceDate: invoiceForm.invoiceDate,
+                                                                            file: invoiceForm.file || inv.file,
+                                                                            fileName: invoiceForm.file?.name || inv.fileName,
+                                                                            notes: invoiceForm.notes
+                                                                        }
+                                                                        : inv
+                                                                ));
+                                                                setEditingInvoiceId(null);
+                                                            } else {
+                                                                setInvoices([...invoices, {
+                                                                    id: Date.now().toString(),
+                                                                    invoiceNumber: invoiceForm.invoiceNumber,
+                                                                    vendorWorkshop: invoiceForm.vendorWorkshop,
+                                                                    amount: invoiceForm.amount,
+                                                                    invoiceDate: invoiceForm.invoiceDate,
+                                                                    file: invoiceForm.file,
+                                                                    fileName: invoiceForm.file?.name || '',
+                                                                    notes: invoiceForm.notes
+                                                                }]);
+                                                            }
+                                                            setInvoiceForm({
+                                                                invoiceNumber: '',
+                                                                vendorWorkshop: '',
+                                                                amount: '',
+                                                                invoiceDate: '',
+                                                                file: null,
+                                                                notes: ''
+                                                            });
+                                                            if (invoiceFileInputRef.current) {
+                                                                invoiceFileInputRef.current.value = '';
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="px-4 py-2 bg-gray-700 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-800 transition-colors"
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                    <span>{editingInvoiceId ? 'Update' : 'Add'} Invoice</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Invoices Table */}
+                                        <div className="bg-card rounded-lg border border-theme overflow-x-auto">
+                                            <table className="w-full min-w-[1000px]">
+                                                <thead className="bg-card border-b border-theme">
+                                                    <tr>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Invoice Number</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Vendor / Workshop</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Amount</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Invoice Date</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">File</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Notes</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-theme">
+                                                    {invoices.length === 0 ? (
+                                                        <tr>
+                                                            <td colSpan={7} className="px-4 py-12 text-center text-secondary text-sm">No Invoices</td>
+                                                        </tr>
+                                                    ) : (
+                                                        invoices.map((invoice) => (
+                                                            <tr key={invoice.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                                                                <td className="px-4 py-3 text-sm text-primary">{invoice.invoiceNumber}</td>
+                                                                <td className="px-4 py-3 text-sm text-primary">{invoice.vendorWorkshop}</td>
+                                                                <td className="px-4 py-3 text-sm text-primary">${parseFloat(invoice.amount || '0').toFixed(2)}</td>
+                                                                <td className="px-4 py-3 text-sm text-primary">{invoice.invoiceDate || '-'}</td>
+                                                                <td className="px-4 py-3 text-sm text-primary">
+                                                                    {invoice.fileUrl ? (
+                                                                        <a
+                                                                            href={invoice.fileUrl}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="flex items-center gap-2 text-[#00D1FF] hover:text-blue-800 hover:underline"
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            <FileText className="w-4 h-4" />
+                                                                            <span>{invoice.fileName || 'View File'}</span>
+                                                                        </a>
+                                                                    ) : invoice.fileName || invoice.file ? (
+                                                                        <div className="flex items-center gap-2 text-[#00D1FF]">
+                                                                            <FileText className="w-4 h-4" />
+                                                                            <span className="truncate max-w-[150px]">
+                                                                                {invoice.fileName || (invoice.file instanceof File ? invoice.file.name : 'File attached')}
+                                                                            </span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="text-secondary">No file</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-4 py-3 text-sm text-primary">
+                                                                    <span className="truncate max-w-[200px] block" title={invoice.notes}>
+                                                                        {invoice.notes || '-'}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-4 py-3 text-sm text-primary">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setEditingInvoiceId(invoice.id);
+                                                                                setInvoiceForm({
+                                                                                    invoiceNumber: invoice.invoiceNumber,
+                                                                                    vendorWorkshop: invoice.vendorWorkshop,
+                                                                                    amount: invoice.amount,
+                                                                                    invoiceDate: invoice.invoiceDate,
+                                                                                    file: invoice.file,
+                                                                                    notes: invoice.notes
+                                                                                });
+                                                                            }}
+                                                                            className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <Edit className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setInvoices(invoices.filter(i => i.id !== invoice.id));
+                                                                                if (editingInvoiceId === invoice.id) {
+                                                                                    setEditingInvoiceId(null);
+                                                                                    setInvoiceForm({
+                                                                                        invoiceNumber: '',
+                                                                                        vendorWorkshop: '',
+                                                                                        amount: '',
+                                                                                        invoiceDate: '',
+                                                                                        file: null,
+                                                                                        notes: ''
+                                                                                    });
+                                                                                }
+                                                                            }}
+                                                                            className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
                                                                 </td>
                                                             </tr>
                                                         ))
@@ -3216,27 +3469,27 @@ const Trucks: React.FC = () => {
                                 {/* Notes Step */}
                                 {activeStep === 'Notes' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-gray-900">Notes</h3>
+                                        <h3 className="text-base font-semibold text-primary">Notes</h3>
 
                                         {/* Note Form */}
-                                        <div className="flex gap-4 items-end bg-gray-100 p-4 rounded-lg">
+                                        <div className="flex gap-4 items-end bg-card p-4 rounded-lg">
                                             <div className="flex-1">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Note</label>
+                                                <label className="block text-sm font-medium text-primary mb-1">Note</label>
                                                 <input
                                                     type="text"
                                                     placeholder="Note"
                                                     value={noteForm.note}
                                                     onChange={(e) => setNoteForm({ ...noteForm, note: e.target.value })}
-                                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                    className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                                <label className="block text-sm font-medium text-primary mb-1">Category</label>
                                                 <div className="relative">
                                                     <select
                                                         value={noteForm.category}
                                                         onChange={(e) => setNoteForm({ ...noteForm, category: e.target.value })}
-                                                        className="px-3 py-2 pr-8 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none min-w-[150px]"
+                                                        className="px-3 py-2 pr-8 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none min-w-[150px]"
                                                     >
                                                         <option value="Category">Category</option>
                                                         <option value="Safety">Safety</option>
@@ -3245,45 +3498,95 @@ const Trucks: React.FC = () => {
                                                         <option value="General">General</option>
                                                         <option value="Maintenance">Maintenance</option>
                                                     </select>
-                                                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                 </div>
                                             </div>
+                                            {editingNoteId && (
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingNoteId(null);
+                                                        setNoteForm({ note: '', category: 'Category' });
+                                                    }}
+                                                    className="w-10 h-10 bg-gray-400 !text-white rounded-lg flex items-center justify-center hover:bg-gray-500 transition-colors flex-shrink-0"
+                                                    title="Cancel"
+                                                >
+                                                    <X className="w-5 h-5" />
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => {
                                                     if (noteForm.note && noteForm.category !== 'Category') {
-                                                        setNotes([...notes, {
-                                                            id: Date.now().toString(),
-                                                            note: noteForm.note,
-                                                            category: noteForm.category
-                                                        }]);
+                                                        if (editingNoteId) {
+                                                            setNotes(notes.map(n =>
+                                                                n.id === editingNoteId
+                                                                    ? { ...n, note: noteForm.note, category: noteForm.category }
+                                                                    : n
+                                                            ));
+                                                            setEditingNoteId(null);
+                                                        } else {
+                                                            setNotes([...notes, {
+                                                                id: Date.now().toString(),
+                                                                note: noteForm.note,
+                                                                category: noteForm.category
+                                                            }]);
+                                                        }
                                                         setNoteForm({ note: '', category: 'Category' });
                                                     }
                                                 }}
                                                 className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors flex-shrink-0"
+                                                title={editingNoteId ? 'Update Note' : 'Add Note'}
                                             >
-                                                <Plus className="w-5 h-5" />
+                                                {editingNoteId ? <Edit className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                                             </button>
                                         </div>
 
                                         {/* Notes Table */}
-                                        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                        <div className="bg-card rounded-lg border border-theme overflow-hidden">
                                             <table className="w-full">
-                                                <thead className="bg-gray-50 border-b border-gray-200">
+                                                <thead className="bg-card border-b border-theme">
                                                     <tr>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Note</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Category</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Note</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Category</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Actions</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-gray-200">
+                                                <tbody className="divide-y divide-theme">
                                                     {notes.length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={2} className="px-4 py-12 text-center text-gray-500 text-sm">No Data</td>
+                                                            <td colSpan={3} className="px-4 py-12 text-center text-secondary text-sm">No Data</td>
                                                         </tr>
                                                     ) : (
                                                         notes.map((note) => (
-                                                            <tr key={note.id} className="hover:bg-gray-50 transition-colors">
-                                                                <td className="px-4 py-3 text-sm text-gray-900">{note.note}</td>
-                                                                <td className="px-4 py-3 text-sm text-gray-900">{note.category}</td>
+                                                            <tr key={note.id} className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${editingNoteId === note.id ? 'bg-card' : ''}`}>
+                                                                <td className="px-4 py-3 text-sm text-primary">{note.note}</td>
+                                                                <td className="px-4 py-3 text-sm text-primary">{note.category}</td>
+                                                                <td className="px-4 py-3 text-sm text-primary">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setEditingNoteId(note.id);
+                                                                                setNoteForm({ note: note.note, category: note.category });
+                                                                            }}
+                                                                            className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <Edit className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setNotes(notes.filter(n => n.id !== note.id));
+                                                                                if (editingNoteId === note.id) {
+                                                                                    setEditingNoteId(null);
+                                                                                    setNoteForm({ note: '', category: 'Category' });
+                                                                                }
+                                                                            }}
+                                                                            className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
                                                             </tr>
                                                         ))
                                                     )}
@@ -3300,13 +3603,13 @@ const Trucks: React.FC = () => {
                                         {activeStep === 'Payroll' && (
                                             <div className="space-y-4">
                                                 <div className="mb-2">
-                                                    <span className="text-sm text-gray-600">Ownership: Owner Operator</span>
+                                                    <span className="text-sm text-secondary">Ownership: Owner Operator</span>
                                                 </div>
-                                                <h3 className="text-base font-semibold text-gray-900">Truck Ownership Information</h3>
-                                                
+                                                <h3 className="text-base font-semibold text-primary">Truck Ownership Information</h3>
+
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        <label className="block text-sm font-medium text-primary mb-1">
                                                             Corportation Name<span className="text-red-500">*</span>
                                                         </label>
                                                         <input
@@ -3314,37 +3617,37 @@ const Trucks: React.FC = () => {
                                                             placeholder="Corportation Name"
                                                             value={payrollForm.corporationName}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, corporationName: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Address</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Full Address</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Full Address"
                                                             value={payrollForm.fullAddress}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, fullAddress: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Driver Name</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Driver Name"
                                                             value={payrollForm.driverName}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, driverName: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Email</label>
                                                         <input
                                                             type="email"
                                                             placeholder="Email"
                                                             value={payrollForm.email}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, email: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                 </div>
@@ -3355,11 +3658,10 @@ const Trucks: React.FC = () => {
                                                         <button
                                                             key={method}
                                                             onClick={() => setPaymentMethod(method)}
-                                                            className={`px-4 py-2 rounded-sm font-medium transition-colors text-sm ${
-                                                                paymentMethod === method
-                                                                    ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                                                            }`}
+                                                            className={`px-4 py-2 rounded-sm font-medium transition-colors text-sm ${paymentMethod === method
+                                                                ? 'bg-gray-700 !text-white'
+                                                                : 'bg-card border border-theme text-primary hover:bg-[rgba(255,255,255,0.03)]'
+                                                                }`}
                                                         >
                                                             {method}
                                                         </button>
@@ -3369,50 +3671,50 @@ const Trucks: React.FC = () => {
                                                 {/* Conditional Fields based on Payment Method */}
                                                 {paymentMethod === 'PAID PER MILE' && (
                                                     <div className="space-y-4 mt-4">
-                                                        <h4 className="text-sm font-semibold text-gray-900">$/Mile</h4>
+                                                        <h4 className="text-sm font-semibold text-primary">$/Mile</h4>
                                                         <div className="grid grid-cols-2 gap-4">
                                                             <div>
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                <label className="block text-sm font-medium text-primary mb-1">
                                                                     ALONE<span className="text-red-500">*</span>
                                                                 </label>
                                                                 <input
                                                                     type="text"
                                                                     value={payrollForm.alone}
                                                                     onChange={(e) => setPayrollForm({ ...payrollForm, alone: e.target.value })}
-                                                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                    className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                <label className="block text-sm font-medium text-primary mb-1">
                                                                     TEAM<span className="text-red-500">*</span>
                                                                 </label>
                                                                 <input
                                                                     type="text"
                                                                     value={payrollForm.team}
                                                                     onChange={(e) => setPayrollForm({ ...payrollForm, team: e.target.value })}
-                                                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                    className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                <label className="block text-sm font-medium text-primary mb-1">
                                                                     EMPTY<span className="text-red-500">*</span>
                                                                 </label>
                                                                 <input
                                                                     type="text"
                                                                     value={payrollForm.empty}
                                                                     onChange={(e) => setPayrollForm({ ...payrollForm, empty: e.target.value })}
-                                                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                    className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                <label className="block text-sm font-medium text-primary mb-1">
                                                                     EMPTY-TEAM<span className="text-red-500">*</span>
                                                                 </label>
                                                                 <input
                                                                     type="text"
                                                                     value={payrollForm.emptyTeam}
                                                                     onChange={(e) => setPayrollForm({ ...payrollForm, emptyTeam: e.target.value })}
-                                                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                    className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                                 />
                                                             </div>
                                                         </div>
@@ -3422,7 +3724,7 @@ const Trucks: React.FC = () => {
                                                 {paymentMethod === 'PAID PERCENT' && (
                                                     <div className="space-y-4 mt-4">
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                            <label className="block text-sm font-medium text-primary mb-1">
                                                                 Percent Rate<span className="text-red-500">*</span>
                                                             </label>
                                                             <div className="flex items-center gap-2">
@@ -3430,9 +3732,9 @@ const Trucks: React.FC = () => {
                                                                     type="text"
                                                                     value={payrollForm.percentRate}
                                                                     onChange={(e) => setPayrollForm({ ...payrollForm, percentRate: e.target.value })}
-                                                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                    className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                                 />
-                                                                <span className="text-sm font-medium text-gray-700">%</span>
+                                                                <span className="text-sm font-medium text-primary">%</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -3441,14 +3743,14 @@ const Trucks: React.FC = () => {
                                                 {paymentMethod === 'PAID BY TRIP' && (
                                                     <div className="space-y-4 mt-4">
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                            <label className="block text-sm font-medium text-primary mb-1">
                                                                 Per Trip Amount<span className="text-red-500">*</span>
                                                             </label>
                                                             <input
                                                                 type="text"
                                                                 value={payrollForm.perTripAmount}
                                                                 onChange={(e) => setPayrollForm({ ...payrollForm, perTripAmount: e.target.value })}
-                                                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                             />
                                                         </div>
                                                     </div>
@@ -3457,14 +3759,14 @@ const Trucks: React.FC = () => {
                                                 {paymentMethod === 'PAID PER HOUR' && (
                                                     <div className="space-y-4 mt-4">
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                            <label className="block text-sm font-medium text-primary mb-1">
                                                                 PER HOUR<span className="text-red-500">*</span>
                                                             </label>
                                                             <input
                                                                 type="text"
                                                                 value={payrollForm.perHour}
                                                                 onChange={(e) => setPayrollForm({ ...payrollForm, perHour: e.target.value })}
-                                                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                             />
                                                         </div>
                                                     </div>
@@ -3479,26 +3781,26 @@ const Trucks: React.FC = () => {
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, companyPaysFuel: e.target.checked })}
                                                             className="w-4 h-4"
                                                         />
-                                                        <label className="text-sm text-gray-700">Company Pays Fuel</label>
+                                                        <label className="text-sm text-primary">Company Pays Fuel</label>
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">GST No.</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">GST No.</label>
                                                         <input
                                                             type="text"
                                                             placeholder="GST No."
                                                             value={payrollForm.gstNo}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, gstNo: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Custom HST %</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Custom HST %</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Leave Empty To Use Company"
                                                             value={payrollForm.customHst}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, customHst: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                 </div>
@@ -3508,72 +3810,72 @@ const Trucks: React.FC = () => {
                                         {/* Deductions Step */}
                                         {activeStep === 'Deductions' && (
                                             <div className="space-y-4">
-                                                <h3 className="text-base font-semibold text-gray-900">Payroll Deductions</h3>
+                                                <h3 className="text-base font-semibold text-primary">Payroll Deductions</h3>
 
                                                 {/* Deduction Form */}
-                                                <div className="flex gap-2 items-end bg-gray-100 p-4 rounded-lg">
+                                                <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Start Date</label>
                                                         <div className="relative">
-                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                             <input
                                                                 type="date"
                                                                 value={deductionForm.startDate}
                                                                 onChange={(e) => setDeductionForm({ ...deductionForm, startDate: e.target.value })}
-                                                                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                className="w-full pl-8 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                             />
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Description"
                                                             value={deductionForm.description}
                                                             onChange={(e) => setDeductionForm({ ...deductionForm, description: e.target.value })}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Fee</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Fee</label>
                                                         <input
                                                             type="text"
                                                             value={deductionForm.fee}
                                                             onChange={(e) => setDeductionForm({ ...deductionForm, fee: e.target.value })}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Interval</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Interval</label>
                                                         <div className="relative">
                                                             <select
                                                                 value={deductionForm.interval}
                                                                 onChange={(e) => setDeductionForm({ ...deductionForm, interval: e.target.value })}
-                                                                className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none"
+                                                                className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
-                                                                <option value="Interval">Interval</option>
-                                                                <option value="Annual">Annual</option>
-                                                                <option value="Monthly">Monthly</option>
-                                                                <option value="Per Mile">Per Mile</option>
-                                                                <option value="One Time">One Time</option>
-                                                                <option value="Weekly">Weekly</option>
-                                                                <option value="Biweekly">Biweekly</option>
+                                                                <option className="form-option" value="Interval">Interval</option>
+                                                                <option className="form-option" value="Annual">Annual</option>
+                                                                <option className="form-option" value="Monthly">Monthly</option>
+                                                                <option className="form-option" value="Per Mile">Per Mile</option>
+                                                                <option className="form-option" value="One Time">One Time</option>
+                                                                <option className="form-option" value="Weekly">Weekly</option>
+                                                                <option className="form-option" value="Biweekly">Biweekly</option>
                                                             </select>
-                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Currency</label>
                                                         <div className="relative">
                                                             <select
                                                                 value={deductionForm.currency}
                                                                 onChange={(e) => setDeductionForm({ ...deductionForm, currency: e.target.value })}
-                                                                className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none"
+                                                                className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
-                                                                <option value="CAD">CAD</option>
-                                                                <option value="USD">USD</option>
+                                                                <option className="form-option" value="CAD">CAD</option>
+                                                                <option className="form-option" value="USD">USD</option>
                                                             </select>
-                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>
                                                     </div>
                                                     <button
@@ -3593,30 +3895,30 @@ const Trucks: React.FC = () => {
                                                 </div>
 
                                                 {/* Deductions Table */}
-                                                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                                <div className="bg-card rounded-lg border border-theme overflow-hidden">
                                                     <table className="w-full">
-                                                        <thead className="bg-gray-50 border-b border-gray-200">
+                                                        <thead className="bg-card border-b border-theme">
                                                             <tr>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Start Date</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Fee</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Currency</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Start Date</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Description</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Fee</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Interval</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Currency</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody className="divide-y divide-gray-200">
+                                                        <tbody className="divide-y divide-theme">
                                                             {deductions.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={5} className="px-4 py-12 text-center text-gray-500 text-sm">No Data</td>
+                                                                    <td colSpan={5} className="px-4 py-12 text-center text-secondary text-sm">No Data</td>
                                                                 </tr>
                                                             ) : (
                                                                 deductions.map((deduction) => (
-                                                                    <tr key={deduction.id} className="hover:bg-gray-50 transition-colors">
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{deduction.startDate}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{deduction.description}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{deduction.fee}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{deduction.interval}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{deduction.currency}</td>
+                                                                    <tr key={deduction.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                                                                        <td className="px-4 py-3 text-sm text-primary">{deduction.startDate}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{deduction.description}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{deduction.fee}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{deduction.interval}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{deduction.currency}</td>
                                                                     </tr>
                                                                 ))
                                                             )}
@@ -3629,72 +3931,72 @@ const Trucks: React.FC = () => {
                                         {/* Additions Step */}
                                         {activeStep === 'Additions' && (
                                             <div className="space-y-4">
-                                                <h3 className="text-base font-semibold text-gray-900">Payroll Additions</h3>
+                                                <h3 className="text-base font-semibold text-primary">Payroll Additions</h3>
 
                                                 {/* Addition Form */}
-                                                <div className="flex gap-2 items-end bg-gray-100 p-4 rounded-lg">
+                                                <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Start Date</label>
                                                         <div className="relative">
-                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                             <input
                                                                 type="date"
                                                                 value={additionForm.startDate}
                                                                 onChange={(e) => setAdditionForm({ ...additionForm, startDate: e.target.value })}
-                                                                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                className="w-full pl-8 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                             />
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Description"
                                                             value={additionForm.description}
                                                             onChange={(e) => setAdditionForm({ ...additionForm, description: e.target.value })}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Amount</label>
                                                         <input
                                                             type="text"
                                                             value={additionForm.amount}
                                                             onChange={(e) => setAdditionForm({ ...additionForm, amount: e.target.value })}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Interval</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Interval</label>
                                                         <div className="relative">
                                                             <select
                                                                 value={additionForm.interval}
                                                                 onChange={(e) => setAdditionForm({ ...additionForm, interval: e.target.value })}
-                                                                className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none"
+                                                                className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
-                                                                <option value="Interval">Interval</option>
-                                                                <option value="Annual">Annual</option>
-                                                                <option value="Monthly">Monthly</option>
-                                                                <option value="Per Mile">Per Mile</option>
-                                                                <option value="One Time">One Time</option>
-                                                                <option value="Weekly">Weekly</option>
-                                                                <option value="Biweekly">Biweekly</option>
+                                                                <option className="form-option" value="Interval">Interval</option>
+                                                                <option className="form-option" value="Annual">Annual</option>
+                                                                <option className="form-option" value="Monthly">Monthly</option>
+                                                                <option className="form-option" value="Per Mile">Per Mile</option>
+                                                                <option className="form-option" value="One Time">One Time</option>
+                                                                <option className="form-option" value="Weekly">Weekly</option>
+                                                                <option className="form-option" value="Biweekly">Biweekly</option>
                                                             </select>
-                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Currency</label>
                                                         <div className="relative">
                                                             <select
                                                                 value={additionForm.currency}
                                                                 onChange={(e) => setAdditionForm({ ...additionForm, currency: e.target.value })}
-                                                                className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none"
+                                                                className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
-                                                                <option value="CAD">CAD</option>
-                                                                <option value="USD">USD</option>
+                                                                <option className="form-option" value="CAD">CAD</option>
+                                                                <option className="form-option" value="USD">USD</option>
                                                             </select>
-                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>
                                                     </div>
                                                     <button
@@ -3714,30 +4016,30 @@ const Trucks: React.FC = () => {
                                                 </div>
 
                                                 {/* Additions Table */}
-                                                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                                <div className="bg-card rounded-lg border border-theme overflow-hidden">
                                                     <table className="w-full">
-                                                        <thead className="bg-gray-50 border-b border-gray-200">
+                                                        <thead className="bg-card border-b border-theme">
                                                             <tr>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Start Date</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Currency</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Start Date</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Description</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Amount</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Interval</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Currency</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody className="divide-y divide-gray-200">
+                                                        <tbody className="divide-y divide-theme">
                                                             {additions.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={5} className="px-4 py-12 text-center text-gray-500 text-sm">No Data</td>
+                                                                    <td colSpan={5} className="px-4 py-12 text-center text-secondary text-sm">No Data</td>
                                                                 </tr>
                                                             ) : (
                                                                 additions.map((addition) => (
-                                                                    <tr key={addition.id} className="hover:bg-gray-50 transition-colors">
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{addition.startDate}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{addition.description}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{addition.amount}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{addition.interval}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{addition.currency}</td>
+                                                                    <tr key={addition.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                                                                        <td className="px-4 py-3 text-sm text-primary">{addition.startDate}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{addition.description}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{addition.amount}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{addition.interval}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{addition.currency}</td>
                                                                     </tr>
                                                                 ))
                                                             )}
@@ -3749,34 +4051,32 @@ const Trucks: React.FC = () => {
                                     </>
                                 )}
 
-                                {/* Navigation Buttons */}
-                                <div className="mt-4 pt-4 border-t border-gray-200">
-                                    <div className="flex justify-between gap-3">
-                                        <button
-                                            onClick={handlePrevious}
-                                            disabled={!getPreviousStep()}
-                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                                getPreviousStep()
-                                                    ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            </div>
+                            {/* Footer: Previous/Next fixed at bottom */}
+                            <div className="flex-shrink-0 border-t border-theme bg-card px-4 py-3">
+                                <div className="flex justify-between gap-3">
+                                    <button
+                                        onClick={handlePrevious}
+                                        disabled={!getPreviousStep()}
+                                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${getPreviousStep()
+                                            ? 'bg-gray-700 !text-white hover:bg-[var(--accent-navyblue)]'
+                                            : 'bg-gray-700 text-secondary cursor-not-allowed'
                                             }`}
-                                        >
-                                            <ChevronLeft className="w-3.5 h-3.5" />
-                                            Previous
-                                        </button>
-                                        <button
-                                            onClick={handleNext}
-                                            disabled={!getNextStep()}
-                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                                getNextStep()
-                                                    ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                    >
+                                        <ChevronLeft className="w-3.5 h-3.5" />
+                                        Previous
+                                    </button>
+                                    <button
+                                        onClick={handleNext}
+                                        disabled={!getNextStep()}
+                                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${getNextStep()
+                                            ? 'bg-gray-700 !text-white hover:bg-gray-800'
+                                            : 'bg-gray-200 text-secondary cursor-not-allowed'
                                             }`}
-                                        >
-                                            Next
-                                            <ChevronRight className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
+                                    >
+                                        Next
+                                        <ChevronRight className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -3802,24 +4102,24 @@ const Trucks: React.FC = () => {
             {/* Truck Limit Reached Modal */}
             {truckLimitModal.show && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
-                        <div className="p-6 border-b border-gray-200">
+                    <div className="bg-card rounded-xl shadow-2xl max-w-md w-full">
+                        <div className="p-6 border-b border-theme">
                             <div className="flex items-start gap-4">
                                 <div className="flex-shrink-0 w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-6 h-6 text-[#F59E0B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                                     </svg>
                                 </div>
                                 <div className="flex-1">
-                                    <h3 className="text-xl font-semibold text-gray-900">Truck Limit Reached</h3>
-                                    <p className="text-sm text-gray-600 mt-1">
-                                        Your plan allows <span className="font-bold text-gray-800">{truckLimitModal.maxTrucks}</span> truck{truckLimitModal.maxTrucks !== 1 ? 's' : ''}.
-                                        You currently have <span className="font-bold text-red-600">{truckLimitModal.usedTrucks}</span> truck{truckLimitModal.usedTrucks !== 1 ? 's' : ''} in use.
+                                    <h3 className="text-xl font-semibold text-primary">Truck Limit Reached</h3>
+                                    <p className="text-sm text-secondary mt-1">
+                                        Your plan allows <span className="font-bold text-primary">{truckLimitModal.maxTrucks}</span> truck{truckLimitModal.maxTrucks !== 1 ? 's' : ''}.
+                                        You currently have <span className="font-bold text-[#A855F7]">{truckLimitModal.usedTrucks}</span> truck{truckLimitModal.usedTrucks !== 1 ? 's' : ''} in use.
                                     </p>
-                                    <p className="text-sm text-gray-500 mt-2">
+                                    <p className="text-sm text-secondary mt-2">
                                         To add more trucks, upgrade your plan or purchase additional truck slots from the Subscription page.
                                     </p>
-                                    <div className="mt-3 bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-center justify-between">
+                                    <div className="mt-3 bg-card border border-orange-200 rounded-lg p-3 flex items-center justify-between">
                                         <span className="text-xs font-medium text-orange-700">Trucks used</span>
                                         <span className="text-sm font-bold text-orange-800">{truckLimitModal.usedTrucks} / {truckLimitModal.maxTrucks}</span>
                                     </div>
@@ -3829,7 +4129,7 @@ const Trucks: React.FC = () => {
                         <div className="p-6 flex items-center justify-end gap-3">
                             <button
                                 onClick={() => setTruckLimitModal({ show: false, maxTrucks: 0, usedTrucks: 0 })}
-                                className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                                className="px-5 py-2.5 border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                             >
                                 Close
                             </button>
@@ -3846,7 +4146,7 @@ const Trucks: React.FC = () => {
 
             {/* Validation Errors Display */}
             {validationErrors.length > 0 && (
-                <div className="fixed bottom-4 right-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg shadow-lg max-w-md z-[10001]">
+                <div className="fixed bottom-4 right-4 bg-card border-l-4 border-red-500 p-4 rounded-lg shadow-lg max-w-md z-[10001]">
                     <div className="flex items-start">
                         <div className="flex-shrink-0">
                             <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -3863,7 +4163,7 @@ const Trucks: React.FC = () => {
                         </div>
                         <button
                             onClick={() => setValidationErrors([])}
-                            className="ml-3 flex-shrink-0 text-red-400 hover:text-red-600"
+                            className="ml-3 flex-shrink-0 text-red-400 hover:text-[#A855F7]"
                         >
                             <X className="w-5 h-5" />
                         </button>

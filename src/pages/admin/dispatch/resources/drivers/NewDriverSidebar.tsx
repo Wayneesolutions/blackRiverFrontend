@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 import type { FC } from "react";
 import { X, Plus, Upload, ChevronDown, ChevronUp, User } from 'lucide-react';
 
@@ -163,11 +163,11 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" onClick={onClose}></div>
 
             {/* Sidebar */}
-            <div className="fixed right-0 top-0 h-full w-126 bg-white border-l border-gray-200 shadow-lg z-[101] flex flex-col">
-                <div className="p-4 border-b border-gray-200 flex-shrink-0">
+            <div className="fixed right-0 top-0 h-full w-126 bg-card border-l border-theme shadow-lg z-[101] flex flex-col">
+                <div className="p-4 border-b border-theme flex-shrink-0">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold text-gray-900">New Driver</h2>
-                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                        <h2 className="text-lg font-semibold text-primary">New Driver</h2>
+                        <button onClick={onClose} className="text-secondary hover:text-secondary">
                             <X className="w-5 h-5" />
                         </button>
                     </div>
@@ -176,8 +176,8 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                 <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-20">
                     {/* User Account Section */}
                     <div>
-                        <div className="flex items-center justify-between mb-3 bg-gray-100 p-3 rounded-md">
-                            <h3 className="text-sm font-medium text-gray-900">User Account</h3>
+                        <div className="flex items-center justify-between mb-3 bg-card p-3 rounded-md">
+                            <h3 className="text-sm font-medium text-primary">User Account</h3>
                             <div className="flex items-center space-x-2">
                                 <button
                                     onClick={() => setIsModalOpen(true)}
@@ -188,8 +188,8 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                 </button>
                                 <button onClick={() => toggleSection('userAccount')}>
                                     {collapsedSections.userAccount ?
-                                        <ChevronUp className="w-4 h-4 text-gray-400" /> :
-                                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                                        <ChevronUp className="w-4 h-4 text-secondary" /> :
+                                        <ChevronDown className="w-4 h-4 text-secondary" />
                                     }
                                 </button>
                             </div>
@@ -198,9 +198,9 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                         {!collapsedSections.userAccount && (
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-xs text-gray-500 mb-1">User Account</label>
+                                    <label className="block text-xs text-secondary mb-1">User Account</label>
                                     <select
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                                        className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                         value={formData.userAccount}
                                         onChange={(e) => handleUserAccountChange(e.target.value)}
                                     >
@@ -215,30 +215,30 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
 
                                 {/* Auto-filled read-only fields */}
                                 {formData.userAccount && (
-                                    <div className="space-y-3 bg-gray-50 p-3 rounded-md">
+                                    <div className="space-y-3 bg-card p-3 rounded-md">
                                         <div>
-                                            <label className="block text-xs text-gray-500 mb-1">Name</label>
+                                            <label className="block text-xs text-secondary mb-1">Name</label>
                                             <input
                                                 type="text"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-100"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                                 value={formData.selectedUserName}
                                                 readOnly
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs text-gray-500 mb-1">Email</label>
+                                            <label className="block text-xs text-secondary mb-1">Email</label>
                                             <input
                                                 type="email"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-100"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                                 value={formData.selectedUserEmail}
                                                 readOnly
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs text-gray-500 mb-1">Phone</label>
+                                            <label className="block text-xs text-secondary mb-1">Phone</label>
                                             <input
                                                 type="tel"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-100"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                                 value={formData.selectedUserPhone}
                                                 readOnly
                                             />
@@ -251,13 +251,13 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
 
                     {/* Driver Details Section */}
                     <div>
-                        <div className="flex items-center justify-between mb-3 bg-gray-100 p-3 rounded-md">
-                            <h3 className="text-sm font-medium text-gray-900">Driver Details</h3>
+                        <div className="flex items-center justify-between mb-3 bg-card p-3 rounded-md">
+                            <h3 className="text-sm font-medium text-primary">Driver Details</h3>
                             <button onClick={() => toggleSection('driverDetails')}>
                                 {collapsedSections.driverDetails ? (
-                                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                                    <ChevronUp className="w-4 h-4 text-secondary" />
                                 ) : (
-                                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                                    <ChevronDown className="w-4 h-4 text-secondary" />
                                 )}
                             </button>
                         </div>
@@ -266,21 +266,21 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                             <div className="space-y-3">
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="block text-xs text-gray-500 mb-1">Internal ID</label>
+                                        <label className="block text-xs text-secondary mb-1">Internal ID</label>
                                         <input
                                             type="text"
                                             placeholder="Enter Internal ID"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                             value={formData.internalId}
                                             onChange={(e) => setFormData({ ...formData, internalId: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs text-gray-500 mb-1">Driver License</label>
+                                        <label className="block text-xs text-secondary mb-1">Driver License</label>
                                         <input
                                             type="text"
                                             placeholder="Enter License"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                             value={formData.driverLicense}
                                             onChange={(e) => setFormData({ ...formData, driverLicense: e.target.value })}
                                         />
@@ -289,9 +289,9 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
 
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="block text-xs text-gray-500 mb-1">Vendor</label>
+                                        <label className="block text-xs text-secondary mb-1">Vendor</label>
                                         <select
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                             value={formData.vendor}
                                             onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
                                         >
@@ -302,9 +302,9 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-xs text-gray-500 mb-1">Vehicle</label>
+                                        <label className="block text-xs text-secondary mb-1">Vehicle</label>
                                         <select
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                             value={formData.vehicle}
                                             onChange={(e) => setFormData({ ...formData, vehicle: e.target.value })}
                                         >
@@ -318,19 +318,19 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
 
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="block text-xs text-gray-500 mb-1">City</label>
+                                        <label className="block text-xs text-secondary mb-1">City</label>
                                         <input
                                             type="text"
                                             placeholder="Enter City"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                             value={formData.city}
                                             onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs text-gray-500 mb-1">Country</label>
+                                        <label className="block text-xs text-secondary mb-1">Country</label>
                                         <select
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                             value={formData.country}
                                             onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                                         >
@@ -343,9 +343,9 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs text-gray-500 mb-1">Status</label>
+                                    <label className="block text-xs text-secondary mb-1">Status</label>
                                     <select
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                                        className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                         value={formData.status}
                                         onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                                     >
@@ -359,12 +359,12 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
 
                     {/* Location/Coordinates Section */}
                     <div>
-                        <div className="flex items-center justify-between mb-3 bg-gray-100 p-3 rounded-md">
-                            <h3 className="text-sm font-medium text-gray-900">Location</h3>
+                        <div className="flex items-center justify-between mb-3 bg-card p-3 rounded-md">
+                            <h3 className="text-sm font-medium text-primary">Location</h3>
                             <button onClick={() => toggleSection('location')}>
                                 {collapsedSections.location ?
-                                    <ChevronUp className="w-4 h-4 text-gray-400" /> :
-                                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                                    <ChevronUp className="w-4 h-4 text-secondary" /> :
+                                    <ChevronDown className="w-4 h-4 text-secondary" />
                                 }
                             </button>
                         </div>
@@ -372,14 +372,14 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                         {!collapsedSections.location && (
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-xs text-gray-500 mb-1">Location Input Method</label>
+                                    <label className="block text-xs text-secondary mb-1">Location Input Method</label>
                                     <div className="flex space-x-2">
                                         <button
                                             type="button"
                                             onClick={() => setCoordinatesType('manual')}
                                             className={`px-3 py-1 text-xs !mr-2 rounded ${coordinatesType === 'manual'
                                                 ? 'bg-blue-600 !text-white'
-                                                : 'bg-gray-100 text-gray-700'
+                                                : 'bg-card text-primary'
                                                 }`}
                                         >
                                             Manual
@@ -389,7 +389,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                             onClick={() => setCoordinatesType('auto')}
                                             className={`px-3 py-1 text-xs rounded ${coordinatesType === 'auto'
                                                 ? 'bg-blue-600 !text-white'
-                                                : 'bg-gray-100 text-gray-700'
+                                                : 'bg-card text-primary'
                                                 }`}
                                         >
                                             Auto-detect
@@ -400,21 +400,21 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                 {coordinatesType === 'manual' && (
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label className="block text-xs text-gray-500 mb-1">Latitude</label>
+                                            <label className="block text-xs text-secondary mb-1">Latitude</label>
                                             <input
                                                 type="text"
                                                 placeholder="Enter Latitude"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                                 value={formData.latitude}
                                                 onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs text-gray-500 mb-1">Longitude</label>
+                                            <label className="block text-xs text-secondary mb-1">Longitude</label>
                                             <input
                                                 type="text"
                                                 placeholder="Enter Longitude"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                                 value={formData.longitude}
                                                 onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
                                             />
@@ -424,7 +424,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
 
                                 {coordinatesType === 'auto' && (
                                     <div>
-                                        <button className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50 hover:bg-gray-100 transition-colors">
+                                        <button className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                                             Get Current Location
                                         </button>
                                     </div>
@@ -435,12 +435,12 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
 
                     {/* Avatar Section */}
                     <div>
-                        <div className="flex items-center justify-between mb-3 bg-gray-100 p-3 rounded-md">
-                            <h3 className="text-sm font-medium text-gray-900">Avatar</h3>
+                        <div className="flex items-center justify-between mb-3 bg-card p-3 rounded-md">
+                            <h3 className="text-sm font-medium text-primary">Avatar</h3>
                             <button onClick={() => toggleSection('avatar')}>
                                 {collapsedSections.avatar ?
-                                    <ChevronUp className="w-4 h-4 text-gray-400" /> :
-                                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                                    <ChevronUp className="w-4 h-4 text-secondary" /> :
+                                    <ChevronDown className="w-4 h-4 text-secondary" />
                                 }
                             </button>
                         </div>
@@ -448,10 +448,10 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                         {!collapsedSections.avatar && (
                             <div className="text-center py-4">
                                 <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-3 flex items-center justify-center">
-                                    <User className="w-8 h-8 text-gray-400" />
+                                    <User className="w-8 h-8 text-secondary" />
                                 </div>
-                                <p className="text-xs text-gray-500 mb-2">Select an image</p>
-                                <button className="text-xs text-blue-600 hover:text-blue-800">
+                                <p className="text-xs text-secondary mb-2">Select an image</p>
+                                <button className="text-xs text-[#00D1FF] hover:text-blue-800">
                                     Upload Image
                                 </button>
                             </div>
@@ -460,7 +460,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* Fixed Footer - Higher z-index */}
-                <div className="p-4 border-t border-gray-200 flex-shrink-0 bg-white sticky bottom-0 z-[102] shadow-lg">
+                <div className="p-4 border-t border-theme flex-shrink-0 bg-card sticky bottom-0 z-[102] shadow-lg">
                     <button
                         onClick={handleCreateDriver}
                         className="w-full bg-blue-600 !text-white py-2 rounded-md hover:bg-blue-700 transition-colors"
@@ -473,13 +473,13 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
             {/* User Creation Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[200]">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden">
+                    <div className="bg-card rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden">
                         {/* Modal Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                            <h3 className="text-lg font-semibold text-gray-900">Create a new user</h3>
+                        <div className="flex items-center justify-between p-4 border-b border-theme">
+                            <h3 className="text-lg font-semibold text-primary">Create a new user</h3>
                             <button
                                 onClick={() => setIsModalOpen(false)}
-                                className="text-gray-400 hover:text-gray-600"
+                                className="text-secondary hover:text-secondary"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -492,9 +492,9 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                 <div className="space-y-4">
                                     <div className="text-center">
                                         <div className="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-3 flex items-center justify-center">
-                                            <User className="w-12 h-12 text-gray-400" />
+                                            <User className="w-12 h-12 text-secondary" />
                                         </div>
-                                        <button className="flex items-center space-x-2 px-3 py-1 text-sm text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 mx-auto">
+                                        <button className="flex items-center space-x-2 px-3 py-1 text-sm text-[#00D1FF] border border-blue-600 rounded-md hover:bg-blue-50 mx-auto">
                                             <Upload className="w-4 h-4" />
                                             <span>Upload new</span>
                                         </button>
@@ -505,19 +505,19 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                            <label className="block text-sm font-medium text-primary mb-1">Name</label>
                                             <input
                                                 type="text"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                                 value={formData.name}
                                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                            <label className="block text-sm font-medium text-primary mb-1">Email</label>
                                             <input
                                                 type="email"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                                 value={formData.email}
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                             />
@@ -526,19 +526,19 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
 
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                                            <label className="block text-sm font-medium text-primary mb-1">Phone</label>
                                             <input
                                                 type="tel"
                                                 placeholder="+91 9999999999"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                                 value={formData.phone}
                                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                                            <label className="block text-sm font-medium text-primary mb-1">Country</label>
                                             <select
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                                 value={formData.userCountry}
                                                 onChange={(e) => setFormData({ ...formData, userCountry: e.target.value })}
                                             >
@@ -551,21 +551,21 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">Role</label>
                                         <input
                                             type="text"
                                             placeholder="Role"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                             value={formData.role}
                                             onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Attach Policies</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">Attach Policies</label>
                                         <input
                                             type="text"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                             value={formData.attachPolicies}
                                             onChange={(e) => setFormData({ ...formData, attachPolicies: e.target.value })}
                                         />
@@ -576,27 +576,27 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                             {/* Permissions Section */}
                             {/* <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-medium text-gray-900">Select Permissions</h4>
+                  <h4 className="text-sm font-medium text-primary">Select Permissions</h4>
                   <div className="flex space-x-2">
                     <button
                       onClick={selectAllPermissions}
-                      className="text-xs text-blue-600 hover:text-blue-800"
+                      className="text-xs text-[#00D1FF] hover:text-blue-800"
                     >
                       Select All
                     </button>
-                    <span className="text-xs text-gray-400">|</span>
+                    <span className="text-xs text-secondary">|</span>
                     <button
                       onClick={deselectAllPermissions}
-                      className="text-xs text-red-600 hover:text-red-800"
+                      className="text-xs text-[#A855F7] hover:text-red-800"
                     >
                       Deselect All
                     </button>
                   </div>
                 </div>
 
-                <div className="border border-gray-300 rounded-md">
-                  <div className="bg-gray-50 px-4 py-2 border-b border-gray-300">
-                    <div className="grid grid-cols-4 gap-4 text-xs font-medium text-gray-700 uppercase">
+                <div className="border border-theme rounded-md">
+                  <div className="bg-card px-4 py-2 border-b border-theme">
+                    <div className="grid grid-cols-4 gap-4 text-xs font-medium text-primary uppercase">
                       <span>Permission</span>
                       <span>Description</span>
                       <span>Grant Access</span>
@@ -608,18 +608,18 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                     <div 
                       key={permission.id} 
                       className={`px-4 py-3 grid grid-cols-4 gap-4 items-center text-sm ${
-                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                        index % 2 === 0 ? 'bg-card' : 'bg-card'
                       }`}
                     >
-                      <span className="font-medium text-gray-900">{permission.name}</span>
-                      <span className="text-gray-600 text-xs">{permission.description}</span>
+                      <span className="font-medium text-primary">{permission.name}</span>
+                      <span className="text-secondary text-xs">{permission.description}</span>
                       <div>
                         <input
                           type="checkbox"
                           id={permission.id}
                           checked={selectedPermissions.includes(permission.id)}
                           onChange={() => togglePermission(permission.id)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-[#00D1FF] border-theme rounded focus:ring-blue-500"
                         />
                       </div>
                       <span></span>
@@ -630,10 +630,10 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="flex justify-end space-x-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
+                        <div className="flex justify-end space-x-3 px-6 py-4 border-t border-theme bg-card">
                             <button
                                 onClick={() => setIsModalOpen(false)}
-                                className="px-4 py-2 text-sm font-medium !mr-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                                className="px-4 py-2 text-sm font-medium !mr-2 text-primary bg-card border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)]"
                             >
                                 Cancel
                             </button>

@@ -116,3 +116,17 @@ export const resetEmployeePassword = async (id: string, password: string) => {
     return (error as any).response?.data;
   }
 };
+
+export const importEmployeesFromFile = async (file: File, fieldMap: Record<string, string> = {}) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('fieldMap', JSON.stringify(fieldMap));
+  try {
+    const res: AxiosResponse = await apiClient.post('employee/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return res.data;
+  } catch (error) {
+    return (error as any).response?.data;
+  }
+};

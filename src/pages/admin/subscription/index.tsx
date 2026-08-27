@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import { message, Modal, Button, Tag, Card, Spin, Tabs, Progress, Alert } from 'antd';
 import { getAllPlans, getMySubscription, getMySubscriptions, createCheckoutSession, cancelSubscription, getTrialStatus, verifyCheckoutSession, addExtraTrucksCheckout } from '../../../axios/api/subscription';
-import { FLEET_COLORS } from '../fleetMaintenance/colorUtils';
 
 interface Plan {
   _id: string;
@@ -97,6 +96,11 @@ interface TrialStatus {
   message?: string;
 }
 
+// Self-service plan browsing/checkout/cancel is disabled by client request — all plan changes now
+// go through the Super Admin. Left in place (not deleted) behind this flag so it's easy to
+// re-enable later; flip to `true` to restore the old self-service UI.
+const SELF_SERVICE_PLAN_UI_ENABLED = false;
+
 const SubscriptionPage = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [activeSubscription, setActiveSubscription] = useState<Subscription | null>(null);
@@ -120,14 +124,14 @@ const SubscriptionPage = () => {
 
 
   const primaryButtonStyle: CSSProperties = {
-    background: FLEET_COLORS.gradient,
+    background: 'linear-gradient(90deg, #1a8ee8 0%, #1183e0 40%, #0d6bc7 100%)',
     color: '#fff',
     border: 'none',
-    boxShadow: `0 18px 32px ${FLEET_COLORS.focusRing}`,
+    boxShadow: `0 18px 32px rgba(17, 131, 224, 0.25)`,
   };
   const cardAccentStyle: CSSProperties = {
-    borderColor: FLEET_COLORS.focusRing,
-    boxShadow: `0 25px 45px ${FLEET_COLORS.focusRing}`,
+    borderColor: 'rgba(17, 131, 224, 0.2)',
+    boxShadow: `0 4px 20px rgba(17, 131, 224, 0.1)`,
   };
 
   useEffect(() => {
@@ -297,7 +301,7 @@ const SubscriptionPage = () => {
       case 'expired':
         return <XCircle className="w-5 h-5 text-red-500" />;
       default:
-        return <AlertCircle className="w-5 h-5 text-gray-500" />;
+        return <AlertCircle className="w-5 h-5 text-secondary" />;
     }
   };
 
@@ -330,35 +334,32 @@ const SubscriptionPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50" >
+      <div className="flex justify-center items-center min-h-screen bg-card" >
         <div className="text-center">
           <Spin size="large" />
-          <p className="mt-4 text-black">Loading your subscriptions...</p>
+          <p className="mt-4 text-primary">Loading your subscriptions...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF]">
+    <div className="min-h-screen bg-main">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Enhanced Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <div
-                className="p-3 rounded-2xl shadow-lg"
-
-              >
-                <CreditCard className="w-8 h-8 text-black" />
+              <div className="p-3 rounded-2xl shadow-lg bg-[rgba(17,131,224,0.1)]">
+                <CreditCard className="w-8 h-8 text-[var(--accent-navyblue)]" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold" style={{ color: FLEET_COLORS.light }}>
-                  Subscription & Plans
+                <h1 className="text-4xl font-bold text-primary">
+                  My Subscription
                 </h1>
-                <p className="text-black/90 mt-1 flex items-center gap-2">
+                <p className="text-secondary mt-1 flex items-center gap-2">
                   <Sparkles className="w-4 h-4" />
-                  Manage your subscription and choose from available plans
+                  View your current plan status and renewal date
                 </p>
               </div>
             </div>
@@ -366,52 +367,66 @@ const SubscriptionPage = () => {
         </div>
 
         {/* Prominent Alert Banner for Expired Trial or No Subscription */}
-        {((trialStatus && trialStatus.isTrialExpired && !trialStatus.hasActiveSubscription) || 
+        {((trialStatus && trialStatus.isTrialExpired && !trialStatus.hasActiveSubscription) ||
           (trialStatus && !trialStatus.hasActiveSubscription && !trialStatus.hasTrial)) && (
-          <div className="mb-6">
-            <Alert
-              message={
-                <div className="flex items-center gap-3">
-                  <AlertCircle className="w-6 h-6" />
-                  <div>
-                    <div className="font-bold text-lg">Subscription Required</div>
-                    <div className="text-sm mt-1">
-                      {trialStatus?.isTrialExpired 
-                        ? "Your free trial has expired. You don't have an active subscription plan to use this software. Please subscribe to a plan to continue."
-                        : "You don't have an active subscription plan to use this software. Please subscribe to a plan to continue."}
+            <div className="mb-6">
+              <Alert
+                message={
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="w-6 h-6 text-white" />
+                    <div>
+                      <div className="font-bold text-lg text-white">Subscription Required</div>
+                      <div className="text-sm mt-1 text-white">
+                        {trialStatus?.isTrialExpired
+                          ? "Your free trial has expired. You don't have an active subscription plan to use this software. Please subscribe to a plan to continue."
+                          : "You don't have an active subscription plan to use this software. Please subscribe to a plan to continue."}
+                      </div>
                     </div>
                   </div>
-                </div>
-              }
-              type="error"
-              showIcon={false}
-              closable={false}
-              className="border-2 border-red-500"
-              style={{
-                backgroundColor: '#fef2f2',
-                borderColor: '#ef4444',
-                padding: '20px'
-              }}
-            />
-          </div>
-        )}
+                }
+                type="error"
+                showIcon={false}
+                closable={false}
+                className="border-2 border-red-500"
+                style={{
+                  backgroundColor: 'rgba(239,68,68,0.1)',
+                  borderColor: '#ef4444',
+                  padding: '20px'
+                }}
+              />
+            </div>
+          )}
 
         {/* Trial Status Card */}
         {trialStatus && !trialStatus.hasActiveSubscription && trialStatus.hasTrial && (
-          <div className={`mb-8 relative overflow-hidden rounded-2xl shadow-2xl ${trialStatus.isTrialExpired
-              ? 'bg-gradient-to-br from-red-500 via-red-600 to-orange-600'
+          <div
+          className="mb-8 relative overflow-hidden rounded-2xl shadow-2xl border-2"
+          style={{
+            background: trialStatus.isTrialExpired
+              ? 'linear-gradient(135deg, #1a0a0e 0%, #1f0d12 50%, #150810 100%)'
               : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2
-                ? 'bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500'
-                : 'bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600'
-            }`}>
+                ? 'linear-gradient(135deg, #1a1100 0%, #1f1500 50%, #160e00 100%)'
+                : 'linear-gradient(135deg, #091527 0%, #0d1e3a 50%, #091527 100%)',
+            borderColor: trialStatus.isTrialExpired
+              ? 'rgba(244, 63, 94, 0.4)'
+              : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2
+                ? 'rgba(245, 158, 11, 0.4)'
+                : 'rgba(17, 131, 224, 0.45)',
+            boxShadow: trialStatus.isTrialExpired
+              ? '0 4px 28px rgba(244, 63, 94, 0.15)'
+              : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2
+                ? '0 4px 28px rgba(245, 158, 11, 0.15)'
+                : '0 4px 28px rgba(17, 131, 224, 0.18)',
+          }}
+        >
             <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 pointer-events-none"></div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-card/5 rounded-full -mr-32 -mt-32 pointer-events-none"></div>
 
             <div className="relative p-8 z-10">
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                    <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
                       {trialStatus.isTrialExpired ? (
                         <XCircle className="w-6 h-6 text-white" />
                       ) : (
@@ -424,7 +439,7 @@ const SubscriptionPage = () => {
                       </h2>
                       <p className="text-white/90 mt-1">
                         {trialStatus.isTrialExpired
-                          ? 'Your 7-day free trial has ended. Subscribe now to continue using the platform.'
+                          ? 'Your 1-month free trial has ended. Subscribe now to continue using the platform.'
                           : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2
                             ? `⚠️ Your free trial is expiring soon! Only ${trialStatus.daysRemaining} day${trialStatus.daysRemaining === 1 ? '' : 's'} remaining.`
                             : `You have ${trialStatus.daysRemaining || 0} days remaining in your free trial.`
@@ -434,17 +449,17 @@ const SubscriptionPage = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div className="rounded-xl p-4 border" style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)' }}>
                       <div className="flex items-center gap-2 mb-2">
                         <Calendar className="w-5 h-5 text-white" />
                         <span className="text-white/80 text-sm font-medium">Days Used</span>
                       </div>
                       <p className="text-white text-2xl font-bold">
-                        {trialStatus.daysUsed || 0} / 7
+                        {trialStatus.daysUsed || 0} / {(trialStatus.daysUsed || 0) + (trialStatus.daysRemaining || 0) || 30}
                       </p>
                     </div>
 
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div className="rounded-xl p-4 border" style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)' }}>
                       <div className="flex items-center gap-2 mb-2">
                         <Clock className="w-5 h-5 text-white" />
                         <span className="text-white/80 text-sm font-medium">Days Remaining</span>
@@ -455,7 +470,7 @@ const SubscriptionPage = () => {
                     </div>
 
                     {trialStatus.trialEndDate && (
-                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                      <div className="rounded-xl p-4 border" style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)' }}>
                         <div className="flex items-center gap-2 mb-2">
                           <AlertCircle className="w-5 h-5 text-white" />
                           <span className="text-white/80 text-sm font-medium">Expires On</span>
@@ -473,31 +488,40 @@ const SubscriptionPage = () => {
 
                   {trialStatus.daysRemaining !== undefined && trialStatus.daysRemaining > 0 && (
                     <div className="mb-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-white/80 text-sm font-medium">Trial Progress</span>
-                        <span className="text-white text-sm font-bold">
-                          {Math.round(((7 - (trialStatus.daysRemaining || 0)) / 7) * 100)}%
-                        </span>
-                      </div>
-                      <Progress
-                        percent={Math.round(((7 - (trialStatus.daysRemaining || 0)) / 7) * 100)}
-                        strokeColor="#ffffff"
-                        trailColor="rgba(255,255,255,0.3)"
-                        showInfo={false}
-                      />
+                      {(() => {
+                        const trialLengthDays = (trialStatus.daysUsed || 0) + (trialStatus.daysRemaining || 0) || 30;
+                        const progressPercent = Math.round(((trialLengthDays - (trialStatus.daysRemaining || 0)) / trialLengthDays) * 100);
+                        return (
+                          <>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-white/80 text-sm font-medium">Trial Progress</span>
+                              <span className="text-white text-sm font-bold">
+                                {progressPercent}%
+                              </span>
+                            </div>
+                            <Progress
+                              percent={progressPercent}
+                              strokeColor={
+                                trialStatus.isTrialExpired ? '#F43F5E'
+                                : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2 ? '#F59E0B'
+                                : '#1183e0'
+                              }
+                              trailColor={
+                                trialStatus.isTrialExpired ? 'rgba(244,63,94,0.15)'
+                                : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2 ? 'rgba(245,158,11,0.15)'
+                                : 'rgba(17,131,224,0.15)'
+                              }
+                              showInfo={false}
+                            />
+                          </>
+                        );
+                      })()}
                     </div>
                   )}
 
-                  <div className="flex gap-4">
-                    <Button
-                      type="primary"
-                      size="large"
-                      style={primaryButtonStyle}
-                      onClick={() => setActiveTab('plans')}
-                    >
-                      <ArrowRight className="w-4 h-4 mr-2" />
-                      {trialStatus.isTrialExpired ? 'Subscribe Now' : 'View Plans'}
-                    </Button>
+                  <div className="flex items-center gap-2 text-white/80 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>Contact your account manager to subscribe or change your plan.</span>
                   </div>
                 </div>
               </div>
@@ -508,21 +532,21 @@ const SubscriptionPage = () => {
         {/* Enhanced Active Subscription Card */}
         {activeSubscription && (
           <div
-            className="mb-8 relative overflow-hidden rounded-2xl shadow-2xl bg-white border-2 border-gray-200"
-            style={{ boxShadow: `0 35px 55px ${FLEET_COLORS.focusRing}` }}
+            className="mb-8 relative overflow-hidden rounded-2xl shadow-2xl bg-card border-2 border-theme"
+            style={{ boxShadow: `0 4px 24px rgba(17, 131, 224, 0.12)` }}
           >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full -mr-32 -mt-32 pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-50 rounded-full -ml-24 -mb-24 pointer-events-none"></div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-card rounded-full -mr-32 -mt-32 pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-card rounded-full -ml-24 -mb-24 pointer-events-none"></div>
 
             <div className="relative p-8 z-10">
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg">
-                      <Crown className="w-6 h-6 text-blue-600" />
+                    <div className="p-2 bg-[rgba(17,131,224,0.1)] rounded-lg">
+                      <Crown className="w-6 h-6 text-[var(--accent-navyblue)]" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                      <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
                         Active Subscription
                         {getStatusIcon(activeSubscription.status)}
                       </h2>
@@ -538,34 +562,34 @@ const SubscriptionPage = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+                    <div className="bg-[rgba(17,131,224,0.06)] rounded-xl p-4 border border-[rgba(17,131,224,0.15)]">
                       <div className="flex items-center gap-2 mb-2">
-                        <Package className="w-5 h-5 text-blue-600" />
-                        <span className="text-gray-700 text-sm font-medium">Plan Name</span>
+                        <Package className="w-5 h-5 text-[var(--accent-navyblue)]" />
+                        <span className="text-primary text-sm font-medium">Plan Name</span>
                       </div>
-                      <p className="text-gray-900 text-xl font-bold">
+                      <p className="text-primary text-xl font-bold">
                         {typeof activeSubscription.plan === 'object'
                           ? activeSubscription.plan?.planName
                           : activeSubscription.planSnapshot?.planName || 'Plan'}
                       </p>
                     </div>
 
-                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
+                    <div className="bg-[rgba(168,85,247,0.06)] rounded-xl p-4 border border-[rgba(168,85,247,0.2)]">
                       <div className="flex items-center gap-2 mb-2">
-                        <Zap className="w-5 h-5 text-purple-600" />
-                        <span className="text-gray-700 text-sm font-medium">Subscription Type</span>
+                        <Zap className="w-5 h-5 text-[#A855F7]" />
+                        <span className="text-primary text-sm font-medium">Subscription Type</span>
                       </div>
-                      <p className="text-gray-900 text-xl font-bold capitalize">
+                      <p className="text-primary text-xl font-bold capitalize">
                         {activeSubscription.planType} - {activeSubscription.subscriptionType.replace('-', ' ')}
                       </p>
                     </div>
 
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+                    <div className="bg-[rgba(0,255,163,0.06)] rounded-xl p-4 border border-[rgba(0,255,163,0.2)]">
                       <div className="flex items-center gap-2 mb-2">
-                        <DollarSign className="w-5 h-5 text-green-600" />
-                        <span className="text-gray-700 text-sm font-medium">Amount</span>
+                        <DollarSign className="w-5 h-5 text-[#00FFA3]" />
+                        <span className="text-primary text-sm font-medium">Amount</span>
                       </div>
-                      <p className="text-gray-900 text-2xl font-bold">
+                      <p className="text-primary text-2xl font-bold">
                         {formatPrice(activeSubscription.amount, activeSubscription.currency)}
                         {activeSubscription.planType === 'monthly' && (
                           <span className="text-base font-normal">/month</span>
@@ -574,12 +598,12 @@ const SubscriptionPage = () => {
                     </div>
 
                     {activeSubscription.nextBillingDate && (
-                      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-4 border border-yellow-200">
+                      <div className="bg-[rgba(245,158,11,0.06)] rounded-xl p-4 border border-[rgba(245,158,11,0.2)]">
                         <div className="flex items-center gap-2 mb-2">
-                          <Calendar className="w-5 h-5 text-yellow-600" />
-                          <span className="text-gray-700 text-sm font-medium">Next Billing</span>
+                          <Calendar className="w-5 h-5 text-[#F59E0B]" />
+                          <span className="text-primary text-sm font-medium">Next Billing</span>
                         </div>
-                        <p className="text-gray-900 text-xl font-bold">
+                        <p className="text-primary text-xl font-bold">
                           {new Date(activeSubscription.nextBillingDate).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
@@ -590,13 +614,13 @@ const SubscriptionPage = () => {
                     )}
 
                     {activeSubscription.maxTrucks != null && activeSubscription.maxTrucks > 0 && (
-                      <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-4 border border-indigo-200 md:col-span-2">
+                      <div className="bg-[rgba(17,131,224,0.06)] rounded-xl p-4 border border-[rgba(17,131,224,0.15)] md:col-span-2">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-indigo-600" />
-                            <span className="text-gray-700 text-sm font-medium">Truck Usage</span>
+                            <TrendingUp className="w-5 h-5 text-[var(--accent-navyblue)]" />
+                            <span className="text-primary text-sm font-medium">Truck Usage</span>
                           </div>
-                          <span className="text-gray-900 font-bold">
+                          <span className="text-primary font-bold">
                             {activeSubscription.usedTrucks ?? 0} / {activeSubscription.maxTrucks}
                           </span>
                         </div>
@@ -608,11 +632,11 @@ const SubscriptionPage = () => {
                           strokeColor={
                             (activeSubscription.usedTrucks ?? 0) >= activeSubscription.maxTrucks
                               ? { '0%': '#ef4444', '100%': '#dc2626' }
-                              : { '0%': '#6366f1', '100%': '#4f46e5' }
+                              : { '0%': '#1183e0', '100%': '#00FFA3' }
                           }
                           className="mb-2"
                         />
-                        <p className="text-gray-600 text-xs">
+                        <p className="text-secondary text-xs">
                           {Math.max(0, activeSubscription.maxTrucks - (activeSubscription.usedTrucks ?? 0))} truck slot{Math.max(0, activeSubscription.maxTrucks - (activeSubscription.usedTrucks ?? 0)) !== 1 ? 's' : ''} remaining
                           {activeSubscription.extraTrucksPurchased ? ` (includes ${activeSubscription.extraTrucksPurchased} extra purchased)` : ''}
                         </p>
@@ -620,7 +644,7 @@ const SubscriptionPage = () => {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 text-gray-600 text-sm">
+                  <div className="flex items-center gap-2 text-secondary text-sm">
                     <Clock className="w-4 h-4" />
                     <span>Started on {new Date(activeSubscription.startDate).toLocaleDateString('en-US', {
                       month: 'long',
@@ -630,14 +654,21 @@ const SubscriptionPage = () => {
                   </div>
                 </div>
 
-                {activeSubscription.status === 'active' && (
+                {/* Cancelling is plan management — kept out of the customer-facing UI per client
+                    request (contact your account manager instead). Not deleted: gated behind
+                    SELF_SERVICE_PLAN_UI_ENABLED so it's easy to re-enable. */}
+                {SELF_SERVICE_PLAN_UI_ENABLED && activeSubscription!.status === 'active' && (
                   <div className="lg:self-start">
                     <Button
                       danger
                       size="large"
                       icon={<X className="w-4 h-4" />}
-                      onClick={(e) => handleCancelSubscription(activeSubscription._id, e)}
-                      className="bg-red-500 hover:bg-red-600 border-red-500 hover:border-red-600 text-white font-semibold shadow-lg"
+                      onClick={(e) => handleCancelSubscription(activeSubscription!._id, e)}
+                      className="
+      !bg-red-500 !hover:bg-red-600 !border-red-500 hover:border-red-600
+      !dark:bg-red-700 dark:hover:bg-red-800 dark:border-red-700 dark:hover:border-red-800
+      !text-white font-semibold shadow-lg
+    "
                       style={{ pointerEvents: 'auto', zIndex: 10 }}
                     >
                       Cancel Subscription
@@ -649,19 +680,24 @@ const SubscriptionPage = () => {
           </div>
         )}
 
+        {/* Self-service plan browsing/checkout/add-trucks is disabled by client request — customers
+            only see their read-only subscription status now; all plan changes go through Super Admin.
+            Left in place (not deleted) behind SELF_SERVICE_PLAN_UI_ENABLED so it can be re-enabled easily later. */}
+        {SELF_SERVICE_PLAN_UI_ENABLED && (
+        <>
         {/* ── Add More Trucks (active subscription only) ── */}
-        {activeSubscription && activeSubscription.status === 'active' && (() => {
-          const activePlan = typeof activeSubscription.plan === 'object' ? activeSubscription.plan as Plan : null;
+        {activeSubscription && activeSubscription!.status === 'active' && (() => {
+          const activePlan = typeof activeSubscription!.plan === 'object' ? activeSubscription!.plan as Plan : null;
           const extraTruckPrice = activePlan?.monthly?.truckPricing?.extraTruckPrice ?? 0;
           const extraTruckCurrency = activePlan?.monthly?.truckPricing?.extraTruckCurrency ?? 'CAD';
-          const currentMaxTrucks = activeSubscription.maxTrucks ?? activeSubscription.truckCount ?? 0;
-          const extraAlreadyPurchased = activeSubscription.extraTrucksPurchased ?? 0;
+          const currentMaxTrucks = activeSubscription!.maxTrucks ?? activeSubscription!.truckCount ?? 0;
+          const extraAlreadyPurchased = activeSubscription!.extraTrucksPurchased ?? 0;
           if (extraTruckPrice <= 0) return null;
           return (
-            <div className="mb-8 bg-white rounded-2xl shadow-lg border-2 border-orange-200 overflow-hidden">
+            <div className="mb-8 bg-card rounded-2xl shadow-lg border-2 border-[rgba(245,158,11,0.3)] overflow-hidden">
               <div className="px-6 py-4 bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/20 rounded-xl">
+                  <div className="p-2 bg-card/20 rounded-xl">
                     <Truck className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -673,39 +709,39 @@ const SubscriptionPage = () => {
                   size="large"
                   icon={<TrendingUp className="w-4 h-4" />}
                   onClick={() => { setAddTruckCount(1); setShowAddTruckModal(true); }}
-                  className="bg-white text-orange-600 border-white font-bold hover:bg-orange-50 flex-shrink-0"
+                  className="bg-card !text-white hover:!text-blue-500 border-white/30 font-bold hover:bg-[rgba(245,158,11,0.1)] flex-shrink-0"
                 >
                   Add Trucks
                 </Button>
               </div>
               <div className="px-6 py-4 flex flex-wrap gap-6 items-center">
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Truck className="w-4 h-4 text-orange-600" />
+                  <div className="w-9 h-9 bg-[rgba(245,158,11,0.1)] rounded-lg flex items-center justify-center">
+                    <Truck className="w-4 h-4 text-[#F59E0B]" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 font-medium">Current Truck Limit</p>
-                    <p className="text-lg font-bold text-gray-900">{currentMaxTrucks} trucks</p>
+                    <p className="text-xs text-secondary font-medium">Current Truck Limit</p>
+                    <p className="text-lg font-bold text-primary">{currentMaxTrucks} trucks</p>
                   </div>
                 </div>
                 {extraAlreadyPurchased > 0 && (
                   <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    <div className="w-9 h-9 bg-[rgba(0,255,163,0.1)] rounded-lg flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-[#00FFA3]" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 font-medium">Extra Trucks Added</p>
-                      <p className="text-lg font-bold text-gray-900">+{extraAlreadyPurchased} trucks</p>
+                      <p className="text-xs text-secondary font-medium">Extra Trucks Added</p>
+                      <p className="text-lg font-bold text-primary">+{extraAlreadyPurchased} trucks</p>
                     </div>
                   </div>
                 )}
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <DollarSign className="w-4 h-4 text-orange-600" />
+                  <div className="w-9 h-9 bg-[rgba(245,158,11,0.1)] rounded-lg flex items-center justify-center">
+                    <DollarSign className="w-4 h-4 text-[#F59E0B]" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 font-medium">Rate Per Extra Truck</p>
-                    <p className="text-lg font-bold text-orange-600">{formatPrice(extraTruckPrice, extraTruckCurrency)}<span className="text-sm font-normal text-gray-500">/truck/mo</span></p>
+                    <p className="text-xs text-secondary font-medium">Rate Per Extra Truck</p>
+                    <p className="text-lg font-bold text-[#F59E0B]">{formatPrice(extraTruckPrice, extraTruckCurrency)}<span className="text-sm font-normal text-secondary">/truck/mo</span></p>
                   </div>
                 </div>
               </div>
@@ -717,10 +753,10 @@ const SubscriptionPage = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
-                <Star className="w-5 h-5 text-white" />
+              <div className="p-2 bg-[rgba(168,85,247,0.15)] rounded-lg">
+                <Star className="w-5 h-5 text-[#A855F7]" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900">Available Plans</h2>
+              <h2 className="text-3xl font-bold text-primary">Available Plans</h2>
             </div>
           </div>
 
@@ -731,7 +767,7 @@ const SubscriptionPage = () => {
               {
                 key: 'plans',
                 label: (
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-2 text-white">
                     <Package className="w-4 h-4" />
                     All Plans
                   </span>
@@ -740,7 +776,7 @@ const SubscriptionPage = () => {
               {
                 key: 'history',
                 label: (
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-2 text-white">
                     <History className="w-4 h-4" />
                     Subscription History
                   </span>
@@ -766,7 +802,7 @@ const SubscriptionPage = () => {
                 const activeSubType = activeSubscription?.subscriptionType;
                 const defaultTab: 'monthly' | '6months' | 'annual' =
                   isCurrentPlan && activeSubType === '6-months' ? '6months' :
-                  isCurrentPlan && activeSubType === '1-year' ? 'annual' : 'monthly';
+                    isCurrentPlan && activeSubType === '1-year' ? 'annual' : 'monthly';
                 const planTab = pricingTabs[plan._id] ?? defaultTab;
 
                 // Determine which tier index matches the active subscription
@@ -780,14 +816,14 @@ const SubscriptionPage = () => {
                 return (
                   <div
                     key={plan._id}
-                    className={`bg-white rounded-3xl shadow-xl overflow-hidden border-2 transition-all duration-300 ${isCurrentPlan ? 'border-blue-400 ring-4 ring-blue-50' : 'border-gray-100 hover:border-gray-200'}`}
+                    className={`bg-card rounded-3xl shadow-xl overflow-hidden border-2 transition-all duration-300 ${isCurrentPlan ? 'border-[var(--accent-navyblue)]' : 'border-theme hover:border-theme'}`}
                   >
                     {/* ── Plan Header ── */}
-                    <div className={`px-8 py-6 ${isCurrentPlan ? 'bg-gradient-to-r from-blue-600 to-indigo-700' : 'bg-gradient-to-r from-slate-700 to-slate-800'}`}>
+                    <div className={`px-8 py-6 ${isCurrentPlan ? 'bg-[var(--accent-navyblue)]' : 'bg-gradient-to-r from-slate-700 to-slate-800'}`}>
                       <div className="flex items-start justify-between gap-4 flex-wrap">
                         <div>
                           <div className="flex items-center gap-3 mb-1 flex-wrap">
-                            <div className="p-2 bg-white/20 rounded-xl">
+                            <div className="p-2 bg-card/20 rounded-xl">
                               <Truck className="w-5 h-5 text-white" />
                             </div>
                             <h3 className="text-2xl font-bold text-white">{plan.planName}</h3>
@@ -800,7 +836,7 @@ const SubscriptionPage = () => {
                           )}
                         </div>
                         {isCurrentPlan && (
-                          <div className="bg-white/15 backdrop-blur border border-white/30 px-4 py-2 rounded-xl flex items-center gap-2 flex-shrink-0">
+                          <div className="bg-card/15 backdrop-blur border border-white/30 px-4 py-2 rounded-xl flex items-center gap-2 flex-shrink-0">
                             <Crown className="w-4 h-4 text-yellow-300" />
                             <span className="text-white font-bold text-sm">Your Active Plan</span>
                           </div>
@@ -813,7 +849,7 @@ const SubscriptionPage = () => {
                         <>
                           {/* ── Billing Period Selector ── */}
                           <div className="flex justify-center mb-8">
-                            <div className="inline-flex bg-gray-100 rounded-2xl p-1 gap-1">
+                            <div className="inline-flex bg-[#0B1220] rounded-2xl p-1 gap-1 border border-[rgba(17,131,224,0.12)]">
                               {(['monthly', '6months', 'annual'] as const).map((tab) => {
                                 const isActiveTab = planTab === tab;
                                 const isCurrentBillingTab = isCurrentPlan && (
@@ -825,22 +861,20 @@ const SubscriptionPage = () => {
                                   <button
                                     key={tab}
                                     onClick={() => setPricingTabs(prev => ({ ...prev, [plan._id]: tab }))}
-                                    className={`relative px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex flex-col items-center min-w-[110px] ${
-                                      isActiveTab
-                                        ? 'bg-white shadow-md text-blue-700 ring-1 ring-blue-100'
-                                        : 'text-gray-500 hover:text-gray-700'
-                                    }`}
+                                    className={`relative px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex flex-col items-center min-w-[110px] ${isActiveTab
+                                        ? 'bg-[#182235] shadow-md text-[#00D1FF] ring-1 ring-[rgba(0,209,255,0.2)]'
+                                        : 'text-secondary hover:text-primary'
+                                      }`}
                                   >
                                     <span>{tab === 'monthly' ? 'Monthly' : tab === '6months' ? '6 Months' : 'Annual'}</span>
-                                    <span className={`text-[10px] font-bold mt-0.5 ${
-                                      isActiveTab
-                                        ? tab === '6months' ? 'text-amber-500' : tab === 'annual' ? 'text-green-600' : 'text-transparent'
-                                        : 'text-gray-400'
-                                    }`}>
+                                    <span className={`text-[10px] font-bold mt-0.5 ${isActiveTab
+                                        ? tab === '6months' ? 'text-[#F59E0B]' : tab === 'annual' ? 'text-[#00FFA3]' : 'text-transparent'
+                                        : 'text-secondary'
+                                      }`}>
                                       {tab === '6months' ? `+${bonusDays} days free` : tab === 'annual' ? `+${freeMonths} mo free` : '‎'}
                                     </span>
                                     {isCurrentBillingTab && (
-                                      <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-sm" />
+                                      <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-[var(--accent-navyblue)] rounded-full border-2 border-[#121A2B] shadow-sm" />
                                     )}
                                   </button>
                                 );
@@ -850,30 +884,30 @@ const SubscriptionPage = () => {
 
                           {/* ── Savings / Bonus Banner ── */}
                           {planTab === '6months' && (
-                            <div className="mb-6 flex items-center gap-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl px-6 py-4">
-                              <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                            <div className="mb-6 flex items-center gap-4 bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.3)] rounded-2xl px-6 py-4">
+                              <div className="w-10 h-10 bg-[#F59E0B] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
                                 <Zap className="w-5 h-5 text-white" />
                               </div>
                               <div>
-                                <p className="text-sm font-bold text-amber-900">6-Month Plan Bonus</p>
-                                <p className="text-xs text-amber-700 mt-0.5">Pay for 6 months and receive <strong>{bonusDays} extra days</strong> of access — completely free</p>
+                                <p className="text-sm font-bold text-[#F59E0B]">6-Month Plan Bonus</p>
+                                <p className="text-xs text-secondary mt-0.5">Pay for 6 months and receive <strong>{bonusDays} extra days</strong> of access — completely free</p>
                               </div>
                               <div className="ml-auto text-right flex-shrink-0">
-                                <span className="bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1.5 rounded-full">+{bonusDays} Days</span>
+                                <span className="bg-[rgba(245,158,11,0.2)] text-[#F59E0B] text-xs font-bold px-3 py-1.5 rounded-full">+{bonusDays} Days</span>
                               </div>
                             </div>
                           )}
                           {planTab === 'annual' && (
-                            <div className="mb-6 flex items-center gap-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl px-6 py-4">
-                              <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                                <Star className="w-5 h-5 text-white" />
+                            <div className="mb-6 flex items-center gap-4 bg-[rgba(0,255,163,0.08)] border border-[rgba(0,255,163,0.3)] rounded-2xl px-6 py-4">
+                              <div className="w-10 h-10 bg-[#00FFA3] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                                <Star className="w-5 h-5 text-[#0B1220]" />
                               </div>
                               <div>
-                                <p className="text-sm font-bold text-green-900">Annual Plan — Best Value</p>
-                                <p className="text-xs text-green-700 mt-0.5">Pay 12 months upfront and get <strong>{freeMonths} month{freeMonths > 1 ? 's' : ''} completely free</strong></p>
+                                <p className="text-sm font-bold text-[#00FFA3]">Annual Plan — Best Value</p>
+                                <p className="text-xs text-secondary mt-0.5">Pay 12 months upfront and get <strong>{freeMonths} month{freeMonths > 1 ? 's' : ''} completely free</strong></p>
                               </div>
                               <div className="ml-auto text-right flex-shrink-0">
-                                <span className="bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-full">+{freeMonths} Mo Free</span>
+                                <span className="bg-[rgba(0,255,163,0.2)] text-[#00FFA3] text-xs font-bold px-3 py-1.5 rounded-full">+{freeMonths} Mo Free</span>
                               </div>
                             </div>
                           )}
@@ -899,55 +933,54 @@ const SubscriptionPage = () => {
                               return (
                                 <div
                                   key={tier._id}
-                                  className={`relative rounded-2xl border-2 p-6 transition-all duration-200 flex flex-col ${
-                                    isCurrentTabAndTier
-                                      ? 'border-blue-500 bg-gradient-to-b from-blue-50 to-indigo-50 shadow-xl ring-2 ring-blue-100'
+                                  className={`relative rounded-2xl border-2 p-6 transition-all duration-200 flex flex-col ${isCurrentTabAndTier
+                                      ? 'border-[#00D1FF] bg-[rgba(0,209,255,0.06)] shadow-xl ring-2 ring-[rgba(0,209,255,0.15)]'
                                       : isActiveTier
-                                        ? 'border-blue-200 bg-blue-50/40 shadow-md'
-                                        : 'border-gray-200 bg-white hover:border-blue-200 hover:shadow-lg'
-                                  }`}
+                                        ? 'border-[rgba(0,209,255,0.3)] bg-[rgba(0,209,255,0.03)] shadow-md'
+                                        : 'border-theme bg-card hover:border-[rgba(0,209,255,0.25)] hover:shadow-lg'
+                                    }`}
                                 >
                                   {/* "Your Current Plan" badge */}
                                   {isCurrentTabAndTier && (
-                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-4 py-1 rounded-full flex items-center gap-1.5 shadow-lg whitespace-nowrap">
+                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[var(--accent-navyblue)] text-[#0B1220] text-xs font-bold px-4 py-1 rounded-full flex items-center gap-1.5 shadow-lg whitespace-nowrap">
                                       <CheckCircle className="w-3 h-3" />
                                       Your Current Plan
                                     </div>
                                   )}
                                   {/* "Same tier, different billing" hint */}
                                   {isActiveTier && !isCurrentTabAndTier && (
-                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-400 text-white text-xs font-semibold px-4 py-1 rounded-full whitespace-nowrap shadow">
+                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[rgba(17,131,224,0.2)] text-[var(--accent-navyblue)] text-xs font-semibold px-4 py-1 rounded-full whitespace-nowrap shadow border border-[rgba(17,131,224,0.3)]">
                                       Your Tier
                                     </div>
                                   )}
 
                                   {/* Tier label */}
                                   <div className="flex items-center gap-3 mb-5">
-                                    <div className={`p-2.5 rounded-xl ${isCurrentTabAndTier ? 'bg-blue-600' : 'bg-orange-100'}`}>
-                                      <Truck className={`w-5 h-5 ${isCurrentTabAndTier ? 'text-white' : 'text-orange-600'}`} />
+                                    <div className={`p-2.5 rounded-xl ${isCurrentTabAndTier ? 'bg-[var(--accent-navyblue)]' : 'bg-[rgba(245,158,11,0.1)]'}`}>
+                                      <Truck className={`w-5 h-5 ${isCurrentTabAndTier ? 'text-[#0B1220]' : 'text-[#F59E0B]'}`} />
                                     </div>
                                     <div>
-                                      <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Fleet Size</p>
-                                      <p className="text-xl font-bold text-gray-900">{tier.minTrucks}–{tier.maxTrucks} Trucks</p>
+                                      <p className="text-[11px] text-secondary font-semibold uppercase tracking-wider">Fleet Size</p>
+                                      <p className="text-xl font-bold text-primary">{tier.minTrucks}–{tier.maxTrucks} Trucks</p>
                                     </div>
                                   </div>
 
                                   {/* Price block */}
                                   <div className="mb-5 flex-1">
                                     {strikethroughPrice && (
-                                      <p className="text-sm text-gray-400 line-through mb-0.5">{formatPrice(strikethroughPrice, currency)}</p>
+                                      <p className="text-sm text-secondary line-through mb-0.5">{formatPrice(strikethroughPrice, currency)}</p>
                                     )}
                                     <div className="flex items-baseline gap-1.5">
-                                      <span className={`text-4xl font-extrabold ${isCurrentTabAndTier ? 'text-blue-700' : 'text-gray-900'}`}>
+                                      <span className={`text-4xl font-extrabold ${isCurrentTabAndTier ? 'text-[var(--accent-navyblue)]' : 'text-primary'}`}>
                                         {formatPrice(displayPrice, currency)}
                                       </span>
-                                      <span className="text-sm text-gray-400 font-medium">
+                                      <span className="text-sm text-secondary font-medium">
                                         {planTab === 'monthly' ? '/mo' : planTab === '6months' ? '/6 mo' : '/yr'}
                                       </span>
                                     </div>
                                     {planTab !== 'monthly' && (
-                                      <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
-                                        <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                                      <p className="text-xs text-secondary mt-1.5 flex items-center gap-1">
+                                        <span className="w-1 h-1 bg-[#8B9BB4] rounded-full" />
                                         {formatPrice(baseMonthly, currency)}/mo equivalent
                                       </p>
                                     )}
@@ -959,21 +992,21 @@ const SubscriptionPage = () => {
                                     const billingFactor = planTab === 'monthly' ? 1 : planTab === '6months' ? 6 : 12;
                                     const billingLabel = planTab === 'monthly' ? '/mo' : planTab === '6months' ? '/6 mo' : '/yr';
                                     return (
-                                      <div className="mb-4 rounded-lg border border-orange-200 bg-orange-50 overflow-hidden">
-                                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 border-b border-orange-200">
-                                          <TrendingUp className="w-3 h-3 text-orange-500" />
-                                          <span className="text-[10px] font-bold text-orange-700 uppercase tracking-wide">Additional Trucks</span>
+                                      <div className="mb-4 rounded-lg border border-[rgba(245,158,11,0.25)] bg-card overflow-hidden">
+                                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[rgba(245,158,11,0.08)] border-b border-[rgba(245,158,11,0.2)]">
+                                          <TrendingUp className="w-3 h-3 text-[#F59E0B]" />
+                                          <span className="text-[10px] font-bold text-[#F59E0B] uppercase tracking-wide">Additional Trucks</span>
                                         </div>
                                         <div className="flex items-center justify-between px-3 py-2">
-                                          <span className="text-xs text-gray-600">Beyond {lastTierMax} trucks</span>
-                                          <span className="text-xs font-bold text-orange-600">+{formatPrice(extraPrice * billingFactor, extraCurrency)}{billingLabel}/truck</span>
+                                          <span className="text-xs text-secondary">Beyond {lastTierMax} trucks</span>
+                                          <span className="text-xs font-bold text-[#F59E0B]">+{formatPrice(extraPrice * billingFactor, extraCurrency)}{billingLabel}/truck</span>
                                         </div>
                                       </div>
                                     );
                                   })()}
 
                                   {/* Divider */}
-                                  <div className={`h-px mb-5 ${isCurrentTabAndTier ? 'bg-blue-200' : 'bg-gray-100'}`} />
+                                  <div className={`h-px mb-5 ${isCurrentTabAndTier ? 'bg-[rgba(17,131,224,0.2)]' : 'bg-[rgba(255,255,255,0.06)]'}`} />
 
                                   {/* CTA */}
                                   <Button
@@ -1003,18 +1036,18 @@ const SubscriptionPage = () => {
                             const extraDisplayPrice = extraPrice * billingFactor;
                             const lastTierMax = tiers[tiers.length - 1]?.maxTrucks ?? 0;
                             return (
-                              <div className="mb-6 rounded-2xl border-2 border-dashed border-orange-200 bg-orange-50 overflow-hidden">
-                                <div className="flex items-center gap-2 px-5 py-3 bg-orange-100 border-b border-orange-200">
-                                  <TrendingUp className="w-4 h-4 text-orange-600" />
-                                  <span className="text-sm font-bold text-orange-800">Additional Trucks Beyond {lastTierMax}</span>
+                              <div className="mb-6 rounded-2xl border-2 border-dashed border-[rgba(245,158,11,0.35)] bg-card overflow-hidden">
+                                <div className="flex items-center gap-2 px-5 py-3 bg-[rgba(245,158,11,0.08)] border-b border-[rgba(245,158,11,0.2)]">
+                                  <TrendingUp className="w-4 h-4 text-[#F59E0B]" />
+                                  <span className="text-sm font-bold text-[#F59E0B]">Additional Trucks Beyond {lastTierMax}</span>
                                 </div>
                                 <div className="flex items-center gap-5 flex-wrap px-5 py-4">
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-gray-700">Have more than <strong>{lastTierMax} trucks</strong>? Add extras at a flat per-truck rate — no plan change needed.</p>
-                                    <p className="text-xs text-gray-500 mt-1">Base rate: {formatPrice(extraPrice, extraCurrency)}/truck/month</p>
+                                    <p className="text-sm text-primary">Have more than <strong>{lastTierMax} trucks</strong>? Add extras at a flat per-truck rate — no plan change needed.</p>
+                                    <p className="text-xs text-secondary mt-1">Base rate: {formatPrice(extraPrice, extraCurrency)}/truck/month</p>
                                   </div>
                                   <div className="text-right flex-shrink-0">
-                                    <p className="text-2xl font-extrabold text-orange-600">{formatPrice(extraDisplayPrice, extraCurrency)}</p>
+                                    <p className="text-2xl font-extrabold text-[#F59E0B]">{formatPrice(extraDisplayPrice, extraCurrency)}</p>
                                     <p className="text-xs text-orange-500 font-medium">{billingLabel}</p>
                                   </div>
                                 </div>
@@ -1026,15 +1059,15 @@ const SubscriptionPage = () => {
 
                       {/* ── Features ── */}
                       {plan.features && plan.features.filter(f => f.included).length > 0 && (
-                        <div className={`${tiers.length > 0 ? 'border-t border-gray-100 pt-6' : ''}`}>
-                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">What's Included</p>
+                        <div className={`${tiers.length > 0 ? 'border-t border-theme pt-6' : ''}`}>
+                          <p className="text-xs font-bold text-secondary uppercase tracking-widest mb-4">What's Included</p>
                           <div className={`grid gap-2.5 ${plan.features.filter(f => f.included).length > 4 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
                             {plan.features.filter(f => f.included).map((f, fIdx) => (
                               <div key={fIdx} className="flex items-center gap-2.5">
-                                <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                  <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                                <div className="w-5 h-5 bg-[rgba(0,255,163,0.1)] rounded-full flex items-center justify-center flex-shrink-0">
+                                  <CheckCircle className="w-3.5 h-3.5 text-[#00FFA3]" />
                                 </div>
-                                <span className="text-sm text-gray-700">{f.name}</span>
+                                <span className="text-sm text-primary">{f.name}</span>
                               </div>
                             ))}
                           </div>
@@ -1055,14 +1088,14 @@ const SubscriptionPage = () => {
                   {subscriptions.map((sub) => (
                     <Card
                       key={sub._id}
-                      className="hover:shadow-lg transition-all duration-300 border-2 border-gray-200 hover:border-purple-300 !mb-4"
+                      className="hover:shadow-lg transition-all duration-300 border-2 border-theme hover:border-[#1183e0]/40 !mb-4"
                       style={cardAccentStyle}
                     >
                       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-4">
                             {getStatusIcon(sub.status)}
-                            <h3 className="text-xl font-bold text-gray-900">
+                            <h3 className="text-xl font-bold text-primary">
                               {typeof sub.plan === 'object'
                                 ? sub.plan?.planName
                                 : sub.planSnapshot?.planName || 'Plan'}
@@ -1073,24 +1106,24 @@ const SubscriptionPage = () => {
                             </Tag>
                           </div>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-200">
+                            <div className="bg-[rgba(17,131,224,0.06)] rounded-lg p-3 border border-[rgba(17,131,224,0.15)]">
                               <div className="flex items-center gap-2 mb-1">
-                                <DollarSign className="w-4 h-4 text-blue-600" />
-                                <span className="text-xs text-gray-600 font-medium">Amount</span>
+                                <DollarSign className="w-4 h-4 text-[var(--accent-navyblue)]" />
+                                <span className="text-xs text-secondary font-medium">Amount</span>
                               </div>
-                              <p className="text-lg font-bold text-gray-900">
+                              <p className="text-lg font-bold text-primary">
                                 {formatPrice(sub.amount, sub.currency)}
                                 {sub.planType === 'monthly' && (
-                                  <span className="text-sm font-normal text-gray-600">/month</span>
+                                  <span className="text-sm font-normal text-secondary">/month</span>
                                 )}
                               </p>
                             </div>
-                            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-3 border border-purple-200">
+                            <div className="bg-[rgba(168,85,247,0.06)] rounded-lg p-3 border border-[rgba(168,85,247,0.2)]">
                               <div className="flex items-center gap-2 mb-1">
-                                <Calendar className="w-4 h-4 text-purple-600" />
-                                <span className="text-xs text-gray-600 font-medium">Started</span>
+                                <Calendar className="w-4 h-4 text-[#A855F7]" />
+                                <span className="text-xs text-secondary font-medium">Started</span>
                               </div>
-                              <p className="text-sm font-bold text-gray-900">
+                              <p className="text-sm font-bold text-primary">
                                 {new Date(sub.startDate).toLocaleDateString('en-US', {
                                   month: 'short',
                                   day: 'numeric',
@@ -1099,12 +1132,12 @@ const SubscriptionPage = () => {
                               </p>
                             </div>
                             {sub.nextBillingDate && (
-                              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-3 border border-green-200">
+                              <div className="bg-[rgba(0,255,163,0.06)] rounded-lg p-3 border border-[rgba(0,255,163,0.2)]">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <Clock className="w-4 h-4 text-green-600" />
-                                  <span className="text-xs text-gray-600 font-medium">Next Billing</span>
+                                  <Clock className="w-4 h-4 text-[#00FFA3]" />
+                                  <span className="text-xs text-secondary font-medium">Next Billing</span>
                                 </div>
-                                <p className="text-sm font-bold text-gray-900">
+                                <p className="text-sm font-bold text-primary">
                                   {new Date(sub.nextBillingDate).toLocaleDateString('en-US', {
                                     month: 'short',
                                     day: 'numeric',
@@ -1114,12 +1147,12 @@ const SubscriptionPage = () => {
                               </div>
                             )}
                             {sub.installments && (
-                              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-3 border border-yellow-200">
+                              <div className="bg-[rgba(245,158,11,0.06)] rounded-lg p-3 border border-[rgba(245,158,11,0.2)]">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <TrendingUp className="w-4 h-4 text-yellow-600" />
-                                  <span className="text-xs text-gray-600 font-medium">Installments</span>
+                                  <TrendingUp className="w-4 h-4 text-[#F59E0B]" />
+                                  <span className="text-xs text-secondary font-medium">Installments</span>
                                 </div>
-                                <p className="text-sm font-bold text-gray-900">
+                                <p className="text-sm font-bold text-primary">
                                   {sub.installments.paid}/{sub.installments.total}
                                 </p>
                               </div>
@@ -1132,7 +1165,7 @@ const SubscriptionPage = () => {
                             size="large"
                             icon={<X className="w-4 h-4" />}
                             onClick={(e) => handleCancelSubscription(sub._id, e)}
-                            className="lg:self-start"
+                            className="lg:self-start !bg-red-500 !text-white"
                             style={{ pointerEvents: 'auto', zIndex: 10 }}
                           >
                             Cancel
@@ -1144,24 +1177,26 @@ const SubscriptionPage = () => {
                 </div>
               ) : (
                 <Card className="text-center py-12">
-                  <History className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Subscription History</h3>
-                  <p className="text-gray-600">You don't have any past subscriptions yet.</p>
+                  <History className="w-16 h-16 text-secondary mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-primary mb-2">No Subscription History</h3>
+                  <p className="text-secondary">You don't have any past subscriptions yet.</p>
                 </Card>
               )}
             </div>
           )}
         </div>
+        </>
+        )}
       </div>
 
       {/* Enhanced Subscribe Confirmation Modal */}
       <Modal
         title={
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg">
+            <div className="p-2 bg-[var(--accent-navyblue)] rounded-lg">
               <CreditCard className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold">Confirm Subscription</span>
+            <span className="text-xl font-bold text-primary">Confirm Subscription</span>
           </div>
         }
         open={showSubscribeModal}
@@ -1201,27 +1236,33 @@ const SubscriptionPage = () => {
           </Button>,
         ]}
         width={600}
+        styles={{
+          content: { background: 'var(--bg-card)', padding: 0 },
+          header: { background: 'var(--bg-card)', padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 0 },
+          body: { background: 'var(--bg-card)', padding: '0 24px' },
+          footer: { background: 'var(--bg-card)', padding: '16px 24px 20px', borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 0 },
+        }}
       >
         {selectedPlan && (
           <div className="space-y-6 py-4">
-            <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-4 border-2 border-purple-200">
-              <p className="text-gray-700 mb-2">
+            <div className="bg-[rgba(17,131,224,0.08)] rounded-xl p-4 border-2 border-[rgba(17,131,224,0.25)]">
+              <p className="text-primary mb-2">
                 You are about to subscribe to
               </p>
-              <h3 className="text-2xl font-bold text-purple-900 mb-4">{selectedPlan.planName}</h3>
+              <h3 className="text-2xl font-bold text-primary mb-4">{selectedPlan.planName}</h3>
               <div className="flex items-center gap-2">
                 <Tag color={selectedPlan.planType === 'lifetime' ? 'blue' : 'green'}>
                   {selectedPlan.planType}
                 </Tag>
-                <span className="text-gray-600 text-sm">with the following option:</span>
+                <span className="text-secondary text-sm">with the following option:</span>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border-2 border-gray-200">
+            <div className="bg-[#0B1220] rounded-xl p-6 border-2 border-theme">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-purple-600" />
-                  <p className="font-bold text-gray-900 text-lg capitalize">
+                  <Zap className="w-5 h-5 text-[var(--accent-navyblue)]" />
+                  <p className="font-bold text-primary text-lg capitalize">
                     {selectedType.replace('-', ' ')}
                   </p>
                 </div>
@@ -1230,28 +1271,28 @@ const SubscriptionPage = () => {
                 <>
                   {selectedType === 'one-time' && (
                     <div>
-                      <p className="text-3xl font-bold text-gray-900 mb-2">
+                      <p className="text-3xl font-bold text-primary mb-2">
                         {formatPrice(selectedPlan.lifetime.oneTime.price, selectedPlan.lifetime.oneTime.currency)}
                       </p>
-                      <p className="text-sm text-gray-600">One-time payment, lifetime access</p>
+                      <p className="text-sm text-secondary">One-time payment, lifetime access</p>
                     </div>
                   )}
                   {selectedType === '3-months' && (
                     <div>
-                      <p className="text-3xl font-bold text-gray-900 mb-2">
+                      <p className="text-3xl font-bold text-primary mb-2">
                         {formatPrice(selectedPlan.lifetime.installments?.threeMonths?.price ?? 0, selectedPlan.lifetime.installments?.threeMonths?.currency ?? 'CAD')}
-                        <span className="text-lg font-normal text-gray-600">/month</span>
+                        <span className="text-lg font-normal text-secondary">/month</span>
                       </p>
-                      <p className="text-sm text-gray-600">3 monthly payments of {formatPrice(selectedPlan.lifetime.installments?.threeMonths?.price ?? 0, selectedPlan.lifetime.installments?.threeMonths?.currency ?? 'CAD')}</p>
+                      <p className="text-sm text-secondary">3 monthly payments of {formatPrice(selectedPlan.lifetime.installments?.threeMonths?.price ?? 0, selectedPlan.lifetime.installments?.threeMonths?.currency ?? 'CAD')}</p>
                     </div>
                   )}
                   {selectedType === '6-months' && (
                     <div>
-                      <p className="text-3xl font-bold text-gray-900 mb-2">
+                      <p className="text-3xl font-bold text-primary mb-2">
                         {formatPrice(selectedPlan.lifetime.installments?.sixMonths?.price ?? 0, selectedPlan.lifetime.installments?.sixMonths?.currency ?? 'CAD')}
-                        <span className="text-lg font-normal text-gray-600">/month</span>
+                        <span className="text-lg font-normal text-secondary">/month</span>
                       </p>
-                      <p className="text-sm text-gray-600">6 monthly payments of {formatPrice(selectedPlan.lifetime.installments?.sixMonths?.price ?? 0, selectedPlan.lifetime.installments?.sixMonths?.currency ?? 'CAD')}</p>
+                      <p className="text-sm text-secondary">6 monthly payments of {formatPrice(selectedPlan.lifetime.installments?.sixMonths?.price ?? 0, selectedPlan.lifetime.installments?.sixMonths?.currency ?? 'CAD')}</p>
                     </div>
                   )}
                 </>
@@ -1260,20 +1301,20 @@ const SubscriptionPage = () => {
                 <>
                   {selectedType === 'full-app' && (
                     <div>
-                      <p className="text-3xl font-bold text-gray-900 mb-2">
+                      <p className="text-3xl font-bold text-primary mb-2">
                         {formatPrice(selectedPlan.monthly.fullApp?.price ?? 0, selectedPlan.monthly.fullApp?.currency ?? 'CAD')}
-                        <span className="text-lg font-normal text-gray-600">/month</span>
+                        <span className="text-lg font-normal text-secondary">/month</span>
                       </p>
-                      <p className="text-sm text-gray-600">Complete feature bundle</p>
+                      <p className="text-sm text-secondary">Complete feature bundle</p>
                     </div>
                   )}
                   {selectedType === 'without-hr' && (
                     <div>
-                      <p className="text-3xl font-bold text-gray-900 mb-2">
+                      <p className="text-3xl font-bold text-primary mb-2">
                         {formatPrice(selectedPlan.monthly.withoutHR?.price ?? 0, selectedPlan.monthly.withoutHR?.currency ?? 'CAD')}
-                        <span className="text-lg font-normal text-gray-600">/month</span>
+                        <span className="text-lg font-normal text-secondary">/month</span>
                       </p>
-                      <p className="text-sm text-gray-600">Streamlined experience without HR</p>
+                      <p className="text-sm text-secondary">Streamlined experience without HR</p>
                     </div>
                   )}
                   {(selectedType === '1-month' || selectedType === '6-months' || selectedType === '1-year') && selectedTier && (() => {
@@ -1290,36 +1331,36 @@ const SubscriptionPage = () => {
                     return (
                       <div className="space-y-4">
                         {/* Tier base price row */}
-                        <div className="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
-                          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                        <div className="bg-card rounded-xl border border-theme overflow-hidden">
+                          <div className="flex items-center justify-between px-4 py-3 border-b border-theme">
                             <div className="flex items-center gap-2">
                               <Truck className="w-4 h-4 text-orange-500" />
-                              <span className="text-sm font-semibold text-gray-800">{selectedTier.minTrucks}–{selectedTier.maxTrucks} Trucks (base)</span>
+                              <span className="text-sm font-semibold text-primary">{selectedTier.minTrucks}–{selectedTier.maxTrucks} Trucks (base)</span>
                             </div>
-                            <span className="text-sm font-bold text-gray-900">
-                              {formatPrice(basePriceTotal, selectedTier.currency)}<span className="text-xs font-normal text-gray-500">{billingLabel}</span>
+                            <span className="text-sm font-bold text-primary">
+                              {formatPrice(basePriceTotal, selectedTier.currency)}<span className="text-xs font-normal text-secondary">{billingLabel}</span>
                             </span>
                           </div>
 
                           {/* Extra trucks row — shown for all tiers */}
                           {extraTruckPrice > 0 && (
-                            <div className="px-4 py-3 border-b border-gray-200">
+                            <div className="px-4 py-3 border-b border-theme">
                               <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm text-gray-600">Extra trucks (beyond {globalMaxTrucks})</span>
-                                <span className="text-xs text-orange-600 font-medium">{formatPrice(extraTruckPrice, extraTruckCurrency)}/truck/mo</span>
+                                <span className="text-sm text-secondary">Extra trucks (beyond {globalMaxTrucks})</span>
+                                <span className="text-xs text-[#F59E0B] font-medium">{formatPrice(extraTruckPrice, extraTruckCurrency)}/truck/mo</span>
                               </div>
                               <div className="flex items-center gap-3">
                                 <button
                                   onClick={() => setExtraTrucks(Math.max(0, extraTrucks - 1))}
-                                  className="w-8 h-8 rounded-lg border border-gray-300 bg-white flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold text-lg leading-none"
+                                  className="w-8 h-8 rounded-lg border border-[rgba(17,131,224,0.2)] bg-[#0B1220] flex items-center justify-center text-primary hover:bg-[rgba(17,131,224,0.08)] font-bold text-lg leading-none"
                                 >−</button>
-                                <span className="w-12 text-center font-bold text-lg text-gray-900">{extraTrucks}</span>
+                                <span className="w-12 text-center font-bold text-lg text-primary">{extraTrucks}</span>
                                 <button
                                   onClick={() => setExtraTrucks(extraTrucks + 1)}
-                                  className="w-8 h-8 rounded-lg border border-gray-300 bg-white flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold text-lg leading-none"
+                                  className="w-8 h-8 rounded-lg border border-[rgba(17,131,224,0.2)] bg-[#0B1220] flex items-center justify-center text-primary hover:bg-[rgba(17,131,224,0.08)] font-bold text-lg leading-none"
                                 >+</button>
                                 {extraTrucks > 0 && (
-                                  <span className="ml-auto text-sm font-semibold text-orange-600">
+                                  <span className="ml-auto text-sm font-semibold text-[#F59E0B]">
                                     +{formatPrice(extraCostTotal, extraTruckCurrency)}{billingLabel}
                                   </span>
                                 )}
@@ -1328,13 +1369,13 @@ const SubscriptionPage = () => {
                           )}
 
                           {/* Grand total */}
-                          <div className="flex items-center justify-between px-4 py-3 bg-blue-50">
-                            <span className="text-sm font-bold text-gray-800">Total</span>
+                          <div className="flex items-center justify-between px-4 py-3 bg-card">
+                            <span className="text-sm font-bold text-primary">Total</span>
                             <div className="text-right">
-                              <span className="text-xl font-extrabold text-blue-700">{formatPrice(grandTotal, selectedTier.currency)}</span>
-                              <span className="text-xs text-gray-500 ml-1">{billingLabel}</span>
+                              <span className="text-xl font-extrabold text-[var(--accent-navyblue)]">{formatPrice(grandTotal, selectedTier.currency)}</span>
+                              <span className="text-xs text-secondary ml-1">{billingLabel}</span>
                               {selectedType !== '1-month' && (
-                                <p className="text-xs text-gray-400 mt-0.5">{formatPrice(grandTotal / billingFactor, selectedTier.currency)}/mo equivalent</p>
+                                <p className="text-xs text-secondary mt-0.5">{formatPrice(grandTotal / billingFactor, selectedTier.currency)}/mo equivalent</p>
                               )}
                             </div>
                           </div>
@@ -1346,9 +1387,9 @@ const SubscriptionPage = () => {
               )}
             </div>
 
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200 flex items-start gap-3">
-              <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-gray-700">
+            <div className="bg-card rounded-lg p-4 border border-[rgba(17,131,224,0.15)] flex items-start gap-3">
+              <Info className="w-5 h-5 text-[var(--accent-navyblue)] mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-primary">
                 You will be redirected to <strong>Stripe checkout</strong> to complete your payment securely.
               </p>
             </div>
@@ -1363,7 +1404,7 @@ const SubscriptionPage = () => {
             <div className="p-2 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg">
               <Truck className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold">Add Extra Trucks</span>
+            <span className="text-xl font-bold text-primary">Add Extra Trucks</span>
           </div>
         }
         open={showAddTruckModal}
@@ -1383,6 +1424,12 @@ const SubscriptionPage = () => {
           </Button>,
         ]}
         width={500}
+        styles={{
+          content: { background: 'var(--bg-card)', padding: 0 },
+          header: { background: 'var(--bg-card)', padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 0 },
+          body: { background: 'var(--bg-card)', padding: '0 24px' },
+          footer: { background: 'var(--bg-card)', padding: '16px 24px 20px', borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 0 },
+        }}
       >
         {activeSubscription && (() => {
           const activePlan = typeof activeSubscription.plan === 'object' ? activeSubscription.plan as Plan : null;
@@ -1393,47 +1440,47 @@ const SubscriptionPage = () => {
 
           return (
             <div className="space-y-5 py-4">
-              <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
-                <p className="text-sm text-gray-700 mb-1">You are adding extra trucks to:</p>
-                <p className="text-lg font-bold text-orange-900">
+              <div className="bg-card border border-[rgba(245,158,11,0.25)] rounded-xl p-4">
+                <p className="text-sm text-primary mb-1">You are adding extra trucks to:</p>
+                <p className="text-lg font-bold text-[#F59E0B]">
                   {activePlan?.planName || 'Your Current Plan'}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Current limit: {currentMaxTrucks} trucks</p>
+                <p className="text-xs text-secondary mt-1">Current limit: {currentMaxTrucks} trucks</p>
               </div>
 
-              <div className="bg-gray-50 rounded-xl border border-gray-200 p-5">
-                <p className="text-sm font-semibold text-gray-700 mb-3">How many extra trucks do you need?</p>
+              <div className="bg-card rounded-xl border border-theme p-5">
+                <p className="text-sm font-semibold text-primary mb-3">How many extra trucks do you need?</p>
                 <div className="flex items-center gap-4 mb-4">
                   <button
                     onClick={() => setAddTruckCount(Math.max(1, addTruckCount - 1))}
-                    className="w-10 h-10 rounded-xl border-2 border-gray-300 bg-white flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold text-xl leading-none"
+                    className="w-10 h-10 rounded-xl border-2 border-[rgba(17,131,224,0.2)] bg-[#0B1220] flex items-center justify-center text-primary hover:bg-[rgba(17,131,224,0.08)] font-bold text-xl leading-none"
                   >−</button>
-                  <span className="w-16 text-center font-bold text-2xl text-gray-900">{addTruckCount}</span>
+                  <span className="w-16 text-center font-bold text-2xl text-primary">{addTruckCount}</span>
                   <button
                     onClick={() => setAddTruckCount(addTruckCount + 1)}
-                    className="w-10 h-10 rounded-xl border-2 border-orange-400 bg-orange-50 flex items-center justify-center text-orange-600 hover:bg-orange-100 font-bold text-xl leading-none"
+                    className="w-10 h-10 rounded-xl border-2 border-[rgba(245,158,11,0.4)] bg-[#0B1220] flex items-center justify-center text-[#F59E0B] hover:bg-[rgba(245,158,11,0.08)] font-bold text-xl leading-none"
                   >+</button>
                   <div className="ml-2">
-                    <p className="text-xs text-gray-500">truck{addTruckCount > 1 ? 's' : ''} to add</p>
-                    <p className="text-xs text-gray-400">New limit: <strong>{currentMaxTrucks + addTruckCount}</strong> trucks</p>
+                    <p className="text-xs text-secondary">truck{addTruckCount > 1 ? 's' : ''} to add</p>
+                    <p className="text-xs text-secondary">New limit: <strong>{currentMaxTrucks + addTruckCount}</strong> trucks</p>
                   </div>
                 </div>
 
-                <div className="border-t border-gray-200 pt-4 space-y-2">
+                <div className="border-t border-theme pt-4 space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">{addTruckCount} truck{addTruckCount > 1 ? 's' : ''} × {formatPrice(extraTruckPrice, extraTruckCurrency)}/truck/mo</span>
-                    <span className="font-semibold text-gray-900">{formatPrice(totalCost, extraTruckCurrency)}/mo</span>
+                    <span className="text-secondary">{addTruckCount} truck{addTruckCount > 1 ? 's' : ''} × {formatPrice(extraTruckPrice, extraTruckCurrency)}/truck/mo</span>
+                    <span className="font-semibold text-primary">{formatPrice(totalCost, extraTruckCurrency)}/mo</span>
                   </div>
-                  <div className="flex items-center justify-between bg-orange-50 rounded-lg px-3 py-2">
-                    <span className="text-sm font-bold text-gray-800">Total charge now</span>
-                    <span className="text-xl font-extrabold text-orange-600">{formatPrice(totalCost, extraTruckCurrency)}</span>
+                  <div className="flex items-center justify-between bg-card rounded-lg px-3 py-2">
+                    <span className="text-sm font-bold text-primary">Total charge now</span>
+                    <span className="text-xl font-extrabold text-[#F59E0B]">{formatPrice(totalCost, extraTruckCurrency)}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200 flex items-start gap-3">
-                <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-gray-700">
+              <div className="bg-card rounded-lg p-4 border border-[rgba(17,131,224,0.15)] flex items-start gap-3">
+                <Info className="w-5 h-5 text-[var(--accent-navyblue)] mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-primary">
                   You will be redirected to <strong>Stripe checkout</strong> to complete the payment. Your truck limit will be increased immediately after payment.
                 </p>
               </div>
@@ -1447,7 +1494,7 @@ const SubscriptionPage = () => {
         title={
           <div className="flex items-center gap-2">
             <AlertCircle className="w-6 h-6 text-red-500" />
-            <span className="text-xl font-bold">Cancel Subscription</span>
+            <span className="text-xl font-bold text-primary">Cancel Subscription</span>
           </div>
         }
         open={showCancelModal}
@@ -1484,20 +1531,26 @@ const SubscriptionPage = () => {
         width={500}
         centered
         maskClosable={!cancelling}
+        styles={{
+          content: { background: 'var(--bg-card)', padding: 0 },
+          header: { background: 'var(--bg-card)', padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 0 },
+          body: { background: 'var(--bg-card)', padding: '0 24px' },
+          footer: { background: 'var(--bg-card)', padding: '16px 24px 20px', borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 0 },
+        }}
       >
         <div className="py-4">
           <div className="mb-4">
-            <p className="text-gray-700 mb-2">
+            <p className="text-primary mb-2">
               Are you sure you want to cancel this subscription?
             </p>
-            <p className="text-red-600 font-semibold">
+            <p className="text-[var(--accent-navyblue)] font-semibold">
               This action cannot be undone.
             </p>
           </div>
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <div className="bg-card border border-[rgba(245,158,11,0.25)] rounded-lg p-3">
             <div className="flex items-start gap-2">
-              <Info className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-yellow-800">
+              <Info className="w-4 h-4 text-[#00FFA3] mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-secondary">
                 Your subscription will remain active until the end of the current billing period.
               </p>
             </div>

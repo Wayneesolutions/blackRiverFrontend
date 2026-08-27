@@ -14,14 +14,7 @@ import {
   deleteInspection
 } from '../../../../axios/api/healthSafety';
 
-const CUSTOM_COLORS = {
-  background: '#EDF8FF',
-  primary: '#016ab2',
-  dark: '#063f6f',
-  light: '#398bc3',
-  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
-  gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
-};
+
 
 interface ChecklistItem {
   id: string;
@@ -175,9 +168,9 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
-    warning: 'bg-yellow-50 border-yellow-200'
+    error: 'bg-card border-red-200',
+    info: 'bg-card border-blue-200',
+    warning: 'bg-card border-yellow-200'
   };
 
   useEffect(() => {
@@ -192,10 +185,10 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -373,9 +366,9 @@ const SafetyInspections: React.FC = () => {
       completed: 'bg-green-100 text-green-800',
       overdue: 'bg-red-100 text-red-800',
       'action-required': 'bg-orange-100 text-orange-800',
-      cancelled: 'bg-gray-100 text-gray-800',
+      cancelled: 'bg-card text-primary',
     };
-    return styles[status] || 'bg-gray-100 text-gray-800';
+    return styles[status] || 'bg-card text-primary';
   };
 
   const filteredInspections = inspections.filter(i => {
@@ -559,9 +552,9 @@ const SafetyInspections: React.FC = () => {
 
     return (
       <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
-            <h2 className="text-2xl font-bold text-gray-900">
+        <div className="bg-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-card">
+            <h2 className="text-2xl font-bold text-primary">
               {editing ? 'Edit Inspection' : 'Schedule New Inspection'}
             </h2>
             <button
@@ -569,7 +562,7 @@ const SafetyInspections: React.FC = () => {
                 setShowNewInspectionModal(false);
                 setEditingInspection(null);
               }}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-secondary hover:text-primary"
             >
               <FaTimes size={24} />
             </button>
@@ -578,15 +571,15 @@ const SafetyInspections: React.FC = () => {
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Inspection Type *</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Inspection Type *</label>
                 <select
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="">Select Type...</option>
+                  <option className='form-option' value="">Select Type...</option>
                   {INSPECTION_TYPES.map(type => (
-                    <option key={type.value} value={type.value}>
+                    <option className='form-option' key={type.value} value={type.value}>
                       {type.icon} {type.value} - {type.description}
                     </option>
                   ))}
@@ -594,85 +587,85 @@ const SafetyInspections: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Location *</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Location *</label>
                 <input
                   type="text"
                   value={selectedLocation}
                   onChange={(e) => setSelectedLocation(e.target.value)}
                   placeholder="e.g., Warehouse A, Trailer #4587"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Scheduled Date *</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Scheduled Date *</label>
                 <input
                   type="date"
                   value={scheduledDate}
                   onChange={(e) => setScheduledDate(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Due Date *</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Due Date *</label>
                 <input
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Inspector *</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Inspector *</label>
                 <input
                   type="text"
                   value={selectedInspector}
                   onChange={(e) => setSelectedInspector(e.target.value)}
                   placeholder="Enter inspector name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Priority</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Priority</label>
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as any)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="critical">Critical</option>
+                  <option className='form-option' value="low">Low</option>
+                  <option className='form-option' value="medium">Medium</option>
+                  <option className='form-option' value="high">High</option>
+                  <option className='form-option' value="critical">Critical</option>
                 </select>
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Notes</label>
+                <label className="block text-sm font-semibold mb-2 text-primary">Notes</label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   placeholder="Additional notes..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
             </div>
 
             {selectedType && CHECKLIST_TEMPLATES[selectedType as ChecklistTemplateKey] && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="bg-card border border-blue-200 rounded-lg p-4 mb-6">
                 <h3 className="font-semibold text-blue-900 mb-3">📋 Standard Checklist Preview</h3>
                 <div className="space-y-2">
                   {CHECKLIST_TEMPLATES[selectedType as ChecklistTemplateKey].slice(0, 3).map((item: ChecklistTemplateItem, idx: number) => (
                     <div key={idx} className="flex items-center gap-2 text-sm text-blue-800">
-                      <FaCheckCircle className="text-blue-600" />
+                      <FaCheckCircle className="text-[#00D1FF]" />
                       <span>{item.question}</span>
                       {item.photoRequired && <FaCamera className="text-blue-400" size={12} />}
                     </div>
                   ))}
-                  <p className="text-xs text-blue-600 mt-2">
+                  <p className="text-xs text-[#00D1FF] mt-2">
                     + {CHECKLIST_TEMPLATES[selectedType as ChecklistTemplateKey].length - 3} more items
                   </p>
                 </div>
@@ -721,8 +714,8 @@ const SafetyInspections: React.FC = () => {
                   }
                 }}
                 disabled={saving || !selectedType || !selectedLocation || !selectedInspector || !scheduledDate}
-                className="flex-1 px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ background: CUSTOM_COLORS.gradient }}
+                className="bg-[var(--accent-navyblue)] flex-1 px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                
               >
                 {saving ? (
                   <>
@@ -748,7 +741,7 @@ const SafetyInspections: React.FC = () => {
                   setPriority('medium');
                   setNotes('');
                 }}
-                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+                className="px-6 py-3 bg-gray-200 !text-black rounded-lg font-semibold hover:bg-gray-300 transition"
               >
                 Cancel
               </button>
@@ -764,13 +757,13 @@ const SafetyInspections: React.FC = () => {
 
     return (
       <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
+        <div className="bg-card rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-card">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{selectedInspection.inspectionNumber}</h2>
-              <p className="text-gray-600">{selectedInspection.type} - {selectedInspection.location}</p>
+              <h2 className="text-2xl font-bold text-primary">{selectedInspection.inspectionNumber}</h2>
+              <p className="text-secondary">{selectedInspection.type} - {selectedInspection.location}</p>
             </div>
-            <button onClick={() => setShowDetailModal(false)} className="text-gray-500 hover:text-gray-700">
+            <button onClick={() => setShowDetailModal(false)} className="text-secondary hover:text-primary">
               <FaTimes size={24} />
             </button>
           </div>
@@ -778,26 +771,26 @@ const SafetyInspections: React.FC = () => {
           <div className="p-6">
             {/* Status Overview */}
             <div className="grid grid-cols-4 gap-4 mb-6">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="text-sm text-gray-600 mb-1">Status</div>
+              <div className="bg-card p-4 rounded-lg">
+                <div className="text-sm text-secondary mb-1">Status</div>
                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(selectedInspection.status)}`}>
                   {selectedInspection.status.toUpperCase()}
                 </span>
               </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="text-sm text-gray-600 mb-1">Scheduled</div>
+              <div className="bg-card p-4 rounded-lg">
+                <div className="text-sm text-secondary mb-1">Scheduled</div>
                 <div className="font-semibold">
                   {selectedInspection.scheduledDate
                     ? new Date(selectedInspection.scheduledDate).toLocaleDateString()
                     : 'N/A'}
                 </div>
               </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <div className="text-sm text-gray-600 mb-1">Inspector</div>
+              <div className="bg-card p-4 rounded-lg">
+                <div className="text-sm text-secondary mb-1">Inspector</div>
                 <div className="font-semibold">{selectedInspection.inspector}</div>
               </div>
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <div className="text-sm text-gray-600 mb-1">Findings</div>
+              <div className="bg-card p-4 rounded-lg">
+                <div className="text-sm text-secondary mb-1">Findings</div>
                 <div className="font-semibold">{selectedInspection.findings.total} Total</div>
               </div>
             </div>
@@ -810,19 +803,19 @@ const SafetyInspections: React.FC = () => {
                 </h3>
                 <div className="space-y-3">
                   {selectedInspection.checklist.map(item => (
-                    <div key={item.id} className="bg-gray-50 p-4 rounded-lg">
+                    <div key={item.id} className="bg-card p-4 rounded-lg">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
                             {item.status === 'pass' && <FaCheckCircle className="text-green-600" size={20} />}
-                            {item.status === 'fail' && <FaTimes className="text-red-600" size={20} />}
-                            {item.status === 'na' && <span className="text-gray-400">N/A</span>}
-                            {item.status === 'pending' && <FaClock className="text-yellow-600" size={20} />}
+                            {item.status === 'fail' && <FaTimes className="text-[#A855F7]" size={20} />}
+                            {item.status === 'na' && <span className="text-secondary">N/A</span>}
+                            {item.status === 'pending' && <FaClock className="text-[#00FFA3]" size={20} />}
                             <span className="font-medium">{item.question}</span>
                             {item.photoRequired && <FaCamera className="text-blue-400" size={14} />}
                           </div>
                           {item.notes && (
-                            <p className="text-sm text-gray-600 mt-2 ml-8">{item.notes}</p>
+                            <p className="text-sm text-secondary mt-2 ml-8">{item.notes}</p>
                           )}
                         </div>
                       </div>
@@ -840,11 +833,11 @@ const SafetyInspections: React.FC = () => {
                 </h3>
                 <div className="space-y-3">
                   {selectedInspection.correctiveActions.map(action => (
-                    <div key={action.id} className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
+                    <div key={action.id} className="bg-card border border-orange-200 p-4 rounded-lg">
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{action.description}</h4>
-                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                          <h4 className="font-semibold text-primary">{action.description}</h4>
+                          <div className="flex items-center gap-4 mt-2 text-sm text-secondary">
                             <span>👤 Assigned: {action.assignedTo}</span>
                             <span>📅 Due: {new Date(action.dueDate).toLocaleDateString()}</span>
                           </div>
@@ -871,12 +864,12 @@ const SafetyInspections: React.FC = () => {
                 </h3>
                 <div className="grid grid-cols-3 gap-4">
                   {selectedInspection.photoEvidence.map((photo, idx) => (
-                    <div key={idx} className="bg-gray-100 p-3 rounded-lg">
+                    <div key={idx} className="bg-card p-3 rounded-lg">
                       <div className="aspect-video bg-gray-300 rounded mb-2 flex items-center justify-center">
-                        <FaCamera size={32} className="text-gray-500" />
+                        <FaCamera size={32} className="text-secondary" />
                       </div>
-                      <p className="text-xs text-gray-600 truncate">{photo.fileName}</p>
-                      <p className="text-xs text-gray-400">{photo.uploadedBy}</p>
+                      <p className="text-xs text-secondary truncate">{photo.fileName}</p>
+                      <p className="text-xs text-secondary">{photo.uploadedBy}</p>
                     </div>
                   ))}
                 </div>
@@ -884,25 +877,25 @@ const SafetyInspections: React.FC = () => {
             )}
 
             {/* Audit Trail */}
-            <div className="mb-6">
-              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <div className="mb-6 ">
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-headings">
                 <FaHistory /> Audit Trail
               </h3>
               <div className="space-y-2">
                 {selectedInspection.auditTrail.map((entry, idx) => (
                   <div key={idx} className="flex items-start gap-3 text-sm">
                     <div className="bg-gray-200 rounded-full p-2">
-                      <FaClock size={12} className="text-gray-600" />
+                      <FaClock size={12} className="text-secondary" />
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between">
-                        <span className="font-semibold text-gray-900">{entry.action}</span>
-                        <span className="text-gray-500 text-xs">
+                        <span className="font-semibold text-primary">{entry.action}</span>
+                        <span className="text-secondary text-xs">
                           {new Date(entry.timestamp).toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-gray-600">{entry.details}</p>
-                      <p className="text-gray-400 text-xs">by {entry.user}</p>
+                      <p className="text-secondary">{entry.details}</p>
+                      <p className="text-secondary text-xs">by {entry.user}</p>
                     </div>
                   </div>
                 ))}
@@ -911,14 +904,14 @@ const SafetyInspections: React.FC = () => {
 
             {/* Notes */}
             {selectedInspection.notes && (
-              <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-                <h4 className="font-semibold text-gray-900 mb-2">📝 Notes</h4>
-                <p className="text-gray-700">{selectedInspection.notes}</p>
+              <div className="bg-card border border-yellow-200 p-4 rounded-lg">
+                <h4 className="font-semibold text-primary mb-2">📝 Notes</h4>
+                <p className="text-primary">{selectedInspection.notes}</p>
               </div>
             )}
           </div>
 
-          <div className="p-6 border-t bg-gray-50 flex gap-3">
+          <div className="p-6 border-t bg-card flex gap-3">
 
             <button
               onClick={() => {
@@ -941,7 +934,7 @@ const SafetyInspections: React.FC = () => {
                 setShowDetailModal(false);
                 setSelectedInspection(null);
               }}
-              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+              className="px-6 py-3 border border-theme text-primary rounded-lg font-semibold hover:bg-[var(--accent-navyblue)]/20 transition"
             >
               Close
             </button>
@@ -952,84 +945,84 @@ const SafetyInspections: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
+    <div className="min-h-screen p-6 bg-main" >
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3" style={{ color: CUSTOM_COLORS.dark }}>
+        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3 text-headings" >
           <FaClipboardCheck className="text-indigo-600" />
           Safety Inspections & Audits
         </h1>
-        <p className="text-gray-600">Track and manage facility, equipment, and compliance inspections</p>
+        <p className="text-secondary">Track and manage facility, equipment, and compliance inspections</p>
       </div>
 
       {/* Stats Dashboard */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-          <div className="text-sm text-gray-600 mb-1">Total</div>
-          <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+        <div className="bg-card p-4 rounded-xl shadow-sm border border-theme">
+          <div className="text-sm text-secondary mb-1">Total</div>
+          <div className="text-2xl font-bold text-primary">{stats.total}</div>
         </div>
-        <div className="bg-blue-50 p-4 rounded-xl shadow-sm border border-blue-200">
-          <div className="text-sm text-blue-600 mb-1">Scheduled</div>
+        <div className="bg-card p-4 rounded-xl shadow-sm border border-blue-200">
+          <div className="text-sm text-[#00D1FF] mb-1">Scheduled</div>
           <div className="text-2xl font-bold text-blue-900">{stats.scheduled}</div>
         </div>
-        <div className="bg-yellow-50 p-4 rounded-xl shadow-sm border border-yellow-200">
-          <div className="text-sm text-yellow-600 mb-1">In Progress</div>
+        <div className="bg-card p-4 rounded-xl shadow-sm border border-yellow-200">
+          <div className="text-sm text-yellow-900 mb-1">In Progress</div>
           <div className="text-2xl font-bold text-yellow-900">{stats.inProgress}</div>
         </div>
-        <div className="bg-green-50 p-4 rounded-xl shadow-sm border border-green-200">
+        <div className="bg-card p-4 rounded-xl shadow-sm border border-green-200">
           <div className="text-sm text-green-600 mb-1">Completed</div>
           <div className="text-2xl font-bold text-green-900">{stats.completed}</div>
         </div>
-        <div className="bg-red-50 p-4 rounded-xl shadow-sm border border-red-200">
-          <div className="text-sm text-red-600 mb-1">Overdue</div>
+        <div className="bg-card p-4 rounded-xl shadow-sm border border-red-200">
+          <div className="text-sm text-red-900 mb-1">Overdue</div>
           <div className="text-2xl font-bold text-red-900">{stats.overdue}</div>
         </div>
-        <div className="bg-orange-50 p-4 rounded-xl shadow-sm border border-orange-200">
-          <div className="text-sm text-orange-600 mb-1">Action Required</div>
-          <div className="text-2xl font-bold text-orange-900">{stats.actionRequired}</div>
+        <div className="bg-card p-4 rounded-xl shadow-sm border border-orange-200">
+          <div className="text-sm text-[#F59E0B] mb-1">Action Required</div>
+          <div className="text-2xl font-bold text-[#F59E0B]">{stats.actionRequired}</div>
         </div>
-        <div className="bg-purple-50 p-4 rounded-xl shadow-sm border border-purple-200">
-          <div className="text-sm text-purple-600 mb-1">Compliant</div>
+        <div className="bg-card p-4 rounded-xl shadow-sm border border-purple-200">
+          <div className="text-sm text-purple-900 mb-1">Compliant</div>
           <div className="text-2xl font-bold text-purple-900">{stats.compliant}</div>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6">
+      <div className="bg-card p-4 rounded-xl shadow-sm border border-theme mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
             <input
               type="text"
               placeholder="Search by inspection number or location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              className="w-full pl-10 pr-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+            className="px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
           >
-            <option value="all">All Types</option>
+            <option className='form-option' value="all">All Types</option>
             {INSPECTION_TYPES.map(type => (
-              <option key={type.value} value={type.value}>{type.value}</option>
+              <option className='form-option' key={type.value} value={type.value}>{type.value}</option>
             ))}
           </select>
 
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+            className="px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
           >
-            <option value="all">All Status</option>
-            <option value="scheduled">Scheduled</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
-            <option value="overdue">Overdue</option>
-            <option value="action-required">Action Required</option>
+            <option className='form-option' value="all">All Status</option>
+            <option className='form-option' value="scheduled">Scheduled</option>
+            <option className='form-option' value="in-progress">In Progress</option>
+            <option className='form-option' value="completed">Completed</option>
+            <option className='form-option' value="overdue">Overdue</option>
+            <option className='form-option' value="action-required">Action Required</option>
           </select>
 
           <button
@@ -1043,8 +1036,8 @@ const SafetyInspections: React.FC = () => {
               setEditingInspection(null);
               setShowNewInspectionModal(true);
             }}
-            className="px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center gap-2 whitespace-nowrap"
-            style={{ background: CUSTOM_COLORS.gradient }}
+            className="px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center gap-2 whitespace-nowrap bg-[var(--accent-navyblue)]"
+
           >
             <FaPlus /> New Inspection
           </button>
@@ -1059,7 +1052,7 @@ const SafetyInspections: React.FC = () => {
             onClick={() => setCurrentTab(tab)}
             className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition ${currentTab === tab
               ? 'text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-100'
+              : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)]'
               }
             style={currentTab === tab ? { background: CUSTOM_COLORS.primary } : {}}`}
           >
@@ -1069,57 +1062,57 @@ const SafetyInspections: React.FC = () => {
       </div>
 
       {/* Inspections List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-card border-b border-theme">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Inspection #</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Type</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Location</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Inspector</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Date</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Findings</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Inspection #</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Type</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Location</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Inspector</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Date</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Status</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Findings</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme divide-white/5">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center text-gray-500">Loading...</td>
+                  <td colSpan={8} className="px-6 py-8 text-center text-secondary">Loading...</td>
                 </tr>
               ) : filteredInspections.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center text-gray-500">No inspections found.</td>
+                  <td colSpan={8} className="px-6 py-8 text-center text-secondary">No inspections found.</td>
                 </tr>
               ) : (
                 filteredInspections.map(inspection => (
                   <tr key={inspection._id} onClick={() => {
                     setSelectedInspection(inspection);
                     setShowDetailModal(true);
-                  }} className="hover:bg-gray-50 transition cursor-pointer">
+                  }} className="hover:bg-[rgba(255,255,255,0.03)] transition cursor-pointer">
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-gray-900">{inspection.inspectionNumber}</div>
-                      <div className="text-xs text-gray-500">{inspection.category}</div>
+                      <div className="font-semibold text-primary">{inspection.inspectionNumber}</div>
+                      <div className="text-xs text-secondary">{inspection.category}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">{inspection.type}</div>
+                      <div className="font-medium text-primary">{inspection.type}</div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <FaMapMarkerAlt className="text-gray-400" size={14} />
-                        <span className="text-gray-700">{inspection.location}</span>
+                        <FaMapMarkerAlt className="text-secondary" size={14} />
+                        <span className="text-primary">{inspection.location}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <FaUser className="text-gray-400" size={14} />
-                        <span className="text-gray-700">{inspection.inspector}</span>
+                        <FaUser className="text-secondary" size={14} />
+                        <span className="text-primary">{inspection.inspector}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-700">
+                      <div className="text-sm text-primary">
                         {inspection.scheduledDate
                           ? new Date(inspection.scheduledDate).toLocaleDateString()
                           : 'N/A'}
@@ -1174,21 +1167,21 @@ const SafetyInspections: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && inspectionToDelete && (
         <div className="fixed inset-0 flex justify-center items-center z-[11000] p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FaExclamationTriangle className="text-red-500 text-3xl" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Delete Inspection?</h2>
-              <p className="text-gray-600">
-                Are you sure you want to delete inspection <span className="font-semibold text-gray-800">"{inspectionToDelete.inspectionNumber}"</span>?
+              <h2 className="text-2xl font-bold text-primary mb-2">Delete Inspection?</h2>
+              <p className="text-secondary">
+                Are you sure you want to delete inspection <span className="font-semibold text-primary">"{inspectionToDelete.inspectionNumber}"</span>?
                 This action cannot be undone.
               </p>
             </div>
             <div className="flex gap-4">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition"
+                className="flex-1 px-4 py-3 bg-card text-primary rounded-xl font-semibold hover:bg-gray-200 transition"
               >
                 Cancel
               </button>

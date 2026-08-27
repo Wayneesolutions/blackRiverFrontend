@@ -65,7 +65,7 @@ const AttendanceTracking = () => {
   const notificationIdRef = useRef<number>(0);
   const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null);
   const [showDetailsSidebar, setShowDetailsSidebar] = useState(false);
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -103,7 +103,7 @@ const AttendanceTracking = () => {
   const fetchAttendance = async () => {
     try {
       let params: any = {};
-      
+
       if (filterType === 'date' && filterDate) {
         // Filter by specific date
         params.date = filterDate;
@@ -117,7 +117,7 @@ const AttendanceTracking = () => {
         params.month = now.getMonth() + 1;
         params.year = now.getFullYear();
       }
-      
+
       const res = await apiListAttendance(params);
       if (res?.success) setAttendanceRecords(res.data || []);
     } catch { }
@@ -145,25 +145,25 @@ const AttendanceTracking = () => {
     if (!checkIn || !checkOut || checkIn === '--' || checkOut === '--') return 0;
     const [inHour, inMin] = checkIn.split(':').map(Number);
     const [outHour, outMin] = checkOut.split(':').map(Number);
-    
+
     // Handle invalid times
     if (isNaN(inHour) || isNaN(inMin) || isNaN(outHour) || isNaN(outMin)) return 0;
-    
+
     const totalMinutes = (outHour * 60 + outMin) - (inHour * 60 + inMin);
-    
+
     // Handle negative hours (checkOut before checkIn, likely wrong data)
     if (totalMinutes < 0) {
       // If checkOut is earlier than checkIn, it might be next day, but for now return 0
       return 0;
     }
-    
+
     return totalMinutes / 60;
   };
 
   // Deduplicate records by employee + date (keep the most complete record)
   const deduplicateRecords = (records: AttendanceRecord[]): AttendanceRecord[] => {
     const recordMap = new Map<string, AttendanceRecord>();
-    
+
     records.forEach(record => {
       // Extract employee ID - handle both string and object formats
       let employeeId = '';
@@ -172,12 +172,12 @@ const AttendanceTracking = () => {
       } else if (record.employee && typeof record.employee === 'object' && '_id' in record.employee) {
         employeeId = (record.employee as any)._id || '';
       }
-      
+
       if (!employeeId) {
         // Skip records without employee ID
         return;
       }
-      
+
       // Normalize date to YYYY-MM-DD format for consistent comparison
       // Handle dates with different times (e.g., 2026-03-04T18:30:00.000Z vs 2026-03-04T00:00:00.000Z)
       let dateStr = '';
@@ -198,24 +198,24 @@ const AttendanceTracking = () => {
           }
         }
       }
-      
+
       if (!dateStr) {
         // Skip records without valid date
         return;
       }
-      
+
       const key = `${employeeId}_${dateStr}`;
-      
+
       if (!recordMap.has(key)) {
         recordMap.set(key, record);
       } else {
         const existing = recordMap.get(key)!;
-        
+
         // Debug: Log when we find a duplicate
         const currentEmployeeName = typeof record.employee === 'string'
           ? (employees.find(e => e._id === record.employee)?.name || record.employee)
           : (record.employee as any)?.name || '';
-        
+
         console.log(`🔍 Found duplicate for ${currentEmployeeName} on ${dateStr}:`, {
           existing: { _id: existing._id, checkIn: existing.checkIn, checkOut: existing.checkOut, totalHours: existing.totalHours },
           current: { _id: record._id, checkIn: record.checkIn, checkOut: record.checkOut, totalHours: record.totalHours }
@@ -223,15 +223,15 @@ const AttendanceTracking = () => {
         // Keep the record with more complete data (has checkIn and checkOut)
         const existingComplete = existing.checkIn && existing.checkOut && existing.checkIn !== '--' && existing.checkOut !== '--';
         const currentComplete = record.checkIn && record.checkOut && record.checkIn !== '--' && record.checkOut !== '--';
-        
+
         // Calculate hours for both records
         const existingHours = existingComplete ? calculateHours(existing.checkIn!, existing.checkOut!) : (existing.totalHours || 0);
         const currentHours = currentComplete ? calculateHours(record.checkIn!, record.checkOut!) : (record.totalHours || 0);
-        
+
         // Skip records with invalid hours (like 0 hours or negative hours from wrong time calculation)
         const existingValid = existingHours > 0 && existingHours <= 24;
         const currentValid = currentHours > 0 && currentHours <= 24;
-        
+
         if (currentComplete && !existingComplete) {
           // Current has complete data, existing doesn't - keep current
           recordMap.set(key, record);
@@ -257,7 +257,7 @@ const AttendanceTracking = () => {
         }
       }
     });
-    
+
     return Array.from(recordMap.values());
   };
 
@@ -289,15 +289,15 @@ const AttendanceTracking = () => {
       // Check if a record already exists for this employee and date
       const selectedDate = new Date(attendanceForm.date);
       selectedDate.setHours(0, 0, 0, 0);
-      
+
       const existingRecord = attendanceRecords.find(record => {
         const recordEmployeeId = typeof record.employee === 'string' ? record.employee : record.employee?._id || '';
         const recordDate = new Date(record.date);
         recordDate.setHours(0, 0, 0, 0);
-        
-        return recordEmployeeId === attendanceForm.employeeId && 
-               recordDate.getTime() === selectedDate.getTime() &&
-               (!editingRecord || record._id !== editingRecord._id); // Exclude current record if editing
+
+        return recordEmployeeId === attendanceForm.employeeId &&
+          recordDate.getTime() === selectedDate.getTime() &&
+          (!editingRecord || record._id !== editingRecord._id); // Exclude current record if editing
       });
 
       if (existingRecord && !editingRecord) {
@@ -374,9 +374,9 @@ const AttendanceTracking = () => {
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      present: 'bg-green-100 text-green-800 border-green-200',
-      absent: 'bg-red-100 text-red-800 border-red-200',
-      leave: 'bg-purple-100 text-purple-800 border-purple-200'
+      present: 'bg-[var(--accent-green)]/10 border-theme',
+      absent: 'bg-[var(--accent-red)]/20 text-red-800 border-theme',
+      leave: 'bg-[var(--accent-purple)]/10 text-purple-800 border-theme'
     };
     return styles[status] || styles.present;
   };
@@ -390,10 +390,10 @@ const AttendanceTracking = () => {
     if (a._id && b._id) return b._id.localeCompare(a._id);
     return 0;
   });
-  
+
   // First deduplicate records, then filter
   const deduplicatedRecords = deduplicateRecords(sortedRecords);
-  
+
   // Debug logging
   if (attendanceRecords.length !== deduplicatedRecords.length) {
     console.log(`🔍 Deduplication: ${attendanceRecords.length} records → ${deduplicatedRecords.length} unique records`);
@@ -403,7 +403,7 @@ const AttendanceTracking = () => {
       console.log(`🔍 Removed ${duplicates} duplicate record(s)`);
     }
   }
-  
+
   const filteredRecords = deduplicatedRecords.filter(record => {
     const name = (typeof record.employee === 'string' ? (employees.find(e => e._id === record.employee)?.name || '') : (record.employee as any)?.name || '');
     const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -462,8 +462,8 @@ const AttendanceTracking = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -487,7 +487,7 @@ const AttendanceTracking = () => {
 
   return (
     <div
-      className="min-h-screen bg-[#EDF8FF] p-6 overflow-x-hidden">
+      className="min-h-screen bg-main p-6 overflow-x-hidden">
 
       {/* Toast Notifications Container */}
       <div className="fixed top-4 right-4 z-[10002] space-y-2">
@@ -495,25 +495,25 @@ const AttendanceTracking = () => {
           <div
             key={notification.id}
             className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg min-w-[300px] max-w-md animate-slide-in ${notification.type === 'success'
-              ? 'bg-green-50 border-green-200'
+              ? 'bg-[var(--accent-green)]/10 border-[var(--accent-green)]/30'
               : notification.type === 'error'
-                ? 'bg-red-50 border-red-200'
-                : 'bg-blue-50 border-blue-200'
+                ? 'bg-[var(--accent-red)]/10 border-[var(--accent-red)]/30'
+                : 'bg-[var(--accent-blue)]/10 border-[var(--accent-blue)]/30'
               }`}
           >
             <div className="flex-shrink-0 mt-0.5">
               {notification.type === 'success' ? (
-                <FaCheckCircle className="text-green-500" size={24} />
+                <FaCheckCircle className="text-[var(--accent-green)]" size={24} />
               ) : notification.type === 'error' ? (
-                <FaExclamationCircle className="text-red-500" size={24} />
+                <FaExclamationCircle className="text-[var(--accent-red)]" size={24} />
               ) : (
-                <FaExclamationCircle className="text-blue-500" size={24} />
+                <FaExclamationCircle className="text-[var(--accent-blue)]" size={24} />
               )}
             </div>
-            <p className="flex-1 text-sm font-medium text-gray-900">{notification.message}</p>
+            <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
             <button
               onClick={() => removeNotification(notification.id)}
-              className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+              className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
             >
               <FaTimes size={16} />
             </button>
@@ -523,16 +523,15 @@ const AttendanceTracking = () => {
 
       <div className="w-full mx-auto space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Attendance Management</h1>
-              <p className="text-gray-600">Track and manage employee attendance records</p>
+              <h1 className="text-3xl font-bold text-primary mb-2">Attendance Management</h1>
+              <p className="text-secondary">Track and manage employee attendance records</p>
             </div>
             <button
               onClick={() => setShowAddModal(true)}
-              style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
-              className="px-4 py-2 !text-white rounded-lg transition-all font-medium flex items-center gap-2 shadow-sm hover:shadow-md"
+              className="px-4 py-2 !text-white bg-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/80 rounded-lg transition-all font-medium flex items-center gap-2 shadow-sm hover:shadow-md"
             >
               <Plus size={20} />
               Add Attendance
@@ -545,47 +544,47 @@ const AttendanceTracking = () => {
           {/* Total Employees */}
           <div
             onClick={() => navigate(`${getBasePath()}/employee-profiles`)}
-            className="rounded-lg p-4 bg-purple-50 border border-purple-200 cursor-pointer hover:shadow-sm transition-shadow"
+            className="rounded-lg p-4 bg-card border border-theme cursor-pointer hover:shadow-sm transition-shadow"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-purple-600 mb-0.5">Total Employees</p>
-                <p className="text-2xl font-semibold text-purple-700">
+                <p className="text-xs text-[var(--accent-purple)] mb-0.5">Total Employees</p>
+                <p className="text-2xl font-semibold text-[var(--accent-purple)]">
                   {totalEmployees}
                 </p>
               </div>
-              <div className="p-2 bg-purple-100 rounded-full">
-                <Users className="text-purple-600" size={18} />
+              <div className="p-2 bg-[var(--accent-purple)]/10 rounded-full">
+                <Users className="text-[var(--accent-purple)]" size={18} />
               </div>
             </div>
           </div>
 
           {/* Present Today */}
-          <div className="rounded-lg p-4 bg-green-50 border border-green-200 hover:shadow-sm transition-shadow">
+          <div className="rounded-lg p-4 bg-[var(--accent-green)]/10 border-[var(--accent-green)]/30 hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-green-600 mb-0.5">Present Today</p>
+                <p className="text-xs text-[var(--accent-green)] mb-0.5">Present Today</p>
                 <p className="text-2xl font-semibold text-green-700">
                   {presentToday}
                 </p>
               </div>
-              <div className="p-2 bg-green-100 rounded-full">
-                <CheckCircle className="text-green-600" size={18} />
+              <div className="p-2 text-[var(--accent-green)]/20 rounded-full">
+                <CheckCircle className="text-[var(--accent-green)]" size={18} />
               </div>
             </div>
           </div>
 
           {/* Absent Today */}
-          <div className="rounded-lg p-4 bg-red-50 border border-red-200 hover:shadow-sm transition-shadow">
+          <div className="rounded-lg p-4 bg-[var(--accent-red)]/10 border-[var(--accent-red)]/30 hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-red-600 mb-0.5">Absent Today</p>
-                <p className="text-2xl font-semibold text-red-700">
+                <p className="text-xs text-[var(--accent-purple)] mb-0.5">Absent Today</p>
+                <p className="text-2xl font-semibold text-[var(--accent-red)]">
                   {absentToday}
                 </p>
               </div>
-              <div className="p-2 bg-red-100 rounded-full">
-                <XCircle className="text-red-600" size={18} />
+              <div className="p-2 bg-[var(--accent-red)]/20 rounded-full">
+                <XCircle className="text-[var(--accent-purple)]" size={18} />
               </div>
             </div>
           </div>
@@ -594,20 +593,22 @@ const AttendanceTracking = () => {
 
 
         {/* Attendance Records */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
+        <div className="bg-card rounded-xl shadow-sm border border-theme">
+          <div className="p-6 border-b border-theme">
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Attendance Records</h2>
+              <h2 className="text-xl font-bold text-primary">Attendance Records</h2>
 
               <div className="flex gap-3 flex-wrap">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" size={20} />
                   <input
                     type="text"
                     placeholder="Search employee..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="pl-10 pr-4 py-2 border border-theme rounded-lg bg-card text-primary
+focus:ring-[var(--accent-blue)]/30
+focus:border-[var(--accent-blue)]"
                   />
                 </div>
 
@@ -624,7 +625,8 @@ const AttendanceTracking = () => {
                       setFilterYear(now.getFullYear());
                     }
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                 >
                   <option value="month">Filter by Month</option>
                   <option value="date">Filter by Date</option>
@@ -636,7 +638,8 @@ const AttendanceTracking = () => {
                     type="date"
                     value={filterDate}
                     onChange={(e) => setFilterDate(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                   />
                 )}
 
@@ -646,7 +649,8 @@ const AttendanceTracking = () => {
                     <select
                       value={filterMonth}
                       onChange={(e) => setFilterMonth(Number(e.target.value))}
-                      className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                     >
                       <option value={1}>January</option>
                       <option value={2}>February</option>
@@ -664,7 +668,8 @@ const AttendanceTracking = () => {
                     <select
                       value={filterYear}
                       onChange={(e) => setFilterYear(Number(e.target.value))}
-                      className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                     >
                       {Array.from({ length: 10 }, (_, i) => {
                         const year = new Date().getFullYear() - 5 + i;
@@ -681,7 +686,8 @@ const AttendanceTracking = () => {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                 >
                   <option value="all">All Status</option>
                   <option value="present">Present</option>
@@ -735,10 +741,10 @@ const AttendanceTracking = () => {
               background: #94a3b8;
             }
           `}</style>
-          <div 
+          <div
             ref={topScrollRef}
             className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-            style={{ 
+            style={{
               maxHeight: '20px',
               marginBottom: '2px',
               scrollbarWidth: 'thin',
@@ -748,29 +754,29 @@ const AttendanceTracking = () => {
             <div className="top-scroll-content" style={{ height: '1px' }}></div>
           </div>
           {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-          <div 
+          <div
             ref={bottomScrollRef}
             className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
           >
             <table className="w-full" style={{ minWidth: '1000px' }}>
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-card border-b border-theme">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Check In</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Check Out</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hours</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Employee</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Check In</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Check Out</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Hours</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Notes</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-theme">
                 {filteredRecords.length > 0 ? (
                   filteredRecords.map((record, idx) => (
-                    <tr 
-                      key={record._id || idx} 
-                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    <tr
+                      key={record._id || idx}
+                      className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                       onClick={() => {
                         setSelectedRecord(record);
                         setShowDetailsSidebar(true);
@@ -778,36 +784,36 @@ const AttendanceTracking = () => {
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                          <div className="w-8 h-8 bg-[var(--accent-blue)] text-black rounded-full flex items-center justify-center  text-sm font-semibold">
                             {((typeof record.employee === 'string' ? employees.find(e => e._id === record.employee)?.name : (record.employee as any)?.name) || '').split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                           </div>
-                          <span className="font-medium text-gray-900">{typeof record.employee === 'string' ? (employees.find(e => e._id === record.employee)?.name || '') : (record.employee as any)?.name}</span>
+                          <span className="font-medium text-primary">{typeof record.employee === 'string' ? (employees.find(e => e._id === record.employee)?.name || '') : (record.employee as any)?.name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {new Date(record.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                         <div className="flex items-center gap-2">
                           {record.checkIn || '--'}
                           {record.isAutoTracked && (
-                            <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded" title="Auto-tracked from login/logout">
+                            <span className="text-xs text-[var(--accent-blue)] bg-card px-1.5 py-0.5 rounded" title="Auto-tracked from login/logout">
                               Auto
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                         <div className="flex items-center gap-2">
                           {record.checkOut || '--'}
                           {record.isActiveSession && (
-                            <span className="text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded animate-pulse" title="Currently logged in">
+                            <span className="text-xs text-[var(--accent-green)] bg-[var(--accent-green)]/10 px-1.5 py-0.5 rounded animate-pulse" title="Currently logged in">
                               Active
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
                         {(() => {
                           // Calculate hours from checkIn/checkOut times if available, otherwise use totalHours
                           let hours = 0;
@@ -816,7 +822,7 @@ const AttendanceTracking = () => {
                           } else {
                             hours = record.totalHours || 0;
                           }
-                          
+
                           if (hours < 1 && hours > 0) {
                             // Show minutes for durations less than 1 hour
                             const minutes = Math.round(hours * 60);
@@ -830,7 +836,7 @@ const AttendanceTracking = () => {
                           {record.status === 'late' ? 'Present' : (record.status.charAt(0).toUpperCase() + record.status.slice(1))}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                      <td className="px-6 py-4 text-sm text-secondary max-w-xs">
                         <div className="truncate" title={record.notes || '--'}>
                           {record.notes || '--'}
                         </div>
@@ -840,26 +846,26 @@ const AttendanceTracking = () => {
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEdit(record)}
-                              className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50"
+                              className="text-[var(--accent-blue)] hover:bg-[var(--accent-amber)]/10 p-1 rounded hover:bg-[rgba(0,209,255,0.1)]"
                             >
                               <Edit size={16} />
                             </button>
                             <button
                               onClick={() => handleDelete(record._id)}
-                              className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50"
+                              className=" hover:text-red-800 p-1 rounded text-[var(--accent-purple)] hover:bg-[rgba(255,77,77,0.1)]"
                             >
                               <Trash2 size={16} />
                             </button>
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-400">In progress</span>
+                          <span className="text-xs text-secondary">In progress</span>
                         )}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-12 text-center text-secondary">
                       No attendance records found
                     </td>
                   </tr>
@@ -868,8 +874,8 @@ const AttendanceTracking = () => {
             </table>
           </div>
           {filteredRecords.length > 0 && (
-            <div className="p-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600">Showing {filteredRecords.length} records</p>
+            <div className="p-4 border-t border-theme">
+              <p className="text-sm text-secondary">Showing {filteredRecords.length} records</p>
             </div>
           )}
         </div>
@@ -879,11 +885,11 @@ const AttendanceTracking = () => {
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
 
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+          <div className="bg-card rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
             {/* Fixed Header */}
-            <div className="p-6 border-b border-gray-200 flex-shrink-0">
+            <div className="p-6 border-b border-theme flex-shrink-0">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-2xl font-bold text-primary">
                   {editingRecord ? 'Edit Attendance' : 'Add Attendance Record'}
                 </h2>
                 <button
@@ -899,7 +905,7 @@ const AttendanceTracking = () => {
                       notes: ''
                     });
                   }}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-secondary hover:text-secondary"
                 >
                   <XCircle size={24} />
                 </button>
@@ -909,11 +915,12 @@ const AttendanceTracking = () => {
             {/* Scrollable Content Area */}
             <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 custom-scrollbar">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Employee Name</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Employee Name</label>
                 <select
                   value={attendanceForm.employeeId}
                   onChange={(e) => setAttendanceForm({ ...attendanceForm, employeeId: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                 >
                   <option value="">Select Employee</option>
                   {employees.map((emp) => (
@@ -923,21 +930,23 @@ const AttendanceTracking = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Date</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Date</label>
                 <input
                   type="date"
                   value={attendanceForm.date}
                   onChange={(e) => setAttendanceForm({ ...attendanceForm, date: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Status</label>
                 <select
                   value={attendanceForm.status}
                   onChange={(e) => setAttendanceForm({ ...attendanceForm, status: e.target.value as any })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                 >
                   <option value="present">Present</option>
                   <option value="absent">Absent</option>
@@ -949,45 +958,47 @@ const AttendanceTracking = () => {
                 <>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Check In Time</label>
+                      <label className="block text-sm font-semibold text-primary mb-2">Check In Time</label>
                       <input
                         type="time"
                         value={attendanceForm.checkIn}
                         onChange={(e) => setAttendanceForm({ ...attendanceForm, checkIn: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Check Out Time</label>
+                      <label className="block text-sm font-semibold text-primary mb-2">Check Out Time</label>
                       <input
                         type="time"
                         value={attendanceForm.checkOut}
                         onChange={(e) => setAttendanceForm({ ...attendanceForm, checkOut: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                       />
                     </div>
                   </div>
 
                   {attendanceForm.checkIn && attendanceForm.checkOut && (
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-sm text-blue-800">
+                    <div className="p-3 bg-card border border-[var(--accent-blue)]/30 rounded-lg">
+                      <p className="text-sm text-[var(--accent-blue)]">
                         Total hours: <span className="font-bold">{calculateHours(attendanceForm.checkIn, attendanceForm.checkOut).toFixed(1)}h</span>
                       </p>
                     </div>
                   )}
                 </>
               ) : (
-                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                  <p className="text-sm text-gray-600">Check in/out times are not required for absent or leave status.</p>
+                <div className="p-4 bg-card border border-theme rounded-lg">
+                  <p className="text-sm text-secondary">Check in/out times are not required for absent or leave status.</p>
                 </div>
               )}
 
               {/* Notes/Remarks Field - Always visible, but especially important for absent/leave */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-primary mb-2">
                   Notes/Remarks
                   {(attendanceForm.status === 'absent' || attendanceForm.status === 'leave') && (
-                    <span className="text-red-500 ml-1">*</span>
+                    <span className="text-[var(--accent-red)] ml-1">*</span>
                   )}
                 </label>
                 <textarea
@@ -999,16 +1010,17 @@ const AttendanceTracking = () => {
                       : "Add any additional notes or remarks (optional)..."
                   }
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30 resize-none"
                 />
                 {(attendanceForm.status === 'absent' || attendanceForm.status === 'leave') && !attendanceForm.notes && (
-                  <p className="text-xs text-red-500 mt-1">Note is required for absent or leave status</p>
+                  <p className="text-xs text-[var(--accent-red)] mt-1">Note is required for absent or leave status</p>
                 )}
               </div>
             </div>
 
             {/* Fixed Footer */}
-            <div className="p-6 border-t border-gray-200 flex-shrink-0">
+            <div className="p-6 border-t border-theme flex-shrink-0">
               <div className="flex gap-3">
                 <button
                   onClick={() => {
@@ -1023,13 +1035,13 @@ const AttendanceTracking = () => {
                       notes: ''
                     });
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="flex-1 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddAttendance}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 !text-white rounded-lg transition-colors font-medium"
+                  className="flex-1 px-4 py-2 bg-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/80 !text-white rounded-lg transition-colors font-medium"
                 >
                   {editingRecord ? 'Update Record' : 'Add Record'}
                 </button>
@@ -1054,23 +1066,23 @@ const AttendanceTracking = () => {
       {/* Duplicate Attendance Warning Modal */}
       {showDuplicateModal && duplicateRecord && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="w-full max-w-lg max-h-[90vh] rounded-2xl bg-white shadow-2xl flex flex-col">
+          <div className="w-full max-w-lg max-h-[90vh] rounded-2xl bg-card shadow-2xl flex flex-col">
             {/* Header - Fixed */}
-            <div className="border-b border-gray-200 px-6 py-4 flex-shrink-0">
+            <div className="border-b border-theme px-6 py-4 flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
-                  <XCircle className="h-6 w-6 text-yellow-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent-amber)]/10">
+                  <XCircle className="h-6 w-6 text-[#00FFA3]" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">Attendance Record Already Exists</h3>
-                  <p className="text-sm text-gray-500">An attendance record already exists for this employee and date</p>
+                  <h3 className="text-lg font-semibold text-primary">Attendance Record Already Exists</h3>
+                  <p className="text-sm text-secondary">An attendance record already exists for this employee and date</p>
                 </div>
                 <button
                   onClick={() => {
                     setShowDuplicateModal(false);
                     setDuplicateRecord(null);
                   }}
-                  className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="p-1 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -1078,38 +1090,38 @@ const AttendanceTracking = () => {
             </div>
             {/* Content - Scrollable */}
             <div className="px-6 py-5 overflow-y-auto custom-scrollbar flex-1">
-              <div className="mb-4 rounded-lg bg-gray-50 p-4">
+              <div className="mb-4 rounded-lg bg-card p-4">
                 <div className="mb-3">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Employee:</p>
-                  <p className="text-base text-gray-900">
+                  <p className="text-sm font-medium text-primary mb-2">Employee:</p>
+                  <p className="text-base text-primary">
                     {employees.find(e => e._id === attendanceForm.employeeId)?.name || 'Unknown'}
                   </p>
                 </div>
                 <div className="mb-3">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Date:</p>
-                  <p className="text-base text-gray-900">
-                    {new Date(attendanceForm.date).toLocaleDateString('en-US', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
+                  <p className="text-sm font-medium text-primary mb-2">Date:</p>
+                  <p className="text-base text-primary">
+                    {new Date(attendanceForm.date).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
                     })}
                   </p>
                 </div>
-                <div className="border-t border-gray-200 pt-3 mt-3">
-                  <p className="text-sm font-medium text-gray-700 mb-3">Existing Record Details:</p>
+                <div className="border-t border-theme pt-3 mt-3">
+                  <p className="text-sm font-medium text-primary mb-3">Existing Record Details:</p>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-xs text-gray-500">Check In</p>
-                      <p className="text-sm font-medium text-gray-900">{duplicateRecord.checkIn || '--'}</p>
+                      <p className="text-xs text-secondary">Check In</p>
+                      <p className="text-sm font-medium text-primary">{duplicateRecord.checkIn || '--'}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Check Out</p>
-                      <p className="text-sm font-medium text-gray-900">{duplicateRecord.checkOut || '--'}</p>
+                      <p className="text-xs text-secondary">Check Out</p>
+                      <p className="text-sm font-medium text-primary">{duplicateRecord.checkOut || '--'}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Hours</p>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-xs text-secondary">Hours</p>
+                      <p className="text-sm font-medium text-primary">
                         {(() => {
                           const hours = duplicateRecord.totalHours || 0;
                           if (hours < 1 && hours > 0) {
@@ -1121,34 +1133,34 @@ const AttendanceTracking = () => {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Status</p>
+                      <p className="text-xs text-secondary">Status</p>
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${getStatusBadge(duplicateRecord.status === 'late' ? 'present' : duplicateRecord.status)}`}>
                         {duplicateRecord.status === 'late' ? 'Present' : (duplicateRecord.status.charAt(0).toUpperCase() + duplicateRecord.status.slice(1))}
                       </span>
                     </div>
                   </div>
                   {duplicateRecord.notes && (
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <p className="text-xs text-gray-500 mb-1">Notes</p>
-                      <p className="text-sm text-gray-900">{duplicateRecord.notes}</p>
+                    <div className="mt-3 pt-3 border-t border-theme">
+                      <p className="text-xs text-secondary mb-1">Notes</p>
+                      <p className="text-sm text-primary">{duplicateRecord.notes}</p>
                     </div>
                   )}
                 </div>
               </div>
-              <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
-                <p className="text-sm text-blue-800">
+              <div className="rounded-lg bg-card border border-[var(--accent-amber)]/30 p-3">
+                <p className="text-sm bg-[var(--accent-amber)]/10">
                   <strong>Would you like to update the existing record</strong> with the new information you've entered?
                 </p>
               </div>
             </div>
             {/* Footer - Fixed */}
-            <div className="flex gap-3 border-t border-gray-200 px-6 py-4 flex-shrink-0">
+            <div className="flex gap-3 border-t border-theme px-6 py-4 flex-shrink-0">
               <button
                 onClick={() => {
                   setShowDuplicateModal(false);
                   setDuplicateRecord(null);
                 }}
-                className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                className="flex-1 rounded-lg border border-theme px-4 py-2 font-medium text-primary transition-colors hover:bg-[rgba(255,255,255,0.03)]"
               >
                 Cancel
               </button>
@@ -1157,7 +1169,7 @@ const AttendanceTracking = () => {
                   // Set the existing record as the editing record
                   setEditingRecord(duplicateRecord);
                   setShowDuplicateModal(false);
-                  
+
                   // Proceed with save - it will update the existing record
                   try {
                     const payload = {
@@ -1204,7 +1216,7 @@ const AttendanceTracking = () => {
         <>
           {/* Overlay */}
           <div
-            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
             onClick={() => {
               setShowDetailsSidebar(false);
               setTimeout(() => setSelectedRecord(null), 300);
@@ -1213,18 +1225,18 @@ const AttendanceTracking = () => {
 
           {/* Sidebar Panel */}
           <div
-            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
           >
             <div className="p-6">
               {/* Header */}
-              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">Attendance Details</h2>
+              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
+                <h2 className="text-2xl font-bold text-primary">Attendance Details</h2>
                 <button
                   onClick={() => {
                     setShowDetailsSidebar(false);
                     setTimeout(() => setSelectedRecord(null), 300);
                   }}
-                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                  className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                 >
                   <X size={24} />
                 </button>
@@ -1232,7 +1244,7 @@ const AttendanceTracking = () => {
 
               <div className="space-y-6">
                 {/* Employee Header */}
-                <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                <div className="bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] text-white p-6 rounded-lg">
                   <div className="flex items-center gap-4">
                     <div className="h-20 w-20 flex-shrink-0">
                       <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600">
@@ -1258,21 +1270,21 @@ const AttendanceTracking = () => {
 
                 {/* Attendance Information */}
                 {selectedRecord && (
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                      <Briefcase size={20} className="text-blue-600" />
+                  <div className="bg-card p-6 rounded-lg border border-theme">
+                    <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                      <Briefcase size={20} className="text-[var(--accent-blue)]" />
                       Attendance Information
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Employee Name</p>
-                        <p className="font-medium text-gray-900">
+                        <p className="text-sm text-secondary mb-1">Employee Name</p>
+                        <p className="font-medium text-primary">
                           {typeof selectedRecord.employee === 'string' ? (employees.find((e: { _id: string; name: string }) => e._id === selectedRecord.employee)?.name || 'N/A') : (selectedRecord.employee as any)?.name || 'N/A'}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Date</p>
-                        <p className="font-medium text-gray-900">
+                        <p className="text-sm text-secondary mb-1">Date</p>
+                        <p className="font-medium text-primary">
                           {new Date(selectedRecord.date).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'long',
@@ -1281,25 +1293,25 @@ const AttendanceTracking = () => {
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Check In</p>
-                        <p className="font-medium text-gray-900">{selectedRecord.checkIn || '—'}</p>
+                        <p className="text-sm text-secondary mb-1">Check In</p>
+                        <p className="font-medium text-primary">{selectedRecord.checkIn || '—'}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Check Out</p>
-                        <p className="font-medium text-gray-900">{selectedRecord.checkOut || '—'}</p>
+                        <p className="text-sm text-secondary mb-1">Check Out</p>
+                        <p className="font-medium text-primary">{selectedRecord.checkOut || '—'}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Total Hours</p>
-                        <p className="font-medium text-gray-900">{(selectedRecord.totalHours || 0).toFixed(1)} hours</p>
+                        <p className="text-sm text-secondary mb-1">Total Hours</p>
+                        <p className="font-medium text-primary">{(selectedRecord.totalHours || 0).toFixed(1)} hours</p>
                       </div>
                       <div className="md:col-span-2">
-                        <p className="text-sm text-gray-500 mb-1">Notes/Remarks</p>
-                        <p className="font-medium text-gray-900 whitespace-pre-wrap">
+                        <p className="text-sm text-secondary mb-1">Notes/Remarks</p>
+                        <p className="font-medium text-primary whitespace-pre-wrap">
                           {selectedRecord.notes || '—'}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Status</p>
+                        <p className="text-sm text-secondary mb-1">Status</p>
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border ${getStatusBadge(selectedRecord.status === 'late' ? 'present' : selectedRecord.status)}`}>
                           {selectedRecord.status === 'late' ? 'Present' : (selectedRecord.status.charAt(0).toUpperCase() + selectedRecord.status.slice(1))}
                         </span>
@@ -1310,13 +1322,13 @@ const AttendanceTracking = () => {
 
                 {/* Action Buttons */}
                 {selectedRecord && (
-                  <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                  <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                     <button
                       onClick={() => {
                         setShowDetailsSidebar(false);
                         setTimeout(() => setSelectedRecord(null), 300);
                       }}
-                      className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                      className="px-6 py-2.5 text-primary font-medium rounded-lg  transition-all from-[var(--accent-blue)] to-[var(--accent-purple)]"
                     >
                       Close
                     </button>
@@ -1367,22 +1379,22 @@ const ConfirmationModal = ({
 
   const confirmStyles =
     type === 'danger'
-      ? 'bg-red-600 hover:bg-red-700 text-white'
-      : 'bg-blue-600 hover:bg-blue-700 text-white';
+      ? 'bg-[var(--accent-red)] hover:bg-[var(--accent-red)] text-white'
+      : 'bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] text-white';
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+      <div className="w-full max-w-md rounded-2xl bg-card shadow-2xl">
+        <div className="border-b border-theme px-6 py-4">
+          <h3 className="text-lg font-semibold text-primary">{title}</h3>
         </div>
         <div className="px-6 py-5">
-          <p className="text-sm text-gray-600">{message}</p>
+          <p className="text-sm text-secondary">{message}</p>
         </div>
-        <div className="flex gap-3 border-t border-gray-200 px-6 py-4">
+        <div className="flex gap-3 border-t border-theme px-6 py-4">
           <button
             onClick={onClose}
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            className="flex-1 rounded-lg border border-theme px-4 py-2 font-medium text-primary transition-colors hover:bg-[rgba(255,255,255,0.03)]"
           >
             {cancelText}
           </button>

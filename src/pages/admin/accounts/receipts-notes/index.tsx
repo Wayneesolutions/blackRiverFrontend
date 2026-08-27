@@ -83,7 +83,7 @@ export default function ReceiptsFinancialNotes() {
   const [loadingReceiptUrl, setLoadingReceiptUrl] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'receipt' | 'note' } | null>(null);
-  
+
   // Detail modal states (separate from view modal)
   const [showRowDetailModal, setShowRowDetailModal] = useState(false);
   const [selectedRowItem, setSelectedRowItem] = useState<ReceiptData | FinancialNoteData | null>(null);
@@ -327,6 +327,7 @@ export default function ReceiptsFinancialNotes() {
       change: `+${receiptStats.thisWeekCount} this week`,
       icon: Receipt,
       color: 'blue',
+      textColor: 'var(--accent-blue)',
       // bgColor: '#E3F2FD',
       // borderColor: '#BBDEFB',
       // textColor: '#016ab2',
@@ -338,6 +339,7 @@ export default function ReceiptsFinancialNotes() {
       change: 'Last 7 days',
       icon: DollarSign,
       color: 'green',
+      textColor: 'var(--accent-green)',
       // bgColor: '#E8F5E9',
       // borderColor: '#C8E6C9',
       // textColor: '#016ab2',
@@ -349,6 +351,7 @@ export default function ReceiptsFinancialNotes() {
       change: `${noteStats.recentCount} recent`,
       icon: FileText,
       color: 'purple',
+      textColor: 'var(--accent-purple)',
       // bgColor: '#F3E5F5',
       // borderColor: '#E1BEE7',
       // textColor: '#016ab2',
@@ -360,6 +363,7 @@ export default function ReceiptsFinancialNotes() {
       change: 'Needs attention',
       icon: Eye,
       color: 'orange',
+      textColor: 'var(--accent-orange)',
       // bgColor: '#FFF3E0',
       // borderColor: '#FFE0B2',
       // textColor: '#016ab2',
@@ -585,15 +589,15 @@ export default function ReceiptsFinancialNotes() {
   };
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF]">
+    <div className="min-h-screen bg-main">
       {/* Header */}
       <div className='p-5'>
-        <div className="bg-white border-b border-gray-200">
+        <div className="bg-card border-b border-theme">
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>📋 Receipts & Financial Notes</h1>
-                <p className="text-sm text-gray-600 mt-1">
+                <h1 className="text-2xl font-bold" style={{ background: 'var(--accent-navyblue)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>📋 Receipts & Financial Notes</h1>
+                <p className="text-sm text-secondary mt-1">
                   Store and manage digital receipts, and log internal finance comments
                 </p>
               </div>
@@ -601,7 +605,7 @@ export default function ReceiptsFinancialNotes() {
                 {activeTab === 'receipts-archive' && (
                   <button
                     onClick={handleCreateReceipt}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-2"
                   >
                     <Upload className="w-4 h-4" />
                     Upload Receipt
@@ -611,7 +615,7 @@ export default function ReceiptsFinancialNotes() {
                   <button
                     onClick={handleCreateNote}
                     className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all flex items-center gap-2"
-                    style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                    style={{ background: 'var(--accent-navyblue)' }}
                   >
                     <Plus className="w-4 h-4" />
                     New Note
@@ -623,7 +627,7 @@ export default function ReceiptsFinancialNotes() {
 
           {/* Tabs */}
           <div className="px-6">
-            <div className="flex gap-1 border-b border-gray-200">
+            <div className="flex gap-1 border-b border-theme">
               {tabs.map(tab => {
                 const Icon = tab.icon;
                 return (
@@ -631,8 +635,8 @@ export default function ReceiptsFinancialNotes() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === tab.id
-                      ? 'border-[#42aeec] text-[#016ab2]'
-                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                      ? 'border-[var(--accent-blue)] text-[#016ab2]'
+                      : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                       }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -650,61 +654,71 @@ export default function ReceiptsFinancialNotes() {
           {summaryCards.map((card, index) => {
             const Icon = card.icon;
             return (
-              <div key={index} className={`rounded-lg shadow-sm p-6 border ${card.color === 'blue' ? 'bg-[#E3F2FD] border-blue-100' :
-                card.color === 'green' ? 'bg-[#E8F5E9] border-green-100' :
-                  card.color === 'purple' ? 'bg-[#F3E5F5] border-purple-100' :
-                    'bg-[#FFF3E0] border-orange-100'
+              <div key={index} className={`rounded-lg shadow-sm p-6 border ${card.color === 'blue' ? 'bg-[var(--accent-blue)]/20 border-[var(--accent-blue)]/20' :
+                card.color === 'green' ? 'bg-[var(--accent-green)]/20 border-[var(--accent-green)]/20' :
+                  card.color === 'purple' ? 'bg-[var(--accent-purple)]/20 border-[var(--accent-purple)]/20' :
+                    'bg-[var(--accent-orange)]/20 border-[var(--accent-orange)]/20'
                 }`}>
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-lg bg-white`}>
-                    <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[#42aeec]' :
-                      card.color === 'green' ? 'text-[#0ea3d8]' :
-                        card.color === 'purple' ? 'text-[#1db5f5]' :
-                          'text-orange-500' // Keeping orange logic or similar
+                  <div className={`p-3 rounded-lg `}>
+                    <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[var(--accent-blue)]' :
+                      card.color === 'green' ? 'text-[var(--accent-green)]' :
+                        card.color === 'purple' ? 'text-[var(--accent-purple)]' :
+                          'text-[var(--accent-orange)]' // Keeping orange logic or similar
                       }`} />
                   </div>
-                  <span className="text-sm text-[#063f6f] font-medium">{card.change}</span>
+                  <span className={`text-sm font-medium text-[${card.textColor}]`}>{card.change}</span>
                 </div>
-                <h3 className="text-[#063f6f] text-sm font-medium mb-1">{card.title}</h3>
-                <p className="text-2xl font-bold text-[#016ab2]">{card.value}</p>
+                <h3 className={`text-sm font-medium mb-1 text-[${card.textColor}]`}>{card.title}</h3>
+                <p className={`text-2xl font-bold text-[${card.textColor}]`}>{card.value}</p>
               </div>
             );
           })}
         </div>
 
         {/* Main Content */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-card rounded-lg shadow">
           {/* Toolbar */}
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-theme">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-3 flex-1">
                 <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-4 h-4" />
                   <input
                     type="text"
                     placeholder={activeTab === 'receipts-archive' ? 'Search by date, amount, payee/vendor, expense type...' : 'Search notes by title, content, user...'}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                    className="pl-10 pr-4 py-2 border border-theme rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                   />
                 </div>
                 {activeTab === 'receipts-archive' && (
                   <select
                     value={selectedExpenseType}
                     onChange={(e) => setSelectedExpenseType(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-4 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
                   >
-                    {expenseTypes.map(type => (
-                      <option key={type} value={type}>{type}</option>
+                    {expenseTypes.map((type) => (
+                      <option
+                        key={type}
+                        value={type}
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        {type}
+                      </option>
                     ))}
                   </select>
                 )}
-                <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Filter className="w-4 h-4 text-gray-600" />
+                <button className="p-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                  <Filter className="w-4 h-4 text-secondary" />
                 </button>
               </div>
               <div className="flex items-center gap-2">
-                <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+                <button className="px-4 py-2 text-sm border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-2">
                   <Download className="w-4 h-4" />
                   Export
                 </button>
@@ -716,27 +730,27 @@ export default function ReceiptsFinancialNotes() {
           {activeTab === 'receipts-archive' && (
             <div className="overflow-x-auto">
               {loading ? (
-                <div className="p-8 text-center text-gray-500">Loading receipts...</div>
+                <div className="p-8 text-center text-secondary">Loading receipts...</div>
               ) : filteredReceipts.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">No receipts found</div>
+                <div className="p-8 text-center text-secondary">No receipts found</div>
               ) : (
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-card border-b border-theme">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preview</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payee/Vendor</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expense Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">File</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Preview</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Amount</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Payee/Vendor</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Expense Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">File</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-theme divide-white/5">
                     {filteredReceipts.map(receipt => (
-                      <tr 
-                        key={receipt._id} 
-                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      <tr
+                        key={receipt._id}
+                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedRowItem(receipt);
                           setSelectedRowType('receipt');
@@ -744,25 +758,25 @@ export default function ReceiptsFinancialNotes() {
                         }}
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-lg text-2xl">
+                          <div className="flex items-center justify-center w-12 h-12 bg-card rounded-lg text-2xl">
                             {receipt.thumbnail || '🧾'}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                           <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <Calendar className="w-4 h-4 text-secondary" />
                             {receipt.date}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">
                           <div className="flex items-center gap-2">
                             <DollarSign className="w-4 h-4 text-green-600" />
                             ${receipt.amount.toFixed(2)}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
+                        <td className="px-6 py-4 text-sm text-primary">
                           <div className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-gray-400" />
+                            <User className="w-4 h-4 text-secondary" />
                             {receipt.payeeVendor}
                           </div>
                         </td>
@@ -775,12 +789,12 @@ export default function ReceiptsFinancialNotes() {
                             {receipt.expenseType}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
+                        <td className="px-6 py-4 text-sm text-secondary">
                           <div className="flex items-center gap-2">
-                            <Paperclip className="w-4 h-4 text-gray-400" />
+                            <Paperclip className="w-4 h-4 text-secondary" />
                             <span className="truncate max-w-xs">{receipt.fileName || 'receipt'}</span>
                             {receipt.fileType && (
-                              <span className="px-1.5 py-0.5 bg-gray-200 text-gray-700 rounded text-xs font-medium">
+                              <span className="px-1.5 py-0.5 bg-gray-200 text-primary rounded text-xs font-medium">
                                 {receipt.fileType}
                               </span>
                             )}
@@ -790,28 +804,28 @@ export default function ReceiptsFinancialNotes() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleViewReceipt(receipt)}
-                              className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                              className="p-1 text-[#00D1FF] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/15 rounded transition-colors"
                               title="View Receipt"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDownloadReceipt(receipt)}
-                              className="p-1 text-green-600 hover:bg-green-50 rounded"
+                              className="p-1 text-green-400 hover:text-[var(--accent-green)] hover:bg-[var(--accent-green)]/15 rounded transition-colors"
                               title="Download"
                             >
                               <Download className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleEditReceipt(receipt)}
-                              className="p-1 text-gray-600 hover:bg-gray-50 rounded"
+                              className="p-1 text-[#00D1FF] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/15 rounded transition-colors"
                               title="Edit"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteReceipt(receipt._id)}
-                              className="p-1 text-red-600 hover:bg-red-50 rounded"
+                              className="p-1 text-red-400 hover:text-red-500 hover:bg-red-500/15 rounded"
                               title="Delete"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -830,48 +844,48 @@ export default function ReceiptsFinancialNotes() {
           {activeTab === 'financial-notes' && (
             <div className="overflow-x-auto">
               {loading ? (
-                <div className="p-8 text-center text-gray-500">Loading notes...</div>
+                <div className="p-8 text-center text-secondary">Loading notes...</div>
               ) : filteredNotes.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">No notes found</div>
+                <div className="p-8 text-center text-secondary">No notes found</div>
               ) : (
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-card border-b border-theme">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Note Title</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Note Content</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Linked Transaction</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Date & Time</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">User</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Note Title</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Note Content</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Linked Transaction</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-theme divide-white/5">
                     {filteredNotes.map(note => (
-                      <tr 
-                        key={note._id} 
-                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      <tr
+                        key={note._id}
+                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedRowItem(note);
                           setSelectedRowType('note');
                           setShowRowDetailModal(true);
                         }}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                           <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <Calendar className="w-4 h-4 text-secondary" />
                             {note.date}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                           <div className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-blue-600" />
+                            <User className="w-4 h-4 text-headings" />
                             {note.user}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                        <td className="px-6 py-4 text-sm font-semibold text-primary">
                           {note.noteTitle}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600 max-w-md">
+                        <td className="px-6 py-4 text-sm text-secondary max-w-md">
                           <div className="truncate">{note.noteContent}</div>
                         </td>
                         <td className="px-6 py-4 text-sm">
@@ -883,31 +897,31 @@ export default function ReceiptsFinancialNotes() {
                               </span>
                             </div>
                           ) : (
-                            <span className="text-gray-400 text-xs">No link</span>
+                            <span className="text-secondary text-xs">No link</span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleViewNote(note)}
-                              className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                              className="p-1 text-[#00D1FF] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/15 rounded transition-colors"
                               title="View Note"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleEditNote(note)}
-                              className="p-1 text-gray-600 hover:bg-gray-50 rounded"
+                              className="p-1 text-[#00D1FF] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/15 rounded transition-colors"
                               title="Edit"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteNote(note._id)}
-                              className="p-1 text-red-600 hover:bg-red-50 rounded"
+                              className="p-1 hover:bg-[var(--accent-red)]/20 rounded"
                               title="Delete"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4 text-[var(--accent-red)]" />
                             </button>
                           </div>
                         </td>
@@ -921,14 +935,14 @@ export default function ReceiptsFinancialNotes() {
         </div>
 
         {/* Info Box */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="mt-6 bg-card border border-blue-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <ImageIcon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <ImageIcon className="w-5 h-5 text-headings flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <h4 className="text-sm font-semibold text-blue-900 mb-1">
+              <h4 className="text-sm font-semibold text-headings mb-1">
                 {activeTab === 'receipts-archive' ? 'Receipt Management' : 'Financial Notes'}
               </h4>
-              <p className="text-sm text-blue-800">
+              <p className="text-sm text-headings">
                 {activeTab === 'receipts-archive'
                   ? 'Store digital receipts for fuel, repair, permit fees, and scales. All files are securely stored and can be previewed with thumbnail images. Supported formats: PNG, JPG, PDF.'
                   : 'Log internal finance comments and link them to specific transactions like invoices or settlements. Use notes to track adjustments, reviews, and important financial decisions.'
@@ -940,463 +954,474 @@ export default function ReceiptsFinancialNotes() {
       </div>
 
       {/* Receipt Modal */}
-      {showReceiptModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">{editingReceipt ? 'Edit Receipt' : 'Upload Receipt'}</h2>
-              <button onClick={() => setShowReceiptModal(false)} className="text-gray-500 hover:text-gray-700">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmitReceipt} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
-                <input
-                  type="date"
-                  value={receiptFormData.date}
-                  onChange={(e) => setReceiptFormData({ ...receiptFormData, date: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  required
-                />
+      {
+        showReceiptModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-card rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">{editingReceipt ? 'Edit Receipt' : 'Upload Receipt'}</h2>
+                <button onClick={() => setShowReceiptModal(false)} className="text-secondary hover:text-primary">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={receiptFormData.amount}
-                  onChange={(e) => setReceiptFormData({ ...receiptFormData, amount: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Payee/Vendor *</label>
-                <input
-                  type="text"
-                  value={receiptFormData.payeeVendor}
-                  onChange={(e) => setReceiptFormData({ ...receiptFormData, payeeVendor: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Expense Type *</label>
-                <select
-                  value={receiptFormData.expenseType}
-                  onChange={(e) => setReceiptFormData({ ...receiptFormData, expenseType: e.target.value as any })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  required
-                >
-                  {expenseTypes.filter(t => t !== 'All').map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea
-                  value={receiptFormData.description}
-                  onChange={(e) => setReceiptFormData({ ...receiptFormData, description: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  rows={3}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Receipt File {!editingReceipt && '*'}
-                </label>
-                <input
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={(e) => setReceiptFormData({ ...receiptFormData, file: e.target.files?.[0] || null })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  required={!editingReceipt}
-                />
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  style={{
-                    background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+              <form onSubmit={handleSubmitReceipt} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">Date *</label>
+                  <input
+                    type="date"
+                    value={receiptFormData.date}
+                    onChange={(e) => setReceiptFormData({ ...receiptFormData, date: e.target.value })}
+                    className="w-full border border-theme rounded-lg px-3 py-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">Amount *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={receiptFormData.amount}
+                    onChange={(e) => setReceiptFormData({ ...receiptFormData, amount: e.target.value })}
+                    className="w-full border border-theme rounded-lg px-3 py-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">Payee/Vendor *</label>
+                  <input
+                    type="text"
+                    value={receiptFormData.payeeVendor}
+                    onChange={(e) => setReceiptFormData({ ...receiptFormData, payeeVendor: e.target.value })}
+                    className="w-full border border-theme rounded-lg px-3 py-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">Expense Type *</label>
+                  <select
+                    value={receiptFormData.expenseType}
+                    onChange={(e) => setReceiptFormData({ ...receiptFormData, expenseType: e.target.value as any })}
+                    className="w-full border border-theme rounded-lg px-3 py-2"
+                    required
+                  >
+                    {expenseTypes.filter(t => t !== 'All').map(type => (
+                      <option className='form-option' key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                  <textarea
+                    value={receiptFormData.description}
+                    onChange={(e) => setReceiptFormData({ ...receiptFormData, description: e.target.value })}
+                    className="w-full border border-theme rounded-lg px-3 py-2"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">
+                    Receipt File {!editingReceipt && '*'}
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={(e) => setReceiptFormData({ ...receiptFormData, file: e.target.files?.[0] || null })}
+                    className="w-full border border-theme rounded-lg px-3 py-2"
+                    required={!editingReceipt}
+                  />
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="submit"
+                    style={{
+                      background: 'var(--accent-navyblue)'
 
-                  }}
-                  className="px-4 py-2  !text-white rounded-lg"
-                >
-                  {editingReceipt ? 'Update' : 'Upload'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowReceiptModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+                    }}
+                    className="px-4 py-2  !text-white rounded-lg"
+                  >
+                    {editingReceipt ? 'Update' : 'Upload'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowReceiptModal(false)}
+                    className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Note Modal */}
-      {showNoteModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">{editingNote ? 'Edit Note' : 'New Note'}</h2>
-              <button onClick={() => setShowNoteModal(false)} className="text-gray-500 hover:text-gray-700">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmitNote} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Note Title *</label>
-                <input
-                  type="text"
-                  value={noteFormData.noteTitle}
-                  onChange={(e) => setNoteFormData({ ...noteFormData, noteTitle: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Note Content *</label>
-                <textarea
-                  value={noteFormData.noteContent}
-                  onChange={(e) => setNoteFormData({ ...noteFormData, noteContent: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  rows={5}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Linked Transaction</label>
-                <input
-                  type="text"
-                  value={noteFormData.linkedTransaction}
-                  onChange={(e) => setNoteFormData({ ...noteFormData, linkedTransaction: e.target.value })}
-                  placeholder="e.g., Invoice #INV-2024-045"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Transaction ID</label>
-                <input
-                  type="text"
-                  value={noteFormData.linkedTransactionId}
-                  onChange={(e) => setNoteFormData({ ...noteFormData, linkedTransactionId: e.target.value })}
-                  placeholder="e.g., INV-2024-045"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                />
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
-                  className="px-4 py-2  !text-white rounded-lg"
-                >
-                  {editingNote ? 'Update' : 'Create'}
+      {
+        showNoteModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-card rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-headings">{editingNote ? 'Edit Note' : 'New Note'}</h2>
+                <button onClick={() => setShowNoteModal(false)} className="text-secondary hover:text-headings">
+                  <X className="w-5 h-5" />
                 </button>
+              </div>
+              <form onSubmit={handleSubmitNote} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-headings mb-1">Note Title *</label>
+                  <input
+                    type="text"
+                    value={noteFormData.noteTitle}
+                    onChange={(e) => setNoteFormData({ ...noteFormData, noteTitle: e.target.value })}
+                    className="w-full border border-theme rounded-lg px-3 py-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-headings mb-1">Note Content *</label>
+                  <textarea
+                    value={noteFormData.noteContent}
+                    onChange={(e) => setNoteFormData({ ...noteFormData, noteContent: e.target.value })}
+                    className="w-full border border-theme rounded-lg px-3 py-2"
+                    rows={5}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-headings mb-1">Linked Transaction</label>
+                  <input
+                    type="text"
+                    value={noteFormData.linkedTransaction}
+                    onChange={(e) => setNoteFormData({ ...noteFormData, linkedTransaction: e.target.value })}
+                    placeholder="e.g., Invoice #INV-2024-045"
+                    className="w-full border border-theme rounded-lg px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-headings mb-1">Transaction ID</label>
+                  <input
+                    type="text"
+                    value={noteFormData.linkedTransactionId}
+                    onChange={(e) => setNoteFormData({ ...noteFormData, linkedTransactionId: e.target.value })}
+                    placeholder="e.g., INV-2024-045"
+                    className="w-full border border-theme rounded-lg px-3 py-2"
+                  />
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="submit"
+                    style={{
+                      background: 'var(--accent-navyblue)'
+                    }}
+                    className="px-4 py-2  !text-white rounded-lg"
+                  >
+                    {editingNote ? 'Update' : 'Create'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowNoteModal(false)}
+                    className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div >
+          </div >
+        )
+      }
+
+      {/* View Modal */}
+      {
+        showViewModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-card rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">
+                  {viewingReceipt ? 'Receipt Details' : 'Note Details'}
+                </h2>
                 <button
-                  type="button"
-                  onClick={() => setShowNoteModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  onClick={() => {
+                    setShowViewModal(false);
+                    setViewingReceipt(null);
+                    setViewingNote(null);
+                    setReceiptViewUrl(null);
+                  }}
+                  className="text-secondary hover:text-primary"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              {viewingReceipt && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Date</label>
+                    <p>{viewingReceipt.date}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Amount</label>
+                    <p>${viewingReceipt.amount.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Payee/Vendor</label>
+                    <p>{viewingReceipt.payeeVendor}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Expense Type</label>
+                    <p>{viewingReceipt.expenseType}</p>
+                  </div>
+                  {viewingReceipt && (
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-1">Receipt</label>
+                      {loadingReceiptUrl ? (
+                        <div className="w-full h-96 border border-theme rounded-lg flex items-center justify-center bg-card">
+                          <p className="text-secondary">Loading receipt...</p>
+                        </div>
+                      ) : receiptViewUrl ? (
+                        <div className="w-full border border-theme rounded-lg overflow-hidden">
+                          {receiptViewUrl.toLowerCase().endsWith('.pdf') || viewingReceipt.fileType === 'PDF' ? (
+                            <iframe
+                              src={receiptViewUrl}
+                              className="w-full h-96"
+                              title="Receipt Preview"
+                            />
+                          ) : (
+                            <img
+                              src={receiptViewUrl}
+                              alt="Receipt"
+                              className="w-full h-auto max-h-96 object-contain"
+                              onError={(e) => {
+                                // If image fails to load, try as iframe
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const iframe = document.createElement('iframe');
+                                iframe.src = receiptViewUrl;
+                                iframe.className = 'w-full h-96';
+                                iframe.title = 'Receipt Preview';
+                                target.parentElement?.appendChild(iframe);
+                              }}
+                            />
+                          )}
+                        </div>
+                      ) : (
+                        <div className="w-full h-96 border border-theme rounded-lg flex items-center justify-center bg-card">
+                          <p className="text-secondary">Receipt file not available</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              {viewingNote && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Date & Time</label>
+                    <p>{viewingNote.date}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">User</label>
+                    <p>{viewingNote.user}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Note Title</label>
+                    <p>{viewingNote.noteTitle}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Note Content</label>
+                    <p className="whitespace-pre-wrap">{viewingNote.noteContent}</p>
+                  </div>
+                  {viewingNote.linkedTransaction && (
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-1">Linked Transaction</label>
+                      <p>{viewingNote.linkedTransaction}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      }
+
+      {/* Delete Confirmation Modal */}
+      {
+        showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
+              <div className="flex items-center gap-3 mb-4 text-[#A855F7]">
+                <Trash2 className="w-6 h-6 text-[var(--accent-red)]" />
+                <h3 className="text-lg font-bold">Confirm Deletion</h3>
+              </div>
+              <p className="text-secondary mb-6">
+                Are you sure you want to delete this item? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* View Modal */}
-      {showViewModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">
-                {viewingReceipt ? 'Receipt Details' : 'Note Details'}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowViewModal(false);
-                  setViewingReceipt(null);
-                  setViewingNote(null);
-                  setReceiptViewUrl(null);
-                }}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="w-5 h-5" />
-              </button>
             </div>
-            {viewingReceipt && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                  <p>{viewingReceipt.date}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                  <p>${viewingReceipt.amount.toFixed(2)}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Payee/Vendor</label>
-                  <p>{viewingReceipt.payeeVendor}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Expense Type</label>
-                  <p>{viewingReceipt.expenseType}</p>
-                </div>
-                {viewingReceipt && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Receipt</label>
-                    {loadingReceiptUrl ? (
-                      <div className="w-full h-96 border border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
-                        <p className="text-gray-500">Loading receipt...</p>
+          </div>
+        )
+      }
+
+      {/* Row Detail Modal */}
+      {
+        showRowDetailModal && selectedRowItem && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-card rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-primary">
+                  {selectedRowType === 'receipt' && 'Receipt Details'}
+                  {selectedRowType === 'note' && 'Financial Note Details'}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowRowDetailModal(false);
+                    setSelectedRowItem(null);
+                    setSelectedRowType(null);
+                  }}
+                  className="text-secondary hover:text-secondary transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-6">
+                {/* Receipt Details */}
+                {selectedRowType === 'receipt' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-card p-4 rounded-lg border border-blue-200">
+                        <label className="text-sm font-medium text-blue-900 mb-1 block">Date</label>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-5 h-5 text-[#00D1FF]" />
+                          <p className="text-lg font-semibold text-blue-700">{(selectedRowItem as ReceiptData).date}</p>
+                        </div>
                       </div>
-                    ) : receiptViewUrl ? (
-                      <div className="w-full border border-gray-300 rounded-lg overflow-hidden">
-                        {receiptViewUrl.toLowerCase().endsWith('.pdf') || viewingReceipt.fileType === 'PDF' ? (
-                          <iframe
-                            src={receiptViewUrl}
-                            className="w-full h-96"
-                            title="Receipt Preview"
-                          />
-                        ) : (
-                          <img
-                            src={receiptViewUrl}
-                            alt="Receipt"
-                            className="w-full h-auto max-h-96 object-contain"
-                            onError={(e) => {
-                              // If image fails to load, try as iframe
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              const iframe = document.createElement('iframe');
-                              iframe.src = receiptViewUrl;
-                              iframe.className = 'w-full h-96';
-                              iframe.title = 'Receipt Preview';
-                              target.parentElement?.appendChild(iframe);
-                            }}
-                          />
-                        )}
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <label className="text-sm font-medium text-green-900 mb-1 block">Amount</label>
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="w-5 h-5 text-green-600" />
+                          <p className="text-2xl font-bold text-green-700">${(selectedRowItem as ReceiptData).amount.toFixed(2)}</p>
+                        </div>
                       </div>
-                    ) : (
-                      <div className="w-full h-96 border border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
-                        <p className="text-gray-500">Receipt file not available</p>
+                    </div>
+
+                    <div className="bg-card p-4 rounded-lg border border-theme">
+                      <label className="text-sm font-medium text-primary mb-1 block">Payee/Vendor</label>
+                      <div className="flex items-center gap-2">
+                        <User className="w-5 h-5 text-secondary" />
+                        <p className="text-lg font-semibold text-primary">{(selectedRowItem as ReceiptData).payeeVendor}</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-card p-4 rounded-lg border border-purple-200">
+                      <label className="text-sm font-medium text-purple-900 mb-2 block">Expense Type</label>
+                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedRowItem as ReceiptData).expenseType === 'Fuel' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                        (selectedRowItem as ReceiptData).expenseType === 'Repair' ? 'bg-orange-100 text-orange-800 border-orange-300' :
+                          (selectedRowItem as ReceiptData).expenseType === 'Permit Fees' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                            (selectedRowItem as ReceiptData).expenseType === 'Scales' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                              'bg-green-100 text-green-800 border-green-300'
+                        }`}>
+                        {(selectedRowItem as ReceiptData).expenseType}
+                      </span>
+                    </div>
+
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                      <label className="text-sm font-medium text-indigo-900 mb-2 block">File Information</label>
+                      <div className="flex items-center gap-3">
+                        <Paperclip className="w-5 h-5 text-indigo-600" />
+                        <div>
+                          <p className="text-sm font-medium text-indigo-900">{(selectedRowItem as ReceiptData).fileName || 'receipt'}</p>
+                          {(selectedRowItem as ReceiptData).fileType && (
+                            <span className="inline-block mt-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-medium">
+                              {(selectedRowItem as ReceiptData).fileType}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {(selectedRowItem as ReceiptData).uploadedBy && (
+                      <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                        <label className="text-sm font-medium text-amber-900 mb-1 block">Uploaded By</label>
+                        <p className="text-primary">{(selectedRowItem as ReceiptData).uploadedBy?.name || (selectedRowItem as ReceiptData).uploadedBy?.email}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Financial Note Details */}
+                {selectedRowType === 'note' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-card p-4 rounded-lg border border-blue-200">
+                        <label className="text-sm font-medium text-blue-900 mb-1 block">Date & Time</label>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-5 h-5 text-[#00D1FF]" />
+                          <p className="text-sm font-semibold text-blue-700">{(selectedRowItem as FinancialNoteData).date}</p>
+                        </div>
+                      </div>
+                      <div className="bg-card p-4 rounded-lg border border-purple-200">
+                        <label className="text-sm font-medium text-purple-900 mb-1 block">Created By</label>
+                        <div className="flex items-center gap-2">
+                          <User className="w-5 h-5 text-purple-600" />
+                          <p className="text-lg font-semibold text-purple-700">{(selectedRowItem as FinancialNoteData).user}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <label className="text-sm font-medium text-green-900 mb-1 block">Note Title</label>
+                      <p className="text-xl font-semibold text-green-700">{(selectedRowItem as FinancialNoteData).noteTitle}</p>
+                    </div>
+
+                    <div className="bg-card p-4 rounded-lg border border-theme">
+                      <label className="text-sm font-medium text-primary mb-2 block">Note Content</label>
+                      <p className="text-primary whitespace-pre-wrap leading-relaxed">{(selectedRowItem as FinancialNoteData).noteContent}</p>
+                    </div>
+
+                    {(selectedRowItem as FinancialNoteData).linkedTransaction && (
+                      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                        <label className="text-sm font-medium text-indigo-900 mb-2 block">Linked Transaction</label>
+                        <div className="flex items-center gap-3">
+                          <Tag className="w-5 h-5 text-indigo-600" />
+                          <span className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-full text-sm font-semibold border-2 border-indigo-300">
+                            {(selectedRowItem as FinancialNoteData).linkedTransaction}
+                          </span>
+                        </div>
                       </div>
                     )}
                   </div>
                 )}
               </div>
-            )}
-            {viewingNote && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
-                  <p>{viewingNote.date}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">User</label>
-                  <p>{viewingNote.user}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Note Title</label>
-                  <p>{viewingNote.noteTitle}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Note Content</label>
-                  <p className="whitespace-pre-wrap">{viewingNote.noteContent}</p>
-                </div>
-                {viewingNote.linkedTransaction && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Linked Transaction</label>
-                    <p>{viewingNote.linkedTransaction}</p>
-                  </div>
-                )}
+
+              <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4">
+                <button
+                  onClick={() => {
+                    setShowRowDetailModal(false);
+                    setSelectedRowItem(null);
+                    setSelectedRowType(null);
+                  }}
+                  className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
+                >
+                  Close
+                </button>
               </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-            <div className="flex items-center gap-3 mb-4 text-red-600">
-              <Trash2 className="w-6 h-6" />
-              <h3 className="text-lg font-bold">Confirm Deletion</h3>
-            </div>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete this item? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Delete
-              </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Row Detail Modal */}
-      {showRowDetailModal && selectedRowItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {selectedRowType === 'receipt' && 'Receipt Details'}
-                {selectedRowType === 'note' && 'Financial Note Details'}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowRowDetailModal(false);
-                  setSelectedRowItem(null);
-                  setSelectedRowType(null);
-                }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <div className="p-6">
-              {/* Receipt Details */}
-              {selectedRowType === 'receipt' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                      <label className="text-sm font-medium text-blue-900 mb-1 block">Date</label>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-blue-600" />
-                        <p className="text-lg font-semibold text-blue-700">{(selectedRowItem as ReceiptData).date}</p>
-                      </div>
-                    </div>
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <label className="text-sm font-medium text-green-900 mb-1 block">Amount</label>
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="w-5 h-5 text-green-600" />
-                        <p className="text-2xl font-bold text-green-700">${(selectedRowItem as ReceiptData).amount.toFixed(2)}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">Payee/Vendor</label>
-                    <div className="flex items-center gap-2">
-                      <User className="w-5 h-5 text-gray-600" />
-                      <p className="text-lg font-semibold text-gray-900">{(selectedRowItem as ReceiptData).payeeVendor}</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                    <label className="text-sm font-medium text-purple-900 mb-2 block">Expense Type</label>
-                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${
-                      (selectedRowItem as ReceiptData).expenseType === 'Fuel' ? 'bg-blue-100 text-blue-800 border-blue-300' :
-                      (selectedRowItem as ReceiptData).expenseType === 'Repair' ? 'bg-orange-100 text-orange-800 border-orange-300' :
-                      (selectedRowItem as ReceiptData).expenseType === 'Permit Fees' ? 'bg-purple-100 text-purple-800 border-purple-300' :
-                      (selectedRowItem as ReceiptData).expenseType === 'Scales' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
-                      'bg-green-100 text-green-800 border-green-300'
-                    }`}>
-                      {(selectedRowItem as ReceiptData).expenseType}
-                    </span>
-                  </div>
-
-                  <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                    <label className="text-sm font-medium text-indigo-900 mb-2 block">File Information</label>
-                    <div className="flex items-center gap-3">
-                      <Paperclip className="w-5 h-5 text-indigo-600" />
-                      <div>
-                        <p className="text-sm font-medium text-indigo-900">{(selectedRowItem as ReceiptData).fileName || 'receipt'}</p>
-                        {(selectedRowItem as ReceiptData).fileType && (
-                          <span className="inline-block mt-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-medium">
-                            {(selectedRowItem as ReceiptData).fileType}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {(selectedRowItem as ReceiptData).uploadedBy && (
-                    <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-                      <label className="text-sm font-medium text-amber-900 mb-1 block">Uploaded By</label>
-                      <p className="text-gray-900">{(selectedRowItem as ReceiptData).uploadedBy?.name || (selectedRowItem as ReceiptData).uploadedBy?.email}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Financial Note Details */}
-              {selectedRowType === 'note' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                      <label className="text-sm font-medium text-blue-900 mb-1 block">Date & Time</label>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-blue-600" />
-                        <p className="text-sm font-semibold text-blue-700">{(selectedRowItem as FinancialNoteData).date}</p>
-                      </div>
-                    </div>
-                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                      <label className="text-sm font-medium text-purple-900 mb-1 block">Created By</label>
-                      <div className="flex items-center gap-2">
-                        <User className="w-5 h-5 text-purple-600" />
-                        <p className="text-lg font-semibold text-purple-700">{(selectedRowItem as FinancialNoteData).user}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <label className="text-sm font-medium text-green-900 mb-1 block">Note Title</label>
-                    <p className="text-xl font-semibold text-green-700">{(selectedRowItem as FinancialNoteData).noteTitle}</p>
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">Note Content</label>
-                    <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">{(selectedRowItem as FinancialNoteData).noteContent}</p>
-                  </div>
-
-                  {(selectedRowItem as FinancialNoteData).linkedTransaction && (
-                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                      <label className="text-sm font-medium text-indigo-900 mb-2 block">Linked Transaction</label>
-                      <div className="flex items-center gap-3">
-                        <Tag className="w-5 h-5 text-indigo-600" />
-                        <span className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-full text-sm font-semibold border-2 border-indigo-300">
-                          {(selectedRowItem as FinancialNoteData).linkedTransaction}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4">
-              <button
-                onClick={() => {
-                  setShowRowDetailModal(false);
-                  setSelectedRowItem(null);
-                  setSelectedRowType(null);
-                }}
-                className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }

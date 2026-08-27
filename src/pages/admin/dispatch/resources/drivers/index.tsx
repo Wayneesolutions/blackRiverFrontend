@@ -311,7 +311,7 @@ const DriversTable = () => {
 
         const statusConfig: Record<string, { bg: string; text: string }> = {
             active: { bg: 'bg-green-100', text: 'text-green-800' },
-            inactive: { bg: 'bg-gray-100', text: 'text-gray-800' },
+            inactive: { bg: 'bg-card', text: 'text-primary' },
             suspended: { bg: 'bg-red-100', text: 'text-red-800' },
         };
 
@@ -326,7 +326,7 @@ const DriversTable = () => {
 
     if (loading && drivers.length === 0) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center min-h-screen ">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
             </div>
         );
@@ -335,29 +335,29 @@ const DriversTable = () => {
         <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
                 <span className={`w-2.5 h-2.5 rounded-full ${color}`} />
-                <span className="text-sm text-gray-600">{label}</span>
+                <span className="text-sm text-secondary">{label}</span>
             </div>
-            <span className="text-sm font-semibold text-gray-900">{value}</span>
+            <span className="text-sm font-semibold text-primary">{value}</span>
         </div>
     );
 
     return (
-        <div className="min-h-screen bg-[#EDF8FF]">
+        <div className="min-h-screen bg-main">
             <div className="flex-1">
                 <div className="px-6 py-4">
                     <div className="flex items-center justify-between">
                         {/* Left side: Title */}
-                        <h1 className="text-2xl font-semibold text-gray-900">
+                        <h1 className="text-2xl font-semibold text-[var(--accent-navyblue)]">
                             Drivers
                         </h1>
 
                         {/* Right side: Search */}
                         <div className="relative">
-                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
                             <input
                                 type="text"
                                 placeholder="Search drivers..."
-                                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="pl-10 pr-4 py-2 border border-theme rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -374,23 +374,23 @@ const DriversTable = () => {
                             setFilterType('total');
                             setSearchParams({});
                         }}
-                        className={`md:col-span-3 rounded-xl bg-white p-4 cursor-pointer
+                        className={`md:col-span-3 rounded-xl bg-card p-4 cursor-pointer
     transition shadow-sm hover:shadow-md border
-    ${filterType === 'total' ? 'border-orange-400' : 'border-gray-200'}
+    ${filterType === 'total' ? 'border-orange-400' : 'border-theme'}
   `}
                     >
                         <div className="md:col-span-2 flex flex-col gap-3">
 
                             <div>
-                                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                <p className="text-[11px] font-semibold text-secondary uppercase tracking-wide">
                                     Total Drivers
                                 </p>
-                                <p className="text-3xl font-bold text-gray-900 mt-0.5">
+                                <p className="text-3xl font-bold text-primary mt-0.5">
                                     {counts.total}
                                 </p>
                             </div>
 
-                            <div className="p-1.5 rounded-md bg-orange-50 text-orange-600">
+                            <div className="p-1.5 rounded-md bg-card text-[#F59E0B]">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                         d="M17 20h5v-1a4 4 0 00-5-4m-4 5H2v-1a4 4 0 015-4m6-6a4 4 0 11-8 0 4 4 0 018 0" />
@@ -403,7 +403,7 @@ const DriversTable = () => {
                             <StatRow label="Unassigned" value={counts.unassigned} color="bg-purple-500" />
                         </div>
 
-                        <div className="mt-3 pt-2 border-t text-[11px] text-gray-500">
+                        <div className="mt-3 pt-2 border-t text-[11px] text-secondary">
                             Across dispatch & maintenance
                         </div>
                     </div>
@@ -416,18 +416,18 @@ const DriversTable = () => {
                                 setFilterType('assigned');
                                 setSearchParams({ filter: 'assigned' });
                             }}
-                            className={`rounded-xl bg-white p-3 cursor-pointer transition
+                            className={`rounded-xl bg-card p-3 cursor-pointer transition
     shadow-sm hover:shadow-md border-l-4
     ${filterType === 'assigned' ? 'border-green-500' : 'border-transparent'}
   `}
                         >
-                            <p className="text-[11px] font-semibold text-gray-500 uppercase">
+                            <p className="text-[11px] font-semibold text-secondary uppercase">
                                 Assigned
                             </p>
-                            <p className="text-2xl font-bold text-gray-900 mt-0.5">
+                            <p className="text-2xl font-bold text-primary mt-0.5">
                                 {counts.assigned}
                             </p>
-                            <p className="text-[11px] text-gray-500 mt-0.5">
+                            <p className="text-[11px] text-secondary mt-0.5">
                                 Tied to active loads
                             </p>
                         </div>
@@ -438,18 +438,18 @@ const DriversTable = () => {
                                 setFilterType('unassigned');
                                 setSearchParams({ filter: 'unassigned' });
                             }}
-                            className={`rounded-xl bg-white p-3 cursor-pointer transition
+                            className={`rounded-xl bg-card p-3 cursor-pointer transition
     shadow-sm hover:shadow-md border-l-4
     ${filterType === 'unassigned' ? 'border-purple-500' : 'border-transparent'}
   `}
                         >
-                            <p className="text-[11px] font-semibold text-gray-500 uppercase">
+                            <p className="text-[11px] font-semibold text-secondary uppercase">
                                 Unassigned
                             </p>
-                            <p className="text-2xl font-bold text-gray-900 mt-0.5">
+                            <p className="text-2xl font-bold text-primary mt-0.5">
                                 {counts.unassigned}
                             </p>
-                            <p className="text-[11px] text-gray-500 mt-0.5">
+                            <p className="text-[11px] text-secondary mt-0.5">
                                 Available for dispatch
                             </p>
                         </div>
@@ -461,18 +461,18 @@ const DriversTable = () => {
 
 
                 {insightsLoading && (
-                    <p className="px-6 text-xs text-gray-500">Refreshing insights…</p>
+                    <p className="px-6 text-xs text-secondary">Refreshing insights…</p>
                 )}
 
                 {emptyStateMessage && filteredDrivers.length === 0 && (
-                    <div className="mx-6 mt-4 bg-blue-50 border border-blue-100 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-3">
+                    <div className="mx-6 mt-4 bg-card border border-blue-100 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-3">
                         <User />
                         <span className="text-sm">{emptyStateMessage}</span>
                     </div>
                 )}
 
                 <div className="p-6">
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
                         {/* Top Scrollbar - Only visible horizontal scrollbar */}
                         <style>{`
                             .top-scrollbar-container::-webkit-scrollbar {
@@ -503,7 +503,7 @@ const DriversTable = () => {
                                 maxHeight: '20px',
                                 marginBottom: '2px',
                                 scrollbarWidth: 'thin',
-                                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+                                scrollbarColor: '#224c75 #111c24'  /* Firefox */
                             }}
                         >
                             <div className="top-scroll-content" style={{ height: '1px' }}></div>
@@ -514,46 +514,46 @@ const DriversTable = () => {
                             className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
                         >
                             <table className="w-full" style={{ minWidth: '1000px' }}>
-                                <thead className="bg-gray-50 border-b border-gray-200">
+                                <thead className="bg-card border-b border-theme">
                                     <tr>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Name
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Email
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Internal ID
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Phone
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Country
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Current Assignment
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Route
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Miles / Loads
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Status
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Join Date
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-200">
+                                <tbody className="divide-theme">
                                     {filteredDrivers.length > 0 ? (
                                         filteredDrivers.map((driver) => (
                                             <tr
                                                 key={driver._id}
-                                                className="hover:bg-gray-50 transition-colors cursor-pointer"
+                                                className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                                                 onClick={() => {
                                                     setSelectedDriver(driver);
                                                     setShowDriverDetails(true);
@@ -565,27 +565,27 @@ const DriversTable = () => {
                                                             <User className="w-4 h-4 text-white" />
                                                         </div>
                                                         <div className="ml-3">
-                                                            <div className="text-sm font-medium text-gray-900">
+                                                            <div className="text-sm font-medium text-primary">
                                                                 {driver.name || 'N/A'}
                                                             </div>
-                                                            <div className="text-xs text-gray-500">
+                                                            <div className="text-xs text-secondary">
                                                                 {driver.role ? driver.role.charAt(0).toUpperCase() + driver.role.slice(1) : 'Driver'}
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                                                     {driver.email || 'N/A'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-sm font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                                    <span className="text-sm font-mono text-[#00D1FF] bg-card px-2 py-1 rounded">
                                                         {driver.internalId || 'N/A'}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                                                     {driver.phone || 'N/A'}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                                                     {driver.country || 'N/A'}
                                                 </td>
                                                 <td className="px-6 py-4 align-top">
@@ -599,7 +599,7 @@ const DriversTable = () => {
                                                             >
                                                                 <button
                                                                     type="button"
-                                                                    className={`mt-1 rounded-full border p-2 text-xs font-semibold uppercase ${activeOrder ? 'text-blue-600 border-blue-200' : 'text-gray-400 border-gray-200'
+                                                                    className={`mt-1 rounded-full border p-2 text-xs font-semibold uppercase ${activeOrder ? 'text-[#00D1FF] border-blue-200' : 'text-secondary border-theme'
                                                                         }`}
                                                                     title={activeOrder ? 'View assignment details' : 'No active assignment'}
                                                                     onMouseEnter={() => setPreviewDriverId(driver._id)}
@@ -629,16 +629,16 @@ const DriversTable = () => {
                                                                     </svg>
                                                                 </button>
                                                                 <div className="space-y-1">
-                                                                    <div className="text-sm font-semibold text-gray-900">
+                                                                    <div className="text-sm font-semibold text-primary">
                                                                         {activeOrder?.route ? truncateText(activeOrder.route, 32) : 'No active load'}
                                                                     </div>
                                                                     {activeOrder ? (
-                                                                        <div className="text-xs text-gray-500">
+                                                                        <div className="text-xs text-secondary">
                                                                             Order #{activeOrder.customerOrderNo || activeOrder.orderNumber || '—'} <br />
                                                                             {activeOrder.pickupDate ? new Date(activeOrder.pickupDate).toLocaleDateString() : 'Date TBC'}
                                                                         </div>
                                                                     ) : (
-                                                                        <div className="text-xs text-gray-400">
+                                                                        <div className="text-xs text-secondary">
                                                                             Ready for assignment · {formatMiles(driverMiles[driver._id]?.openMiles)}
                                                                         </div>
                                                                     )}
@@ -662,15 +662,15 @@ const DriversTable = () => {
                                                                     )}
                                                                 </div>
                                                                 {previewDriverId === driver._id && (
-                                                                    <div className="absolute left-12 top-0 z-20 w-64 rounded-xl border border-gray-200 bg-white p-4 shadow-lg">
-                                                                        <p className="text-xs font-semibold text-gray-500">Assignment preview</p>
-                                                                        <p className="mt-1 text-sm font-semibold text-gray-900">
+                                                                    <div className="absolute left-12 top-0 z-20 w-64 rounded-xl border border-theme bg-card p-4 shadow-lg">
+                                                                        <p className="text-xs font-semibold text-secondary">Assignment preview</p>
+                                                                        <p className="mt-1 text-sm font-semibold text-primary">
                                                                             {activeOrder?.route || 'No active assignment'}
                                                                         </p>
-                                                                        <p className="text-xs text-gray-500">
+                                                                        <p className="text-xs text-secondary">
                                                                             Order #{activeOrder?.customerOrderNo || activeOrder?.orderNumber || '—'}
                                                                         </p>
-                                                                        <p className="text-xs text-gray-500">
+                                                                        <p className="text-xs text-secondary">
                                                                             {activeOrder?.pickupDate
                                                                                 ? new Date(activeOrder.pickupDate).toLocaleDateString()
                                                                                 : 'TBC'}
@@ -678,12 +678,12 @@ const DriversTable = () => {
                                                                         {activeOrder && (
                                                                             <div className="mt-2 space-y-1">
                                                                                 {activeOrder.truck && (
-                                                                                    <p className="text-xs text-gray-600">
+                                                                                    <p className="text-xs text-secondary">
                                                                                         Truck: {activeOrder.truck}
                                                                                     </p>
                                                                                 )}
                                                                                 {activeOrder.trailer && (
-                                                                                    <p className="text-xs text-gray-600">
+                                                                                    <p className="text-xs text-secondary">
                                                                                         Trailer: {activeOrder.trailer}
                                                                                     </p>
                                                                                 )}
@@ -699,15 +699,15 @@ const DriversTable = () => {
                                                     {(() => {
                                                         const activeOrder = driver.activeOrder;
                                                         if (!activeOrder || !activeOrder.route) {
-                                                            return <span className="text-xs text-gray-400">No route</span>;
+                                                            return <span className="text-xs text-secondary">No route</span>;
                                                         }
                                                         return (
                                                             <div className="max-w-xs">
-                                                                <div className="text-sm font-medium text-gray-900 truncate" title={activeOrder.route}>
+                                                                <div className="text-sm font-medium text-primary truncate" title={activeOrder.route}>
                                                                     {activeOrder.route}
                                                                 </div>
                                                                 {(activeOrder.customerOrderNo || activeOrder.orderNumber) && (
-                                                                    <div className="text-xs text-gray-500 mt-1">
+                                                                    <div className="text-xs text-secondary mt-1">
                                                                         Order #{activeOrder.customerOrderNo || activeOrder.orderNumber}
                                                                     </div>
                                                                 )}
@@ -719,14 +719,14 @@ const DriversTable = () => {
                                                     {(() => {
                                                         const milesInsight = driverMiles[driver._id];
                                                         if (!milesInsight) {
-                                                            return <span className="text-xs text-gray-400">No mileage captured</span>;
+                                                            return <span className="text-xs text-secondary">No mileage captured</span>;
                                                         }
                                                         return (
                                                             <div className="space-y-1">
-                                                                <div className="text-sm font-semibold text-gray-900">
+                                                                <div className="text-sm font-semibold text-primary">
                                                                     {formatMiles(milesInsight.totalMiles)}
                                                                 </div>
-                                                                <div className="text-xs text-gray-500">
+                                                                <div className="text-xs text-secondary">
                                                                     {milesInsight.openOrders} open load{milesInsight.openOrders === 1 ? '' : 's'} · {formatMiles(milesInsight.openMiles)} pending
                                                                 </div>
                                                             </div>
@@ -736,7 +736,7 @@ const DriversTable = () => {
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     {getStatusBadge(driver.status)}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                                                     {driver.joinDate
                                                         ? new Date(driver.joinDate).toLocaleDateString('en-US', {
                                                             year: 'numeric',
@@ -756,15 +756,15 @@ const DriversTable = () => {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                                            <td colSpan={10} className="px-6 py-12 text-center text-secondary">
                                                 <div className="flex flex-col items-center space-y-3">
-                                                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                                                    <div className="w-16 h-16 bg-card rounded-full flex items-center justify-center">
                                                         <User className="w-8 h-8 text-gray-300" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-base font-medium text-gray-700">No filtered drivers found</p>
+                                                        <p className="text-base font-medium text-primary">No filtered drivers found</p>
                                                         {emptyStateMessage && (
-                                                            <p className="text-sm text-gray-400 mt-1">{emptyStateMessage}</p>
+                                                            <p className="text-sm text-secondary mt-1">{emptyStateMessage}</p>
                                                         )}
                                                     </div>
                                                 </div>
@@ -791,18 +791,18 @@ const DriversTable = () => {
 
                         {/* Sidebar Panel */}
                         <div
-                            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+                            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
                         >
                             <div className="p-6">
                                 {/* Header */}
-                                <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                                    <h2 className="text-2xl font-bold text-gray-900">Driver Details</h2>
+                                <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
+                                    <h2 className="text-2xl font-bold text-primary">Driver Details</h2>
                                     <button
                                         onClick={() => {
                                             setShowDriverDetails(false);
                                             setTimeout(() => setSelectedDriver(null), 300);
                                         }}
-                                        className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                                        className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                                     >
                                         <X size={24} />
                                     </button>
@@ -810,7 +810,7 @@ const DriversTable = () => {
 
                                 <div className="space-y-6">
                                     {/* Driver Header */}
-                                    <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                                    <div className=" text-white p-6 rounded-lg border border-blue-200">
                                         <div className="flex items-center gap-4">
                                             <div className="h-20 w-20 flex-shrink-0">
                                                 <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600">
@@ -846,62 +846,62 @@ const DriversTable = () => {
                                     </div>
 
                                     {/* Personal Information */}
-                                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                        <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                                            <User size={20} className="text-blue-600" />
+                                    <div className="bg-card p-6 rounded-lg border border-theme">
+                                        <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                                            <User size={20} className="text-[#00D1FF]" />
                                             Personal Information
                                         </h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Full Name</p>
-                                                <p className="font-medium text-gray-900">{selectedDriver.name || "—"}</p>
+                                                <p className="text-sm text-secondary mb-1">Full Name</p>
+                                                <p className="font-medium text-primary">{selectedDriver.name || "—"}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Email</p>
-                                                <p className="font-medium text-gray-900">{selectedDriver.email || "—"}</p>
+                                                <p className="text-sm text-secondary mb-1">Email</p>
+                                                <p className="font-medium text-primary">{selectedDriver.email || "—"}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Phone</p>
-                                                <p className="font-medium text-gray-900">{selectedDriver.phone || "—"}</p>
+                                                <p className="text-sm text-secondary mb-1">Phone</p>
+                                                <p className="font-medium text-primary">{selectedDriver.phone || "—"}</p>
                                             </div>
                                             {selectedDriver.country && (
                                                 <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Country</p>
-                                                    <p className="font-medium text-gray-900">{selectedDriver.country}</p>
+                                                    <p className="text-sm text-secondary mb-1">Country</p>
+                                                    <p className="font-medium text-primary">{selectedDriver.country}</p>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
 
                                     {/* Professional Information */}
-                                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
-                                        <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                                            <Briefcase size={20} className="text-blue-600" />
+                                    <div className=" p-6 rounded-lg ">
+                                        <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                                            <Briefcase size={20} className="text-[#00D1FF]" />
                                             Professional Information
                                         </h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {selectedDriver.internalId && (
                                                 <div>
-                                                    <p className="text-sm text-gray-600 mb-1">Internal ID</p>
-                                                    <p className="font-medium text-gray-900">{selectedDriver.internalId}</p>
+                                                    <p className="text-sm text-secondary mb-1">Internal ID</p>
+                                                    <p className="font-medium text-primary">{selectedDriver.internalId}</p>
                                                 </div>
                                             )}
                                             {selectedDriver.licenceNumber && (
                                                 <div>
-                                                    <p className="text-sm text-gray-600 mb-1">License Number</p>
-                                                    <p className="font-medium text-gray-900">{selectedDriver.licenceNumber}</p>
+                                                    <p className="text-sm text-secondary mb-1">License Number</p>
+                                                    <p className="font-medium text-primary">{selectedDriver.licenceNumber}</p>
                                                 </div>
                                             )}
                                             {selectedDriver.role && (
                                                 <div>
-                                                    <p className="text-sm text-gray-600 mb-1">Role</p>
-                                                    <p className="font-medium text-gray-900">{selectedDriver.role.charAt(0).toUpperCase() + selectedDriver.role.slice(1)}</p>
+                                                    <p className="text-sm text-secondary mb-1">Role</p>
+                                                    <p className="font-medium text-primary">{selectedDriver.role.charAt(0).toUpperCase() + selectedDriver.role.slice(1)}</p>
                                                 </div>
                                             )}
                                             {selectedDriver.joinDate && (
                                                 <div>
-                                                    <p className="text-sm text-gray-600 mb-1">Join Date</p>
-                                                    <p className="font-medium text-gray-900">
+                                                    <p className="text-sm text-secondary mb-1">Join Date</p>
+                                                    <p className="font-medium text-primary">
                                                         {new Date(selectedDriver.joinDate).toLocaleDateString('en-US', {
                                                             year: 'numeric',
                                                             month: 'long',
@@ -915,35 +915,35 @@ const DriversTable = () => {
 
                                     {/* Current Assignment */}
                                     {selectedDriver.activeOrder && (
-                                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                            <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                                                <MapPin size={20} className="text-blue-600" />
+                                        <div className="bg-card p-6 rounded-lg border border-theme">
+                                            <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                                                <MapPin size={20} className="text-[#00D1FF]" />
                                                 Current Assignment
                                             </h4>
                                             <div className="space-y-2">
                                                 <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Route</p>
-                                                    <p className="font-medium text-gray-900">{selectedDriver.activeOrder.route || "—"}</p>
+                                                    <p className="text-sm text-secondary mb-1">Route</p>
+                                                    <p className="font-medium text-primary">{selectedDriver.activeOrder.route || "—"}</p>
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div>
-                                                        <p className="text-sm text-gray-500 mb-1">Order Number</p>
-                                                        <p className="font-medium text-gray-900">#{selectedDriver.activeOrder.customerOrderNo || selectedDriver.activeOrder.orderNumber || "—"}</p>
+                                                        <p className="text-sm text-secondary mb-1">Order Number</p>
+                                                        <p className="font-medium text-primary">#{selectedDriver.activeOrder.customerOrderNo || selectedDriver.activeOrder.orderNumber || "—"}</p>
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm text-gray-500 mb-1">Status</p>
-                                                        <p className="font-medium text-gray-900">{selectedDriver.activeOrder.status?.replace('_', ' ') || "—"}</p>
+                                                        <p className="text-sm text-secondary mb-1">Status</p>
+                                                        <p className="font-medium text-primary">{selectedDriver.activeOrder.status?.replace('_', ' ') || "—"}</p>
                                                     </div>
                                                     {selectedDriver.activeOrder.tripNo && (
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Trip Number</p>
-                                                            <p className="font-medium text-gray-900">{selectedDriver.activeOrder.tripNo}</p>
+                                                            <p className="text-sm text-secondary mb-1">Trip Number</p>
+                                                            <p className="font-medium text-primary">{selectedDriver.activeOrder.tripNo}</p>
                                                         </div>
                                                     )}
                                                     {selectedDriver.activeOrder.pickupDate && (
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Pickup Date</p>
-                                                            <p className="font-medium text-gray-900">
+                                                            <p className="text-sm text-secondary mb-1">Pickup Date</p>
+                                                            <p className="font-medium text-primary">
                                                                 {new Date(selectedDriver.activeOrder.pickupDate).toLocaleDateString('en-US', {
                                                                     year: 'numeric',
                                                                     month: 'long',
@@ -954,8 +954,8 @@ const DriversTable = () => {
                                                     )}
                                                     {selectedDriver.activeOrder.deliveryDate && (
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Delivery Date</p>
-                                                            <p className="font-medium text-gray-900">
+                                                            <p className="text-sm text-secondary mb-1">Delivery Date</p>
+                                                            <p className="font-medium text-primary">
                                                                 {new Date(selectedDriver.activeOrder.deliveryDate).toLocaleDateString('en-US', {
                                                                     year: 'numeric',
                                                                     month: 'long',
@@ -968,7 +968,7 @@ const DriversTable = () => {
                                                 {(selectedDriver.activeOrder.truck || selectedDriver.activeOrder.trailer) && (
                                                     <div className="flex flex-wrap gap-2 pt-2">
                                                         {selectedDriver.activeOrder.truck && (
-                                                            <span className="text-xs px-3 py-1 rounded-full border border-blue-200 text-blue-700 font-semibold uppercase bg-blue-50">
+                                                            <span className="text-xs px-3 py-1 rounded-full border border-blue-200 text-blue-700 font-semibold uppercase bg-card">
                                                                 Truck: {selectedDriver.activeOrder.truck}
                                                             </span>
                                                         )}
@@ -985,37 +985,37 @@ const DriversTable = () => {
 
                                     {/* Miles / Loads Information */}
                                     {driverMiles[selectedDriver._id] && (
-                                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                            <h4 className="font-semibold text-gray-900 mb-4 text-lg">Miles & Loads</h4>
+                                        <div className="bg-card p-6 rounded-lg border border-theme">
+                                            <h4 className="font-semibold text-primary mb-4 text-lg">Miles & Loads</h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Total Miles</p>
-                                                    <p className="font-medium text-gray-900">{formatMiles(driverMiles[selectedDriver._id].totalMiles)}</p>
+                                                    <p className="text-sm text-secondary mb-1">Total Miles</p>
+                                                    <p className="font-medium text-primary">{formatMiles(driverMiles[selectedDriver._id].totalMiles)}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Open Miles</p>
-                                                    <p className="font-medium text-gray-900">{formatMiles(driverMiles[selectedDriver._id].openMiles)}</p>
+                                                    <p className="text-sm text-secondary mb-1">Open Miles</p>
+                                                    <p className="font-medium text-primary">{formatMiles(driverMiles[selectedDriver._id].openMiles)}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Total Orders</p>
-                                                    <p className="font-medium text-gray-900">{driverMiles[selectedDriver._id].totalOrders}</p>
+                                                    <p className="text-sm text-secondary mb-1">Total Orders</p>
+                                                    <p className="font-medium text-primary">{driverMiles[selectedDriver._id].totalOrders}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Open Orders</p>
-                                                    <p className="font-medium text-gray-900">{driverMiles[selectedDriver._id].openOrders}</p>
+                                                    <p className="text-sm text-secondary mb-1">Open Orders</p>
+                                                    <p className="font-medium text-primary">{driverMiles[selectedDriver._id].openOrders}</p>
                                                 </div>
                                             </div>
                                         </div>
                                     )}
 
                                     {/* Action Buttons */}
-                                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                                         <button
                                             onClick={() => {
                                                 setShowDriverDetails(false);
                                                 setTimeout(() => setSelectedDriver(null), 300);
                                             }}
-                                            className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                                            className="px-6 py-2.5 bg-gray-200 !text-black font-medium rounded-lg hover:bg-gray-300 transition-all"
                                         >
                                             Close
                                         </button>

@@ -268,8 +268,8 @@ const FleetUnits: React.FC = () => {
         setNotification({ type: 'success', message: 'Document deleted successfully' });
         // Refresh the unit details
         if (selectedUnitDetails?._id) {
-          const unitId = selectedUnitDetails._id.startsWith('custom-') 
-            ? selectedUnitDetails._id.replace('custom-', '') 
+          const unitId = selectedUnitDetails._id.startsWith('custom-')
+            ? selectedUnitDetails._id.replace('custom-', '')
             : selectedUnitDetails._id;
           const updatedUnitResponse = await getFleetUnitById(unitId);
           if (updatedUnitResponse?.success && updatedUnitResponse?.data) {
@@ -294,27 +294,27 @@ const FleetUnits: React.FC = () => {
     try {
       setIsSubmitting(true);
       const formData = new FormData();
-      
+
       // Only append fields that have values (allow partial updates)
       // Document type is required
       if (editDocumentForm.documentType) {
         formData.append('documentType', editDocumentForm.documentType);
       }
-      
+
       // Only append document number if it has a value
       if (editDocumentForm.documentNumber && editDocumentForm.documentNumber.trim() !== '') {
         formData.append('documentNumber', editDocumentForm.documentNumber.trim());
       }
-      
+
       // Only append dates if they have values
       if (editDocumentForm.expiryDate && editDocumentForm.expiryDate.trim() !== '') {
         formData.append('expiryDate', editDocumentForm.expiryDate);
       }
-      
+
       if (editDocumentForm.issuedAt && editDocumentForm.issuedAt.trim() !== '') {
         formData.append('issuedAt', editDocumentForm.issuedAt);
       }
-      
+
       // Add files if any (optional - only if user wants to update files)
       if (editDocumentForm.files && editDocumentForm.files.length > 0) {
         editDocumentForm.files.forEach((file) => {
@@ -328,11 +328,11 @@ const FleetUnits: React.FC = () => {
         setShowEditDocumentModal(false);
         setEditingDocument(null);
         setEditDocumentForm(null);
-        
+
         // Refresh the unit details
         if (selectedUnitDetails?._id) {
-          const unitId = selectedUnitDetails._id.startsWith('custom-') 
-            ? selectedUnitDetails._id.replace('custom-', '') 
+          const unitId = selectedUnitDetails._id.startsWith('custom-')
+            ? selectedUnitDetails._id.replace('custom-', '')
             : selectedUnitDetails._id;
           const updatedUnitResponse = await getFleetUnitById(unitId);
           if (updatedUnitResponse?.success && updatedUnitResponse?.data) {
@@ -390,7 +390,7 @@ const FleetUnits: React.FC = () => {
   // Sync scroll between top and bottom scrollbars for documents table
   useEffect(() => {
     if (!showUnitDetails) return;
-    
+
     const topScroll = topScrollRef.current;
     const bottomScroll = bottomScrollRef.current;
 
@@ -470,7 +470,7 @@ const FleetUnits: React.FC = () => {
 
       if (response?.success) {
         const unitsData = response.data || [];
-        
+
         // Fetch documents once for all units (more efficient)
         let allDocuments: any[] = [];
         try {
@@ -488,8 +488,8 @@ const FleetUnits: React.FC = () => {
                     fleetUnitIdStr = doc.fleetUnitId;
                   } else if (doc.fleetUnitId._id) {
                     // Handle populated ObjectId
-                    fleetUnitIdStr = typeof doc.fleetUnitId._id === 'string' 
-                      ? doc.fleetUnitId._id 
+                    fleetUnitIdStr = typeof doc.fleetUnitId._id === 'string'
+                      ? doc.fleetUnitId._id
                       : String(doc.fleetUnitId._id);
                   } else if (typeof doc.fleetUnitId === 'object' && doc.fleetUnitId.toString) {
                     // Handle Mongoose ObjectId
@@ -506,11 +506,11 @@ const FleetUnits: React.FC = () => {
             });
             console.log(`📄 Total documents fetched: ${allDocuments.length}`);
             if (allDocuments.length > 0) {
-              console.log('📄 Sample documents:', allDocuments.slice(0, 3).map(d => ({ 
-                _id: d._id, 
-                fleetUnitId: d.fleetUnitId, 
+              console.log('📄 Sample documents:', allDocuments.slice(0, 3).map(d => ({
+                _id: d._id,
+                fleetUnitId: d.fleetUnitId,
                 fleetUnitIdStr: d.fleetUnitIdStr,
-                documentType: d.documentType 
+                documentType: d.documentType
               })));
             }
           }
@@ -521,7 +521,7 @@ const FleetUnits: React.FC = () => {
         // Helper function to extract real ID from prefixed IDs (e.g., "custom-123" -> "123")
         const extractRealId = (prefixedId: string | any): string => {
           if (!prefixedId) return '';
-          
+
           let idStr = '';
           if (typeof prefixedId === 'string') {
             idStr = prefixedId;
@@ -530,7 +530,7 @@ const FleetUnits: React.FC = () => {
           } else {
             idStr = String(prefixedId);
           }
-          
+
           // Remove prefixes if present
           if (idStr.startsWith('custom-')) {
             return idStr.replace('custom-', '');
@@ -541,7 +541,7 @@ const FleetUnits: React.FC = () => {
           if (idStr.startsWith('trailer-')) {
             return idStr.replace('trailer-', '');
           }
-          
+
           return idStr.trim();
         };
 
@@ -549,9 +549,9 @@ const FleetUnits: React.FC = () => {
         const unitsWithDocuments = unitsData.map((unit: FleetUnit) => {
           // Extract real ID from unit (handle prefixed IDs like "custom-123")
           const unitIdStr = extractRealId(unit._id);
-          
+
           console.log(`🔍 Unit ${unit.unitNo}: Original ID = ${unit._id}, Extracted ID = ${unitIdStr}`);
-          
+
           // Find documents for this unit
           const unitDocuments = allDocuments.filter((doc: any) => {
             const matches = doc.fleetUnitIdStr === unitIdStr;
@@ -560,21 +560,21 @@ const FleetUnits: React.FC = () => {
             }
             return matches;
           });
-          
+
           if (unitDocuments.length > 0) {
             console.log(`📄 Unit ${unit.unitNo} (${unitIdStr}): Found ${unitDocuments.length} documents`);
           } else {
-            console.log(`⚠️ Unit ${unit.unitNo} (${unitIdStr}): No documents found. Available fleetUnitIds in docs:`, 
+            console.log(`⚠️ Unit ${unit.unitNo} (${unitIdStr}): No documents found. Available fleetUnitIds in docs:`,
               [...new Set(allDocuments.map(d => d.fleetUnitIdStr))].slice(0, 5));
           }
-          
+
           return { ...unit, documents: unitDocuments };
         });
-        
+
         setUnits(unitsWithDocuments);
         setSummary(response.summary || defaultSummary);
         setRequiresCompanySetup(!!response.requiresCompanySetup);
-        
+
         // If a specific unit was refreshed, update the selected unit details if modal is open
         if (refreshUnitId) {
           setSelectedUnitDetails(prev => {
@@ -744,7 +744,7 @@ const FleetUnits: React.FC = () => {
         try {
           const assetType = formData.unitType === 'Truck' ? 'vehicle' : 'trailer';
           const uploadPromises: Promise<any>[] = [];
-          
+
           for (const doc of fleetDocuments) {
             // Handle multiple files for new documents
             if (doc.files && doc.files.length > 0 && doc.documentType) {
@@ -792,7 +792,7 @@ const FleetUnits: React.FC = () => {
                   uploadPromises.push(createVehicleDocument(docFormData));
                 }
               }
-              
+
               // Update existing document metadata (even if no new files)
               const docFormData = new FormData();
               docFormData.append('documentType', doc.documentType);
@@ -803,18 +803,18 @@ const FleetUnits: React.FC = () => {
               uploadPromises.push(updateVehicleDocument(doc._id, docFormData));
             }
           }
-          
+
           // Wait for all document uploads to complete
           const uploadResults = await Promise.all(uploadPromises);
           console.log('✅ All documents uploaded:', uploadResults);
-          
+
           // Check for any failed uploads
           const failedUploads = uploadResults.filter(result => !result?.success);
           if (failedUploads.length > 0) {
             console.error('❌ Some document uploads failed:', failedUploads);
-            setNotification({ 
-              type: 'error', 
-              message: `${failedUploads.length} document(s) failed to upload. Please check the console for details.` 
+            setNotification({
+              type: 'error',
+              message: `${failedUploads.length} document(s) failed to upload. Please check the console for details.`
             });
           }
 
@@ -826,7 +826,7 @@ const FleetUnits: React.FC = () => {
                 console.log('✅ Fetched updated fleet unit with documents:', updatedUnitResponse.data);
                 // Update the units list with the updated unit
                 setUnits(prevUnits => {
-                  const updatedUnits = prevUnits.map(unit => 
+                  const updatedUnits = prevUnits.map(unit =>
                     unit._id === fleetUnitId ? { ...updatedUnitResponse.data, documents: updatedUnitResponse.data.documents || [] } : unit
                   );
                   // If unit not found in list (newly created), add it
@@ -835,7 +835,7 @@ const FleetUnits: React.FC = () => {
                   }
                   return updatedUnits;
                 });
-                
+
                 // Also update selectedUnitDetails if the details modal is open
                 if (showUnitDetails && selectedUnitDetails && selectedUnitDetails._id === fleetUnitId) {
                   setSelectedUnitDetails({ ...updatedUnitResponse.data, documents: updatedUnitResponse.data.documents || [] });
@@ -856,7 +856,7 @@ const FleetUnits: React.FC = () => {
       setShowEditModal(false);
       setSelectedUnit(null);
       resetForm();
-      
+
       // Refresh the fleet units list to show updated documents
       // Pass fleetUnitId to refresh the unit details modal if it's open
       await loadFleetUnits(fleetUnitId || undefined);
@@ -959,14 +959,14 @@ const FleetUnits: React.FC = () => {
     iconColor: string;
   }) => {
     return (
-      <div className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-[#42aeec]/20">
+      <div className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-[var(--accent-blue)]/20">
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-gray-900 mb-1">{title}</h3>
+            <h3 className="text-sm font-bold text-primary mb-1">{title}</h3>
             <div className="flex items-baseline gap-2 mb-0.5">
-              <span className="text-xl font-bold text-gray-900">{value}</span>
+              <span className="text-xl font-bold text-primary">{value}</span>
             </div>
-            {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
+            {subtitle && <p className="text-xs text-secondary">{subtitle}</p>}
           </div>
           <div className={`${bgColor} rounded-lg p-2 shadow-sm`}>
             {React.isValidElement(Icon) ? React.cloneElement(Icon as React.ReactElement<any>, { className: iconColor, size: 21 }) : null}
@@ -1009,8 +1009,8 @@ const FleetUnits: React.FC = () => {
               value={totalUnitsCount}
               subtitle="All fleet units"
               icon={<Truck />}
-              bgColor="bg-blue-50"
-              iconColor="text-blue-600"
+              bgColor="bg-card"
+              iconColor="text-[#00D1FF]"
             />
             <StatCard
               title="Active Units"
@@ -1025,15 +1025,15 @@ const FleetUnits: React.FC = () => {
               value={trucksCount}
               subtitle="Total trucks"
               icon={<Truck />}
-              bgColor="bg-blue-50"
-              iconColor="text-blue-600"
+              bgColor="bg-card"
+              iconColor="text-[#00D1FF]"
             />
             <StatCard
               title="Trailers"
               value={trailersCount}
               subtitle="Total trailers"
               icon={<Truck />}
-              bgColor="bg-purple-50"
+              bgColor="bg-card"
               iconColor="text-purple-600"
             />
           </div>
@@ -1051,7 +1051,7 @@ const FleetUnits: React.FC = () => {
             <div
               className={`mb-4 rounded-lg border px-4 py-3 ${notification.type === 'success'
                 ? 'border-green-200 bg-green-50 text-green-800'
-                : 'border-red-200 bg-red-50 text-red-800'
+                : 'border-red-200 bg-card text-red-800'
                 }`}
             >
               {notification.message}
@@ -1059,19 +1059,19 @@ const FleetUnits: React.FC = () => {
           )}
 
           {error && !requiresCompanySetup && (
-            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+            <div className="mb-4 rounded-lg border border-red-200 bg-card px-4 py-3 text-red-700">
               {error}
             </div>
           )}
 
           {/* Tabs and Filters */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100">
-            <div className="flex border-b border-gray-200">
+          <div className="bg-card rounded-lg shadow-sm border border-theme">
+            <div className="flex border-b border-theme">
               <button
                 onClick={() => setActiveTab('all')}
                 className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${activeTab === 'all'
                   ? '!text-white border-b-2'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                   }`}
                 style={activeTab === 'all' ? { background: 'linear-gradient(to right, #016ab2, #063f6f)', borderColor: '#016ab2' } : {}}
               >
@@ -1081,7 +1081,7 @@ const FleetUnits: React.FC = () => {
                 onClick={() => setActiveTab('trucks')}
                 className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${activeTab === 'trucks'
                   ? '!text-white border-b-2'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                   }`}
                 style={activeTab === 'trucks' ? { background: 'linear-gradient(to right, #016ab2, #063f6f)', borderColor: '#016ab2' } : {}}
               >
@@ -1091,7 +1091,7 @@ const FleetUnits: React.FC = () => {
                 onClick={() => setActiveTab('trailers')}
                 className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${activeTab === 'trailers'
                   ? '!text-white border-b-2'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                   }`}
                 style={activeTab === 'trailers' ? { background: 'linear-gradient(to right, #016ab2, #063f6f)', borderColor: '#016ab2' } : {}}
               >
@@ -1099,27 +1099,27 @@ const FleetUnits: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-4 border-b border-theme">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div className="relative flex-1 max-w-md">
-                  <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
                   <input
                     type="text"
                     placeholder="Search by unit number, make/model, plate, or VIN..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                    className="pl-10 pr-4 py-2 w-full border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                     style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                     onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                     onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Filter className="w-5 h-5 text-gray-400" />
+                  <Filter className="w-5 h-5 text-secondary" />
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                    className="px-4 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:border-transparent"
                     style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                     onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                     onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1153,16 +1153,16 @@ const FleetUnits: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-theme">
                   {loading ? (
                     <tr>
-                      <td colSpan={activeTab === 'trailers' ? 12 : 11} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={activeTab === 'trailers' ? 12 : 11} className="px-6 py-12 text-center text-secondary">
                         Loading fleet units...
                       </td>
                     </tr>
                   ) : units.length === 0 ? (
                     <tr>
-                      <td colSpan={activeTab === 'trailers' ? 12 : 11} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={activeTab === 'trailers' ? 12 : 11} className="px-6 py-12 text-center text-secondary">
                         {requiresCompanySetup
                           ? 'Please complete your company settings to manage fleet units.'
                           : error || 'No units found'}
@@ -1171,9 +1171,9 @@ const FleetUnits: React.FC = () => {
                   ) : (
                     units.map((unit) => {
                       return (
-                        <tr 
-                          key={unit._id} 
-                          className="hover:bg-gray-50 transition-colors cursor-pointer"
+                        <tr
+                          key={unit._id}
+                          className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                           onClick={async () => {
                             // Fetch the unit with documents to ensure we have the latest data
                             try {
@@ -1181,9 +1181,9 @@ const FleetUnits: React.FC = () => {
                               const unitResponse = await getFleetUnitById(unit._id);
                               console.log('📋 Unit response:', unitResponse);
                               if (unitResponse?.success && unitResponse?.data) {
-                                const unitWithDocs = { 
-                                  ...unitResponse.data, 
-                                  documents: unitResponse.data.documents || [] 
+                                const unitWithDocs = {
+                                  ...unitResponse.data,
+                                  documents: unitResponse.data.documents || []
                                 };
                                 console.log('📋 Unit with documents:', unitWithDocs);
                                 console.log('📋 Documents count:', unitWithDocs.documents?.length || 0);
@@ -1201,7 +1201,7 @@ const FleetUnits: React.FC = () => {
                             setShowUnitDetails(true);
                           }}
                         >
-                          <td className="px-6 py-4 font-medium text-gray-900">{unit.unitNo}</td>
+                          <td className="px-6 py-4 font-medium text-primary">{unit.unitNo}</td>
                           <td className="px-6 py-4">
                             <div className="flex flex-col gap-1">
                               <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${unit.unitType === 'Truck' ? 'bg-blue-100 text-blue-800' :
@@ -1209,24 +1209,24 @@ const FleetUnits: React.FC = () => {
                                   unit.unitType === 'Tri-Axle Trailer' ? 'bg-orange-100 text-orange-800' :
                                     unit.unitType === 'Dry Van' || unit.unitType === 'Trailer' ? 'bg-purple-100 text-purple-800' :
                                       unit.unitType === 'Flatbed' ? 'bg-indigo-100 text-indigo-800' :
-                                        'bg-gray-100 text-gray-800'
+                                        'bg-card text-primary'
                                 }`}>
                                 {unit.unitType}
                               </span>
                               {unit.truckType && unit.truckType !== unit.unitType && (
-                                <span className="text-xs text-gray-500">{unit.truckType}</span>
+                                <span className="text-xs text-secondary">{unit.truckType}</span>
                               )}
                               {unit.trailerType && unit.trailerType !== unit.unitType && (
-                                <span className="text-xs text-gray-500">{unit.trailerType}</span>
+                                <span className="text-xs text-secondary">{unit.trailerType}</span>
                               )}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-gray-900">{unit.makeModel}</td>
-                          <td className="px-6 py-4 text-gray-600 font-mono text-sm">{unit.vinNo}</td>
-                          <td className="px-6 py-4 text-gray-900 font-medium">
+                          <td className="px-6 py-4 text-primary">{unit.makeModel}</td>
+                          <td className="px-6 py-4 text-secondary font-mono text-sm">{unit.vinNo}</td>
+                          <td className="px-6 py-4 text-primary font-medium">
                             {unit.licensePlate}
                             {unit.source && (
-                              <span className="ml-2 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+                              <span className="ml-2 inline-flex items-center rounded-full bg-card px-2 py-0.5 text-xs text-secondary">
                                 {unit.source === 'vehicle'
                                   ? 'Vehicle'
                                   : unit.source === 'trailer'
@@ -1235,12 +1235,12 @@ const FleetUnits: React.FC = () => {
                               </span>
                             )}
                           </td>
-                          <td className="px-6 py-4 text-gray-900">{unit.year || 'N/A'}</td>
-                          <td className="px-6 py-4 text-gray-900">
+                          <td className="px-6 py-4 text-primary">{unit.year || 'N/A'}</td>
+                          <td className="px-6 py-4 text-primary">
                             {unit.currentOdometer !== undefined ? unit.currentOdometer.toLocaleString() : unit.initialOdometer.toLocaleString()} km
                           </td>
                           {activeTab === 'trailers' && (
-                            <td className="px-6 py-4 text-gray-900">{unit.capacity || 'N/A'}</td>
+                            <td className="px-6 py-4 text-primary">{unit.capacity || 'N/A'}</td>
                           )}
                           <td className="px-6 py-4">
                             <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${unit.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -1252,21 +1252,21 @@ const FleetUnits: React.FC = () => {
                               )}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-gray-600 text-sm">
+                          <td className="px-6 py-4 text-secondary text-sm">
                             {unit.status === 'Inactive' && unit.reason ? (
-                              <span className="text-gray-700">{unit.reason}</span>
+                              <span className="text-primary">{unit.reason}</span>
                             ) : (
-                              <span className="text-gray-400">-</span>
+                              <span className="text-secondary">-</span>
                             )}
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
-                              <FileText className="w-4 h-4 text-gray-500" />
-                              <span className="text-sm font-medium text-gray-900">
+                              <FileText className="w-4 h-4 text-secondary" />
+                              <span className="text-sm font-medium text-primary">
                                 {unit.documents?.length || 0}
                               </span>
                               {unit.documents && unit.documents.length > 0 && (
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-secondary">
                                   ({unit.documents.filter((d: any) => d.status === 'completed' || !d.status).length} valid)
                                 </span>
                               )}
@@ -1276,14 +1276,14 @@ const FleetUnits: React.FC = () => {
                             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                               <button
                                 onClick={() => handleEditUnit(unit)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
                                 title="Edit"
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleDeleteUnit(unit)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
                                 title="Delete"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -1310,7 +1310,7 @@ const FleetUnits: React.FC = () => {
             setSelectedUnit(null);
             resetForm();
           }} />
-          <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-gray-200">
+          <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-card shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-theme">
             <div className="h-full flex flex-col">
               {/* Header - Fixed to top */}
               <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
@@ -1324,7 +1324,7 @@ const FleetUnits: React.FC = () => {
                     setSelectedUnit(null);
                     resetForm();
                   }}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                  className="p-2 hover:bg-card/20 rounded-lg transition-colors"
                 >
                   <FaTimes className="w-5 h-5" />
                 </button>
@@ -1332,15 +1332,15 @@ const FleetUnits: React.FC = () => {
 
               {/* Step Indicator - Always show when modal is open */}
               {showAddModal && (
-                <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <div className="px-6 py-4 bg-card border-b border-theme">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 flex-1">
-                      <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
+                      <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-[#00D1FF]' : 'text-secondary'}`}>
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 1
-                          ? 'border-blue-600 bg-blue-50'
-                          : 'border-gray-300 bg-white'
+                          ? 'border-blue-600 bg-card'
+                          : 'border-theme bg-card'
                           }`}>
-                          {currentStep > 1 ? <CheckCircle size={16} className="text-blue-600" /> : '1'}
+                          {currentStep > 1 ? <CheckCircle size={16} className="text-[#00D1FF]" /> : '1'}
                         </div>
                         <span className="text-sm font-medium">Fleet Information</span>
                       </div>
@@ -1350,10 +1350,10 @@ const FleetUnits: React.FC = () => {
                           style={{ width: currentStep >= 2 ? '100%' : '0%' }}
                         />
                       </div>
-                      <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+                      <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-[#00D1FF]' : 'text-secondary'}`}>
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 2
-                          ? 'border-blue-600 bg-blue-50'
-                          : 'border-gray-300 bg-white'
+                          ? 'border-blue-600 bg-card'
+                          : 'border-theme bg-card'
                           }`}>
                           2
                         </div>
@@ -1364,7 +1364,7 @@ const FleetUnits: React.FC = () => {
                 </div>
               )}
               {showEditModal && (
-                <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <div className="px-6 py-4 bg-card border-b border-theme">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setCurrentStep(1)}
@@ -1377,7 +1377,7 @@ const FleetUnits: React.FC = () => {
                       }
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentStep === 1
                         ? '!text-white shadow-sm'
-                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        : 'bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]'
                         }`}
                     >
                       Fleet Information
@@ -1394,7 +1394,7 @@ const FleetUnits: React.FC = () => {
                       }
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentStep === 2
                         ? '!text-white shadow-sm'
-                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        : 'bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]'
                         }`}
                     >
                       Fleet Documents ({fleetDocuments.length})
@@ -1406,7 +1406,7 @@ const FleetUnits: React.FC = () => {
               {/* Content - Scrollable */}
               <div className="flex-1 overflow-y-auto p-6">
                 {formError && (
-                  <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+                  <div className="mb-4 rounded-lg border border-red-200 bg-card px-4 py-2 text-sm text-red-700">
                     {formError}
                   </div>
                 )}
@@ -1420,7 +1420,7 @@ const FleetUnits: React.FC = () => {
                       </div>
                       <button
                         onClick={addDocument}
-                        className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
+                        className="px-3 py-1.5 text-sm bg-card text-[#00D1FF] rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
                       >
                         <Plus size={16} />
                         Add Document
@@ -1428,10 +1428,10 @@ const FleetUnits: React.FC = () => {
                     </div>
 
                     {fleetDocuments.length === 0 ? (
-                      <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-                        <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                        <p className="text-gray-600 mb-2">No documents added yet</p>
-                        <p className="text-sm text-gray-500 mb-4">Click "Add Document" to upload fleet documents</p>
+                      <div className="text-center py-8 border-2 border-dashed border-theme rounded-lg">
+                        <FileText className="w-12 h-12 text-secondary mx-auto mb-3" />
+                        <p className="text-secondary mb-2">No documents added yet</p>
+                        <p className="text-sm text-secondary mb-4">Click "Add Document" to upload fleet documents</p>
                         <button
                           onClick={addDocument}
                           className="px-4 py-2 !text-white rounded-lg hover:opacity-90 transition-colors"
@@ -1443,17 +1443,17 @@ const FleetUnits: React.FC = () => {
                     ) : (
                       <div className="space-y-4">
                         {fleetDocuments.map((doc, index) => (
-                          <div key={doc._id || index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                          <div key={doc._id || index} className="border border-theme rounded-lg p-4 bg-card">
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center gap-2">
-                                <h4 className="font-semibold text-gray-700">Document {index + 1}</h4>
+                                <h4 className="font-semibold text-primary">Document {index + 1}</h4>
                                 {doc._id && (
-                                  <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">Existing</span>
+                                  <span className="text-xs bg-blue-100 text-[#00D1FF] px-2 py-0.5 rounded">Existing</span>
                                 )}
                               </div>
                               <button
                                 onClick={() => removeDocument(index)}
-                                className="text-red-600 hover:text-red-800 transition-colors"
+                                className="text-[#A855F7] hover:text-red-800 transition-colors"
                               >
                                 <X size={18} />
                               </button>
@@ -1461,13 +1461,13 @@ const FleetUnits: React.FC = () => {
 
                             <div className="space-y-3">
                               <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-primary mb-1">
                                   Document Type <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                   value={doc.documentType}
                                   onChange={(e) => updateDocument(index, 'documentType', e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                                   {VEHICLE_DOCUMENT_TYPES.map((type) => (
                                     <option key={type} value={type}>{type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
@@ -1477,48 +1477,48 @@ const FleetUnits: React.FC = () => {
 
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Document Number</label>
+                                  <label className="block text-sm font-medium text-primary mb-1">Document Number</label>
                                   <input
                                     type="text"
                                     value={doc.documentNumber}
                                     onChange={(e) => updateDocument(index, 'documentNumber', e.target.value)}
                                     placeholder="e.g., DOC-123456"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   />
                                 </div>
-                               
+
                               </div>
 
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
+                                  <label className="block text-sm font-medium text-primary mb-1">Issue Date</label>
                                   <input
                                     type="date"
                                     value={doc.issuedAt}
                                     onChange={(e) => updateDocument(index, 'issuedAt', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   />
                                 </div>
                                 <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                  <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
                                   <input
                                     type="date"
                                     value={doc.expiryDate}
                                     onChange={(e) => updateDocument(index, 'expiryDate', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   />
                                 </div>
                               </div>
 
                               <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-primary mb-1">
                                   Document File(s) {!doc._id && <span className="text-red-500">*</span>}
                                 </label>
                                 <input
                                   type="file"
                                   multiple
                                   onChange={(e) => handleDocumentFileChange(index, e.target.files)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
                                 />
                                 {doc.files && doc.files.length > 0 && (
@@ -1532,7 +1532,7 @@ const FleetUnits: React.FC = () => {
                                   </div>
                                 )}
                                 {doc._id && (!doc.files || doc.files.length === 0) && (
-                                  <p className="text-xs mt-1 text-gray-500">
+                                  <p className="text-xs mt-1 text-secondary">
                                     Leave empty to keep existing file(s), or select new file(s) to add
                                   </p>
                                 )}
@@ -1546,375 +1546,375 @@ const FleetUnits: React.FC = () => {
                 ) : (
                   /* Step 1: Fleet Information */
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Unit No. *</label>
-                    <input
-                      type="text"
-                      value={formData.unitNo}
-                      onChange={(e) => setFormData({ ...formData, unitNo: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., 1001, BRV001"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Internal ID</label>
-                    <input
-                      type="text"
-                      value={formData.internalId}
-                      onChange={(e) => setFormData({ ...formData, internalId: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., INT-001, GEO-123"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Optional: For Termoking (trailers), Geotab/Samsara (trucks) or other tracking system integration</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Unit Type *</label>
-                    <select
-                      value={formData.unitType}
-                      onChange={(e) => setFormData({ ...formData, unitType: e.target.value as UnitType })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                    >
-                      <option value="Truck">Truck</option>
-                      <option value="Trailer">Trailer</option>
-
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Make/Model *</label>
-                    <input
-                      type="text"
-                      value={formData.makeModel}
-                      onChange={(e) => setFormData({ ...formData, makeModel: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., Kenworth T680"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">VIN No. *</label>
-                    <input
-                      type="text"
-                      value={formData.vinNo}
-                      onChange={(e) => setFormData({ ...formData, vinNo: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent font-mono"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="17-character VIN"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">License Plate *</label>
-                    <input
-                      type="text"
-                      value={formData.licensePlate}
-                      onChange={(e) => setFormData({ ...formData, licensePlate: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., BRV-1001"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
-                    <input
-                      type="number"
-                      value={formData.year}
-                      onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      min="1900"
-                      max={new Date().getFullYear() + 1}
-                    />
-                  </div>
-                  {formData.unitType === 'Truck' && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Truck Type</label>
+                      <label className="block text-sm font-medium text-primary mb-2">Unit No. *</label>
+                      <input
+                        type="text"
+                        value={formData.unitNo}
+                        onChange={(e) => setFormData({ ...formData, unitNo: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., 1001, BRV001"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Internal ID</label>
+                      <input
+                        type="text"
+                        value={formData.internalId}
+                        onChange={(e) => setFormData({ ...formData, internalId: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., INT-001, GEO-123"
+                      />
+                      <p className="text-xs text-secondary mt-1">Optional: For Termoking (trailers), Geotab/Samsara (trucks) or other tracking system integration</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Unit Type *</label>
                       <select
-                        value={formData.truckType}
-                        onChange={(e) => setFormData({ ...formData, truckType: e.target.value as TruckType })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        value={formData.unitType}
+                        onChange={(e) => setFormData({ ...formData, unitType: e.target.value as UnitType })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                         style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                         onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                         onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       >
-                        {truckTypes.map(type => (
-                          <option key={type} value={type}>{type}</option>
-                        ))}
+                        <option value="Truck">Truck</option>
+                        <option value="Trailer">Trailer</option>
+
                       </select>
                     </div>
-                  )}
-                  {formData.unitType !== 'Truck' && (
-                    <>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Make/Model *</label>
+                      <input
+                        type="text"
+                        value={formData.makeModel}
+                        onChange={(e) => setFormData({ ...formData, makeModel: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., Kenworth T680"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">VIN No. *</label>
+                      <input
+                        type="text"
+                        value={formData.vinNo}
+                        onChange={(e) => setFormData({ ...formData, vinNo: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent font-mono"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="17-character VIN"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">License Plate *</label>
+                      <input
+                        type="text"
+                        value={formData.licensePlate}
+                        onChange={(e) => setFormData({ ...formData, licensePlate: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., BRV-1001"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Year</label>
+                      <input
+                        type="number"
+                        value={formData.year}
+                        onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        min="1900"
+                        max={new Date().getFullYear() + 1}
+                      />
+                    </div>
+                    {formData.unitType === 'Truck' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Trailer Type</label>
+                        <label className="block text-sm font-medium text-primary mb-2">Truck Type</label>
                         <select
-                          value={formData.trailerType}
-                          onChange={(e) => setFormData({ ...formData, trailerType: e.target.value as TrailerType })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          value={formData.truckType}
+                          onChange={(e) => setFormData({ ...formData, truckType: e.target.value as TruckType })}
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                         >
-                          {trailerTypes.map(type => (
+                          {truckTypes.map(type => (
                             <option key={type} value={type}>{type}</option>
                           ))}
                         </select>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Capacity</label>
-                        <input
-                          type="text"
-                          value={formData.capacity}
-                          onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                          onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                          onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                          placeholder="e.g., 53 ft"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Operation Status</label>
-                        <select
-                          value={formData.operationStatus}
-                          onChange={(e) => setFormData({ ...formData, operationStatus: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                          onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                          onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                        >
-                          {operationStatuses.map((status) => (
-                            <option key={status} value={status}>
-                              {status.replace('-', ' ')}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </>
-                  )}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Initial Odometer/Hour *</label>
-                    <input
-                      type="number"
-                      value={formData.initialOdometer}
-                      onChange={(e) => setFormData({ ...formData, initialOdometer: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Current Odometer/Hour</label>
-                    <input
-                      type="number"
-                      value={formData.currentOdometer}
-                      onChange={(e) => setFormData({ ...formData, currentOdometer: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Service Interval (Days)
-                      {formData.serviceIntervalDays && (
-                        <span className="ml-2 text-xs font-normal text-gray-500">
-                          ({formatDaysDisplay(Number(formData.serviceIntervalDays))})
-                        </span>
-                      )}
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.serviceIntervalDays}
-                      onChange={(e) => setFormData({ ...formData, serviceIntervalDays: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., 90"
-                      min="0"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Service due after X days</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Service Interval (Mileage)</label>
-                    <input
-                      type="number"
-                      value={formData.serviceIntervalMileage}
-                      onChange={(e) => setFormData({ ...formData, serviceIntervalMileage: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., 2000"
-                      min="0"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Service due after X kilometers</p>
-                  </div>
-                  <div className="md:col-span-2">
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">Safety Information</h3>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Safety Expiry Date</label>
-                    <input
-                      type="date"
-                      value={formData.safetyExpiryDate}
-                      onChange={(e) => setFormData({ ...formData, safetyExpiryDate: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Safety Decal Number</label>
-                    <input
-                      type="text"
-                      value={formData.safetyDecalNumber}
-                      onChange={(e) => setFormData({ ...formData, safetyDecalNumber: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., DEC-123456"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Safety Paper Number</label>
-                    <input
-                      type="text"
-                      value={formData.safetyPaperNumber}
-                      onChange={(e) => setFormData({ ...formData, safetyPaperNumber: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., PAP-789012"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Inspection Shop</label>
-                    <input
-                      type="text"
-                      value={formData.lastInspectionShop}
-                      onChange={(e) => setFormData({ ...formData, lastInspectionShop: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., ABC Auto Shop"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Inspection Invoice</label>
-                    <input
-                      type="text"
-                      value={formData.lastInspectionInvoice}
-                      onChange={(e) => setFormData({ ...formData, lastInspectionInvoice: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., INV-456789"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select
-                      value={formData.status}
-                      onChange={(e) => setFormData({ ...formData, status: e.target.value as UnitStatus })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                    >
-                      <option value="Active">Active</option>
-                      <option value="Inactive">Inactive</option>
-                    </select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">Current Location</h3>
+                    )}
+                    {formData.unitType !== 'Truck' && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-primary mb-2">Trailer Type</label>
+                          <select
+                            value={formData.trailerType}
+                            onChange={(e) => setFormData({ ...formData, trailerType: e.target.value as TrailerType })}
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                            onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                          >
+                            {trailerTypes.map(type => (
+                              <option key={type} value={type}>{type}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-primary mb-2">Capacity</label>
+                          <input
+                            type="text"
+                            value={formData.capacity}
+                            onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                            onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                            placeholder="e.g., 53 ft"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-primary mb-2">Operation Status</label>
+                          <select
+                            value={formData.operationStatus}
+                            onChange={(e) => setFormData({ ...formData, operationStatus: e.target.value })}
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                            onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                          >
+                            {operationStatuses.map((status) => (
+                              <option key={status} value={status}>
+                                {status.replace('-', ' ')}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </>
+                    )}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Address
-                      </label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input
-                          type="text"
-                          value={formData.address}
-                          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                          className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                          onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                          onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                          placeholder="123 Main St, City, State, Country"
-                        />
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Coordinates will be automatically fetched from this address using Google Maps
-                      </p>
+                      <label className="block text-sm font-medium text-primary mb-2">Initial Odometer/Hour *</label>
+                      <input
+                        type="number"
+                        value={formData.initialOdometer}
+                        onChange={(e) => setFormData({ ...formData, initialOdometer: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="0"
+                      />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Current Odometer/Hour</label>
+                      <input
+                        type="number"
+                        value={formData.currentOdometer}
+                        onChange={(e) => setFormData({ ...formData, currentOdometer: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">
+                        Service Interval (Days)
+                        {formData.serviceIntervalDays && (
+                          <span className="ml-2 text-xs font-normal text-secondary">
+                            ({formatDaysDisplay(Number(formData.serviceIntervalDays))})
+                          </span>
+                        )}
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.serviceIntervalDays}
+                        onChange={(e) => setFormData({ ...formData, serviceIntervalDays: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., 90"
+                        min="0"
+                      />
+                      <p className="text-xs text-secondary mt-1">Service due after X days</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Service Interval (Mileage)</label>
+                      <input
+                        type="number"
+                        value={formData.serviceIntervalMileage}
+                        onChange={(e) => setFormData({ ...formData, serviceIntervalMileage: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., 2000"
+                        min="0"
+                      />
+                      <p className="text-xs text-secondary mt-1">Service due after X kilometers</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <h3 className="text-sm font-medium text-primary mb-3">Safety Information</h3>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Safety Expiry Date</label>
+                      <input
+                        type="date"
+                        value={formData.safetyExpiryDate}
+                        onChange={(e) => setFormData({ ...formData, safetyExpiryDate: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Safety Decal Number</label>
+                      <input
+                        type="text"
+                        value={formData.safetyDecalNumber}
+                        onChange={(e) => setFormData({ ...formData, safetyDecalNumber: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., DEC-123456"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Safety Paper Number</label>
+                      <input
+                        type="text"
+                        value={formData.safetyPaperNumber}
+                        onChange={(e) => setFormData({ ...formData, safetyPaperNumber: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., PAP-789012"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Last Inspection Shop</label>
+                      <input
+                        type="text"
+                        value={formData.lastInspectionShop}
+                        onChange={(e) => setFormData({ ...formData, lastInspectionShop: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., ABC Auto Shop"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Last Inspection Invoice</label>
+                      <input
+                        type="text"
+                        value={formData.lastInspectionInvoice}
+                        onChange={(e) => setFormData({ ...formData, lastInspectionInvoice: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., INV-456789"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Status</label>
+                      <select
+                        value={formData.status}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value as UnitStatus })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                      >
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                      </select>
+                    </div>
+                    <div className="md:col-span-2">
+                      <h3 className="text-sm font-medium text-primary mb-3">Current Location</h3>
+                      <div>
+                        <label className="block text-sm font-medium text-primary mb-2">
+                          Address
+                        </label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary" />
+                          <input
+                            type="text"
+                            value={formData.address}
+                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                            className="pl-10 w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                            onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                            placeholder="123 Main St, City, State, Country"
+                          />
+                        </div>
+                        <p className="text-xs text-secondary mt-1">
+                          Coordinates will be automatically fetched from this address using Google Maps
+                        </p>
+                      </div>
+                    </div>
+                    {formData.status === 'Inactive' && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-primary mb-2">Last Date *</label>
+                          <input
+                            type="date"
+                            value={formData.lastDate}
+                            onChange={(e) => setFormData({ ...formData, lastDate: e.target.value })}
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                            onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-primary mb-2">Reason/Comment *</label>
+                          <input
+                            type="text"
+                            value={formData.reason}
+                            onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                            onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                            placeholder="SOLD, Rental returned, Scrapped, etc."
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
-                  {formData.status === 'Inactive' && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Date *</label>
-                        <input
-                          type="date"
-                          value={formData.lastDate}
-                          onChange={(e) => setFormData({ ...formData, lastDate: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                          onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                          onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Reason/Comment *</label>
-                        <input
-                          type="text"
-                          value={formData.reason}
-                          onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                          onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                          onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                          placeholder="SOLD, Rental returned, Scrapped, etc."
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
                 )}
               </div>
 
               {/* Footer - Fixed to bottom */}
-              <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-between gap-3 border-t border-gray-200">
+              <div className="flex-shrink-0 bg-card px-6 py-4 flex justify-between gap-3 border-t border-theme">
                 <div className="flex gap-3">
                   {currentStep === 2 && (
                     <button
                       onClick={() => setCurrentStep(1)}
-                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     >
                       Back
                     </button>
@@ -1928,7 +1928,7 @@ const FleetUnits: React.FC = () => {
                       setSelectedUnit(null);
                       resetForm();
                     }}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     Cancel
                   </button>
@@ -1962,8 +1962,8 @@ const FleetUnits: React.FC = () => {
       {/* Unit Details Modal with Horizontal Scrollbar */}
       {showUnitDetails && selectedUnitDetails && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+          <div className="bg-card rounded-xl max-w-6xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+            <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between z-10">
               <div className="flex items-center space-x-3">
                 <div
                   className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
@@ -1972,8 +1972,8 @@ const FleetUnits: React.FC = () => {
                   <Truck className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{selectedUnitDetails.unitNo}</h2>
-                  <p className="text-sm text-gray-500">{selectedUnitDetails.makeModel}</p>
+                  <h2 className="text-2xl font-bold text-primary">{selectedUnitDetails.unitNo}</h2>
+                  <p className="text-sm text-secondary">{selectedUnitDetails.makeModel}</p>
                 </div>
               </div>
               <button
@@ -1981,7 +1981,7 @@ const FleetUnits: React.FC = () => {
                   setShowUnitDetails(false);
                   setSelectedUnitDetails(null);
                 }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-secondary hover:text-secondary transition-colors"
               >
                 <FaTimes className="w-6 h-6" />
               </button>
@@ -1991,42 +1991,42 @@ const FleetUnits: React.FC = () => {
               <div className="space-y-6">
                 {/* Fleet Unit Information */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
                     <Truck className="w-5 h-5" style={{ color: ACCENT_PRIMARY }} />
                     <span>Fleet Unit Information</span>
                   </h3>
                   <div className="overflow-x-auto">
                     <div className="min-w-[800px] grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Unit Number</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.unitNo}</p>
+                        <p className="text-sm text-secondary mb-1">Unit Number</p>
+                        <p className="text-sm font-medium text-primary">{selectedUnitDetails.unitNo}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Internal ID</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.internalId || '-'}</p>
+                        <p className="text-sm text-secondary mb-1">Internal ID</p>
+                        <p className="text-sm font-medium text-primary">{selectedUnitDetails.internalId || '-'}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Unit Type</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.unitType}</p>
+                        <p className="text-sm text-secondary mb-1">Unit Type</p>
+                        <p className="text-sm font-medium text-primary">{selectedUnitDetails.unitType}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Make/Model</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.makeModel}</p>
+                        <p className="text-sm text-secondary mb-1">Make/Model</p>
+                        <p className="text-sm font-medium text-primary">{selectedUnitDetails.makeModel}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">VIN Number</p>
-                        <p className="text-sm font-medium text-gray-900 font-mono">{selectedUnitDetails.vinNo}</p>
+                        <p className="text-sm text-secondary mb-1">VIN Number</p>
+                        <p className="text-sm font-medium text-primary font-mono">{selectedUnitDetails.vinNo}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">License Plate</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.licensePlate}</p>
+                        <p className="text-sm text-secondary mb-1">License Plate</p>
+                        <p className="text-sm font-medium text-primary">{selectedUnitDetails.licensePlate}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Year</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.year || 'N/A'}</p>
+                        <p className="text-sm text-secondary mb-1">Year</p>
+                        <p className="text-sm font-medium text-primary">{selectedUnitDetails.year || 'N/A'}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Status</p>
+                        <p className="text-sm text-secondary mb-1">Status</p>
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${selectedUnitDetails.status === 'Active'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
@@ -2035,31 +2035,31 @@ const FleetUnits: React.FC = () => {
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Initial Odometer</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.initialOdometer?.toLocaleString() || '0'} km</p>
+                        <p className="text-sm text-secondary mb-1">Initial Odometer</p>
+                        <p className="text-sm font-medium text-primary">{selectedUnitDetails.initialOdometer?.toLocaleString() || '0'} km</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Current Odometer</p>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm text-secondary mb-1">Current Odometer</p>
+                        <p className="text-sm font-medium text-primary">
                           {(selectedUnitDetails.currentOdometer ?? selectedUnitDetails.initialOdometer ?? 0).toLocaleString()} km
                         </p>
                       </div>
                       {selectedUnitDetails.unitType !== 'Truck' && (
                         <>
                           <div>
-                            <p className="text-sm text-gray-500 mb-1">Capacity</p>
-                            <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.capacity || 'N/A'}</p>
+                            <p className="text-sm text-secondary mb-1">Capacity</p>
+                            <p className="text-sm font-medium text-primary">{selectedUnitDetails.capacity || 'N/A'}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-500 mb-1">Operation Status</p>
-                            <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.operationStatus || 'N/A'}</p>
+                            <p className="text-sm text-secondary mb-1">Operation Status</p>
+                            <p className="text-sm font-medium text-primary">{selectedUnitDetails.operationStatus || 'N/A'}</p>
                           </div>
                         </>
                       )}
                       {selectedUnitDetails.currentLocation?.address && (
                         <div className="col-span-2">
-                          <p className="text-sm text-gray-500 mb-1">Current Location</p>
-                          <p className="text-sm font-medium text-gray-900">{selectedUnitDetails.currentLocation.address}</p>
+                          <p className="text-sm text-secondary mb-1">Current Location</p>
+                          <p className="text-sm font-medium text-primary">{selectedUnitDetails.currentLocation.address}</p>
                         </div>
                       )}
                     </div>
@@ -2068,14 +2068,14 @@ const FleetUnits: React.FC = () => {
 
                 {/* Documents Section */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
                     <FileText className="w-5 h-5" style={{ color: ACCENT_PRIMARY }} />
                     <span>Documents ({selectedUnitDetails.documents?.length || 0})</span>
                   </h3>
                   {!selectedUnitDetails.documents || selectedUnitDetails.documents.length === 0 ? (
-                    <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-                      <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-gray-600">No documents uploaded for this fleet unit</p>
+                    <div className="text-center py-8 border-2 border-dashed border-theme rounded-lg">
+                      <FileText className="w-12 h-12 text-secondary mx-auto mb-3" />
+                      <p className="text-secondary">No documents uploaded for this fleet unit</p>
                     </div>
                   ) : (
                     <>
@@ -2088,10 +2088,10 @@ const FleetUnits: React.FC = () => {
                           display: none; /* Chrome, Safari, Opera */
                         }
                       `}</style>
-                      <div 
+                      <div
                         ref={topScrollRef}
                         className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-                        style={{ 
+                        style={{
                           maxHeight: '20px',
                           marginBottom: '2px',
                           scrollbarWidth: 'thin',
@@ -2101,25 +2101,25 @@ const FleetUnits: React.FC = () => {
                         <div className="top-scroll-content" style={{ height: '1px' }}></div>
                       </div>
                       {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-                      <div 
+                      <div
                         ref={bottomScrollRef}
                         className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
                       >
                         <table className="w-full" style={{ minWidth: '1200px' }}>
-                          <thead className="bg-gray-50 border-b border-gray-200">
+                          <thead className="bg-card border-b border-theme">
                             <tr>
-                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Document Type</th>
-                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Document Number</th>
-                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Issue Date</th>
-                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Expiry Date</th>
-                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">File Name</th>
-                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">File Size</th>
-                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Uploaded Date</th>
-                              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Document Type</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Document Number</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Issue Date</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Expiry Date</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Status</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">File Name</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">File Size</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Uploaded Date</th>
+                              <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Actions</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-200">
+                          <tbody className="divide-y divide-theme">
                             {selectedUnitDetails.documents.map((doc: any, index: number) => {
                               const file = doc.files && doc.files.length > 0 ? doc.files[0] : null;
                               const formatFileSize = (bytes: number) => {
@@ -2130,53 +2130,52 @@ const FleetUnits: React.FC = () => {
                                 return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
                               };
                               return (
-                                <tr key={doc._id || index} className="hover:bg-gray-50">
+                                <tr key={doc._id || index} className="hover:bg-[rgba(255,255,255,0.03)]">
                                   <td className="px-6 py-4">
                                     <div className="flex items-center space-x-2">
-                                      <FileText className="w-4 h-4 text-gray-400" />
-                                      <span className="text-sm font-medium text-gray-800">
+                                      <FileText className="w-4 h-4 text-secondary" />
+                                      <span className="text-sm font-medium text-primary">
                                         {doc.documentType?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                       </span>
                                     </div>
                                   </td>
                                   <td className="px-6 py-4">
-                                    <span className="text-sm text-gray-600">{doc.documentNumber || '-'}</span>
+                                    <span className="text-sm text-secondary">{doc.documentNumber || '-'}</span>
                                   </td>
                                   <td className="px-6 py-4">
-                                    <span className="text-sm text-gray-600">
+                                    <span className="text-sm text-secondary">
                                       {doc.issuedAt ? new Date(doc.issuedAt).toLocaleDateString() : '-'}
                                     </span>
                                   </td>
                                   <td className="px-6 py-4">
-                                    <span className={`text-sm ${!doc.expiryDate ? 'text-gray-400' : 'text-gray-600'}`}>
+                                    <span className={`text-sm ${!doc.expiryDate ? 'text-secondary' : 'text-secondary'}`}>
                                       {doc.expiryDate ? new Date(doc.expiryDate).toLocaleDateString() : '-'}
                                     </span>
                                   </td>
                                   <td className="px-6 py-4">
-                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                                      doc.status === 'completed' || !doc.status
+                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${doc.status === 'completed' || !doc.status
                                         ? 'bg-green-100 text-green-800'
                                         : doc.status === 'pending'
-                                        ? 'bg-yellow-100 text-yellow-800'
-                                        : doc.status === 'expired'
-                                        ? 'bg-red-100 text-red-800'
-                                        : 'bg-gray-100 text-gray-800'
-                                    }`}>
+                                          ? 'bg-yellow-100 text-yellow-800'
+                                          : doc.status === 'expired'
+                                            ? 'bg-red-100 text-red-800'
+                                            : 'bg-card text-primary'
+                                      }`}>
                                       {doc.status || 'completed'}
                                     </span>
                                   </td>
                                   <td className="px-6 py-4">
-                                    <span className="text-sm text-gray-600" title={file?.fileName || '-'}>
+                                    <span className="text-sm text-secondary" title={file?.fileName || '-'}>
                                       {file?.fileName ? (file.fileName.length > 30 ? file.fileName.substring(0, 30) + '...' : file.fileName) : '-'}
                                     </span>
                                   </td>
                                   <td className="px-6 py-4">
-                                    <span className="text-sm text-gray-600">
+                                    <span className="text-sm text-secondary">
                                       {file?.fileSize ? formatFileSize(file.fileSize) : '-'}
                                     </span>
                                   </td>
                                   <td className="px-6 py-4">
-                                    <span className="text-sm text-gray-600">
+                                    <span className="text-sm text-secondary">
                                       {file?.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString() : '-'}
                                     </span>
                                   </td>
@@ -2223,7 +2222,7 @@ const FleetUnits: React.FC = () => {
                                                 console.error('View error:', error);
                                               }
                                             }}
-                                            className="p-1.5 hover:bg-blue-50 rounded text-blue-600"
+                                            className="p-1.5 hover:bg-blue-50 rounded text-[#00D1FF]"
                                             title="View"
                                           >
                                             <FileText className="w-4 h-4" />
@@ -2235,7 +2234,7 @@ const FleetUnits: React.FC = () => {
                                           e.stopPropagation();
                                           handleEditDocument(doc);
                                         }}
-                                        className="p-1.5 hover:bg-yellow-50 rounded text-yellow-600"
+                                        className="p-1.5 hover:bg-yellow-50 rounded text-[#00FFA3]"
                                         title="Edit Document"
                                       >
                                         <Edit className="w-4 h-4" />
@@ -2245,7 +2244,7 @@ const FleetUnits: React.FC = () => {
                                           e.stopPropagation();
                                           handleDeleteDocument(doc._id);
                                         }}
-                                        className="p-1.5 hover:bg-red-50 rounded text-red-600"
+                                        className="p-1.5 hover:bg-red-50 rounded text-[#A855F7]"
                                         title="Delete Document"
                                       >
                                         <Trash2 className="w-4 h-4" />
@@ -2264,13 +2263,13 @@ const FleetUnits: React.FC = () => {
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
+            <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4 flex items-center justify-end gap-3">
               <button
                 onClick={() => {
                   setShowUnitDetails(false);
                   setSelectedUnitDetails(null);
                 }}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                className="px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
               >
                 Close
               </button>
@@ -2300,18 +2299,18 @@ const FleetUnits: React.FC = () => {
               setSelectedUnit(null);
             }}
           />
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-[9999] w-full max-w-md">
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-card rounded-xl shadow-2xl z-[9999] w-full max-w-md">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                  <FaExclamationCircle className="text-red-600" size={24} />
+                  <FaExclamationCircle className="text-[#A855F7]" size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Delete Unit</h3>
-                  <p className="text-sm text-gray-500">This action cannot be undone</p>
+                  <h3 className="text-lg font-bold text-primary">Delete Unit</h3>
+                  <p className="text-sm text-secondary">This action cannot be undone</p>
                 </div>
               </div>
-              <p className="text-gray-700 mb-6">
+              <p className="text-primary mb-6">
                 Are you sure you want to delete unit <strong>{selectedUnit.unitNo}</strong> ({selectedUnit.makeModel})?
               </p>
               <div className="flex justify-end gap-3">
@@ -2320,7 +2319,7 @@ const FleetUnits: React.FC = () => {
                     setShowDeleteModal(false);
                     setSelectedUnit(null);
                   }}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Cancel
                 </button>
@@ -2341,16 +2340,16 @@ const FleetUnits: React.FC = () => {
       {/* Edit Document Modal */}
       {showEditDocumentModal && editDocumentForm && (
         <div className="fixed inset-0 bg-transparent flex items-center justify-center z-[10002]">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-800">Edit Document</h2>
+          <div className="bg-card rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b border-theme flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-primary">Edit Document</h2>
               <button
                 onClick={() => {
                   setShowEditDocumentModal(false);
                   setEditingDocument(null);
                   setEditDocumentForm(null);
                 }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-secondary hover:text-secondary transition-colors"
               >
                 <X size={24} />
               </button>
@@ -2361,54 +2360,53 @@ const FleetUnits: React.FC = () => {
               {editingDocument && (
                 <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg">
                   <div className="flex items-center gap-2 mb-3">
-                    <FileText className="w-5 h-5 text-blue-600" />
+                    <FileText className="w-5 h-5 text-[#00D1FF]" />
                     <h3 className="text-sm font-bold text-blue-900">Selected Document</h3>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <span className="text-gray-600 font-medium">Type:</span>
-                      <span className="ml-2 text-gray-900 font-semibold">
+                      <span className="text-secondary font-medium">Type:</span>
+                      <span className="ml-2 text-primary font-semibold">
                         {editingDocument.documentType?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || '-'}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600 font-medium">Number:</span>
-                      <span className="ml-2 text-gray-900 font-semibold">
+                      <span className="text-secondary font-medium">Number:</span>
+                      <span className="ml-2 text-primary font-semibold">
                         {editingDocument.documentNumber || 'N/A'}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600 font-medium">Issue Date:</span>
-                      <span className="ml-2 text-gray-900">
+                      <span className="text-secondary font-medium">Issue Date:</span>
+                      <span className="ml-2 text-primary">
                         {editingDocument.issuedAt ? new Date(editingDocument.issuedAt).toLocaleDateString() : 'N/A'}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600 font-medium">Expiry Date:</span>
-                      <span className="ml-2 text-gray-900">
+                      <span className="text-secondary font-medium">Expiry Date:</span>
+                      <span className="ml-2 text-primary">
                         {editingDocument.expiryDate ? new Date(editingDocument.expiryDate).toLocaleDateString() : 'N/A'}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600 font-medium">Status:</span>
-                      <span className={`ml-2 inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
-                        editingDocument.status === 'completed' || !editingDocument.status
+                      <span className="text-secondary font-medium">Status:</span>
+                      <span className={`ml-2 inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${editingDocument.status === 'completed' || !editingDocument.status
                           ? 'bg-green-100 text-green-800'
                           : editingDocument.status === 'pending'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : editingDocument.status === 'expired'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : editingDocument.status === 'expired'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-card text-primary'
+                        }`}>
                         {editingDocument.status || 'completed'}
                       </span>
                     </div>
                     {editingDocument.files && editingDocument.files.length > 0 && (
                       <div>
-                        <span className="text-gray-600 font-medium">File(s):</span>
+                        <span className="text-secondary font-medium">File(s):</span>
                         <div className="mt-1">
                           {editingDocument.files.map((file: any, idx: number) => (
-                            <div key={idx} className="text-xs text-gray-700 flex items-center gap-1">
+                            <div key={idx} className="text-xs text-primary flex items-center gap-1">
                               <FileText className="w-3 h-3" />
                               {file.fileName || `File ${idx + 1}`}
                             </div>
@@ -2422,7 +2420,7 @@ const FleetUnits: React.FC = () => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-primary mb-1">
                     Document Type <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -2431,7 +2429,7 @@ const FleetUnits: React.FC = () => {
                       ...editDocumentForm,
                       documentType: e.target.value as any
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {VEHICLE_DOCUMENT_TYPES.map((type) => (
                       <option key={type} value={type}>
@@ -2442,8 +2440,8 @@ const FleetUnits: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Document Number <span className="text-gray-400 text-xs">(Optional - leave empty to keep current)</span>
+                  <label className="block text-sm font-medium text-primary mb-1">
+                    Document Number <span className="text-secondary text-xs">(Optional - leave empty to keep current)</span>
                   </label>
                   <input
                     type="text"
@@ -2453,10 +2451,10 @@ const FleetUnits: React.FC = () => {
                       documentNumber: e.target.value
                     })}
                     placeholder="e.g., DOC-123456 (optional)"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {editingDocument?.documentNumber && (
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-secondary mt-1">
                       Current: <span className="font-medium">{editingDocument.documentNumber}</span>
                     </p>
                   )}
@@ -2464,8 +2462,8 @@ const FleetUnits: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Issue Date <span className="text-gray-400 text-xs">(Optional)</span>
+                    <label className="block text-sm font-medium text-primary mb-1">
+                      Issue Date <span className="text-secondary text-xs">(Optional)</span>
                     </label>
                     <input
                       type="date"
@@ -2474,17 +2472,17 @@ const FleetUnits: React.FC = () => {
                         ...editDocumentForm,
                         issuedAt: e.target.value
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {editingDocument?.issuedAt && (
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-secondary mt-1">
                         Current: <span className="font-medium">{new Date(editingDocument.issuedAt).toLocaleDateString()}</span>
                       </p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Expiry Date <span className="text-gray-400 text-xs">(Optional)</span>
+                    <label className="block text-sm font-medium text-primary mb-1">
+                      Expiry Date <span className="text-secondary text-xs">(Optional)</span>
                     </label>
                     <input
                       type="date"
@@ -2493,10 +2491,10 @@ const FleetUnits: React.FC = () => {
                         ...editDocumentForm,
                         expiryDate: e.target.value
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {editingDocument?.expiryDate && (
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-secondary mt-1">
                         Current: <span className="font-medium">{new Date(editingDocument.expiryDate).toLocaleDateString()}</span>
                       </p>
                     )}
@@ -2504,7 +2502,7 @@ const FleetUnits: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-primary mb-1">
                     Update Document File(s) (Optional)
                   </label>
                   <input
@@ -2519,7 +2517,7 @@ const FleetUnits: React.FC = () => {
                         });
                       }
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
                   />
                   {editDocumentForm.files && editDocumentForm.files.length > 0 && (
@@ -2532,21 +2530,21 @@ const FleetUnits: React.FC = () => {
                       ))}
                     </div>
                   )}
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-secondary mt-1">
                     Leave empty to keep existing file(s)
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3">
+            <div className="px-6 py-4 border-t border-theme flex items-center justify-end gap-3">
               <button
                 onClick={() => {
                   setShowEditDocumentModal(false);
                   setEditingDocument(null);
                   setEditDocumentForm(null);
                 }}
-                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 disabled={isSubmitting}
               >
                 Cancel
@@ -2554,9 +2552,8 @@ const FleetUnits: React.FC = () => {
               <button
                 onClick={handleSaveEditedDocument}
                 disabled={isSubmitting}
-                className={`px-6 py-2 !text-white rounded-lg hover:opacity-90 transition-colors ${
-                  isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+                className={`px-6 py-2 !text-white rounded-lg hover:opacity-90 transition-colors ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
               >
                 {isSubmitting ? 'Saving...' : 'Save Changes'}
@@ -2569,24 +2566,24 @@ const FleetUnits: React.FC = () => {
       {/* Truck Limit Reached Modal */}
       {truckLimitModal.show && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-card rounded-xl shadow-2xl max-w-md w-full">
+            <div className="p-6 border-b border-theme">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0 w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-[#F59E0B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-gray-900">Truck Limit Reached</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Your plan allows <span className="font-bold text-gray-800">{truckLimitModal.maxTrucks}</span> truck{truckLimitModal.maxTrucks !== 1 ? 's' : ''}.
-                    You currently have <span className="font-bold text-red-600">{truckLimitModal.usedTrucks}</span> truck{truckLimitModal.usedTrucks !== 1 ? 's' : ''} in use.
+                  <h3 className="text-xl font-semibold text-primary">Truck Limit Reached</h3>
+                  <p className="text-sm text-secondary mt-1">
+                    Your plan allows <span className="font-bold text-primary">{truckLimitModal.maxTrucks}</span> truck{truckLimitModal.maxTrucks !== 1 ? 's' : ''}.
+                    You currently have <span className="font-bold text-[#A855F7]">{truckLimitModal.usedTrucks}</span> truck{truckLimitModal.usedTrucks !== 1 ? 's' : ''} in use.
                   </p>
-                  <p className="text-sm text-gray-500 mt-2">
+                  <p className="text-sm text-secondary mt-2">
                     To add more trucks, upgrade your plan or purchase additional truck slots from the Subscription page.
                   </p>
-                  <div className="mt-3 bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-center justify-between">
+                  <div className="mt-3 bg-card border border-orange-200 rounded-lg p-3 flex items-center justify-between">
                     <span className="text-xs font-medium text-orange-700">Trucks used</span>
                     <span className="text-sm font-bold text-orange-800">{truckLimitModal.usedTrucks} / {truckLimitModal.maxTrucks}</span>
                   </div>
@@ -2596,7 +2593,7 @@ const FleetUnits: React.FC = () => {
             <div className="p-6 flex items-center justify-end gap-3">
               <button
                 onClick={() => setTruckLimitModal({ show: false, maxTrucks: 0, usedTrucks: 0 })}
-                className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                className="px-5 py-2.5 border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
               >
                 Close
               </button>

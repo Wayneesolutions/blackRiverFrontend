@@ -21,7 +21,7 @@ const CUSTOM_COLORS = {
   primary: '#016ab2',
   dark: '#063f6f',
   light: '#398bc3',
-  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradient: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
   gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
 };
 import type { LoadSecurementLog, ReeferFoodSafetyLog, WinterSafetyChecklist, FuelingSpillPreventionLog, DangerousGoodsLog } from '../../../../types';
@@ -56,9 +56,9 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
-    warning: 'bg-yellow-50 border-yellow-200'
+    error: 'bg-card border-red-200',
+    info: 'bg-card border-blue-200',
+    warning: 'bg-card border-yellow-200'
   };
 
   useEffect(() => {
@@ -73,10 +73,10 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -637,63 +637,63 @@ const TruckingOperations: React.FC = () => {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
-          <div className="text-3xl font-bold text-gray-900">{loadSecurementLogs.length}</div>
-          <div className="text-sm text-gray-600 mt-1">Total Logs (This Month)</div>
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
+          <div className="text-3xl font-bold text-primary">{loadSecurementLogs.length}</div>
+          <div className="text-sm text-secondary mt-1">Total Logs (This Month)</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-green-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-green-500">
           <div className="text-3xl font-bold text-green-700">{loadSecurementLogs.filter(l => l.meetsStandards).length}</div>
-          <div className="text-sm text-gray-600 mt-1">Compliant Loads</div>
+          <div className="text-sm text-secondary mt-1">Compliant Loads</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-red-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-red-500">
           <div className="text-3xl font-bold text-red-700">{loadSecurementLogs.filter(l => !l.meetsStandards).length}</div>
-          <div className="text-sm text-gray-600 mt-1">Deficiencies Found</div>
+          <div className="text-sm text-secondary mt-1">Deficiencies Found</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-blue-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-blue-500">
           <div className="text-3xl font-bold text-blue-700">{loadSecurementLogs.filter(l => l.photoEvidence && l.photoEvidence.length > 0).length}</div>
-          <div className="text-sm text-gray-600 mt-1">With Photo Evidence</div>
+          <div className="text-sm text-secondary mt-1">With Photo Evidence</div>
         </div>
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-card rounded-xl shadow-lg overflow-hidden">
         <div className="p-6 border-b">
-          <h3 className="text-xl font-bold text-gray-900">Load Securement Logs</h3>
-          <p className="text-sm text-gray-600 mt-1">Pre-departure checks per FMCSA/CVSA standards</p>
+          <h3 className="text-xl font-bold text-headings">Load Securement Logs</h3>
+          <p className="text-sm text-secondary mt-1">Pre-departure checks per FMCSA/CVSA standards</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-card">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Log #</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Date/Time</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Driver</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Vehicle</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Load Type</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Securement</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Compliance</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Log #</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Date/Time</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Driver</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Vehicle</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Load Type</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Securement</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text- uppercase">Compliance</th>
 
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme divide-white/5">
               {loadSecurementLogs.map((log) => (
-                <tr key={log._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{log.logNumber}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                <tr key={log._id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                  <td className="px-6 py-4 text-sm font-medium text-secondary">{log.logNumber}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">
                     {formatDateTime(log.date, log.time)}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{log.driverName}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-secondary">{log.driverName}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">
                     <div>{log.vehicleNumber}</div>
-                    <div className="text-xs text-gray-400">{log.trailerNumber}</div>
+                    <div className="text-xs text-secondary">{log.trailerNumber}</div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{log.loadType}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{log.loadType}</td>
                   <td className="px-6 py-4 text-sm">
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold uppercase">
                       {log.securedBy}
                     </span>
                     {log.numberOfStraps && (
-                      <div className="text-xs text-gray-500 mt-1">{log.numberOfStraps} straps</div>
+                      <div className="text-xs text-secondary mt-1">{log.numberOfStraps} straps</div>
                     )}
                   </td>
                   <td className="px-6 py-4">
@@ -721,61 +721,61 @@ const TruckingOperations: React.FC = () => {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
-          <div className="text-3xl font-bold text-gray-900">{reeferLogs.length}</div>
-          <div className="text-sm text-gray-600 mt-1">Reefer Inspections (This Month)</div>
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
+          <div className="text-3xl font-bold text-primary">{reeferLogs.length}</div>
+          <div className="text-sm text-secondary mt-1">Reefer Inspections (This Month)</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-green-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-green-500">
           <div className="text-3xl font-bold text-green-700">{reeferLogs.filter(l => l.withinRange).length}</div>
-          <div className="text-sm text-gray-600 mt-1">Temperature Compliant</div>
+          <div className="text-sm text-secondary mt-1">Temperature Compliant</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-blue-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-blue-500">
           <div className="text-3xl font-bold text-blue-700">{reeferLogs.filter(l => l.interiorCleanliness === 'excellent').length}</div>
-          <div className="text-sm text-gray-600 mt-1">Excellent Cleanliness</div>
+          <div className="text-sm text-secondary mt-1">Excellent Cleanliness</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-red-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-red-500">
           <div className="text-3xl font-bold text-red-700">{reeferLogs.filter(l => l.deficienciesFound).length}</div>
-          <div className="text-sm text-gray-600 mt-1">Deficiencies Reported</div>
+          <div className="text-sm text-secondary mt-1">Deficiencies Reported</div>
         </div>
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-card rounded-xl shadow-lg overflow-hidden">
         <div className="p-6 border-b">
-          <h3 className="text-xl font-bold text-gray-900">Reefer Food Safety & Sanitation Logs</h3>
-          <p className="text-sm text-gray-600 mt-1">Temperature monitoring and cleanliness inspections</p>
+          <h3 className="text-xl font-bold text-primary">Reefer Food Safety & Sanitation Logs</h3>
+          <p className="text-sm text-secondary mt-1">Temperature monitoring and cleanliness inspections</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-card">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Log #</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Date/Time</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Driver</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Temp (°C)</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Cleanliness</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Log #</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Date/Time</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Driver</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Unit</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Temp (°C)</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Cleanliness</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Status</th>
 
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme divide-white/5 ">
               {reeferLogs.map((log) => (
-                <tr key={log._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{log.logNumber}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                <tr key={log._id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                  <td className="px-6 py-4 text-sm font-medium text-secondary">{log.logNumber}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">
                     {formatDateTime(log.date, log.time)}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{log.driverName}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{log.trailerNumber}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{log.driverName}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{log.trailerNumber}</td>
                   <td className="px-6 py-4 text-sm">
                     <div className="flex items-center">
-                      <FaThermometerHalf className={`mr-2 ${log.withinRange ? 'text-green-600' : 'text-red-600'}`} />
+                      <FaThermometerHalf className={`mr-2 ${log.withinRange ? 'text-green-600' : 'text-[#A855F7]'}`} />
                       <span className={`font-semibold ${log.withinRange ? 'text-green-700' : 'text-red-700'}`}>
                         {log.temperatureRecorded}°C
                       </span>
                     </div>
-                    <div className="text-xs text-gray-500">Target: {log.targetTemperature}°C</div>
+                    <div className="text-xs text-secondary">Target: {log.targetTemperature}°C</div>
                   </td>
                   <td className="px-6 py-4 text-sm">
                     <span
@@ -814,53 +814,53 @@ const TruckingOperations: React.FC = () => {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
-          <div className="text-3xl font-bold text-gray-900">{winterChecklists.length}</div>
-          <div className="text-sm text-gray-600 mt-1">Total Checklists (This Month)</div>
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
+          <div className="text-3xl font-bold text-primary">{winterChecklists.length}</div>
+          <div className="text-sm text-secondary mt-1">Total Checklists (This Month)</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-green-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-green-500">
           <div className="text-3xl font-bold text-green-700">{winterChecklists.filter(c => !c.hazardsIdentified).length}</div>
-          <div className="text-sm text-gray-600 mt-1">No Hazards Found</div>
+          <div className="text-sm text-secondary mt-1">No Hazards Found</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-yellow-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-yellow-500">
           <div className="text-3xl font-bold text-yellow-700">{winterChecklists.filter(c => c.hazardsIdentified).length}</div>
-          <div className="text-sm text-gray-600 mt-1">Hazards Identified</div>
+          <div className="text-sm text-secondary mt-1">Hazards Identified</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-blue-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-blue-500">
           <div className="text-3xl font-bold text-blue-700">{winterChecklists.filter(c => c.tireChainCondition === 'good').length}</div>
-          <div className="text-sm text-gray-600 mt-1">Good Chain Condition</div>
+          <div className="text-sm text-secondary mt-1">Good Chain Condition</div>
         </div>
       </div>
 
       {/* Checklists Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-card rounded-xl shadow-lg overflow-hidden">
         <div className="p-6 border-b">
-          <h3 className="text-xl font-bold text-gray-900">Winter Safety Checklists</h3>
-          <p className="text-sm text-gray-600 mt-1">Snow/ice removal, tire chains, and winter readiness inspections</p>
+          <h3 className="text-xl font-bold text-primary">Winter Safety Checklists</h3>
+          <p className="text-sm text-secondary mt-1">Snow/ice removal, tire chains, and winter readiness inspections</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-card">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Checklist #</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Date/Time</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Performed By</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Vehicle</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Checklist #</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Date/Time</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Location</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Performed By</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Vehicle</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Status</th>
 
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {winterChecklists.map((checklist) => (
-                <tr key={checklist._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{checklist.checklistNumber}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                <tr key={checklist._id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                  <td className="px-6 py-4 text-sm font-medium text-secondary">{checklist.checklistNumber}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">
                     {formatDateTime(checklist.date, checklist.time)}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{checklist.location}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{checklist.performedBy}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{checklist.vehicleNumber || 'N/A'}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{checklist.location}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{checklist.performedBy}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{checklist.vehicleNumber || 'N/A'}</td>
                   <td className="px-6 py-4">
                     {checklist.hazardsIdentified ? (
                       <span className="flex items-center text-yellow-700">
@@ -877,7 +877,7 @@ const TruckingOperations: React.FC = () => {
               ))}
               {winterChecklists.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-8 text-center text-secondary">
                     No winter safety checklists recorded yet
                   </td>
                 </tr>
@@ -893,54 +893,54 @@ const TruckingOperations: React.FC = () => {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
-          <div className="text-3xl font-bold text-gray-900">{fuelingLogs.length}</div>
-          <div className="text-sm text-gray-600 mt-1">Total Logs (This Month)</div>
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
+          <div className="text-3xl font-bold text-primary">{fuelingLogs.length}</div>
+          <div className="text-sm text-secondary mt-1">Total Logs (This Month)</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-green-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-green-500">
           <div className="text-3xl font-bold text-green-700">{fuelingLogs.filter(l => !l.spillOccurred).length}</div>
-          <div className="text-sm text-gray-600 mt-1">No Spills</div>
+          <div className="text-sm text-secondary mt-1">No Spills</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-red-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-red-500">
           <div className="text-3xl font-bold text-red-700">{fuelingLogs.filter(l => l.spillOccurred).length}</div>
-          <div className="text-sm text-gray-600 mt-1">Spill Incidents</div>
+          <div className="text-sm text-secondary mt-1">Spill Incidents</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-blue-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-blue-500">
           <div className="text-3xl font-bold text-blue-700">{fuelingLogs.filter(l => l.spillKitPresent).length}</div>
-          <div className="text-sm text-gray-600 mt-1">Spill Kit Present</div>
+          <div className="text-sm text-secondary mt-1">Spill Kit Present</div>
         </div>
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-card rounded-xl shadow-lg overflow-hidden">
         <div className="p-6 border-b">
-          <h3 className="text-xl font-bold text-gray-900">Fueling & Spill Prevention Logs</h3>
-          <p className="text-sm text-gray-600 mt-1">Pre-fueling checklists and spill incident tracking</p>
+          <h3 className="text-xl font-bold text-primary">Fueling & Spill Prevention Logs</h3>
+          <p className="text-sm text-secondary mt-1">Pre-fueling checklists and spill incident tracking</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-card">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Log #</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Date/Time</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Performed By</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Vehicle</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Fuel Type</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Spill Status</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Log #</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Date/Time</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Location</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Performed By</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Vehicle</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Fuel Type</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Spill Status</th>
 
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {fuelingLogs.map((log) => (
-                <tr key={log._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{log.logNumber}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                <tr key={log._id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                  <td className="px-6 py-4 text-sm font-medium text-secondary">{log.logNumber}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">
                     {formatDateTime(log.date, log.time)}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{log.location}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{log.performedBy}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{log.vehicleNumber || 'N/A'}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{log.location}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{log.performedBy}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{log.vehicleNumber || 'N/A'}</td>
                   <td className="px-6 py-4 text-sm">
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold uppercase">
                       {log.fuelType}
@@ -962,7 +962,7 @@ const TruckingOperations: React.FC = () => {
               ))}
               {fuelingLogs.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-8 text-center text-secondary">
                     No fueling logs recorded yet
                   </td>
                 </tr>
@@ -978,58 +978,58 @@ const TruckingOperations: React.FC = () => {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
-          <div className="text-3xl font-bold text-gray-900">{tdgLogs.length}</div>
-          <div className="text-sm text-gray-600 mt-1">Total TDG Shipments</div>
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
+          <div className="text-3xl font-bold text-primary">{tdgLogs.length}</div>
+          <div className="text-sm text-secondary mt-1">Total TDG Shipments</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-green-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-green-500">
           <div className="text-3xl font-bold text-green-700">{tdgLogs.filter(l => l.placardingComplete && l.tdgCertificateCurrent).length}</div>
-          <div className="text-sm text-gray-600 mt-1">Fully Compliant</div>
+          <div className="text-sm text-secondary mt-1">Fully Compliant</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-red-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-red-500">
           <div className="text-3xl font-bold text-red-700">{tdgLogs.filter(l => l.incidentOccurred).length}</div>
-          <div className="text-sm text-gray-600 mt-1">Incidents Reported</div>
+          <div className="text-sm text-secondary mt-1">Incidents Reported</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-yellow-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-yellow-500">
           <div className="text-3xl font-bold text-yellow-700">{tdgLogs.filter(l => !l.tdgCertificateCurrent).length}</div>
-          <div className="text-sm text-gray-600 mt-1">Certificate Issues</div>
+          <div className="text-sm text-secondary mt-1">Certificate Issues</div>
         </div>
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-card rounded-xl shadow-lg overflow-hidden">
         <div className="p-6 border-b">
-          <h3 className="text-xl font-bold text-gray-900">Dangerous Goods (TDG) Logs</h3>
-          <p className="text-sm text-gray-600 mt-1">Shipment documentation and incident reporting</p>
+          <h3 className="text-xl font-bold text-primary">Dangerous Goods (TDG) Logs</h3>
+          <p className="text-sm text-secondary mt-1">Shipment documentation and incident reporting</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-card">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Log #</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Date/Time</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Driver</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Vehicle</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">UN Number</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Class</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Placarding</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Log #</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Date/Time</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Driver</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Vehicle</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">UN Number</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Class</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Placarding</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Status</th>
 
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme divide-white/5">
               {tdgLogs.map((log) => (
-                <tr key={log._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{log.logNumber}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                <tr key={log._id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                  <td className="px-6 py-4 text-sm font-medium text-secondary">{log.logNumber}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">
                     {formatDateTime(log.date, log.time)}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{log.driverName}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-secondary">{log.driverName}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">
                     <div>{log.vehicleNumber}</div>
-                    {log.trailerNumber && <div className="text-xs text-gray-400">{log.trailerNumber}</div>}
+                    {log.trailerNumber && <div className="text-xs text-secondary">{log.trailerNumber}</div>}
                   </td>
-                  <td className="px-6 py-4 text-sm font-mono text-gray-900">{log.unNumber}</td>
+                  <td className="px-6 py-4 text-sm font-mono text-primary">{log.unNumber}</td>
                   <td className="px-6 py-4 text-sm">
                     <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">
                       Class {log.class}
@@ -1066,7 +1066,7 @@ const TruckingOperations: React.FC = () => {
               ))}
               {tdgLogs.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={9} className="px-6 py-8 text-center text-secondary">
                     No TDG logs recorded yet
                   </td>
                 </tr>
@@ -1096,7 +1096,7 @@ const TruckingOperations: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
+    <div className="min-h-screen p-6 bg-main" >
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10000] space-y-2">
         {notifications.map(notification => (
@@ -1112,10 +1112,10 @@ const TruckingOperations: React.FC = () => {
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>
-            <h1 className="text-4xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
+            <h1 className="text-4xl font-bold mb-2 text-headings" >
               Trucking Operations
             </h1>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-secondary">
               Industry-specific safety logs for load securement, reefer safety, winter operations, and more.
             </p>
           </div>
@@ -1129,8 +1129,8 @@ const TruckingOperations: React.FC = () => {
             </button>
             <button
               onClick={() => setShowModal(true)}
-              className="px-6 py-3 rounded-xl !text-white font-semibold shadow-lg hover:shadow-xl transition-all flex items-center space-x-2"
-              style={{ background: CUSTOM_COLORS.gradient }}
+              className="px-6 py-3 rounded-xl !text-white font-semibold shadow-lg hover:shadow-xl transition-all flex items-center space-x-2 bg-[var(--accent-navyblue)]"
+
             >
               <FaPlus />
               <span>New Log Entry</span>
@@ -1139,13 +1139,13 @@ const TruckingOperations: React.FC = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white rounded-xl shadow-lg mb-6 overflow-hidden">
+        <div className="bg-card rounded-xl shadow-lg mb-6 overflow-hidden">
           <div className="flex overflow-x-auto">
             <button
               onClick={() => setActiveTab(TABS.LOAD_SECUREMENT)}
               className={`flex-1 px-6 py-4 font-semibold transition-all flex items-center justify-center space-x-2 ${activeTab === TABS.LOAD_SECUREMENT
-                ? 'border-b-4 text-gray-900 bg-orange-50'
-                : 'text-gray-600 hover:bg-gray-50'
+                ? 'border-b-4 text-primary bg-card'
+                : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
               style={activeTab === TABS.LOAD_SECUREMENT ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
@@ -1155,8 +1155,8 @@ const TruckingOperations: React.FC = () => {
             <button
               onClick={() => setActiveTab(TABS.REEFER_SAFETY)}
               className={`flex-1 px-6 py-4 font-semibold transition-all flex items-center justify-center space-x-2 ${activeTab === TABS.REEFER_SAFETY
-                ? 'border-b-4 text-gray-900 bg-orange-50'
-                : 'text-gray-600 hover:bg-gray-50'
+                ? 'border-b-4 text-primary bg-card'
+                : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
               style={activeTab === TABS.REEFER_SAFETY ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
@@ -1166,8 +1166,8 @@ const TruckingOperations: React.FC = () => {
             <button
               onClick={() => setActiveTab(TABS.WINTER_SAFETY)}
               className={`flex-1 px-6 py-4 font-semibold transition-all flex items-center justify-center space-x-2 ${activeTab === TABS.WINTER_SAFETY
-                ? 'border-b-4 text-gray-900 bg-orange-50'
-                : 'text-gray-600 hover:bg-gray-50'
+                ? 'border-b-4 text-primary bg-card'
+                : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
               style={activeTab === TABS.WINTER_SAFETY ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
@@ -1177,8 +1177,8 @@ const TruckingOperations: React.FC = () => {
             <button
               onClick={() => setActiveTab(TABS.FUELING_SPILL)}
               className={`flex-1 px-6 py-4 font-semibold transition-all flex items-center justify-center space-x-2 ${activeTab === TABS.FUELING_SPILL
-                ? 'border-b-4 text-gray-900 bg-orange-50'
-                : 'text-gray-600 hover:bg-gray-50'
+                ? 'border-b-4 text-primary bg-card'
+                : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
               style={activeTab === TABS.FUELING_SPILL ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
@@ -1188,8 +1188,8 @@ const TruckingOperations: React.FC = () => {
             <button
               onClick={() => setActiveTab(TABS.TDG_LOGS)}
               className={`flex-1 px-6 py-4 font-semibold transition-all flex items-center justify-center space-x-2 ${activeTab === TABS.TDG_LOGS
-                ? 'border-b-4 text-gray-900 bg-orange-50'
-                : 'text-gray-600 hover:bg-gray-50'
+                ? 'border-b-4 text-primary bg-card'
+                : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
               style={activeTab === TABS.TDG_LOGS ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
@@ -1202,7 +1202,7 @@ const TruckingOperations: React.FC = () => {
         {/* Content Area */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="text-gray-600 text-lg">Loading trucking operations data...</div>
+            <div className="text-secondary text-lg">Loading trucking operations data...</div>
           </div>
         ) : (
           renderContent()
@@ -1221,10 +1221,10 @@ const TruckingOperations: React.FC = () => {
           }}
         >
           <div
-            className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+            className="bg-card rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
+            <div className="sticky top-0 bg-card border-b p-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold">
                 New {activeTab === TABS.LOAD_SECUREMENT ? 'Load Securement' :
                   activeTab === TABS.REEFER_SAFETY ? 'Reefer Food Safety' :
@@ -1234,7 +1234,7 @@ const TruckingOperations: React.FC = () => {
               </h2>
               <button
                 onClick={() => { setShowModal(false); setShippingDocumentFile(null); }}
-                className="text-gray-500 hover:text-gray-800 transition-colors"
+                className="text-secondary hover:text-primary transition-colors"
               >
                 <FaTimes size={24} />
               </button>
@@ -1244,81 +1244,151 @@ const TruckingOperations: React.FC = () => {
               {activeTab === TABS.LOAD_SECUREMENT && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Date *</label>
                     <input
                       type="date"
                       required
                       value={loadSecurementForm.date}
                       onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
+                      style={{ colorScheme: 'dark' }}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Time *</label>
                     <input
                       type="time"
                       required
                       value={loadSecurementForm.time}
                       onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, time: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
+                      style={{ colorScheme: 'dark' }}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name *</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Driver Name *</label>
                     <select
                       required
                       value={loadSecurementForm.driverName}
-                      onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, driverName: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) =>
+                        setLoadSecurementForm({
+                          ...loadSecurementForm,
+                          driverName: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                     >
-                      <option value="">Select driver</option>
+                      <option
+                        value=""
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        Select driver
+                      </option>
+
                       {drivers.map((d) => (
-                        <option key={d._id} value={d.name}>{d.name}</option>
+                        <option
+                          key={d._id}
+                          value={d.name}
+                          className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                        >
+                          {d.name}
+                        </option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Number *</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Vehicle Number *</label>
                     <select
                       required
                       value={loadSecurementForm.vehicleNumber}
-                      onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, vehicleNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) =>
+                        setLoadSecurementForm({
+                          ...loadSecurementForm,
+                          vehicleNumber: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                     >
-                      <option value="">Select vehicle</option>
+                      <option
+                        value=""
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        Select vehicle
+                      </option>
+
                       {vehicles.map((v) => (
-                        <option key={v._id} value={v.unitNo}>{v.unitNo}</option>
+                        <option
+                          key={v._id}
+                          value={v.unitNo}
+                          className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                        >
+                          {v.unitNo}
+                        </option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Load Type *</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Load Type *</label>
                     <input
                       type="text"
                       required
                       value={loadSecurementForm.loadType}
                       onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, loadType: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Secured By *</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Secured By *</label>
                     <select
                       required
                       value={loadSecurementForm.securedBy}
-                      onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, securedBy: e.target.value as any })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) =>
+                        setLoadSecurementForm({
+                          ...loadSecurementForm,
+                          securedBy: e.target.value as any,
+                        })
+                      }
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                     >
-                      <option value="straps">Straps</option>
-                      <option value="chains">Chains</option>
-                      <option value="tarps">Tarps</option>
-                      <option value="combination">Combination</option>
-                      <option value="bulkhead">Bulkhead</option>
-                      <option value="other">Other</option>
+                      <option value="straps" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Straps
+                      </option>
+
+                      <option value="chains" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Chains
+                      </option>
+
+                      <option value="tarps" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Tarps
+                      </option>
+
+                      <option value="combination" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Combination
+                      </option>
+
+                      <option value="bulkhead" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Bulkhead
+                      </option>
+
+                      <option value="other" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Other
+                      </option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Meets Standards</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Meets Standards</label>
                     <input
                       type="checkbox"
                       checked={loadSecurementForm.meetsStandards}
@@ -1332,99 +1402,99 @@ const TruckingOperations: React.FC = () => {
               {activeTab === TABS.REEFER_SAFETY && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Date *</label>
                     <input
                       type="date"
                       required
                       value={reeferForm.date}
                       onChange={(e) => setReeferForm({ ...reeferForm, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Time *</label>
                     <input
                       type="time"
                       required
                       value={reeferForm.time}
                       onChange={(e) => setReeferForm({ ...reeferForm, time: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Driver Name *</label>
                     <select
                       required
                       value={reeferForm.driverName}
                       onChange={(e) => setReeferForm({ ...reeferForm, driverName: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select driver</option>
+                      <option className='form-option' value="">Select driver</option>
                       {drivers.map((d) => (
-                        <option key={d._id} value={d.name}>{d.name}</option>
+                        <option className='form-option' key={d._id} value={d.name}>{d.name}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Number *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Vehicle Number *</label>
                     <select
                       required
                       value={reeferForm.vehicleNumber}
                       onChange={(e) => setReeferForm({ ...reeferForm, vehicleNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select vehicle</option>
+                      <option className='form-option' value="">Select vehicle</option>
                       {vehicles.map((v) => (
-                        <option key={v._id} value={v.unitNo}>{v.unitNo}</option>
+                        <option className='form-option' key={v._id} value={v.unitNo}>{v.unitNo}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Trailer Number *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Trailer Number *</label>
                     <select
                       required
                       value={reeferForm.trailerNumber}
                       onChange={(e) => setReeferForm({ ...reeferForm, trailerNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select trailer</option>
+                      <option className='form-option' value="">Select trailer</option>
                       {trailers.map((t) => (
-                        <option key={t._id} value={t.unitNo}>{t.unitNo}</option>
+                        <option className='form-option' key={t._id} value={t.unitNo}>{t.unitNo}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Temperature Recorded *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Temperature Recorded *</label>
                     <input
                       type="number"
                       required
                       value={reeferForm.temperatureRecorded}
                       onChange={(e) => setReeferForm({ ...reeferForm, temperatureRecorded: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Target Temperature *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Target Temperature *</label>
                     <input
                       type="number"
                       required
                       value={reeferForm.targetTemperature}
                       onChange={(e) => setReeferForm({ ...reeferForm, targetTemperature: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Interior Cleanliness *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Interior Cleanliness *</label>
                     <select
                       required
                       value={reeferForm.interiorCleanliness}
                       onChange={(e) => setReeferForm({ ...reeferForm, interiorCleanliness: e.target.value as any })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="excellent">Excellent</option>
-                      <option value="good">Good</option>
-                      <option value="fair">Fair</option>
-                      <option value="poor">Poor</option>
+                      <option className='form-option' value="excellent">Excellent</option>
+                      <option className='form-option' value="good">Good</option>
+                      <option className='form-option' value="fair">Fair</option>
+                      <option className='form-option' value="poor">Poor</option>
                     </select>
                   </div>
                 </div>
@@ -1433,49 +1503,49 @@ const TruckingOperations: React.FC = () => {
               {activeTab === TABS.WINTER_SAFETY && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Date *</label>
                     <input
                       type="date"
                       required
                       value={winterForm.date}
                       onChange={(e) => setWinterForm({ ...winterForm, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Location *</label>
                     <input
                       type="text"
                       required
                       value={winterForm.location}
                       onChange={(e) => setWinterForm({ ...winterForm, location: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Performed By *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Performed By *</label>
                     <select
                       required
                       value={winterForm.performedBy}
                       onChange={(e) => setWinterForm({ ...winterForm, performedBy: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select driver</option>
+                      <option className='form-option' value="">Select driver</option>
                       {drivers.map((d) => (
-                        <option key={d._id} value={d.name}>{d.name}</option>
+                        <option className='form-option' key={d._id} value={d.name}>{d.name}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Number</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Vehicle Number</label>
                     <select
                       value={winterForm.vehicleNumber}
                       onChange={(e) => setWinterForm({ ...winterForm, vehicleNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select vehicle</option>
+                      <option className='form-option' value="">Select vehicle</option>
                       {vehicles.map((v) => (
-                        <option key={v._id} value={v.unitNo}>{v.unitNo}</option>
+                        <option className='form-option' key={v._id} value={v.unitNo}>{v.unitNo}</option>
                       ))}
                     </select>
                   </div>
@@ -1516,65 +1586,65 @@ const TruckingOperations: React.FC = () => {
               {activeTab === TABS.FUELING_SPILL && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Date *</label>
                     <input
                       type="date"
                       required
                       value={fuelingForm.date}
                       onChange={(e) => setFuelingForm({ ...fuelingForm, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Location *</label>
                     <input
                       type="text"
                       required
                       value={fuelingForm.location}
                       onChange={(e) => setFuelingForm({ ...fuelingForm, location: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Performed By *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Performed By *</label>
                     <select
                       required
                       value={fuelingForm.performedBy}
                       onChange={(e) => setFuelingForm({ ...fuelingForm, performedBy: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select driver</option>
+                      <option className='form-option' value="">Select driver</option>
                       {drivers.map((d) => (
-                        <option key={d._id} value={d.name}>{d.name}</option>
+                        <option className='form-option' key={d._id} value={d.name}>{d.name}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Number</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Vehicle Number</label>
                     <select
                       value={fuelingForm.vehicleNumber}
                       onChange={(e) => setFuelingForm({ ...fuelingForm, vehicleNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select vehicle</option>
+                      <option className='form-option' value="">Select vehicle</option>
                       {vehicles.map((v) => (
-                        <option key={v._id} value={v.unitNo}>{v.unitNo}</option>
+                        <option className='form-option' key={v._id} value={v.unitNo}>{v.unitNo}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Fuel Type *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Fuel Type *</label>
                     <select
                       required
                       value={fuelingForm.fuelType}
                       onChange={(e) => setFuelingForm({ ...fuelingForm, fuelType: e.target.value as any })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="diesel">Diesel</option>
-                      <option value="gasoline">Gasoline</option>
-                      <option value="DEF">DEF</option>
-                      <option value="propane">Propane</option>
-                      <option value="natural-gas">Natural Gas</option>
+                      <option className='form-option' value="diesel">Diesel</option>
+                      <option className='form-option' value="gasoline">Gasoline</option>
+                      <option className='form-option' value="DEF">DEF</option>
+                      <option className='form-option' value="propane">Propane</option>
+                      <option className='form-option' value="natural-gas">Natural Gas</option>
                     </select>
                   </div>
                   <div className="col-span-2">
@@ -1614,67 +1684,67 @@ const TruckingOperations: React.FC = () => {
               {activeTab === TABS.TDG_LOGS && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Date *</label>
                     <input
                       type="date"
                       required
                       value={tdgForm.date}
                       onChange={(e) => setTdgForm({ ...tdgForm, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Time *</label>
                     <input
                       type="time"
                       required
                       value={tdgForm.time}
                       onChange={(e) => setTdgForm({ ...tdgForm, time: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Driver Name *</label>
                     <select
                       required
                       value={tdgForm.driverName}
                       onChange={(e) => setTdgForm({ ...tdgForm, driverName: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select driver</option>
+                      <option className='form-option' value="">Select driver</option>
                       {drivers.map((d) => (
-                        <option key={d._id} value={d.name}>{d.name}</option>
+                        <option className='form-option' key={d._id} value={d.name}>{d.name}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Number</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Vehicle Number</label>
                     <select
                       value={tdgForm.vehicleNumber}
                       onChange={(e) => setTdgForm({ ...tdgForm, vehicleNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select vehicle</option>
+                      <option className='form-option' value="">Select vehicle</option>
                       {vehicles.map((v) => (
-                        <option key={v._id} value={v.unitNo}>{v.unitNo}</option>
+                        <option className='form-option' key={v._id} value={v.unitNo}>{v.unitNo}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Trailer Number</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Trailer Number</label>
                     <select
                       value={tdgForm.trailerNumber}
                       onChange={(e) => setTdgForm({ ...tdgForm, trailerNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select trailer</option>
+                      <option className='form-option' value="">Select trailer</option>
                       {trailers.map((t) => (
-                        <option key={t._id} value={t.unitNo}>{t.unitNo}</option>
+                        <option className='form-option' key={t._id} value={t.unitNo}>{t.unitNo}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Shipping Document</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Shipping Document</label>
                     <div className="space-y-2">
                       <input
                         type="file"
@@ -1684,55 +1754,55 @@ const TruckingOperations: React.FC = () => {
                           setShippingDocumentFile(file || null);
                           if (file) setTdgForm({ ...tdgForm, shippingDocument: file.name });
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:cursor-pointer"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:cursor-pointer"
                       />
                       {shippingDocumentFile && (
-                        <span className="text-sm text-gray-600">{shippingDocumentFile.name}</span>
+                        <span className="text-sm text-secondary">{shippingDocumentFile.name}</span>
                       )}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">UN Number *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">UN Number *</label>
                     <input
                       type="text"
                       required
                       value={tdgForm.unNumber}
                       onChange={(e) => setTdgForm({ ...tdgForm, unNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Proper Shipping Name *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Proper Shipping Name *</label>
                     <input
                       type="text"
                       required
                       value={tdgForm.properShippingName}
                       onChange={(e) => setTdgForm({ ...tdgForm, properShippingName: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Class *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Class *</label>
                     <input
                       type="text"
                       required
                       value={tdgForm.class}
                       onChange={(e) => setTdgForm({ ...tdgForm, class: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Quantity *</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Quantity *</label>
                     <input
                       type="text"
                       required
                       value={tdgForm.quantity}
                       onChange={(e) => setTdgForm({ ...tdgForm, quantity: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div className="col-span-2">
-                    <div className="text-sm font-medium text-gray-700 mb-2">Placarding & Compliance</div>
+                    <div className="text-sm font-medium text-primary mb-2">Placarding & Compliance</div>
                     <div className="grid grid-cols-2 gap-2">
                       <label className="flex items-center">
                         <input
@@ -1827,13 +1897,13 @@ const TruckingOperations: React.FC = () => {
                     </div>
                     {tdgForm.incidentOccurred && (
                       <div className="mt-3">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Incident Details</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Incident Details</label>
                         <textarea
                           value={tdgForm.incidentDetails}
                           onChange={(e) => setTdgForm({ ...tdgForm, incidentDetails: e.target.value })}
                           rows={3}
                           placeholder="Describe the incident..."
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     )}
@@ -1845,7 +1915,7 @@ const TruckingOperations: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => { setShowModal(false); setShippingDocumentFile(null); }}
-                  className="px-6 py-2 !mr-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-6 py-2 !mr-3 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   disabled={submitting}
                 >
                   Cancel
@@ -1853,8 +1923,7 @@ const TruckingOperations: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-6 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ background: CUSTOM_COLORS.gradient }}
+                  className="px-6 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? 'Creating...' : 'Create Log Entry'}
                 </button>

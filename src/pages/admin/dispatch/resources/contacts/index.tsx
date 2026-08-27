@@ -103,8 +103,8 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    warning: 'bg-yellow-50 border-yellow-200',
+    error: 'bg-card border-red-200',
+    warning: 'bg-card border-yellow-200',
   };
 
   useEffect(() => {
@@ -119,10 +119,10 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -183,7 +183,7 @@ const Index = () => {
   // Details sidebar state
   const [selectedItem, setSelectedItem] = useState<Contact | Customer | Place | null>(null);
   const [showDetailsSidebar, setShowDetailsSidebar] = useState(false);
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -359,7 +359,7 @@ const Index = () => {
       } else {
         res = await deletePlace(deleteTarget.item._id);
       }
-      
+
       if (res?.success) {
         const itemType = deleteTarget.type === "contact" ? "Contact" : deleteTarget.type === "customer" ? "Customer" : "Place";
         showToast('success', res.message || `${itemType} deleted successfully`);
@@ -449,7 +449,7 @@ const Index = () => {
     } else {
       type = "place";
     }
-    
+
     setEditLoading(true);
     try {
       let res;
@@ -603,8 +603,8 @@ const Index = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -635,7 +635,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF]">
+    <div className="min-h-screen bg-main">
       <div className="fixed top-4 right-4 z-[10000] space-y-2">
         {notifications.map((notification) => (
           <ToastNotification
@@ -652,19 +652,19 @@ const Index = () => {
             <button
               onClick={() => setActiveTab("customers")}
               className={`pb-2 px-2 text-sm font-medium flex items-center gap-2 transition-colors ${activeTab === "customers"
-                ? "text-blue-600 border-b-2 border-blue-600"
-                : "text-gray-500 hover:text-gray-700"
+                ? "text-[#00D1FF] border-b-2 border-blue-600"
+                : "text-secondary hover:text-primary"
                 }`}
             >
               <Users className="w-4 h-4" />
               Customers
             </button>
-  
+
             <button
               onClick={() => setActiveTab("contacts")}
               className={`pb-2 px-2 text-sm font-medium flex items-center gap-2 transition-colors ${activeTab === "contacts"
-                ? "text-blue-600 border-b-2 border-blue-600"
-                : "text-gray-500 hover:text-gray-700"
+                ? "text-[#00D1FF] border-b-2 border-blue-600"
+                : "text-secondary hover:text-primary"
                 }`}
             >
               <Users className="w-4 h-4" />
@@ -673,11 +673,11 @@ const Index = () => {
           </div>
 
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
             <input
               type="text"
               placeholder={`Search ${activeTab}`}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="pl-10 pr-4 py-2 border border-theme rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               value={searchQuery}
               onChange={handleSearch}
             />
@@ -689,7 +689,7 @@ const Index = () => {
             <button
               onClick={() => setIsSidebarOpen(true)}
               style={{
-                background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                background: 'var(--accent-navyblue)',
               }}
               className="!text-white px-4 py-2 rounded-md hover:opacity-90 transition-opacity flex items-center space-x-2 text-sm font-medium"
             >
@@ -703,14 +703,14 @@ const Index = () => {
       </div>
 
       {emptyStateMessage && tableData.length === 0 && (
-        <div className="mx-6 mt-4 bg-blue-50 border border-blue-100 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-3 text-sm">
+        <div className="mx-6 mt-4 bg-card border border-blue-100 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-3 text-sm">
           <Users className="w-5 h-5" />
           <span>{emptyStateMessage}</span>
         </div>
       )}
 
       <div className="p-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
           {/* Top Scrollbar - Only visible horizontal scrollbar */}
           <style>{`
             .top-scrollbar-container::-webkit-scrollbar {
@@ -734,10 +734,10 @@ const Index = () => {
               display: none; /* Chrome, Safari, Opera */
             }
           `}</style>
-          <div 
+          <div
             ref={topScrollRef}
             className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-            style={{ 
+            style={{
               maxHeight: '20px',
               marginBottom: '2px',
               scrollbarWidth: 'thin',
@@ -747,44 +747,44 @@ const Index = () => {
             <div className="top-scroll-content" style={{ height: '1px' }}></div>
           </div>
           {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-          <div 
+          <div
             ref={bottomScrollRef}
             className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
           >
             <table className="w-full" style={{ minWidth: '1000px' }}>
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-card border-b border-theme">
                 <tr>
-           
-                    <>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Internal ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Name
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Email
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Phone
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Country
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Role
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Created At
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </>
-            
+
+                  <>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Internal ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Phone
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Country
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Role
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Created At
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </>
+
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-theme">
                 {tableData.length > 0 ? (
                   tableData.map((item) => {
                     if (activeTab === "places") {
@@ -804,46 +804,45 @@ const Index = () => {
                       const postalCode = place.postalCode || place.securityAccessCodepostalCode || "N/A";
 
                       return (
-                        <tr 
-                          key={place._id} 
-                          className="hover:bg-gray-50 transition-colors cursor-pointer"
+                        <tr
+                          key={place._id}
+                          className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                           onClick={() => {
                             setSelectedItem(place);
                             setShowDetailsSidebar(true);
                           }}
                         >
-                          <td className="px-6 py-4 text-sm text-gray-900 font-medium">{place.name || "N/A"}</td>
-                          <td className="px-6 py-4 text-sm text-gray-500">
+                          <td className="px-6 py-4 text-sm text-primary font-medium">{place.name || "N/A"}</td>
+                          <td className="px-6 py-4 text-sm text-secondary">
                             <div className="max-w-xs">
-                              <div className="font-medium text-gray-700 mb-1">{fullAddress}</div>
+                              <div className="font-medium text-primary mb-1">{fullAddress}</div>
                               {postalCode !== "N/A" && (
-                                <div className="text-xs text-gray-400">Postal: {postalCode}</div>
+                                <div className="text-xs text-secondary">Postal: {postalCode}</div>
                               )}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-500">{place.phone || "N/A"}</td>
-                          <td className="px-6 py-4 text-sm text-gray-500">{place.country || "N/A"}</td>
+                          <td className="px-6 py-4 text-sm text-secondary">{place.phone || "N/A"}</td>
+                          <td className="px-6 py-4 text-sm text-secondary">{place.country || "N/A"}</td>
                           <td className="px-6 py-4 text-sm">
                             <span
                               onClick={() => updateStatusPlace(place._id).then(() => fetchPlaces())}
-                              className={`cursor-pointer px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                place.status === "active"
+                              className={`cursor-pointer px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${place.status === "active"
                                   ? "bg-green-100 text-green-800"
                                   : "bg-red-100 text-red-800"
-                              }`}
+                                }`}
                             >
                               {place.status || "N/A"}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-500">
+                          <td className="px-6 py-4 text-sm text-secondary">
                             {place.createdAt ? new Date(place.createdAt).toLocaleDateString() : "N/A"}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-500" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-6 py-4 text-sm text-secondary" onClick={(e) => e.stopPropagation()}>
                             <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
                               <button
                                 onClick={() => handleEdit(place)}
                                 style={{
-                                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                  background: 'var(--accent-navyblue)',
                                 }}
                                 className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium !text-white hover:opacity-90 transition-opacity"
                               >
@@ -852,7 +851,7 @@ const Index = () => {
                               </button>
                               <button
                                 onClick={() => openDeleteModal(place, "place")}
-                                className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                                className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-card px-3 py-1.5 text-xs font-medium text-[#A855F7] hover:bg-red-100 transition-colors"
                               >
                                 <Trash2 className="h-3 w-3" />
                                 Delete
@@ -864,9 +863,9 @@ const Index = () => {
                     } else {
                       const contactOrCustomer = item as Contact | Customer;
                       return (
-                        <tr 
-                          key={contactOrCustomer._id} 
-                          className="hover:bg-gray-50 transition-colors cursor-pointer"
+                        <tr
+                          key={contactOrCustomer._id}
+                          className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                           onClick={() => {
                             setSelectedItem(contactOrCustomer);
                             setShowDetailsSidebar(true);
@@ -879,12 +878,12 @@ const Index = () => {
                           <td className="px-6 py-4 text-sm">{contactOrCustomer.country}</td>
                           <td className="px-6 py-4 text-sm">{contactOrCustomer.role}</td>
                           <td className="px-6 py-4 text-sm">{new Date(contactOrCustomer.createdAt).toLocaleDateString()}</td>
-                          <td className="px-6 py-4 text-sm text-gray-500" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-6 py-4 text-sm text-secondary" onClick={(e) => e.stopPropagation()}>
                             <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
                               <button
                                 onClick={() => handleEdit(contactOrCustomer)}
                                 style={{
-                                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                  background: 'var(--accent-navyblue)',
                                 }}
                                 className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium !text-white hover:opacity-90 transition-opacity"
                               >
@@ -895,7 +894,7 @@ const Index = () => {
                                 onClick={() =>
                                   openDeleteModal(contactOrCustomer, activeTab === "contacts" ? "contact" : "customer")
                                 }
-                                className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                                className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-card px-3 py-1.5 text-xs font-medium text-[#A855F7] hover:bg-red-100 transition-colors"
                               >
                                 <Trash2 className="h-3 w-3" />
                                 Delete
@@ -908,7 +907,7 @@ const Index = () => {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={activeTab === "places" ? 7 : 8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={activeTab === "places" ? 7 : 8} className="px-6 py-12 text-center text-secondary">
                       <div className="flex flex-col items-center space-y-2">
                         {activeTab === "places" ? (
                           <MapPin className="w-12 h-12 text-gray-300" />
@@ -917,7 +916,7 @@ const Index = () => {
                         )}
                         <p className="text-sm">No {activeTab} found.</p>
                         {emptyStateMessage && (
-                          <p className="text-xs text-gray-400">{emptyStateMessage}</p>
+                          <p className="text-xs text-secondary">{emptyStateMessage}</p>
                         )}
                       </div>
                     </td>
@@ -970,12 +969,12 @@ const Index = () => {
 
           {/* Sidebar Panel */}
           <div
-            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
           >
             <div className="p-6">
               {/* Header */}
-              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">
+              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
+                <h2 className="text-2xl font-bold text-primary">
                   {activeTab === "places" ? "Place" : activeTab === "customers" ? "Customer" : "Contact"} Details
                 </h2>
                 <button
@@ -983,7 +982,7 @@ const Index = () => {
                     setShowDetailsSidebar(false);
                     setTimeout(() => setSelectedItem(null), 300);
                   }}
-                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                  className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                 >
                   <X size={24} />
                 </button>
@@ -1017,9 +1016,9 @@ const Index = () => {
                 </div>
 
                 {/* Information Section */}
-                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                  <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                    <Briefcase size={20} className="text-blue-600" />
+                <div className="bg-card p-6 rounded-lg border border-theme">
+                  <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                    <Briefcase size={20} className="text-[#00D1FF]" />
                     {activeTab === "places" ? "Location" : "Contact"} Information
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1027,41 +1026,40 @@ const Index = () => {
                       <>
                         {(selectedItem as Place).name && (
                           <div>
-                            <p className="text-sm text-gray-500 mb-1">Name</p>
-                            <p className="font-medium text-gray-900">{(selectedItem as Place).name}</p>
+                            <p className="text-sm text-secondary mb-1">Name</p>
+                            <p className="font-medium text-primary">{(selectedItem as Place).name}</p>
                           </div>
                         )}
                         {(selectedItem as Place).phone && (
                           <div>
-                            <p className="text-sm text-gray-500 mb-1">Phone</p>
-                            <p className="font-medium text-gray-900">{(selectedItem as Place).phone}</p>
+                            <p className="text-sm text-secondary mb-1">Phone</p>
+                            <p className="font-medium text-primary">{(selectedItem as Place).phone}</p>
                           </div>
                         )}
                         {(selectedItem as Place).country && (
                           <div>
-                            <p className="text-sm text-gray-500 mb-1">Country</p>
-                            <p className="font-medium text-gray-900">{(selectedItem as Place).country}</p>
+                            <p className="text-sm text-secondary mb-1">Country</p>
+                            <p className="font-medium text-primary">{(selectedItem as Place).country}</p>
                           </div>
                         )}
                         {(selectedItem as Place).status && (
                           <div>
-                            <p className="text-sm text-gray-500 mb-1">Status</p>
-                            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
-                              (selectedItem as Place).status === "active"
+                            <p className="text-sm text-secondary mb-1">Status</p>
+                            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${(selectedItem as Place).status === "active"
                                 ? "bg-green-100 text-green-800"
                                 : "bg-red-100 text-red-800"
-                            }`}>
+                              }`}>
                               {(selectedItem as Place).status}
                             </span>
                           </div>
                         )}
                         {((selectedItem as Place).street1 || (selectedItem as Place).currentLocation?.address) && (
                           <div className="md:col-span-2">
-                            <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
-                              <MapPin size={14} className="text-blue-600" />
+                            <p className="text-sm text-secondary mb-1 flex items-center gap-1">
+                              <MapPin size={14} className="text-[#00D1FF]" />
                               Address
                             </p>
-                            <p className="font-medium text-gray-900">
+                            <p className="font-medium text-primary">
                               {[
                                 (selectedItem as Place).street1,
                                 (selectedItem as Place).street2,
@@ -1072,7 +1070,7 @@ const Index = () => {
                               ].filter(Boolean).join(", ") || (selectedItem as Place).currentLocation?.address || "—"}
                             </p>
                             {((selectedItem as Place).postalCode || (selectedItem as Place).securityAccessCodepostalCode) && (
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="text-xs text-secondary mt-1">
                                 Postal: {(selectedItem as Place).postalCode || (selectedItem as Place).securityAccessCodepostalCode}
                               </p>
                             )}
@@ -1080,8 +1078,8 @@ const Index = () => {
                         )}
                         {(selectedItem as Place).createdAt && (
                           <div>
-                            <p className="text-sm text-gray-500 mb-1">Created At</p>
-                            <p className="font-medium text-gray-900">
+                            <p className="text-sm text-secondary mb-1">Created At</p>
+                            <p className="font-medium text-primary">
                               {new Date((selectedItem as Place).createdAt).toLocaleDateString('en-US', {
                                 year: 'numeric',
                                 month: 'long',
@@ -1094,32 +1092,32 @@ const Index = () => {
                     ) : (
                       <>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Internal ID</p>
-                          <p className="font-medium text-gray-900">{(selectedItem as Contact | Customer).internalId}</p>
+                          <p className="text-sm text-secondary mb-1">Internal ID</p>
+                          <p className="font-medium text-primary">{(selectedItem as Contact | Customer).internalId}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Name</p>
-                          <p className="font-medium text-gray-900">{(selectedItem as Contact | Customer).name}</p>
+                          <p className="text-sm text-secondary mb-1">Name</p>
+                          <p className="font-medium text-primary">{(selectedItem as Contact | Customer).name}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Email</p>
-                          <p className="font-medium text-gray-900">{(selectedItem as Contact | Customer).email || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Email</p>
+                          <p className="font-medium text-primary">{(selectedItem as Contact | Customer).email || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Phone</p>
-                          <p className="font-medium text-gray-900">{(selectedItem as Contact | Customer).phone || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Phone</p>
+                          <p className="font-medium text-primary">{(selectedItem as Contact | Customer).phone || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Country</p>
-                          <p className="font-medium text-gray-900">{(selectedItem as Contact | Customer).country || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Country</p>
+                          <p className="font-medium text-primary">{(selectedItem as Contact | Customer).country || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Role</p>
-                          <p className="font-medium text-gray-900">{(selectedItem as Contact | Customer).role || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Role</p>
+                          <p className="font-medium text-primary">{(selectedItem as Contact | Customer).role || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Created At</p>
-                          <p className="font-medium text-gray-900">
+                          <p className="text-sm text-secondary mb-1">Created At</p>
+                          <p className="font-medium text-primary">
                             {new Date((selectedItem as Contact | Customer).createdAt).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'long',
@@ -1129,8 +1127,8 @@ const Index = () => {
                         </div>
                         {activeTab === "customers" && (selectedItem as Customer).customerDetails && (
                           <div className="md:col-span-2">
-                            <p className="text-sm text-gray-500 mb-2">Customer Details</p>
-                            <div className="bg-white p-4 rounded border border-gray-200 space-y-2">
+                            <p className="text-sm text-secondary mb-2">Customer Details</p>
+                            <div className="bg-card p-4 rounded border border-theme space-y-2">
                               {(selectedItem as Customer).customerDetails?.address && (
                                 <p className="text-sm"><span className="font-medium">Address:</span> {(selectedItem as Customer).customerDetails?.address}</p>
                               )}
@@ -1149,13 +1147,13 @@ const Index = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                   <button
                     onClick={() => {
                       setShowDetailsSidebar(false);
                       setTimeout(() => setSelectedItem(null), 300);
                     }}
-                    className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                    className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
                   >
                     Close
                   </button>
@@ -1168,135 +1166,135 @@ const Index = () => {
 
       {isEditModalOpen && editItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className={`bg-white rounded-xl shadow-xl w-full ${activeTab === "places" ? "max-w-2xl" : "max-w-md"} p-6 relative animate-fadeIn`}>
+          <div className={`bg-card rounded-xl shadow-xl w-full ${activeTab === "places" ? "max-w-2xl" : "max-w-md"} p-6 relative animate-fadeIn`}>
             <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 text-secondary hover:text-secondary"
               onClick={() => setIsEditModalOpen(false)}
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">
+            <h2 className="text-xl font-semibold text-primary mb-6">
               Edit {activeTab === "contacts" ? "Contact" : activeTab === "customers" ? "Customer" : "Place"}
             </h2>
 
             <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
               {activeTab !== "places" && (
                 <div>
-                  <label className="block text-gray-600 text-sm mb-1">Internal ID</label>
+                  <label className="block text-secondary text-sm mb-1">Internal ID</label>
                   <input
                     type="text"
                     name="internalId"
                     value={editForm.internalId}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-gray-600 text-sm mb-1">Name</label>
+                <label className="block text-secondary text-sm mb-1">Name</label>
                 <input
                   type="text"
                   name="name"
                   value={editForm.name}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                 />
               </div>
 
               {activeTab !== "places" && (
                 <div>
-                  <label className="block text-gray-600 text-sm mb-1">Email</label>
+                  <label className="block text-secondary text-sm mb-1">Email</label>
                   <input
                     type="email"
                     name="email"
                     value={editForm.email}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-gray-600 text-sm mb-1">Phone</label>
+                <label className="block text-secondary text-sm mb-1">Phone</label>
                 <input
                   type="text"
                   name="phone"
                   value={editForm.phone}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                 />
               </div>
 
               {activeTab === "places" && (
                 <>
                   <div>
-                    <label className="block text-gray-600 text-sm mb-1">Street 1</label>
+                    <label className="block text-secondary text-sm mb-1">Street 1</label>
                     <input
                       type="text"
                       name="street1"
                       value={editForm.street1}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-600 text-sm mb-1">Street 2</label>
+                    <label className="block text-secondary text-sm mb-1">Street 2</label>
                     <input
                       type="text"
                       name="street2"
                       value={editForm.street2}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-gray-600 text-sm mb-1">Neighbourhood</label>
+                      <label className="block text-secondary text-sm mb-1">Neighbourhood</label>
                       <input
                         type="text"
                         name="neighbourHood"
                         value={editForm.neighbourHood}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-gray-600 text-sm mb-1">Building</label>
+                      <label className="block text-secondary text-sm mb-1">Building</label>
                       <input
                         type="text"
                         name="building"
                         value={editForm.building}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-gray-600 text-sm mb-1">City</label>
+                      <label className="block text-secondary text-sm mb-1">City</label>
                       <input
                         type="text"
                         name="city"
                         value={editForm.city}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-gray-600 text-sm mb-1">State</label>
+                      <label className="block text-secondary text-sm mb-1">State</label>
                       <input
                         type="text"
                         name="state"
                         value={editForm.state}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-gray-600 text-sm mb-1">Postal Code / Security Access Code</label>
+                    <label className="block text-secondary text-sm mb-1">Postal Code / Security Access Code</label>
                     <input
                       type="text"
                       name="postalCode"
@@ -1308,27 +1306,27 @@ const Index = () => {
                           securityAccessCodepostalCode: e.target.value
                         });
                       }}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                     />
                   </div>
                 </>
               )}
 
               <div>
-                <label className="block text-gray-600 text-sm mb-1">Country</label>
+                <label className="block text-secondary text-sm mb-1">Country</label>
                 <input
                   type="text"
                   name="country"
                   value={editForm.country}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                 />
               </div>
             </div>
 
             <div className="mt-6 flex justify-end space-x-3">
               <button
-                className="px-4 py-2 bg-gray-200 !mr-3 text-gray-700 rounded-lg hover:bg-gray-300 transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
+                className="px-4 py-2 bg-gray-200 !mr-3 text-primary rounded-lg hover:bg-gray-300 transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
                 onClick={() => setIsEditModalOpen(false)}
                 disabled={editLoading}
               >
@@ -1336,7 +1334,7 @@ const Index = () => {
               </button>
               <button
                 style={{
-                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                  background: 'var(--accent-navyblue)',
                 }}
                 className="px-4 py-2 !text-white rounded-lg hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
                 onClick={handleUpdate}
@@ -1351,28 +1349,28 @@ const Index = () => {
 
       {deleteModalOpen && deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-xl">
+          <div className="w-full max-w-md rounded-xl border border-theme bg-card p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between border-b pb-3">
-              <h2 className="text-lg font-semibold text-red-600">
+              <h2 className="text-lg font-semibold text-[#A855F7]">
                 Delete {deleteTarget.type === "contact" ? "Contact" : deleteTarget.type === "customer" ? "Customer" : "Place"}
               </h2>
               <button
                 onClick={closeDeleteModal}
                 disabled={deleteLoading}
-                className="text-gray-400 transition-colors hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-60"
+                className="text-secondary transition-colors hover:text-secondary disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-secondary">
               Are you sure you want to delete{" "}
-              <span className="font-semibold text-gray-900">{deleteTarget.item.name}</span>? This action cannot be undone.
+              <span className="font-semibold text-primary">{deleteTarget.item.name}</span>? This action cannot be undone.
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={closeDeleteModal}
                 disabled={deleteLoading}
-                className="rounded-md border border-gray-200 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-md border border-theme px-4 py-2 text-sm text-primary transition hover:bg-[rgba(255,255,255,0.03)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel
               </button>

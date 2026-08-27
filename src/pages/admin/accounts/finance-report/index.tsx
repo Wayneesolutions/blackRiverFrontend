@@ -1,4 +1,4 @@
-import { useState, useEffect,useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   DollarSign,
   TrendingUp,
@@ -145,7 +145,7 @@ const FinanceReport = () => {
 
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
-  
+
   // Synchronize scrollbars for trip-wise table
   useEffect(() => {
     const topScroll = topScrollRef.current;
@@ -178,7 +178,7 @@ const FinanceReport = () => {
     };
 
     updateScrollWidth();
-    
+
     // Update scroll width when window resizes or data changes
     const resizeObserver = new ResizeObserver(updateScrollWidth);
     if (bottomScroll) resizeObserver.observe(bottomScroll);
@@ -189,7 +189,7 @@ const FinanceReport = () => {
       resizeObserver.disconnect();
     };
   }, [activeView, tripFinancialData]);
-  
+
   // Fetch finance report data on initial mount
   useEffect(() => {
     console.log('📊 [useEffect] Initial mount - fetching finance report data');
@@ -668,11 +668,11 @@ const FinanceReport = () => {
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      completed: 'bg-green-100 text-green-800 border-green-200',
-      'in-progress': 'bg-blue-100 text-blue-800 border-blue-200',
-      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      completed:    'bg-[rgba(0,255,163,0.1)]  text-[var(--accent-green)] border-[rgba(0,255,163,0.2)]',
+      'in-progress':'bg-[rgba(0,209,255,0.1)]  text-[var(--accent-blue)]  border-[rgba(0,209,255,0.2)]',
+      pending:      'bg-[rgba(251,191,36,0.1)] text-[var(--accent-amber)] border-[rgba(251,191,36,0.2)]'
     };
-    return styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-800 border-gray-200';
+    return styles[status as keyof typeof styles] || 'bg-card text-secondary border-theme';
   };
 
   // Calculate totals from actual data
@@ -730,65 +730,59 @@ const FinanceReport = () => {
       value: formatCurrency(totalRevenue),
       subtitle: 'From all trucks',
       icon: DollarSign,
-      bgColor: 'bg-green-100',
-      iconColor: 'text-green-700',
-      cardBg: 'bg-gradient-to-br from-green-50 to-green-100',
-      trend: '—' // No trend data available from backend
+      iconColor: 'text-[var(--accent-green)]',
+      cardBg: 'bg-card',
+      trend: '—'
     },
     {
       title: 'Total Expenses',
       value: formatCurrency(totalExpenses),
       subtitle: 'Operating costs',
       icon: TrendingDown,
-      bgColor: 'bg-red-100',
-      iconColor: 'text-red-700',
-      cardBg: 'bg-gradient-to-br from-red-50 to-red-100',
-      trend: '—' // No trend data available from backend
+      iconColor: 'text-[var(--accent-red)]',
+      cardBg: 'bg-card',
+      trend: '—'
     },
     {
       title: 'Total Payroll',
       value: formatCurrency(totalPayroll),
       subtitle: 'Driver & employee costs',
       icon: Users,
-      bgColor: 'bg-blue-100',
-      iconColor: 'text-blue-700',
-      cardBg: 'bg-gradient-to-br from-blue-50 to-blue-100',
-      trend: '—' // No trend data available from backend
+      iconColor: 'text-[var(--accent-blue)]',
+      cardBg: 'bg-card',
+      trend: '—'
     },
     {
       title: 'Net Profit',
       value: formatCurrency(totalNetProfit),
       subtitle: 'Revenue - Expenses - Payroll',
       icon: TrendingUp,
-      bgColor: 'bg-purple-100',
-      iconColor: 'text-purple-700',
-      cardBg: 'bg-gradient-to-br from-purple-50 to-purple-100',
-      trend: '—' // No trend data available from backend
+      iconColor: 'text-[var(--accent-purple)]',
+      cardBg: 'bg-card',
+      trend: '—'
     },
     {
       title: 'Total Trips',
       value: totalTrips.toString(),
       subtitle: 'Completed trips',
       icon: MapPin,
-      bgColor: 'bg-cyan-100',
-      iconColor: 'text-cyan-700',
-      cardBg: 'bg-gradient-to-br from-cyan-50 to-cyan-100',
-      trend: '—' // No trend data available from backend
+      iconColor: 'text-cyan-500',
+      cardBg: 'bg-card',
+      trend: '—'
     },
     {
       title: 'Active Trucks',
       value: (overview.activeTrucks || truckFinancialData.length).toString(),
       subtitle: 'Fleet size',
       icon: Truck,
-      bgColor: 'bg-orange-100',
-      iconColor: 'text-orange-700',
-      cardBg: 'bg-gradient-to-br from-orange-50 to-orange-100',
+      iconColor: 'text-[var(--accent-orange)]',
+      cardBg: 'bg-card',
       trend: '—'
     }
   ];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
+    <div className="min-h-screen" >
       <div className="relative w-full mx-auto p-2">
 
 
@@ -798,15 +792,15 @@ const FinanceReport = () => {
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl font-bold text-black">Finance Report</h1>
-                <p className="text-xs text-black/90 mt-1">Comprehensive financial insights and analysis</p>
+                <h1 className="text-xl font-bold text-[var(--text-primary)]">Finance Report</h1>
+                <p className="text-xs text-secondary mt-1">Comprehensive financial insights and analysis</p>
               </div>
 
             </div>
           </div>
 
           {/* View Tabs */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-2 mb-4">
+          <div className="bg-card rounded-lg shadow-sm border border-theme p-2 mb-4">
             <div className="flex gap-2">
               {[
                 { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -820,8 +814,8 @@ const FinanceReport = () => {
                     key={tab.id}
                     onClick={() => setActiveView(tab.id as ViewType)}
                     className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 ${activeView === tab.id
-                        ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
-                        : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-[var(--accent-navyblue)] !text-headings shadow-md'
+                      : 'text-headings hover:bg-[rgba(255,255,255,0.03)]'
                       }`}
                   >
                     <Icon size={16} />
@@ -834,7 +828,7 @@ const FinanceReport = () => {
 
           {/* Loading State */}
           {loading && (
-            <div className="p-8 text-center text-gray-500">Loading finance report data...</div>
+            <div className="p-8 text-center text-secondary">Loading finance report data...</div>
           )}
 
           {/* Overview View */}
@@ -847,24 +841,24 @@ const FinanceReport = () => {
                   return (
                     <div
                       key={index}
-                      className={`${stat.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-[#42aeec]/20`}
+                      className={`${stat.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-[var(--accent-blue)]/20`}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
-                          <h3 className="text-sm font-bold text-gray-900 mb-1">{stat.title}</h3>
+                          <p className="text-xs text-secondary uppercase tracking-wide mb-1">{stat.title}</p>
                           <div className="flex items-baseline gap-2 mb-0.5">
-                            <span className="text-xl font-bold text-gray-900">{stat.value}</span>
+                            <span className="text-xl font-bold text-primary">{stat.value}</span>
                             {stat.trend !== '—' && (
-                              <span className={`text-xs font-medium flex items-center gap-1 ${stat.trend.startsWith('+') ? 'text-green-600' : 'text-red-600'
+                              <span className={`text-xs font-medium flex items-center gap-1 ${stat.trend.startsWith('+') ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'
                                 }`}>
                                 {stat.trend.startsWith('+') ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
                                 {stat.trend}
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-gray-400">{stat.subtitle}</p>
+                          <p className="text-xs text-secondary">{stat.subtitle}</p>
                         </div>
-                        <div className={`${stat.bgColor} rounded-lg p-2 shadow-sm`}>
+                        <div className={` rounded-lg p-2 shadow-sm`}>
                           <Icon className={stat.iconColor} size={21} strokeWidth={2} />
                         </div>
                       </div>
@@ -874,37 +868,37 @@ const FinanceReport = () => {
               </div>
 
               {/* Consolidated Financial Summary */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <PieChart size={20} className="text-[#42aeec]" />
+              <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
+                <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                  <PieChart size={20} className="text-[var(--accent-navyblue)]" />
                   Consolidated Financial Summary
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                  <div className="p-4 bg-green-50 rounded-lg border border-green-100">
-                    <div className="text-sm text-gray-600 mb-1">Accounts Revenue</div>
-                    <div className="text-2xl font-bold text-green-600">{formatCurrency(totalRevenue)}</div>
-                    <div className="text-xs text-gray-500 mt-1">From invoices</div>
+                  <div className="p-4  rounded-lg border border-theme bg-[var(--accent-green)]/20">
+                    <div className="text-sm text-primary mb-1">Accounts Revenue</div>
+                    <div className="text-2xl font-bold text-primary">{formatCurrency(totalRevenue)}</div>
+                    <div className="text-xs text-primary mt-1">From invoices</div>
                   </div>
-                  <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                    <div className="text-sm text-gray-600 mb-1">Total Expenses</div>
-                    <div className="text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</div>
-                    <div className="text-xs text-gray-500 mt-1">Operating costs</div>
+                  <div className="p-4  rounded-lg border border-theme bg-[var(--accent-red)]/20">
+                    <div className="text-sm text-primary mb-1">Total Expenses</div>
+                    <div className="text-2xl font-bold text-primary">{formatCurrency(totalExpenses)}</div>
+                    <div className="text-xs text-primary mt-1">Operating costs</div>
                   </div>
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                    <div className="text-sm text-gray-600 mb-1">Payroll Costs</div>
-                    <div className="text-2xl font-bold text-blue-600">{formatCurrency(totalPayroll)}</div>
-                    <div className="text-xs text-gray-500 mt-1">Employee & driver</div>
+                  <div className="p-4  rounded-lg border border-theme bg-[var(--accent-blue)]/20">
+                    <div className="text-sm text-primary mb-1">Payroll Costs</div>
+                    <div className="text-2xl font-bold text-primary">{formatCurrency(totalPayroll)}</div>
+                    <div className="text-xs text-primary mt-1">Employee & driver</div>
                   </div>
-                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-100">
-                    <div className="text-sm text-gray-600 mb-1">Net Profit</div>
-                    <div className="text-2xl font-bold text-purple-600">{formatCurrency(totalNetProfit)}</div>
-                    <div className="text-xs text-gray-500 mt-1">After all costs</div>
+                  <div className="p-4  rounded-lg border border-theme bg-[var(--accent-purple)]/20">
+                    <div className="text-sm text-primary mb-1">Net Profit</div>
+                    <div className="text-2xl font-bold text-primary">{formatCurrency(totalNetProfit)}</div>
+                    <div className="text-xs text-primary mt-1">After all costs</div>
                   </div>
                 </div>
 
                 {/* Overall Comparison Chart */}
                 <div className="mt-6">
-                  <h3 className="text-base font-semibold text-gray-900 mb-4">Revenue vs Expenses vs Net Profit Comparison</h3>
+                  <h3 className="text-base font-semibold text-[var(--text-primary)] mb-4">Revenue vs Expenses vs Net Profit Comparison</h3>
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
@@ -917,21 +911,46 @@ const FinanceReport = () => {
                           }
                         ]}
                         margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        style={{ backgroundColor: 'transparent' }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis dataKey="name" stroke="#6b7280" style={{ fontSize: '12px' }} />
-                        <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
+                        <CartesianGrid stroke="var(--border-color)" strokeDasharray="3 3" />
+
+                        <XAxis
+                          dataKey="name"
+                          stroke="var(--text-secondary)"
+                          style={{ fontSize: '12px' }}
+                        />
+
+                        <YAxis
+                          stroke="var(--text-secondary)"
+                          style={{ fontSize: '12px' }}
+                        />
+
                         <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#fff',
-                            border: 'none',
-                            borderRadius: '8px',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                            fontSize: '12px'
+                          cursor={{ fill: 'transparent' }}   // 🚀 THIS removes grey hover layer
+                          wrapperStyle={{
+                            background: 'transparent',
+                            outline: 'none'
                           }}
+                          contentStyle={{
+                            backgroundColor: 'var(--bg-card)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '10px',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                            color: 'var(--text-primary)'
+                          }}
+                          itemStyle={{ color: 'var(--text-primary)' }}
+                          labelStyle={{ color: 'var(--text-secondary)' }}
                           formatter={(value) => formatCurrency(value as number)}
                         />
-                        <Legend />
+
+                        <Legend
+                          wrapperStyle={{
+                            color: 'var(--text-secondary)',
+                            fontSize: '12px'
+                          }}
+                        />
+
                         <Bar dataKey="Revenue" fill="#10b981" radius={[8, 8, 0, 0]} />
                         <Bar dataKey="Expenses" fill="#ef4444" radius={[8, 8, 0, 0]} />
                         <Bar dataKey="Net Profit" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
@@ -941,9 +960,9 @@ const FinanceReport = () => {
                 </div>
 
                 {/* Financial Health Analysis */}
-                <div className="mt-6 bg-gray-50 rounded-xl border border-gray-200 p-5">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                    <PieChart size={15} className="text-[#42aeec]" />
+                <div className="mt-6 bg-card rounded-xl border border-theme p-5">
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                    <PieChart size={15} className="text-[var(--accent-blue)]" />
                     Financial Health Analysis
                   </h3>
                   {(() => {
@@ -956,22 +975,22 @@ const FinanceReport = () => {
                     // Scale so max(revenue, costs) = 100%
                     const maxVal = Math.max(totalRevenue, totalCosts);
                     const revWidth = maxVal > 0 ? (totalRevenue / maxVal) * 100 : 0;
-                    const costWidth = maxVal > 0 ? (totalCosts / maxVal) * 100 : 0;
+                
                     return (
                       <div className="space-y-4">
                         {/* Revenue row */}
                         <div>
-                          <div className="flex justify-between items-center mb-1.5">
+                          <div className="flex justify-between items-center mb-1.5 border border-theme">
                             <div className="flex items-center gap-2">
-                              <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                              <span className="text-xs font-medium text-gray-600">Revenue (Baseline)</span>
+                              <div className="w-2.5 h-2.5 rounded-full bg-[rgba(0,255,163,0.06)]0"></div>
+                              <span className="text-xs font-medium text-secondary">Revenue (Baseline)</span>
                             </div>
-                            <span className="text-xs font-bold text-green-600">{formatCurrency(totalRevenue)}</span>
+                            <span className="text-xs font-bold text-[var(--accent-green)]">{formatCurrency(totalRevenue)}</span>
                           </div>
-                          <div className="h-7 bg-gray-200 rounded-lg overflow-hidden">
-                            <div className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-lg flex items-center px-3 transition-all"
+                          <div className="h-7 bg-[var(--accent-navyblue)]/20 rounded-lg overflow-hidden border border-theme">
+                            <div className="h-full bg-gradient-to-r from-[var(--accent-green)] to-[var(--accent-green)] rounded-lg flex items-center px-3 transition-all"
                               style={{ width: `${revWidth}%`, minWidth: totalRevenue > 0 ? '30px' : '0' }}>
-                              <span className="text-xs font-bold text-white drop-shadow">100%</span>
+                              <span className="text-xs font-bold text-headings drop-shadow">100%</span>
                             </div>
                           </div>
                         </div>
@@ -979,73 +998,67 @@ const FinanceReport = () => {
                         <div>
                           <div className="flex justify-between items-center mb-1.5">
                             <div className="flex items-center gap-2">
-                              <div className={`w-2.5 h-2.5 rounded-full ${isOverBudget ? 'bg-red-600' : 'bg-red-400'}`}></div>
-                              <span className="text-xs font-medium text-gray-600">Total Costs <span className="text-gray-400">(Expenses + Payroll)</span></span>
+                              <div className={`w-2.5 h-2.5 rounded-full ${isOverBudget ? 'bg-[var(--accent-red)]' : 'bg-[var(--accent-red)]'}`}></div>
+                              <span className="text-xs font-medium text-secondary">Total Costs <span className="text-secondary">(Expenses + Payroll)</span></span>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isOverBudget ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+                            <div className="flex items-center gap-2 border border-theme">
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isOverBudget ? 'bg-[rgba(244,63,94,0.1)] text-[var(--accent-red)]' : 'bg-[rgba(245,158,11,0.1)] text-[var(--accent-orange)]'}`}>
                                 {costPct.toFixed(1)}% of revenue
                               </span>
-                              <span className="text-xs font-bold text-red-600">{formatCurrency(totalCosts)}</span>
+                              <span className="text-xs font-bold text-[var(--text-primary)]">{formatCurrency(totalCosts)}</span>
                             </div>
                           </div>
-                          <div className="h-7 bg-gray-200 rounded-lg overflow-hidden relative">
+                          <div className="h-7 bg-[rgba(255,255,255,0.07)] rounded-lg overflow-hidden relative border border-theme">
                             {/* Revenue limit marker */}
                             {isOverBudget && totalRevenue > 0 && (
-                              <div className="absolute inset-y-0 border-r-2 border-dashed border-green-600 z-10"
+                              <div className="absolute inset-y-0 border-r-2 border-dashed border-[var(--accent-green)] z-10"
                                 style={{ left: `${revWidth}%` }}>
-                                <span className="absolute -top-5 -translate-x-1/2 text-[9px] font-bold text-green-700 whitespace-nowrap">Revenue limit</span>
+                                <span className="absolute -top-5 -translate-x-1/2 text-[9px] font-bold text-[var(--accent-green)] whitespace-nowrap">Revenue limit</span>
                               </div>
                             )}
-                            <div className="h-full rounded-lg flex items-center px-3 transition-all"
-                              style={{
-                                width: `${costWidth}%`,
-                                minWidth: totalCosts > 0 ? '30px' : '0',
-                                background: isOverBudget
-                                  ? 'linear-gradient(to right, #f87171, #dc2626)'
-                                  : 'linear-gradient(to right, #fca5a5, #ef4444)'
-                              }}>
-                              <span className="text-xs font-bold text-white drop-shadow">{costPct.toFixed(1)}%</span>
+                            <div className="h-full rounded-lg flex items-center px-3 transition-all bg-[var(--accent-red)]/80"
+                            >
+                              <span className="text-xs font-bold text-headings drop-shadow">{costPct.toFixed(1)}%</span>
                             </div>
                           </div>
                         </div>
                         {/* Net result */}
-                        <div className={`flex items-center justify-between p-3 rounded-lg border ${totalNetProfit >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                        <div className={`flex items-center justify-between p-3 rounded-lg border ${totalNetProfit >= 0 ? 'bg-[rgba(0,255,163,0.06)] border-[rgba(0,255,163,0.2)]' : 'bg-card border-[rgba(244,63,94,0.2)]'}`}>
                           <div className="flex items-center gap-2">
                             {totalNetProfit >= 0
-                              ? <TrendingUp size={16} className="text-green-600" />
-                              : <TrendingDown size={16} className="text-red-600" />}
-                            <span className="text-xs font-semibold text-gray-700">
+                              ? <TrendingUp size={16} className="text-[var(--accent-green)]" />
+                              : <TrendingDown size={16} className="text-[var(--accent-red)]" />}
+                            <span className="text-xs font-semibold text-[var(--text-primary)]">
                               Net {totalNetProfit >= 0 ? 'Profit' : 'Loss'}
                             </span>
                           </div>
                           <div className="text-right">
-                            <span className={`text-sm font-bold ${totalNetProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            <span className={`text-sm font-bold ${totalNetProfit >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
                               {totalNetProfit < 0 ? '-' : ''}{formatCurrency(Math.abs(totalNetProfit))}
                             </span>
-                            <span className="text-xs text-gray-500 ml-2">
+                            <span className="text-xs text-secondary ml-2">
                               ({totalRevenue > 0 ? `${Math.abs(profitPct).toFixed(1)}%` : '0%'} {totalNetProfit >= 0 ? 'margin' : 'over budget'})
                             </span>
                           </div>
                         </div>
                         {/* Three KPI pills */}
                         <div className="grid grid-cols-3 gap-3 pt-1">
-                          <div className="text-center p-2 bg-white rounded-lg border border-gray-200 shadow-sm">
-                            <div className="text-xs text-gray-500 mb-0.5">Expenses</div>
-                            <div className="text-sm font-bold text-red-600">{formatCurrency(totalExpenses)}</div>
-                            <div className="text-xs text-gray-400">{totalRevenue > 0 ? ((totalExpenses/totalRevenue)*100).toFixed(1) : '0'}%</div>
+                          <div className="text-center p-2 bg-card rounded-lg border border-theme shadow-sm">
+                            <div className="text-xs text-secondary mb-0.5">Expenses</div>
+                            <div className="text-sm font-bold text-[var(--accent-red)]">{formatCurrency(totalExpenses)}</div>
+                            <div className="text-xs text-secondary">{totalRevenue > 0 ? ((totalExpenses / totalRevenue) * 100).toFixed(1) : '0'}%</div>
                           </div>
-                          <div className="text-center p-2 bg-white rounded-lg border border-gray-200 shadow-sm">
-                            <div className="text-xs text-gray-500 mb-0.5">Payroll</div>
-                            <div className="text-sm font-bold text-blue-600">{formatCurrency(totalPayroll)}</div>
-                            <div className="text-xs text-gray-400">{totalRevenue > 0 ? ((totalPayroll/totalRevenue)*100).toFixed(1) : '0'}%</div>
+                          <div className="text-center p-2 bg-card rounded-lg border border-theme shadow-sm">
+                            <div className="text-xs text-secondary mb-0.5">Payroll</div>
+                            <div className="text-sm font-bold text-[var(--accent-blue)]">{formatCurrency(totalPayroll)}</div>
+                            <div className="text-xs text-secondary">{totalRevenue > 0 ? ((totalPayroll / totalRevenue) * 100).toFixed(1) : '0'}%</div>
                           </div>
-                          <div className="text-center p-2 bg-white rounded-lg border border-gray-200 shadow-sm">
-                            <div className="text-xs text-gray-500 mb-0.5">Profit Margin</div>
-                            <div className={`text-sm font-bold ${profitPct >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <div className="text-center p-2 bg-card rounded-lg border border-theme shadow-sm">
+                            <div className="text-xs text-secondary mb-0.5">Profit Margin</div>
+                            <div className={`text-sm font-bold ${profitPct >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
                               {profitPct >= 0 ? '+' : ''}{profitPct.toFixed(1)}%
                             </div>
-                            <div className="text-xs text-gray-400">{totalNetProfit >= 0 ? 'Profitable' : 'At Loss'}</div>
+                            <div className="text-xs text-secondary">{totalNetProfit >= 0 ? 'Profitable' : 'At Loss'}</div>
                           </div>
                         </div>
                       </div>
@@ -1056,51 +1069,51 @@ const FinanceReport = () => {
 
               {/* Quick Insights */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                  <h3 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <FileText size={18} className="text-[#42aeec]" />
+                <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
+                  <h3 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                    <FileText size={18} className="text-[var(--accent-navyblue)]" />
                     Invoice Summary
                   </h3>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">Paid Invoices</span>
-                      <span className="text-lg font-bold text-green-600">{formatCurrency(invoiceSummary.paidInvoices)}</span>
+                    <div className="flex justify-between items-center p-3  rounded-lg">
+                      <span className="text-sm font-medium text-primary">Paid Invoices</span>
+                      <span className="text-lg font-bold text-primary">{formatCurrency(invoiceSummary.paidInvoices)}</span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">Pending Invoices</span>
-                      <span className="text-lg font-bold text-yellow-600">{formatCurrency(invoiceSummary.pendingInvoices)}</span>
+                    <div className="flex justify-between items-center p-3 bg-card rounded-lg">
+                      <span className="text-sm font-medium text-primary">Pending Invoices</span>
+                      <span className="text-lg font-bold text-primary">{formatCurrency(invoiceSummary.pendingInvoices)}</span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">Overdue Invoices</span>
-                      <span className="text-lg font-bold text-red-600">{formatCurrency(invoiceSummary.overdueInvoices)}</span>
+                    <div className="flex justify-between items-center p-3 bg-card rounded-lg">
+                      <span className="text-sm font-medium text-primary">Overdue Invoices</span>
+                      <span className="text-lg font-bold text-primary">{formatCurrency(invoiceSummary.overdueInvoices)}</span>
                     </div>
                   </div>
                   {dataLoaded && invoiceSummary.paidInvoices === 0 && invoiceSummary.pendingInvoices === 0 && invoiceSummary.overdueInvoices === 0 && (
-                    <p className="text-xs text-gray-400 mt-2 text-center">No invoice data available</p>
+                    <p className="text-xs text-secondary mt-2 text-center">No invoice data available</p>
                   )}
                 </div>
 
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                  <h3 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Receipt size={18} className="text-[#42aeec]" />
+                <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
+                  <h3 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                    <Receipt size={18} className="text-[var(--accent-navyblue)]" />
                     Expense Breakdown
                   </h3>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">Fuel Costs</span>
-                      <span className="text-lg font-bold text-blue-600">{formatCurrency(expenseBreakdown.fuelCosts)}</span>
+                    <div className="flex justify-between items-center p-3 bg-card rounded-lg">
+                      <span className="text-sm font-medium text-primary">Fuel Costs</span>
+                      <span className="text-lg font-bold text-primary">{formatCurrency(expenseBreakdown.fuelCosts)}</span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">Fleet Invoices</span>
-                      <span className="text-lg font-bold text-orange-600">{formatCurrency(expenseBreakdown.fleetInvoices)}</span>
+                    <div className="flex justify-between items-center p-3 bg-card rounded-lg">
+                      <span className="text-sm font-medium text-primary">Fleet Invoices</span>
+                      <span className="text-lg font-bold text-primary">{formatCurrency(expenseBreakdown.fleetInvoices)}</span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">Other Expenses</span>
-                      <span className="text-lg font-bold text-purple-600">{formatCurrency(expenseBreakdown.otherExpenses)}</span>
+                    <div className="flex justify-between items-center p-3 bg-card rounded-lg">
+                      <span className="text-sm font-medium text-primary">Other Expenses</span>
+                      <span className="text-lg font-bold text-primary">{formatCurrency(expenseBreakdown.otherExpenses)}</span>
                     </div>
                   </div>
                   {dataLoaded && expenseBreakdown.fuelCosts === 0 && expenseBreakdown.fleetInvoices === 0 && expenseBreakdown.otherExpenses === 0 && (
-                    <p className="text-xs text-gray-400 mt-2 text-center">No expense data available</p>
+                    <p className="text-xs text-secondary mt-2 text-center">No expense data available</p>
                   )}
                 </div>
               </div>
@@ -1111,9 +1124,9 @@ const FinanceReport = () => {
           {!loading && activeView === 'trucks' && (
             <div className="space-y-4">
               {/* Period Selector for Truck-wise */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+              <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
                 <div className="flex items-center gap-4 flex-wrap">
-                  <label className="text-sm font-medium text-gray-700">Timeline:</label>
+                  <label className="text-sm font-medium text-secondary">Timeline:</label>
                   <div className="flex gap-2 flex-wrap">
                     {(['2weeks', '1month', 'monthly', 'quarterly', 'half-yearly', 'yearly'] as TimePeriod[]).map((period) => {
                       const getPeriodLabel = (p: TimePeriod) => {
@@ -1133,8 +1146,8 @@ const FinanceReport = () => {
                           onClick={() => setTimePeriod(period)}
                           disabled={loading}
                           className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${timePeriod === period
-                              ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-[var(--accent-navyblue)] text-[var(--text-primary)] shadow-md'
+                            : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--text-primary)]'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           {getPeriodLabel(period)}
@@ -1146,9 +1159,9 @@ const FinanceReport = () => {
               </div>
 
               {/* Truck-wise Comparison Chart - Grouped by Time Period */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <BarChart3 size={20} className="text-[#42aeec]" />
+              <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
+                <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                  <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                   Truck-wise Revenue vs Expenses vs Net Profit (Grouped by {(() => {
                     switch (timePeriod) {
                       case '2weeks': return '2 Weeks';
@@ -1292,13 +1305,13 @@ const FinanceReport = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                  <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                    <Truck size={18} className="text-[#42aeec]" />
+              <div className="bg-card rounded-xl shadow-sm border border-theme">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
+                  <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+                    <Truck size={18} className="text-[var(--accent-navyblue)]" />
                     Truck-wise Financial Performance
                   </h2>
-                  <button className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-all flex items-center gap-2">
+                  <button className="px-3 py-1.5 bg-card hover:bg-[rgba(255,255,255,0.06)] text-secondary rounded-lg text-xs font-medium transition-all flex items-center gap-2">
                     <Filter size={13} />
                     Filter
                   </button>
@@ -1306,24 +1319,24 @@ const FinanceReport = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full" style={{ minWidth: '1100px' }}>
                     <thead>
-                      <tr style={{ backgroundColor: '#42AEEC' }}>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Truck ID</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Truck #</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Revenue</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Expenses</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Payroll</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Net Profit</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap" style={{ minWidth: '100px' }}>Margin</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Trips</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Miles</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Rev/Mile</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Cost/Mile</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Profit/Mile</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Fuel Cost</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Fleet Invoice</th>
+                      <tr >
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Truck ID</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Truck #</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Revenue</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Expenses</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Payroll</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Net Profit</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap" style={{ minWidth: '100px' }}>Margin</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Trips</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Miles</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Rev/Mile</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Cost/Mile</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Profit/Mile</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Fuel Cost</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Fleet Invoice</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-theme divide-white/5">
                       {truckFinancialData.map((truck, idx) => {
                         const profitMargin = truck.revenue > 0 ? (truck.netProfit / truck.revenue) * 100 : 0;
                         const totalCost = truck.expenses + truck.payroll;
@@ -1332,52 +1345,52 @@ const FinanceReport = () => {
                         const costPerMile = hasMiles ? totalCost / truck.miles : null;
                         const profitPerMile = hasMiles ? truck.netProfit / truck.miles : null;
                         const shortId = truck.id ? truck.id.slice(-6).toUpperCase() : '—';
-                        const dash = <span className="text-gray-300 font-light">—</span>;
+                        const dash = <span className="text-secondary font-light">—</span>;
                         return (
-                          <tr key={truck.id} className={`hover:bg-blue-50/40 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
+                          <tr key={truck.id} className={`transition-colors ${idx % 2 === 0 ? 'bg-card' : 'bg-[var(--accent-navyblue)]/20'}`}>
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <span className="text-xs font-mono bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded">#{shortId}</span>
+                              <span className="text-xs font-mono bg-card text-[#00D1FF] border border-[rgba(0,209,255,0.2)] px-2 py-0.5 rounded">#{shortId}</span>
                             </td>
-                            <td className="px-4 py-3 text-sm font-bold text-gray-900 whitespace-nowrap">{truck.truckNumber}</td>
-                            <td className="px-4 py-3 text-sm text-right font-semibold text-green-600 whitespace-nowrap">{formatCurrency(truck.revenue)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-red-500 whitespace-nowrap">{formatCurrency(truck.expenses)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-blue-500 whitespace-nowrap">{formatCurrency(truck.payroll)}</td>
-                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${truck.netProfit >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                            <td className="px-4 py-3 text-sm font-bold text-[var(--text-primary)] whitespace-nowrap">{truck.truckNumber}</td>
+                            <td className="px-4 py-3 text-sm text-right font-semibold text-[var(--accent-green)] whitespace-nowrap">{formatCurrency(truck.revenue)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] whitespace-nowrap">{formatCurrency(truck.expenses)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] whitespace-nowrap">{formatCurrency(truck.payroll)}</td>
+                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${truck.netProfit >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
                               {truck.netProfit < 0 ? '-' : ''}{formatCurrency(Math.abs(truck.netProfit))}
                             </td>
                             <td className="px-4 py-3 text-sm text-center whitespace-nowrap">
                               <div className="flex flex-col items-center gap-1">
-                                <span className={`text-xs font-bold ${profitMargin > 30 ? 'text-green-600' : profitMargin > 0 ? 'text-yellow-600' : 'text-red-500'}`}>
+                                <span className={`text-xs font-bold ${profitMargin > 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
                                   {profitMargin.toFixed(1)}%
                                 </span>
-                                <div className="w-16 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                <div className="w-16 bg-[rgba(255,255,255,0.07)] rounded-full h-1.5 overflow-hidden">
                                   <div
-                                    className={`h-1.5 rounded-full transition-all ${profitMargin > 30 ? 'bg-green-500' : profitMargin > 0 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                                    className={`h-1.5 rounded-full transition-all ${profitMargin > 0 ? 'bg-[var(--accent-green)]' : 'bg-[var(--accent-red)]'}`}
                                     style={{ width: `${Math.min(Math.max(profitMargin, 0), 100)}%` }}
                                   />
                                 </div>
                               </div>
                             </td>
                             <td className="px-4 py-3 text-sm text-center whitespace-nowrap">
-                              <span className={`inline-flex items-center justify-center min-w-[28px] h-6 px-2 rounded-full text-xs font-semibold ${truck.trips > 0 ? 'bg-[#42aeec]/10 text-[#42aeec]' : 'bg-gray-100 text-gray-500'}`}>
+                              <span className={`inline-flex items-center justify-center min-w-[28px] h-6 px-2 rounded-full text-xs font-semibold ${truck.trips > 0 ? 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]' : 'bg-card text-secondary'}`}>
                                 {truck.trips}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-sm text-right text-gray-700 whitespace-nowrap">{hasMiles ? truck.miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
-                            <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{revPerMile !== null ? <span className="text-emerald-600 font-medium">${revPerMile.toFixed(2)}</span> : dash}</td>
-                            <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{costPerMile !== null ? <span className="text-red-500">${costPerMile.toFixed(2)}</span> : dash}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] whitespace-nowrap">{hasMiles ? truck.miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
+                            <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{revPerMile !== null ? <span className="text-[var(--text-primary)]">${revPerMile.toFixed(2)}</span> : dash}</td>
+                            <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{costPerMile !== null ? <span className="text-[var(--text-primary)]">${costPerMile.toFixed(2)}</span> : dash}</td>
                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
                               {profitPerMile !== null
-                                ? <span className={profitPerMile >= 0 ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>{profitPerMile < 0 ? '-' : ''}${Math.abs(profitPerMile).toFixed(2)}</span>
+                                ? <span className={profitPerMile >= 0 ? 'text-[var(--accent-green)] font-medium' : 'text-[var(--accent-red)] font-medium'}>{profitPerMile < 0 ? '-' : ''}${Math.abs(profitPerMile).toFixed(2)}</span>
                                 : dash}
                             </td>
-                            <td className="px-4 py-3 text-sm text-right text-orange-500 whitespace-nowrap">{formatCurrency(truck.fuelCost)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-purple-500 whitespace-nowrap">{formatCurrency(truck.fleetInvoiceCost)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] whitespace-nowrap">{formatCurrency(truck.fuelCost)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] whitespace-nowrap">{formatCurrency(truck.fleetInvoiceCost)}</td>
                           </tr>
                         );
                       })}
                       {truckFinancialData.length === 0 && (
-                        <tr><td colSpan={14} className="px-4 py-10 text-center text-gray-400 text-sm">No truck data available for this period</td></tr>
+                        <tr><td colSpan={14} className="px-4 py-10 text-center text-secondary text-sm">No truck data available for this period</td></tr>
                       )}
                       {truckFinancialData.length > 0 && (() => {
                         const totMiles = truckFinancialData.reduce((s, t) => s + t.miles, 0);
@@ -1390,20 +1403,20 @@ const FinanceReport = () => {
                         const hasTotMiles = totMiles > 0;
                         const totMargin = totRev > 0 ? (totProfit / totRev) * 100 : 0;
                         return (
-                          <tr className="font-bold border-t-2 border-[#42aeec]/30 bg-[#42aeec]/5">
-                            <td colSpan={2} className="px-4 py-3 text-sm text-gray-800 font-bold">Fleet Total</td>
-                            <td className="px-4 py-3 text-sm text-right text-green-700 font-bold whitespace-nowrap">{formatCurrency(totRev)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-red-600 font-bold whitespace-nowrap">{formatCurrency(totExp)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-blue-600 font-bold whitespace-nowrap">{formatCurrency(totPay)}</td>
-                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-700' : 'text-red-600'}`}>{formatCurrency(totProfit)}</td>
-                            <td className="px-4 py-3 text-sm text-center font-bold text-gray-700 whitespace-nowrap">{totMargin.toFixed(1)}%</td>
-                            <td className="px-4 py-3 text-sm text-center font-bold text-gray-700 whitespace-nowrap">{totTrips}</td>
-                            <td className="px-4 py-3 text-sm text-right text-gray-700 font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : <span className="text-gray-300 font-light">—</span>}</td>
-                            <td className="px-4 py-3 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totRev/totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
-                            <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totCost/totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
-                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>{hasTotMiles ? `$${(totProfit/totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
-                            <td className="px-4 py-3 text-sm text-right text-orange-500 font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s,t)=>s+t.fuelCost,0))}</td>
-                            <td className="px-4 py-3 text-sm text-right text-purple-500 font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s,t)=>s+t.fleetInvoiceCost,0))}</td>
+                          <tr className="font-bold border-t-2 border-[var(--accent-blue)]/30 bg-[var(--accent-blue)]/5">
+                            <td colSpan={2} className="px-4 py-3 text-sm text-[var(--text-primary)] font-bold">Fleet Total</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--accent-green)] font-bold whitespace-nowrap">{formatCurrency(totRev)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{formatCurrency(totExp)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{formatCurrency(totPay)}</td>
+                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>{formatCurrency(totProfit)}</td>
+                            <td className="px-4 py-3 text-sm text-center font-bold text-[var(--text-primary)] whitespace-nowrap">{totMargin.toFixed(1)}%</td>
+                            <td className="px-4 py-3 text-sm text-center font-bold text-[var(--text-primary)] whitespace-nowrap">{totTrips}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : <span className="text-secondary font-light">—</span>}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{hasTotMiles ? `${(totRev / totMiles).toFixed(2)}` : <span className="text-secondary font-light">—</span>}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{hasTotMiles ? `${(totCost / totMiles).toFixed(2)}` : <span className="text-secondary font-light">—</span>}</td>
+                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>{hasTotMiles ? `$${(totProfit / totMiles).toFixed(2)}` : <span className="text-secondary font-light">—</span>}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s, t) => s + t.fuelCost, 0))}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s, t) => s + t.fleetInvoiceCost, 0))}</td>
                           </tr>
                         );
                       })()}
@@ -1418,9 +1431,9 @@ const FinanceReport = () => {
           {!loading && activeView === 'trips' && (
             <div className="space-y-4">
               {/* Period Selector for Trip-wise */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+              <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
                 <div className="flex items-center gap-4 flex-wrap">
-                  <label className="text-sm font-medium text-gray-700">Timeline:</label>
+                  <label className="text-sm font-medium text-secondary">Timeline:</label>
                   <div className="flex gap-2 flex-wrap">
                     {(['2weeks', '1month', 'monthly', 'quarterly', 'half-yearly', 'yearly'] as TimePeriod[]).map((period) => {
                       const getPeriodLabel = (p: TimePeriod) => {
@@ -1440,8 +1453,8 @@ const FinanceReport = () => {
                           onClick={() => setTimePeriod(period)}
                           disabled={loading}
                           className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${timePeriod === period
-                              ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-[var(--accent-navyblue)] text-[var(--text-primary)] shadow-md'
+                            : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--text-primary)]'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           {getPeriodLabel(period)}
@@ -1453,9 +1466,9 @@ const FinanceReport = () => {
               </div>
 
               {/* Trip-wise Comparison Chart - Grouped by Time Period */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <BarChart3 size={20} className="text-[#42aeec]" />
+              <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
+                <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                  <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                   Trip-wise Revenue vs Expenses vs Net Profit (Grouped by {(() => {
                     switch (timePeriod) {
                       case '2weeks': return '2 Weeks';
@@ -1584,18 +1597,18 @@ const FinanceReport = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                  <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                    <MapPin size={18} className="text-[#42aeec]" />
+              <div className="bg-card rounded-xl shadow-sm border border-theme">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
+                  <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+                    <MapPin size={18} className="text-[var(--accent-blue)]" />
                     Trip-wise Financial Details
                   </h2>
-                  <button className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-all flex items-center gap-2">
+                  <button className="px-3 py-1.5 bg-card hover:bg-[rgba(255,255,255,0.06)] text-secondary rounded-lg text-xs font-medium transition-all flex items-center gap-2">
                     <Filter size={13} />
                     Filter
                   </button>
                 </div>
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
+                <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden mb-6">
                   {/* Top Scrollbar - Only visible horizontal scrollbar */}
                   <style>{`
               .top-scrollbar-container {
@@ -1610,11 +1623,11 @@ const FinanceReport = () => {
                 border-radius: 5px;
               }
               .top-scrollbar-container::-webkit-scrollbar-thumb {
-                background: #42aeec;
+                background: var(--accent-blue);
                 border-radius: 5px;
               }
               .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
-                background: #0ea3d8;
+                background: rgba(0,209,255,0.15);
               }
               .table-container-with-scrollbar {
                 overflow-x: auto;
@@ -1628,11 +1641,11 @@ const FinanceReport = () => {
                 border-radius: 5px;
               }
               .table-container-with-scrollbar::-webkit-scrollbar-thumb {
-                background: #42aeec;
+                background: var(--accent-blue);
                 border-radius: 5px;
               }
               .table-container-with-scrollbar::-webkit-scrollbar-thumb:hover {
-                background: #0ea3d8;
+                background: rgba(0,209,255,0.15);
               }
             `}</style>
                   <div
@@ -1643,7 +1656,7 @@ const FinanceReport = () => {
                       marginBottom: '8px',
                       paddingTop: '8px',
                       scrollbarWidth: 'thin',
-                      scrollbarColor: '#42aeec #f7fafc' /* Firefox */
+                      /* Firefox */
                     }}
                   >
                     <div className="top-scroll-content" style={{ height: '1px', minWidth: '100%' }}></div>
@@ -1655,28 +1668,28 @@ const FinanceReport = () => {
                   >
                     <table className="w-full" style={{ minWidth: '1400px' }}>
                       <thead>
-                        <tr style={{ backgroundColor: '#42AEEC' }}>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Trip ID</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Trip #</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Truck</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Driver</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider" style={{ minWidth: '180px' }}>Route</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Miles</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Start Date</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">End Date</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Revenue</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Fuel Cost</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Other Exp</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Driver Pay</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Net Profit</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Rev/Mile</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Cost/Mile</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Profit/Mile</th>
-                          <th className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap" style={{ minWidth: '100px' }}>Margin</th>
-                          <th className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Status</th>
+                        <tr >
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Trip ID</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Trip #</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Truck</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Driver</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider" style={{ minWidth: '180px' }}>Route</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Miles</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Start Date</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">End Date</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Revenue</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Fuel Cost</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Other Exp</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Driver Pay</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Net Profit</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Rev/Mile</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Cost/Mile</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Profit/Mile</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap" style={{ minWidth: '100px' }}>Margin</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
+                      <tbody className="divide-theme divide-white/5">
                         {tripFinancialData.map((trip, idx) => {
                           const revenue = Number(trip.revenue) || 0;
                           const fuelCost = Number(trip.fuelCost) || 0;
@@ -1691,60 +1704,60 @@ const FinanceReport = () => {
                           const costPerMile = hasMiles ? totalCost / miles : null;
                           const profitPerMile = hasMiles ? netProfit / miles : null;
                           const shortId = trip.id ? trip.id.slice(-6).toUpperCase() : '—';
-                          const dash = <span className="text-gray-300 font-light">—</span>;
+                          const dash = <span className="text-secondary font-light">—</span>;
                           let formattedStartDate = '—';
                           let formattedEndDate = '—';
-                          try { if (trip.startDate) formattedStartDate = new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }); } catch {}
-                          try { if (trip.endDate) formattedEndDate = new Date(trip.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }); } catch {}
+                          try { if (trip.startDate) formattedStartDate = new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }); } catch { }
+                          try { if (trip.endDate) formattedEndDate = new Date(trip.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }); } catch { }
                           const routeText = trip.origin && trip.destination && trip.origin !== 'N/A' && trip.destination !== 'N/A'
                             ? `${trip.origin} → ${trip.destination}`
                             : trip.origin !== 'N/A' ? trip.origin : trip.destination !== 'N/A' ? trip.destination : '—';
                           return (
-                            <tr key={trip.id} className={`hover:bg-blue-50/40 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
+                            <tr key={trip.id} className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${idx % 2 === 0 ? 'bg-card' : 'bg-[var(--accent-navyblue)]/20'}`}>
                               <td className="px-4 py-3 whitespace-nowrap">
-                                <span className="text-xs font-mono bg-purple-50 text-purple-600 border border-purple-200 px-2 py-0.5 rounded">#{shortId}</span>
+                                <span className="text-xs font-mono bg-card text-[var(--accent-blue)] border border-[rgba(0,209,255,0.2)] px-2 py-0.5 rounded">#{shortId}</span>
                               </td>
-                              <td className="px-4 py-3 text-sm font-bold text-gray-900 whitespace-nowrap">{trip.tripNumber || '—'}</td>
-                              <td className="px-4 py-3 text-sm font-semibold text-gray-800 whitespace-nowrap">{trip.truckNumber || '—'}</td>
-                              <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{trip.driverName || <span className="text-gray-300">—</span>}</td>
-                              <td className="px-4 py-3 text-sm text-gray-600">
+                              <td className="px-4 py-3 text-sm font-bold text-secondary whitespace-nowrap">{trip.tripNumber || '—'}</td>
+                              <td className="px-4 py-3 text-sm font-semibold text-secondary whitespace-nowrap">{trip.truckNumber || '—'}</td>
+                              <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{trip.driverName || <span className="text-secondary">—</span>}</td>
+                              <td className="px-4 py-3 text-sm text-secondary">
                                 <div className="relative group inline-flex items-center gap-1 min-w-0 cursor-default">
-                                  <span className="text-gray-700 font-medium truncate" style={{ maxWidth: '80px' }}>{trip.origin && trip.origin !== 'N/A' ? trip.origin : <span className="text-gray-300">—</span>}</span>
-                                  <ArrowUpRight size={12} className="text-[#42aeec] flex-shrink-0" />
-                                  <span className="text-gray-700 font-medium truncate" style={{ maxWidth: '80px' }}>{trip.destination && trip.destination !== 'N/A' ? trip.destination : <span className="text-gray-300">—</span>}</span>
+                                  <span className="text-secondary font-medium truncate" style={{ maxWidth: '80px' }}>{trip.origin && trip.origin !== 'N/A' ? trip.origin : <span className="text-secondary">—</span>}</span>
+                                  <ArrowUpRight size={12} className="text-[var(--accent-blue)] flex-shrink-0" />
+                                  <span className="text-secondary font-medium truncate" style={{ maxWidth: '80px' }}>{trip.destination && trip.destination !== 'N/A' ? trip.destination : <span className="text-secondary">—</span>}</span>
                                   {routeText !== '—' && (
-                                    <div className="absolute z-50 bottom-full left-0 mb-1.5 px-2.5 py-1.5 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150">
+                                    <div className="absolute z-50 bottom-full left-0 mb-1.5 px-2.5 py-1.5 bg-gray-900 text-secondary text-xs rounded-lg whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150">
                                       {trip.origin && trip.origin !== 'N/A' ? trip.origin : '—'}
-                                      <span className="mx-1.5 text-[#42aeec]">→</span>
+                                      <span className="mx-1.5 text-[var(--accent-blue)]">→</span>
                                       {trip.destination && trip.destination !== 'N/A' ? trip.destination : '—'}
                                     </div>
                                   )}
                                 </div>
                               </td>
-                              <td className="px-4 py-3 text-sm text-right text-gray-700 whitespace-nowrap">{hasMiles ? miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
-                              <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{formattedStartDate}</td>
-                              <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{formattedEndDate}</td>
-                              <td className="px-4 py-3 text-sm text-right font-semibold text-green-600 whitespace-nowrap">{formatCurrency(revenue)}</td>
-                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{fuelCost > 0 ? <span className="text-orange-500">{formatCurrency(fuelCost)}</span> : dash}</td>
-                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{otherExp > 0 ? <span className="text-red-500">{formatCurrency(otherExp)}</span> : dash}</td>
-                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{driverPay > 0 ? <span className="text-blue-500">{formatCurrency(driverPay)}</span> : dash}</td>
-                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${netProfit >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                              <td className="px-4 py-3 text-sm text-right text-secondary whitespace-nowrap">{hasMiles ? miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
+                              <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{formattedStartDate}</td>
+                              <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{formattedEndDate}</td>
+                              <td className="px-4 py-3 text-sm text-right font-semibold text-[var(--accent-green)] whitespace-nowrap">{formatCurrency(revenue)}</td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{fuelCost > 0 ? <span className="text-[var(--text-primary)]">{formatCurrency(fuelCost)}</span> : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{otherExp > 0 ? <span className="text-[var(--text-primary)]">{formatCurrency(otherExp)}</span> : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{driverPay > 0 ? <span className="text-[var(--text-primary)]">{formatCurrency(driverPay)}</span> : dash}</td>
+                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${netProfit >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
                                 {netProfit < 0 ? '-' : ''}{formatCurrency(Math.abs(netProfit))}
                               </td>
-                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{revPerMile !== null ? <span className="text-emerald-600 font-medium">${revPerMile.toFixed(2)}</span> : dash}</td>
-                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{costPerMile !== null ? <span className="text-red-500">${costPerMile.toFixed(2)}</span> : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{revPerMile !== null ? <span className="text-[var(--text-primary)]">${revPerMile.toFixed(2)}</span> : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{costPerMile !== null ? <span className="text-[var(--text-primary)]">${costPerMile.toFixed(2)}</span> : dash}</td>
                               <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
                                 {profitPerMile !== null
-                                  ? <span className={profitPerMile >= 0 ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>{profitPerMile < 0 ? '-' : ''}${Math.abs(profitPerMile).toFixed(2)}</span>
+                                  ? <span className={profitPerMile >= 0 ? 'text-[var(--accent-green)] font-medium' : 'text-[var(--accent-red)] font-medium'}>{profitPerMile < 0 ? '-' : ''}${Math.abs(profitPerMile).toFixed(2)}</span>
                                   : dash}
                               </td>
                               <td className="px-4 py-3 text-sm text-center whitespace-nowrap">
                                 <div className="flex flex-col items-center gap-1">
-                                  <span className={`text-xs font-bold ${profitMargin > 30 ? 'text-green-600' : profitMargin > 0 ? 'text-yellow-600' : 'text-red-500'}`}>
+                                  <span className={`text-xs font-bold ${profitMargin > 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
                                     {isNaN(profitMargin) ? '0.0' : profitMargin.toFixed(1)}%
                                   </span>
-                                  <div className="w-14 bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                                    <div className={`h-1.5 rounded-full ${profitMargin > 30 ? 'bg-green-500' : profitMargin > 0 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                                  <div className="w-14 bg-[rgba(255,255,255,0.07)] rounded-full h-1.5 overflow-hidden">
+                                    <div className={`h-1.5 rounded-full ${profitMargin > 0 ? 'bg-[var(--accent-green)]' : 'bg-[var(--accent-red)]'}`}
                                       style={{ width: `${Math.min(Math.max(profitMargin, 0), 100)}%` }} />
                                   </div>
                                 </div>
@@ -1758,34 +1771,34 @@ const FinanceReport = () => {
                           );
                         })}
                         {tripFinancialData.length === 0 && (
-                          <tr><td colSpan={18} className="px-4 py-10 text-center text-gray-400 text-sm">No trip data available for this period</td></tr>
+                          <tr><td colSpan={18} className="px-4 py-10 text-center text-secondary text-sm">No trip data available for this period</td></tr>
                         )}
                         {tripFinancialData.length > 0 && (() => {
-                          const totMiles = tripFinancialData.reduce((s,t) => s + (Number(t.totalMiles)||0), 0);
-                          const totRev = tripFinancialData.reduce((s,t) => s + (Number(t.revenue)||0), 0);
-                          const totFuelCost = tripFinancialData.reduce((s,t) => s + (Number(t.fuelCost)||0), 0);
-                          const totOtherExp = tripFinancialData.reduce((s,t) => s + Math.max(0, (Number(t.expenses)||0) - (Number(t.fuelCost)||0)), 0);
-                          const totPay = tripFinancialData.reduce((s,t) => s + (Number(t.driverPay)||0), 0);
-                          const totProfit = tripFinancialData.reduce((s,t) => s + (Number(t.netProfit)||0), 0);
+                          const totMiles = tripFinancialData.reduce((s, t) => s + (Number(t.totalMiles) || 0), 0);
+                          const totRev = tripFinancialData.reduce((s, t) => s + (Number(t.revenue) || 0), 0);
+                          const totFuelCost = tripFinancialData.reduce((s, t) => s + (Number(t.fuelCost) || 0), 0);
+                          const totOtherExp = tripFinancialData.reduce((s, t) => s + Math.max(0, (Number(t.expenses) || 0) - (Number(t.fuelCost) || 0)), 0);
+                          const totPay = tripFinancialData.reduce((s, t) => s + (Number(t.driverPay) || 0), 0);
+                          const totProfit = tripFinancialData.reduce((s, t) => s + (Number(t.netProfit) || 0), 0);
                           const totCost = totFuelCost + totOtherExp + totPay;
                           const hasTotMiles = totMiles > 0;
                           const totMargin = totRev > 0 ? (totProfit / totRev) * 100 : 0;
-                          const dash = <span className="text-gray-300 font-light">—</span>;
+                          const dash = <span className="text-secondary font-light">—</span>;
                           return (
-                            <tr className="font-bold border-t-2 border-[#42aeec]/30 bg-[#42aeec]/5">
-                              <td colSpan={4} className="px-4 py-3 text-sm text-gray-800 font-bold whitespace-nowrap">All Trips Total</td>
+                            <tr className="font-bold border-t-2 border-[var(--accent-blue)]/30 bg-[var(--accent-blue)]/5">
+                              <td colSpan={4} className="px-4 py-3 text-sm text-secondary font-bold whitespace-nowrap">All Trips Total</td>
                               <td className="px-4 py-3 whitespace-nowrap"></td>
-                              <td className="px-4 py-3 text-sm text-right text-gray-700 font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-secondary font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
                               <td colSpan={2} className="px-4 py-3 whitespace-nowrap"></td>
-                              <td className="px-4 py-3 text-sm text-right text-green-700 font-bold whitespace-nowrap">{formatCurrency(totRev)}</td>
-                              <td className="px-4 py-3 text-sm text-right text-orange-500 font-bold whitespace-nowrap">{totFuelCost > 0 ? formatCurrency(totFuelCost) : dash}</td>
-                              <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{totOtherExp > 0 ? formatCurrency(totOtherExp) : dash}</td>
-                              <td className="px-4 py-3 text-sm text-right text-blue-500 font-bold whitespace-nowrap">{totPay > 0 ? formatCurrency(totPay) : dash}</td>
-                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-700' : 'text-red-600'}`}>{formatCurrency(totProfit)}</td>
-                              <td className="px-4 py-3 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totRev/totMiles).toFixed(2)}` : dash}</td>
-                              <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totCost/totMiles).toFixed(2)}` : dash}</td>
-                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>{hasTotMiles ? `$${(totProfit/totMiles).toFixed(2)}` : dash}</td>
-                              <td className="px-4 py-3 text-sm text-center font-bold text-gray-700 whitespace-nowrap">{totMargin.toFixed(1)}%</td>
+                              <td className="px-4 py-3 text-sm text-right text-[var(--accent-green)] font-bold whitespace-nowrap">{formatCurrency(totRev)}</td>
+                              <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{totFuelCost > 0 ? formatCurrency(totFuelCost) : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{totOtherExp > 0 ? formatCurrency(totOtherExp) : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{totPay > 0 ? formatCurrency(totPay) : dash}</td>
+                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>{formatCurrency(totProfit)}</td>
+                              <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{hasTotMiles ? `${(totRev / totMiles).toFixed(2)}` : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{hasTotMiles ? `${(totCost / totMiles).toFixed(2)}` : dash}</td>
+                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>{hasTotMiles ? `$${(totProfit / totMiles).toFixed(2)}` : dash}</td>
+                              <td className="px-4 py-3 text-sm text-center font-bold text-secondary whitespace-nowrap">{totMargin.toFixed(1)}%</td>
                               <td className="px-4 py-3 whitespace-nowrap"></td>
                             </tr>
                           );
@@ -1802,9 +1815,9 @@ const FinanceReport = () => {
           {false && (
             <div className="space-y-4">
               {/* Period Selector */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+              <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
                 <div className="flex items-center gap-4">
-                  <label className="text-sm font-medium text-gray-700">Report Period:</label>
+                  <label className="text-sm font-medium text-secondary">Report Period:</label>
                   <div className="flex gap-2 flex-wrap">
                     {(['2weeks', '1month', 'monthly', 'quarterly', 'half-yearly', 'yearly'] as TimePeriod[]).map((period) => {
                       const getPeriodLabel = (p: TimePeriod) => {
@@ -1824,8 +1837,8 @@ const FinanceReport = () => {
                           }}
                           disabled={loading}
                           className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${timePeriod === period
-                              ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] text-[var(--text-primary)] shadow-md'
+                            : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--text-primary)]'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           {getPeriodLabel(period)}
@@ -1838,18 +1851,18 @@ const FinanceReport = () => {
 
               {/* Loading State */}
               {loading && (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-8 text-center text-gray-500">
+                <div className="bg-card rounded-lg shadow-sm border border-theme p-8 text-center text-secondary">
                   Loading time-based reports for {timePeriod}...
                 </div>
               )}
 
               {/* Empty State */}
               {!loading && getCurrentReports().length === 0 && dataLoaded && (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-8 text-center">
-                  <Calendar size={48} className="mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Data Available</h3>
-                  <p className="text-gray-600 mb-4">No financial data found for the selected period ({timePeriod}).</p>
-                  <p className="text-sm text-gray-500">Try selecting a different period or check if you have invoices, expenses, or payroll records.</p>
+                <div className="bg-card rounded-lg shadow-sm border border-theme p-8 text-center">
+                  <Calendar size={48} className="mx-auto text-secondary mb-4" />
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">No Data Available</h3>
+                  <p className="text-secondary mb-4">No financial data found for the selected period ({timePeriod}).</p>
+                  <p className="text-sm text-secondary">Try selecting a different period or check if you have invoices, expenses, or payroll records.</p>
                 </div>
               )}
 
@@ -1858,9 +1871,9 @@ const FinanceReport = () => {
                 <>
 
                   {/* Time-based Comparison Chart */}
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <BarChart3 size={20} className="text-[#42aeec]" />
+                  <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
+                    <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                      <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                       {(() => {
                         switch (timePeriod) {
                           case '2weeks': return '2 Weeks';
@@ -1932,7 +1945,7 @@ const FinanceReport = () => {
                           </LineChart>
                         </ResponsiveContainer>
                       ) : (
-                        <div className="flex items-center justify-center h-full text-gray-500">
+                        <div className="flex items-center justify-center h-full text-secondary">
                           No data available for chart
                         </div>
                       )}
@@ -1940,9 +1953,9 @@ const FinanceReport = () => {
                   </div>
 
                   {/* Time-based Comparison Bar Chart */}
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <BarChart3 size={20} className="text-[#42aeec]" />
+                  <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
+                    <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                      <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                       {(() => {
                         switch (timePeriod) {
                           case '2weeks': return '2 Weeks';
@@ -1997,7 +2010,7 @@ const FinanceReport = () => {
                           </BarChart>
                         </ResponsiveContainer>
                       ) : (
-                        <div className="flex items-center justify-center h-full text-gray-500">
+                        <div className="flex items-center justify-center h-full text-secondary">
                           No data available for chart
                         </div>
                       )}
@@ -2006,48 +2019,48 @@ const FinanceReport = () => {
 
                   {/* Summary Cards for Time-based Reports */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-                      <div className="text-sm text-gray-600 mb-1">Average Revenue</div>
-                      <div className="text-2xl font-bold text-green-600">
+                    <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
+                      <div className="text-sm text-secondary mb-1">Average Revenue</div>
+                      <div className="text-2xl font-bold text-[var(--accent-green)]">
                         {formatCurrency(
                           getCurrentReports().length > 0
                             ? getCurrentReports().reduce((sum, r) => sum + (Number(r.revenue) || 0), 0) / getCurrentReports().length
                             : 0
                         )}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-secondary mt-1">
                         Per {timePeriod === 'half-yearly' ? 'half year' : timePeriod === 'yearly' ? 'year' : timePeriod.slice(0, -2)}
                       </div>
                     </div>
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-                      <div className="text-sm text-gray-600 mb-1">Average Expenses</div>
-                      <div className="text-2xl font-bold text-red-600">
+                    <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
+                      <div className="text-sm text-secondary mb-1">Average Expenses</div>
+                      <div className="text-2xl font-bold text-[var(--accent-red)]">
                         {formatCurrency(
                           getCurrentReports().length > 0
                             ? getCurrentReports().reduce((sum, r) => sum + (Number(r.expenses) || 0), 0) / getCurrentReports().length
                             : 0
                         )}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-secondary mt-1">
                         Per {timePeriod === 'half-yearly' ? 'half year' : timePeriod === 'yearly' ? 'year' : timePeriod.slice(0, -2)}
                       </div>
                     </div>
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-                      <div className="text-sm text-gray-600 mb-1">Average Profit</div>
-                      <div className="text-2xl font-bold text-purple-600">
+                    <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
+                      <div className="text-sm text-secondary mb-1">Average Profit</div>
+                      <div className="text-2xl font-bold text-[var(--accent-purple)]">
                         {formatCurrency(
                           getCurrentReports().length > 0
                             ? getCurrentReports().reduce((sum, r) => sum + (Number(r.netProfit) || 0), 0) / getCurrentReports().length
                             : 0
                         )}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-secondary mt-1">
                         Per {timePeriod === 'half-yearly' ? 'half year' : timePeriod === 'yearly' ? 'year' : timePeriod.slice(0, -2)}
                       </div>
                     </div>
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-                      <div className="text-sm text-gray-600 mb-1">Profit Margin</div>
-                      <div className="text-2xl font-bold text-blue-600">
+                    <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
+                      <div className="text-sm text-secondary mb-1">Profit Margin</div>
+                      <div className="text-2xl font-bold text-[#00D1FF]">
                         {(() => {
                           const totalRevenue = getCurrentReports().reduce((sum, r) => sum + (Number(r.revenue) || 0), 0);
                           const totalProfit = getCurrentReports().reduce((sum, r) => sum + (Number(r.netProfit) || 0), 0);
@@ -2055,7 +2068,7 @@ const FinanceReport = () => {
                         })()}
                         %
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">Overall margin</div>
+                      <div className="text-xs text-secondary mt-1">Overall margin</div>
                     </div>
                   </div>
                 </>
@@ -2066,21 +2079,21 @@ const FinanceReport = () => {
           {/* ── Payables Tab ── */}
           {activeView === 'payable' && (() => {
             const PAYABLE_META: Record<Exclude<PayableSubCategory, 'all'>, { label: string; color: string; bg: string; textColor: string; icon: React.ReactNode }> = {
-              expense:           { label: 'Expense',          color: '#ef4444', bg: 'bg-red-50',     textColor: 'text-red-700',     icon: <Receipt size={13} /> },
-              'employee-payroll':{ label: 'Employee Payroll', color: '#3b82f6', bg: 'bg-blue-50',    textColor: 'text-blue-700',    icon: <Users size={13} /> },
-              'driver-payroll':  { label: 'Driver Payroll',   color: '#10b981', bg: 'bg-emerald-50', textColor: 'text-emerald-700', icon: <IdCard size={13} /> },
-              fuel:              { label: 'Fuel Cost',        color: '#f59e0b', bg: 'bg-amber-50',   textColor: 'text-amber-700',   icon: <Fuel size={13} /> },
-              'fleet-invoice':   { label: 'Fleet Invoice',    color: '#8b5cf6', bg: 'bg-violet-50',  textColor: 'text-violet-700',  icon: <DollarSign size={13} /> },
+              expense: { label: 'Expense', color: '#ef4444', bg: 'bg-card', textColor: 'text-[var(--accent-red)]', icon: <Receipt size={13} /> },
+              'employee-payroll': { label: 'Employee Payroll', color: '#3b82f6', bg: 'bg-card', textColor: 'text-[var(--accent-blue)]', icon: <Users size={13} /> },
+              'driver-payroll': { label: 'Driver Payroll', color: '#10b981', bg: 'bg-[rgba(0,255,163,0.08)]', textColor: 'text-[var(--accent-green)]', icon: <IdCard size={13} /> },
+              fuel: { label: 'Fuel Cost', color: '#f59e0b', bg: 'bg-[rgba(251,191,36,0.08)]', textColor: 'text-[var(--accent-amber)]', icon: <Fuel size={13} /> },
+              'fleet-invoice': { label: 'Fleet Invoice', color: '#8b5cf6', bg: 'bg-[rgba(168,85,247,0.08)]', textColor: 'text-[var(--accent-purple)]', icon: <DollarSign size={13} /> },
             };
 
             const STATUS_META: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
-              paid:      { bg: 'bg-green-100',  text: 'text-green-700',  icon: <CheckCircle2 size={11} /> },
-              unpaid:    { bg: 'bg-red-100',    text: 'text-red-700',    icon: <XCircle size={11} /> },
-              pending:   { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: <Clock size={11} /> },
-              overdue:   { bg: 'bg-orange-100', text: 'text-orange-700', icon: <AlertCircle size={11} /> },
-              completed: { bg: 'bg-green-100',  text: 'text-green-700',  icon: <CheckCircle2 size={11} /> },
-              approved:  { bg: 'bg-green-100',  text: 'text-green-700',  icon: <CheckCircle2 size={11} /> },
-              active:    { bg: 'bg-blue-100',   text: 'text-blue-700',   icon: <Clock size={11} /> },
+              paid: { bg: 'bg-[rgba(0,255,163,0.1)]', text: 'text-[var(--accent-green)]', icon: <CheckCircle2 size={11} /> },
+              unpaid: { bg: 'bg-[rgba(244,63,94,0.1)]', text: 'text-[var(--accent-red)]', icon: <XCircle size={11} /> },
+              pending: { bg: 'bg-[rgba(251,191,36,0.1)]', text: 'text-[var(--accent-amber)]', icon: <Clock size={11} /> },
+              overdue: { bg: 'bg-[rgba(245,158,11,0.1)]', text: 'text-[var(--accent-orange)]', icon: <AlertCircle size={11} /> },
+              completed: { bg: 'bg-[rgba(0,255,163,0.1)]', text: 'text-[var(--accent-green)]', icon: <CheckCircle2 size={11} /> },
+              approved: { bg: 'bg-[rgba(0,255,163,0.1)]', text: 'text-[var(--accent-green)]', icon: <CheckCircle2 size={11} /> },
+              active: { bg: 'bg-[rgba(0,209,255,0.1)]', text: 'text-[var(--accent-blue)]', icon: <Clock size={11} /> },
             };
 
             const fmtCur = (n: number) =>
@@ -2099,7 +2112,7 @@ const FinanceReport = () => {
 
             // Summary totals
             const totalPayable = filtered.reduce((s, i) => s + i.amount, 0);
-            const totalPaid    = filtered.filter(i => i.status === 'paid' || i.status === 'completed' || i.status === 'approved').reduce((s, i) => s + i.amount, 0);
+            const totalPaid = filtered.filter(i => i.status === 'paid' || i.status === 'completed' || i.status === 'approved').reduce((s, i) => s + i.amount, 0);
             const totalOutstanding = totalPayable - totalPaid;
             const overdueCount = filtered.filter(i => i.status === 'overdue').length;
 
@@ -2113,7 +2126,7 @@ const FinanceReport = () => {
             // Sort
             const sorted = [...filtered].sort((a, b) => {
               let cmp = 0;
-              if (payableSortKey === 'date')        cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
+              if (payableSortKey === 'date') cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
               else if (payableSortKey === 'amount') cmp = a.amount - b.amount;
               else if (payableSortKey === 'subCategory') cmp = a.subCategory.localeCompare(b.subCategory);
               else if (payableSortKey === 'status') cmp = a.status.localeCompare(b.status);
@@ -2132,7 +2145,7 @@ const FinanceReport = () => {
             const SortIcon = ({ k }: { k: PayableSortKey }) =>
               payableSortKey === k
                 ? (payableSortDir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)
-                : <ChevronsUpDown size={12} className="text-gray-300" />;
+                : <ChevronsUpDown size={12} className="text-secondary" />;
 
             return (
               <div className="space-y-4">
@@ -2141,46 +2154,46 @@ const FinanceReport = () => {
                 <div className="flex justify-end">
                   <button
                     onClick={() => { setPayableLoaded(false); fetchPayableData(); }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 border border-gray-200 bg-white rounded-lg hover:bg-gray-50 transition"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-secondary border border-theme bg-card rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition"
                   >
-                    <RefreshCw size={13} className={payableLoading ? 'animate-spin text-[#42aeec]' : ''} />
+                    <RefreshCw size={13} className={payableLoading ? 'animate-spin text-[var(--accent-blue)]' : ''} />
                     Refresh
                   </button>
                 </div>
 
                 {/* Summary KPI cards */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div className="bg-card rounded-xl border border-theme p-4">
                     <div className="flex items-center gap-2 mb-1">
-                      <CreditCard size={15} className="text-[#42aeec]" />
-                      <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">Total Payables</span>
+                      <CreditCard size={15} className="text-[var(--accent-blue)]" />
+                      <span className="text-xs text-secondary font-medium uppercase tracking-wide">Total Payables</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-800">{fmtCur(totalPayable)}</div>
-                    <div className="text-xs text-gray-400 mt-1">{filtered.length} records</div>
+                    <div className="text-2xl font-bold text-[var(--text-primary)]">{fmtCur(totalPayable)}</div>
+                    <div className="text-xs text-secondary mt-1">{filtered.length} records</div>
                   </div>
-                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div className="bg-card rounded-xl border border-theme p-4">
                     <div className="flex items-center gap-2 mb-1">
-                      <CheckCircle2 size={15} className="text-emerald-500" />
-                      <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">Paid / Settled</span>
+                      <CheckCircle2 size={15} className="text-[var(--accent-green)]" />
+                      <span className="text-xs text-secondary font-medium uppercase tracking-wide">Paid / Settled</span>
                     </div>
-                    <div className="text-2xl font-bold text-emerald-600">{fmtCur(totalPaid)}</div>
-                    <div className="text-xs text-gray-400 mt-1">{totalPayable > 0 ? Math.round((totalPaid / totalPayable) * 100) : 0}% of total</div>
+                    <div className="text-2xl font-bold text-[var(--accent-green)]">{fmtCur(totalPaid)}</div>
+                    <div className="text-xs text-secondary mt-1">{totalPayable > 0 ? Math.round((totalPaid / totalPayable) * 100) : 0}% of total</div>
                   </div>
-                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div className="bg-card rounded-xl border border-theme p-4">
                     <div className="flex items-center gap-2 mb-1">
-                      <TrendingDown size={15} className="text-red-400" />
-                      <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">Outstanding</span>
+                      <TrendingDown size={15} className="text-[var(--accent-red)]" />
+                      <span className="text-xs text-secondary font-medium uppercase tracking-wide">Outstanding</span>
                     </div>
-                    <div className="text-2xl font-bold text-red-500">{fmtCur(totalOutstanding)}</div>
-                    <div className="text-xs text-gray-400 mt-1">{totalPayable > 0 ? Math.round((totalOutstanding / totalPayable) * 100) : 0}% unpaid</div>
+                    <div className="text-2xl font-bold text-[var(--accent-red)]">{fmtCur(totalOutstanding)}</div>
+                    <div className="text-xs text-secondary mt-1">{totalPayable > 0 ? Math.round((totalOutstanding / totalPayable) * 100) : 0}% unpaid</div>
                   </div>
-                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div className="bg-card rounded-xl border border-theme p-4">
                     <div className="flex items-center gap-2 mb-1">
-                      <AlertCircle size={15} className="text-orange-400" />
-                      <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">Overdue Items</span>
+                      <AlertCircle size={15} className="text-[var(--accent-orange)]" />
+                      <span className="text-xs text-secondary font-medium uppercase tracking-wide">Overdue Items</span>
                     </div>
-                    <div className="text-2xl font-bold text-orange-500">{overdueCount}</div>
-                    <div className="text-xs text-gray-400 mt-1">Need attention</div>
+                    <div className="text-2xl font-bold text-[var(--accent-orange)]">{overdueCount}</div>
+                    <div className="text-xs text-secondary mt-1">Need attention</div>
                   </div>
                 </div>
 
@@ -2193,39 +2206,39 @@ const FinanceReport = () => {
                       <button
                         key={cat}
                         onClick={() => { setPayableSubFilter(isActive ? 'all' : cat); setPayablePage(1); }}
-                        className={`rounded-xl p-3 text-left border transition ${isActive ? 'border-[#42aeec] bg-[#42aeec]/5 shadow-sm' : 'border-gray-200 bg-white hover:border-[#42aeec]/40'}`}
+                        className={`rounded-xl p-3 text-left border transition ${isActive ? 'border-[var(--accent-blue)] bg-[var(--accent-blue)]/5 shadow-sm' : 'border-theme bg-card hover:border-[var(--accent-blue)]/40'}`}
                       >
                         <div className="flex items-center justify-between mb-1.5">
                           <span className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: meta.color + '20', color: meta.color }}>
                             {meta.icon}
                           </span>
-                          {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[#42aeec]" />}
+                          {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-blue)]" />}
                         </div>
-                        <div className="text-sm font-bold text-gray-800 truncate">{fmtCur(total)}</div>
-                        <div className="text-xs text-gray-500 mt-0.5 truncate">{meta.label}</div>
-                        <div className="text-xs text-gray-400">{count} items</div>
+                        <div className="text-sm font-bold text-[var(--text-primary)] truncate">{fmtCur(total)}</div>
+                        <div className="text-xs text-secondary mt-0.5 truncate">{meta.label}</div>
+                        <div className="text-xs text-secondary">{count} items</div>
                       </button>
                     );
                   })}
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                <div className="bg-card rounded-xl border border-theme p-4">
                   <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-1.5 text-gray-500 text-sm font-medium">
+                    <div className="flex items-center gap-1.5 text-secondary text-sm font-medium">
                       <Filter size={13} />
                       Filters
                     </div>
 
                     {/* Search */}
                     <div className="relative flex-1 min-w-[180px] max-w-xs">
-                      <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary" />
                       <input
                         type="text"
                         placeholder="Search payables…"
                         value={payableSearch}
                         onChange={e => { setPayableSearch(e.target.value); setPayablePage(1); }}
-                        className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]/30 focus:border-[#42aeec]"
+                        className="w-full pl-8 pr-3 py-1.5 text-sm border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)]"
                       />
                     </div>
 
@@ -2233,10 +2246,10 @@ const FinanceReport = () => {
                     <select
                       value={payableSubFilter}
                       onChange={e => { setPayableSubFilter(e.target.value as PayableSubCategory); setPayablePage(1); }}
-                      className="text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#42aeec]/30 focus:border-[#42aeec] bg-white"
+                      className="text-sm border border-theme rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] bg-card"
                     >
                       <option value="all">All Categories</option>
-                      {(Object.keys(PAYABLE_META) as Exclude<PayableSubCategory,'all'>[]).map(k => (
+                      {(Object.keys(PAYABLE_META) as Exclude<PayableSubCategory, 'all'>[]).map(k => (
                         <option key={k} value={k}>{PAYABLE_META[k].label}</option>
                       ))}
                     </select>
@@ -2245,7 +2258,7 @@ const FinanceReport = () => {
                     <select
                       value={payableStatusFilter}
                       onChange={e => { setPayableStatusFilter(e.target.value); setPayablePage(1); }}
-                      className="text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#42aeec]/30 focus:border-[#42aeec] bg-white"
+                      className="text-sm border border-theme rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] bg-card"
                     >
                       <option value="all">All Statuses</option>
                       <option value="paid">Paid</option>
@@ -2258,7 +2271,7 @@ const FinanceReport = () => {
                     {(payableSubFilter !== 'all' || payableStatusFilter !== 'all' || payableSearch) && (
                       <button
                         onClick={() => { setPayableSubFilter('all'); setPayableStatusFilter('all'); setPayableSearch(''); setPayablePage(1); }}
-                        className="text-xs text-[#42aeec] hover:underline"
+                        className="text-xs text-[var(--accent-blue)] hover:underline"
                       >
                         Clear
                       </button>
@@ -2267,74 +2280,74 @@ const FinanceReport = () => {
                 </div>
 
                 {/* Table */}
-                <div className="bg-white rounded-xl border border-gray-200">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                <div className="bg-card rounded-xl border border-theme">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-theme">
                     <div>
-                      <h2 className="text-sm font-semibold text-gray-800">Payables List</h2>
-                      <p className="text-xs text-gray-400">Showing {Math.min(pageRows.length, PAYABLE_PAGE_SIZE)} of {filtered.length} records</p>
+                      <h2 className="text-sm font-semibold text-[var(--text-primary)]">Payables List</h2>
+                      <p className="text-xs text-secondary">Showing {Math.min(pageRows.length, PAYABLE_PAGE_SIZE)} of {filtered.length} records</p>
                     </div>
                   </div>
 
                   {payableLoading ? (
-                    <div className="flex items-center justify-center py-16 gap-3 text-gray-400">
-                      <RefreshCw size={20} className="animate-spin text-[#42aeec]" />
+                    <div className="flex items-center justify-center py-16 gap-3 text-secondary">
+                      <RefreshCw size={20} className="animate-spin text-[var(--accent-blue)]" />
                       <span className="text-sm">Loading payables…</span>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                          <tr className="bg-card text-xs text-secondary uppercase tracking-wide">
                             <th className="text-left px-4 py-2.5 font-medium">
-                              <button onClick={() => handlePayableSort('subCategory')} className="flex items-center gap-1 hover:text-gray-700">
+                              <button onClick={() => handlePayableSort('subCategory')} className="flex items-center gap-1 text-secondary">
                                 Category <SortIcon k="subCategory" />
                               </button>
                             </th>
-                            <th className="text-left px-4 py-2.5 font-medium">Description</th>
-                            <th className="text-left px-4 py-2.5 font-medium">Reference</th>
+                            <th className="text-left px-4 py-2.5 font-medium text-secondary">Description</th>
+                            <th className="text-left px-4 py-2.5 font-medium text-secondary">Reference</th>
                             <th className="text-right px-4 py-2.5 font-medium">
-                              <button onClick={() => handlePayableSort('amount')} className="flex items-center gap-1 hover:text-gray-700 ml-auto">
+                              <button onClick={() => handlePayableSort('amount')} className="flex items-center gap-1 text-headings ml-auto">
                                 Amount <SortIcon k="amount" />
                               </button>
                             </th>
                             <th className="text-left px-4 py-2.5 font-medium">
-                              <button onClick={() => handlePayableSort('date')} className="flex items-center gap-1 hover:text-gray-700">
+                              <button onClick={() => handlePayableSort('date')} className="flex items-center gap-1 text-secondary">
                                 Date <SortIcon k="date" />
                               </button>
                             </th>
                             <th className="text-left px-4 py-2.5 font-medium">
-                              <button onClick={() => handlePayableSort('status')} className="flex items-center gap-1 hover:text-gray-700">
+                              <button onClick={() => handlePayableSort('status')} className="flex items-center gap-1 text-secondary">
                                 Status <SortIcon k="status" />
                               </button>
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
+                        <tbody className="divide-theme divide-white/5">
                           {pageRows.length === 0 ? (
                             <tr>
-                              <td colSpan={6} className="text-center py-14 text-gray-400 text-sm">
+                              <td colSpan={6} className="text-center py-14 text-secondary text-sm">
                                 {payableItems.length === 0 ? 'No payable records found.' : 'No records match the selected filters.'}
                               </td>
                             </tr>
                           ) : pageRows.map(row => {
                             const catMeta = PAYABLE_META[row.subCategory];
-                            const stMeta  = STATUS_META[row.status] ?? { bg: 'bg-gray-100', text: 'text-gray-600', icon: null };
+                            const stMeta = STATUS_META[row.status] ?? { bg: 'bg-card', text: 'text-secondary', icon: null };
                             return (
-                              <tr key={`${row.subCategory}-${row.id}`} className="hover:bg-gray-50 transition">
+                              <tr key={`${row.subCategory}-${row.id}`} className="hover:bg-[rgba(255,255,255,0.03)] transition">
                                 <td className="px-4 py-2.5">
                                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${catMeta.bg} ${catMeta.textColor}`}>
                                     {catMeta.icon}
                                     {catMeta.label}
                                   </span>
                                 </td>
-                                <td className="px-4 py-2.5 text-gray-700 max-w-[200px]">
+                                <td className="px-4 py-2.5 text-secondary max-w-[200px]">
                                   <div className="truncate">{row.description}</div>
                                 </td>
-                                <td className="px-4 py-2.5 text-gray-400 text-xs font-mono">{row.reference}</td>
-                                <td className="px-4 py-2.5 text-right font-semibold text-gray-800">
+                                <td className="px-4 py-2.5 text-secondary text-xs font-mono">{row.reference}</td>
+                                <td className="px-4 py-2.5 text-right font-semibold text-secondary">
                                   {formatCurrency(row.amount)}
                                 </td>
-                                <td className="px-4 py-2.5 text-gray-500 text-xs whitespace-nowrap">
+                                <td className="px-4 py-2.5 text-secondary text-xs whitespace-nowrap">
                                   {new Date(row.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                 </td>
                                 <td className="px-4 py-2.5">
@@ -2351,14 +2364,14 @@ const FinanceReport = () => {
                         {/* Totals footer */}
                         {pageRows.length > 0 && (
                           <tfoot>
-                            <tr className="bg-[#42aeec]/5 border-t-2 border-[#42aeec]/20 font-semibold">
-                              <td colSpan={3} className="px-4 py-2.5 text-sm text-gray-700">
+                            <tr className="bg-[var(--accent-blue)]/5 border-t-2 border-[var(--accent-blue)]/20 font-semibold">
+                              <td colSpan={3} className="px-4 py-2.5 text-sm ">
                                 Filtered Total ({filtered.length} records)
                               </td>
-                              <td className="px-4 py-2.5 text-right text-sm font-bold text-gray-800">
+                              <td className="px-4 py-2.5 text-right text-sm font-bold ">
                                 {formatCurrency(totalPayable)}
                               </td>
-                              <td colSpan={2} className="px-4 py-2.5 text-xs text-gray-500">
+                              <td colSpan={2} className="px-4 py-2.5 text-xs text-secondary">
                                 Paid: {fmtCur(totalPaid)} · Outstanding: {fmtCur(totalOutstanding)}
                               </td>
                             </tr>
@@ -2370,24 +2383,24 @@ const FinanceReport = () => {
 
                   {/* Pagination */}
                   {totalPgPages > 1 && (
-                    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-                      <span className="text-xs text-gray-400">Page {payablePage} of {totalPgPages}</span>
+                    <div className="flex items-center justify-between px-4 py-3 border-t border-theme">
+                      <span className="text-xs text-secondary">Page {payablePage} of {totalPgPages}</span>
                       <div className="flex items-center gap-1">
                         <button onClick={() => setPayablePage(p => Math.max(1, p - 1))} disabled={payablePage === 1}
-                          className="px-2.5 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                          className="px-2.5 py-1 text-xs border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-40 disabled:cursor-not-allowed">
                           Prev
                         </button>
                         {Array.from({ length: Math.min(5, totalPgPages) }, (_, i) => {
                           const p = totalPgPages <= 5 ? i + 1 : Math.max(1, Math.min(payablePage - 2, totalPgPages - 4)) + i;
                           return (
                             <button key={p} onClick={() => setPayablePage(p)}
-                              className={`w-7 h-7 text-xs rounded transition ${p === payablePage ? 'bg-[#42aeec] text-white font-semibold' : 'border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                              className={`w-7 h-7 text-xs rounded transition ${p === payablePage ? 'bg-[var(--accent-blue)] text-headings font-semibold' : 'border border-theme text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}>
                               {p}
                             </button>
                           );
                         })}
                         <button onClick={() => setPayablePage(p => Math.min(totalPgPages, p + 1))} disabled={payablePage === totalPgPages}
-                          className="px-2.5 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                          className="px-2.5 py-1 text-xs border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-40 disabled:cursor-not-allowed">
                           Next
                         </button>
                       </div>

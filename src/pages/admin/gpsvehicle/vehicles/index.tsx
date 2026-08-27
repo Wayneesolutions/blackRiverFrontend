@@ -150,7 +150,7 @@ const VehicleList = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
-    const [vehiclesPerPage] = useState(10);
+    const [vehiclesPerPage, setVehiclesPerPage] = useState(10);
     const [sortBy, setSortBy] = useState('plateNumber');
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
@@ -159,7 +159,7 @@ const VehicleList = () => {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [loading, setLoading] = useState(true);
     const [vehicleAssignments, setVehicleAssignments] = useState<Record<string, VehicleAssignment>>({});
-    
+
     // Refs for scrollbar synchronization
     const topScrollRef = useRef<HTMLDivElement>(null);
     const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -345,10 +345,10 @@ const VehicleList = () => {
                         eta: eta,
                         milesToday: distance,
                         milesThisWeek: 0, // Would need to calculate from order history
-                        lastCheckpoint: order.status === 'IN_PROGRESS' || order.status === 'in-progress' ? 'En route' : 
-                                      order.status === 'dispatched' || order.status === 'DISPATCHED' ? 'Dispatched' : 
-                                      order.status === 'COMPLETED' || order.status === 'completed' ? 'Delivered' : 
-                                      order.status
+                        lastCheckpoint: order.status === 'IN_PROGRESS' || order.status === 'in-progress' ? 'En route' :
+                            order.status === 'dispatched' || order.status === 'DISPATCHED' ? 'Dispatched' :
+                                order.status === 'COMPLETED' || order.status === 'completed' ? 'Delivered' :
+                                    order.status
                     };
 
                     // Store assignment with all possible vehicle ID formats for flexible lookup
@@ -407,11 +407,11 @@ const VehicleList = () => {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'moving': return 'text-emerald-700 bg-emerald-50 border-emerald-200';
-            case 'idle': return 'text-amber-700 bg-amber-50 border-amber-200';
-            case 'stopped': return 'text-slate-700 bg-slate-50 border-slate-200';
-            case 'maintenance': return 'text-red-700 bg-red-50 border-red-200';
-            default: return 'text-slate-700 bg-slate-50 border-slate-200';
+            case 'moving': return 'text-[var(--accent-green)] bg-[var(--accent-green)]/10 border-theme';
+            case 'idle': return 'text-secondary bg-card border-theme';
+            case 'stopped': return 'text-primary bg-card border-theme';
+            case 'maintenance': return 'text-[var(--accent-red)] bg-[var(--accent-red)]/10 border-theme';
+            default: return 'text-primary bg-card border-theme';
         }
     };
 
@@ -426,8 +426,8 @@ const VehicleList = () => {
     };
 
     const getSpeedColor = (speed: number, status: string) => {
-        if (status === 'moving' && speed > 0) return 'text-blue-600';
-        return 'text-slate-600';
+        if (status === 'moving' && speed > 0) return 'text-accent';
+        return 'text-secondary';
     };
 
     // Filter and search logic
@@ -521,13 +521,13 @@ const VehicleList = () => {
         className = "",
     }) => (
         <th
-            className={`px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition-colors duration-150 ${className}`}
+            className={`px-6 py-4 text-left text-xs font-semibold text-[var(--accent-blue)] uppercase tracking-wider cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors duration-150 ${className}`}
             onClick={() => handleSort(field)}
         >
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center gap-1">
                 <span>{children}</span>
                 {sortBy === field && (
-                    <span className="text-blue-500 text-sm font-bold">
+                    <span className="text-[var(--accent-blue)] text-sm font-bold">
                         {sortOrder === "asc" ? "↑" : "↓"}
                     </span>
                 )}
@@ -596,8 +596,8 @@ const VehicleList = () => {
 
         const bottomTable = bottomScroll.querySelector('table');
         if (bottomTable) {
-            tableObserver.observe(bottomTable, { 
-                childList: true, 
+            tableObserver.observe(bottomTable, {
+                childList: true,
                 subtree: true,
                 attributes: true,
                 attributeFilter: ['style', 'class']
@@ -621,21 +621,21 @@ const VehicleList = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen p-4 bg-gray-50 px-6 flex items-center justify-center">
-                <div className="text-gray-500">Loading vehicles...</div>
+            <div className="min-h-screen p-4 bg-card px-6 flex items-center justify-center">
+                <div className="text-secondary">Loading vehicles...</div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen p-4 bg-[#EDF8FF] px-6">
+        <div className="min-h-screen p-4 bg-main px-6">
             <div className="w-full mx-auto p-2">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-slate-900 mb-2">Vehicle Fleet</h1>
-                            <p className="text-slate-600">Manage and monitor your vehicle fleet</p>
+                            <h1 className="text-3xl font-bold text-primary mb-2">Vehicle Fleet</h1>
+                            <p className="text-secondary">Manage and monitor your vehicle fleet</p>
                         </div>
                     </div>
                 </div>
@@ -644,106 +644,108 @@ const VehicleList = () => {
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+
                     {/* Total Vehicles */}
-                    <div className="rounded-xl p-4 bg-slate-50 border border-slate-200">
-                        <div className="text-2xl font-bold text-slate-700 mb-1">
+                    <div className="rounded-xl p-4 bg-card border border-theme">
+                        <div className="text-2xl font-bold text-primary mb-1">
                             {stats.total}
                         </div>
-                        <div className="text-sm font-medium text-slate-600">
+                        <div className="text-sm font-medium text-secondary">
                             Total Vehicles
                         </div>
                     </div>
 
                     {/* Moving */}
-                    <div className="rounded-xl p-4 bg-green-50 border border-green-200">
-                        <div className="text-2xl font-bold text-green-600 mb-1">
+                    <div className="rounded-xl p-4 bg-[var(--accent-green)]/10 border border-theme">
+                        <div className="text-2xl font-bold text-[var(--accent-green)] mb-1">
                             {stats.moving}
                         </div>
-                        <div className="text-sm font-medium text-green-600">
+                        <div className="text-sm font-medium text-[var(--accent-green)]">
                             Moving
                         </div>
-                        <div className="w-full bg-green-100 rounded-full h-1 mt-2">
+                        <div className="w-full bg-[var(--accent-green)]/10 rounded-full h-1 mt-2">
                             <div
-                                className="bg-green-500 h-1 rounded-full"
+                                className="bg-[var(--accent-green)] h-1 rounded-full"
                                 style={{ width: `${(stats.moving / stats.total) * 100}%` }}
                             />
                         </div>
                     </div>
 
                     {/* Idle */}
-                    <div className="rounded-xl p-4 bg-amber-50 border border-amber-200">
-                        <div className="text-2xl font-bold text-amber-600 mb-1">
+                    <div className="rounded-xl p-4 bg-[var(--accent-orange)]/10 border border-theme">
+                        <div className="text-2xl font-bold text-[var(--accent-orange)] mb-1">
                             {stats.idle}
                         </div>
-                        <div className="text-sm font-medium text-amber-600">
+                        <div className="text-sm font-medium text-[var(--accent-orange)]">
                             Idle
                         </div>
-                        <div className="w-full bg-amber-100 rounded-full h-1 mt-2">
+                        <div className="w-full bg-[var(--accent-orange)]/10 rounded-full h-1 mt-2">
                             <div
-                                className="bg-amber-500 h-1 rounded-full"
+                                className="bg-[var(--accent-orange)] h-1 rounded-full"
                                 style={{ width: `${(stats.idle / stats.total) * 100}%` }}
                             />
                         </div>
                     </div>
 
                     {/* Stopped */}
-                    <div className="rounded-xl p-4 bg-purple-50 border border-purple-200">
-                        <div className="text-2xl font-bold text-purple-600 mb-1">
+                    <div className="rounded-xl p-4 bg-[var(--accent-purple)]/10 border border-theme">
+                        <div className="text-2xl font-bold text-[var(--accent-purple)] mb-1">
                             {stats.stopped}
                         </div>
-                        <div className="text-sm font-medium text-purple-600">
+                        <div className="text-sm font-medium text-[var(--accent-purple)]">
                             Stopped
                         </div>
-                        <div className="w-full bg-purple-100 rounded-full h-1 mt-2">
+                        <div className="w-full bg-[var(--accent-purple)]/10 rounded-full h-1 mt-2">
                             <div
-                                className="bg-purple-500 h-1 rounded-full"
+                                className="bg-[var(--accent-purple)] h-1 rounded-full"
                                 style={{ width: `${(stats.stopped / stats.total) * 100}%` }}
                             />
                         </div>
                     </div>
 
                     {/* Maintenance */}
-                    <div className="rounded-xl p-4 bg-red-50 border border-red-200">
-                        <div className="text-2xl font-bold text-red-600 mb-1">
+                    <div className="rounded-xl p-4 bg-[var(--accent-red)]/10 border border-theme">
+                        <div className="text-2xl font-bold text-[var(--accent-red)] mb-1">
                             {stats.maintenance}
                         </div>
-                        <div className="text-sm font-medium text-red-600">
+                        <div className="text-sm font-medium text-[var(--accent-red)]">
                             Maintenance
                         </div>
-                        <div className="w-full bg-red-100 rounded-full h-1 mt-2">
+                        <div className="w-full bg-[var(--accent-red)]/10 rounded-full h-1 mt-2">
                             <div
-                                className="bg-red-500 h-1 rounded-full"
+                                className="bg-[var(--accent-red)] h-1 rounded-full"
                                 style={{ width: `${(stats.maintenance / stats.total) * 100}%` }}
                             />
                         </div>
                     </div>
 
                     {/* Miles Logged */}
-                    <div className="rounded-xl p-4 bg-orange-50 border border-orange-200">
-                        <div className="text-2xl font-bold text-orange-600 mb-1">
+                    <div className="rounded-xl p-4 bg-[var(--accent-orange)]/10 border border-theme">
+                        <div className="text-2xl font-bold text-[var(--accent-orange)] mb-1">
                             {stats.milesToday.toLocaleString()}
                         </div>
-                        <div className="text-sm font-medium text-orange-600">
+                        <div className="text-sm font-medium text-[var(--accent-orange)]">
                             Miles Logged Today
                         </div>
-                        <p className="text-xs text-orange-500 mt-1">
+                        <p className="text-xs text-secondary mt-1">
                             Across active assignments
                         </p>
                     </div>
+
                 </div>
 
 
                 {/* Filters and Search */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-6 overflow-hidden">
-                    <div className="p-6 border-b border-slate-100">
+                <div className="bg-card rounded-xl shadow-sm border border-theme mb-6 overflow-hidden">
+                    <div className="p-6 border-b border-theme">
                         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                             <div className="flex-1">
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
                                     <input
                                         type="text"
                                         placeholder="Search by plate number, internal ID, or location..."
-                                        className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-150"
+                                        className="w-full pl-10 pr-4 py-2 bg-card text-primary text-sm border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] transition-colors duration-150"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -752,9 +754,9 @@ const VehicleList = () => {
 
                             <div className="flex gap-3">
                                 <div className="relative">
-                                    <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                    <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-4 h-4" />
                                     <select
-                                        className="pl-10 pr-8 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white min-w-40 transition-colors duration-150"
+                                        className="pl-10 pr-8 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] appearance-none bg-card text-primary min-w-40 transition-colors duration-150"
                                         value={filterStatus}
                                         onChange={(e) => setFilterStatus(e.target.value)}
                                     >
@@ -768,11 +770,15 @@ const VehicleList = () => {
                             </div>
                         </div>
 
-                        <div className="mt-4 flex justify-between items-center text-sm text-slate-600">
+                        <div className="mt-4 flex justify-between items-center text-sm text-secondary">
                             <span>Showing {indexOfFirstVehicle + 1}-{Math.min(indexOfLastVehicle, sortedVehicles.length)} of {sortedVehicles.length} vehicles</span>
                             <div className="flex items-center space-x-2">
                                 <span>Show:</span>
-                                <select className="border border-slate-200 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <select
+                                    className="border border-theme rounded-lg px-3 py-1 text-sm bg-card text-primary focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)]"
+                                    value={vehiclesPerPage}
+                                    onChange={(e) => { setVehiclesPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                                >
                                     <option value="10">10</option>
                                     <option value="25">25</option>
                                     <option value="50">50</option>
@@ -786,17 +792,17 @@ const VehicleList = () => {
                     {/* Top Scrollbar - Only visible horizontal scrollbar */}
                     <style>{`
                         .top-scrollbar-container::-webkit-scrollbar {
-                            height: 8px;
+                            height: 6px;
                         }
                         .top-scrollbar-container::-webkit-scrollbar-track {
-                            background: #f7fafc;
+                            background: transparent;
                         }
                         .top-scrollbar-container::-webkit-scrollbar-thumb {
-                            background: #cbd5e0;
+                            background: rgba(0,209,255,0.25);
                             border-radius: 4px;
                         }
                         .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
-                            background: #a0aec0;
+                            background: rgba(0,209,255,0.45);
                         }
                         .table-container-hidden-scrollbar {
                             scrollbar-width: none; /* Firefox */
@@ -806,25 +812,25 @@ const VehicleList = () => {
                             display: none; /* Chrome, Safari, Opera */
                         }
                     `}</style>
-                    <div 
+                    <div
                         ref={topScrollRef}
                         className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-                        style={{ 
+                        style={{
                             maxHeight: '20px',
                             marginBottom: '2px',
                             scrollbarWidth: 'thin',
-                            scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+                            scrollbarColor: '#224c75 #111c24'  /* Firefox */
                         }}
                     >
                         <div className="top-scroll-content" style={{ height: '1px' }}></div>
                     </div>
                     {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-                    <div 
+                    <div
                         ref={bottomScrollRef}
                         className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
                     >
-                        <table className="min-w-full divide-y divide-slate-200" style={{ minWidth: '1400px' }}>
-                            <thead className="bg-slate-50">
+                        <table className="min-w-full divide-theme" style={{ minWidth: '1400px' }}>
+                            <thead className="bg-card">
                                 <tr>
                                     <SortHeader field="internalId">Vehicle ID</SortHeader>
                                     <SortHeader field="plateNumber">Plate Number</SortHeader>
@@ -833,19 +839,19 @@ const VehicleList = () => {
                                     <SortHeader field="assignment">Assigned Load</SortHeader>
                                     <SortHeader field="miles">Miles Driven</SortHeader>
                                     <SortHeader field="status">Status</SortHeader>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--accent-blue)] uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-slate-100">
+                            <tbody className="bg-card  divide-theme">
                                 {currentVehicles.length === 0 ? (
                                     <tr>
                                         <td colSpan={7} className="px-6 py-12 text-center">
                                             <div className="flex flex-col items-center justify-center">
-                                                <Car className="w-12 h-12 text-slate-400 mb-4" />
-                                                <p className="text-slate-600 font-medium">No vehicles found</p>
-                                                <p className="text-slate-500 text-sm mt-1">
+                                                <Car className="w-12 h-12 text-secondary mb-4" />
+                                                <p className="text-secondary font-medium">No vehicles found</p>
+                                                <p className="text-secondary text-sm mt-1">
                                                     {searchTerm || filterStatus !== 'all'
                                                         ? 'Try adjusting your search or filter criteria'
                                                         : 'No vehicles are available for your company'}
@@ -857,9 +863,9 @@ const VehicleList = () => {
                                     currentVehicles.map((vehicle) => {
                                         const assignment = getAssignmentForVehicle(vehicle, vehicleAssignments);
                                         return (
-                                            <tr 
-                                                key={vehicle._id} 
-                                                className="hover:bg-slate-50 transition-colors duration-150 cursor-pointer"
+                                            <tr
+                                                key={vehicle._id}
+                                                className="hover:bg-[rgba(255,255,255,0.03)] transition-colors duration-150 cursor-pointer"
                                                 onClick={() => {
                                                     setSelectedVehicle(vehicle);
                                                     setShowDetailsSidebar(true);
@@ -867,29 +873,29 @@ const VehicleList = () => {
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center">
-                                                        <div className="p-2 bg-blue-50 rounded-lg mr-3 border border-blue-100">
-                                                            <Car className="w-5 h-5 text-blue-600" />
+                                                        <div className="p-2 bg-[var(--accent-blue)]/10 rounded-lg mr-3 border border-[var(--accent-blue)]/20">
+                                                            <Car className="w-5 h-5 text-accent" />
                                                         </div>
-                                                        <div className="text-sm font-semibold text-slate-900">
+                                                        <div className="text-sm font-semibold text-primary">
                                                             {vehicle.internalId}
                                                         </div>
                                                     </div>
                                                 </td>
 
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-medium text-slate-900">
+                                                    <div className="text-sm font-medium text-primary">
                                                         {vehicle.plateNumber}
                                                     </div>
                                                 </td>
 
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-start space-x-2">
-                                                        <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
-                                                        <div className="text-sm text-slate-900 max-w-xs">
+                                                        <MapPin className="w-4 h-4 text-secondary mt-0.5 flex-shrink-0" />
+                                                        <div className="text-sm text-primary max-w-xs">
                                                             {vehicle.currentLocation.address}
                                                         </div>
                                                     </div>
-                                                    <div className="text-xs text-slate-500 mt-1 ml-6">
+                                                    <div className="text-xs text-secondary mt-1 ml-6">
                                                         {vehicle.currentLocation.latitude}, {vehicle.currentLocation.longitude}
                                                     </div>
                                                 </td>
@@ -905,23 +911,23 @@ const VehicleList = () => {
 
                                                 <td className="px-6 py-4">
                                                     <div className="space-y-1">
-                                                        <div className="text-sm font-semibold text-slate-900 flex items-center space-x-2">
-                                                            <Route className="w-4 h-4 text-blue-500" />
+                                                        <div className="text-sm font-semibold text-primary flex items-center space-x-2">
+                                                            <Route className="w-4 h-4 text-[var(--accent-blue)]" />
                                                             <span>{assignment.loadId}</span>
                                                         </div>
-                                                        <p className="text-xs text-slate-500">
+                                                        <p className="text-xs text-secondary">
                                                             {assignment.origin} → {assignment.destination}
                                                         </p>
-                                                        <p className="text-xs text-slate-400">
+                                                        <p className="text-xs text-secondary">
                                                             Dispatcher: {assignment.dispatcher}
                                                         </p>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-semibold text-slate-900">
+                                                    <div className="text-sm font-semibold text-primary">
                                                         {formatMiles(assignment.milesToday)} today
                                                     </div>
-                                                    <p className="text-xs text-slate-500">
+                                                    <p className="text-xs text-secondary">
                                                         {formatMiles(assignment.milesThisWeek)} this week
                                                     </p>
                                                 </td>
@@ -936,7 +942,7 @@ const VehicleList = () => {
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                                                     <button
                                                         onClick={() => handleViewDetails(vehicle)}
-                                                        className="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors duration-150 text-sm font-medium"
+                                                        className="inline-flex items-center space-x-1 text-accent hover:text-[var(--accent-blue)] px-3 py-2 rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-colors duration-150 text-sm font-medium"
                                                     >
                                                         <Eye className="w-4 h-4" />
                                                         <span>Details</span>
@@ -952,26 +958,26 @@ const VehicleList = () => {
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between">
+                        <div className="bg-card px-6 py-4 border-t border-theme flex items-center justify-between">
                             <div className="flex-1 flex justify-between sm:hidden">
                                 <button
                                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                     disabled={currentPage === 1}
-                                    className="relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                    className="relative inline-flex items-center px-4 py-2 border border-theme text-secondary text-sm font-medium rounded-lg bg-card hover:bg-[rgba(255,255,255,0.05)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
                                 >
                                     Previous
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                                     disabled={currentPage === totalPages}
-                                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-theme text-secondary text-sm font-medium rounded-lg bg-card hover:bg-[rgba(255,255,255,0.05)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
                                 >
                                     Next
                                 </button>
                             </div>
                             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                                 <div>
-                                    <p className="text-sm text-slate-700 font-medium">
+                                    <p className="text-sm text-primary font-medium">
                                         Showing <span className="font-semibold">{indexOfFirstVehicle + 1}</span> to{' '}
                                         <span className="font-semibold">{Math.min(indexOfLastVehicle, sortedVehicles.length)}</span> of{' '}
                                         <span className="font-semibold">{sortedVehicles.length}</span> results
@@ -982,7 +988,7 @@ const VehicleList = () => {
                                         <button
                                             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                             disabled={currentPage === 1}
-                                            className="relative inline-flex items-center px-3 py-2 rounded-l-lg border border-slate-300 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                            className="relative inline-flex items-center px-3 py-2 rounded-l-lg border border-theme text-secondary bg-card text-sm font-medium hover:bg-[rgba(255,255,255,0.05)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
                                         >
                                             <ChevronLeft className="h-4 w-4" />
                                         </button>
@@ -994,8 +1000,8 @@ const VehicleList = () => {
                                                     key={page}
                                                     onClick={() => setCurrentPage(page)}
                                                     className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-150 ${currentPage === page
-                                                        ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                                        : 'bg-white border-slate-300 text-slate-500 hover:bg-slate-50'
+                                                        ? 'z-10 bg-[var(--accent-blue)] border-[var(--accent-blue)] text-white font-semibold'
+                                                        : 'bg-card border-theme text-secondary hover:bg-[rgba(255,255,255,0.05)]'
                                                         }`}
                                                 >
                                                     {page}
@@ -1006,7 +1012,7 @@ const VehicleList = () => {
                                         <button
                                             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                                             disabled={currentPage === totalPages}
-                                            className="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-slate-300 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                            className="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-theme text-secondary bg-card text-sm font-medium hover:bg-[rgba(255,255,255,0.05)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
                                         >
                                             <ChevronRight className="h-4 w-4" />
                                         </button>
@@ -1021,31 +1027,31 @@ const VehicleList = () => {
                 {showDetails && selectedVehicle && (() => {
                     const assignmentDetails = getAssignmentForVehicle(selectedVehicle, vehicleAssignments);
                     return (
-                        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] overflow-hidden">
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] overflow-hidden">
                             <div className="absolute transition-opacity" onClick={() => setShowDetails(false)} />
-                            <div className="absolute inset-y-0 right-0 max-w-2xl w-full bg-white shadow-xl">
+                            <div className="absolute inset-y-0 right-0 max-w-2xl w-full bg-card shadow-xl">
                                 <div className="flex h-full flex-col">
                                     {/* Header */}
-                                    <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                                    <div className="bg-card px-6 py-4 border-b border-theme">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center space-x-3">
-                                            
-                                                    <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center border border-slate-200">
-                                                        <Truck className="w-6 h-6 text-black" />
-                                                    </div>
-                                               
+
+                                                <div className="w-12 h-12 rounded-lg bg-[rgba(255,255,255,0.08)] flex items-center justify-center border border-theme">
+                                                    <Truck className="w-6 h-6 text-[var(--accent-blue)]" />
+                                                </div>
+
                                                 <div>
-                                                    <h2 className="text-xl font-bold text-slate-900">
+                                                    <h2 className="text-xl font-bold text-primary">
                                                         {selectedVehicle.internalId}
                                                     </h2>
-                                                    <p className="text-sm text-slate-600">{selectedVehicle.plateNumber}</p>
+                                                    <p className="text-sm text-secondary">{selectedVehicle.plateNumber}</p>
                                                 </div>
                                             </div>
                                             <button
                                                 onClick={() => setShowDetails(false)}
-                                                className="p-2 hover:bg-slate-200 rounded-lg transition-colors duration-150"
+                                                className="p-2 hover:bg-[rgba(255,255,255,0.08)] rounded-lg transition-colors duration-150"
                                             >
-                                                <X className="w-5 h-5 text-slate-600" />
+                                                <X className="w-5 h-5 text-secondary" />
                                             </button>
                                         </div>
                                     </div>
@@ -1055,70 +1061,70 @@ const VehicleList = () => {
                                         <div className="p-6 space-y-6">
 
                                             {/* Basic Information */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <Car className="w-5 h-5 mr-2 text-blue-600" />
+                                            <div className="bg-card border border-theme rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
+                                                    <Car className="w-5 h-5 mr-2 text-accent" />
                                                     Vehicle Information
                                                 </h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Internal ID</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.internalId}</p>
+                                                        <label className="text-sm font-medium text-secondary">Internal ID</label>
+                                                        <p className="text-sm text-primary font-medium">{selectedVehicle.internalId}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Plate Number</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.plateNumber}</p>
+                                                        <label className="text-sm font-medium text-secondary">Plate Number</label>
+                                                        <p className="text-sm text-primary font-medium">{selectedVehicle.plateNumber}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">VIN Number</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.vinNumber}</p>
+                                                        <label className="text-sm font-medium text-secondary">VIN Number</label>
+                                                        <p className="text-sm text-primary font-medium">{selectedVehicle.vinNumber}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Make & Model</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.make} {selectedVehicle.model}</p>
+                                                        <label className="text-sm font-medium text-secondary">Make & Model</label>
+                                                        <p className="text-sm text-primary font-medium">{selectedVehicle.make} {selectedVehicle.model}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Year</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.year}</p>
+                                                        <label className="text-sm font-medium text-secondary">Year</label>
+                                                        <p className="text-sm text-primary font-medium">{selectedVehicle.year}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Odometer</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{selectedVehicle.odometer.toLocaleString()} km</p>
+                                                        <label className="text-sm font-medium text-secondary">Odometer</label>
+                                                        <p className="text-sm text-primary font-medium">{selectedVehicle.odometer.toLocaleString()} km</p>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* Driver Information */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <User className="w-5 h-5 mr-2 text-green-600" />
+                                            <div className="bg-card border border-theme rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
+                                                    <User className="w-5 h-5 mr-2 text-[var(--accent-green)]" />
                                                     Driver Information
                                                 </h3>
                                                 {selectedVehicle.driver ? (
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div>
-                                                            <label className="text-sm font-medium text-slate-600">Driver Name</label>
-                                                            <p className="text-sm text-slate-900 font-medium">{selectedVehicle.driver.name}</p>
+                                                            <label className="text-sm font-medium text-secondary">Driver Name</label>
+                                                            <p className="text-sm text-primary font-medium">{selectedVehicle.driver.name}</p>
                                                         </div>
                                                         <div>
-                                                            <label className="text-sm font-medium text-slate-600">Phone Number</label>
-                                                            <p className="text-sm text-slate-900 font-medium">{selectedVehicle.driver.phone}</p>
+                                                            <label className="text-sm font-medium text-secondary">Phone Number</label>
+                                                            <p className="text-sm text-primary font-medium">{selectedVehicle.driver.phone}</p>
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="text-sm text-slate-500 italic">No driver assigned</div>
+                                                    <div className="text-sm text-secondary italic">No driver assigned</div>
                                                 )}
                                             </div>
 
                                             {/* Current Status */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <Activity className="w-5 h-5 mr-2 text-purple-600" />
+                                            <div className="bg-card border border-theme rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
+                                                    <Activity className="w-5 h-5 mr-2 text-[var(--accent-purple)]" />
                                                     Current Status
                                                 </h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Status</label>
+                                                        <label className="text-sm font-medium text-secondary">Status</label>
                                                         <div className="mt-1">
                                                             <span className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${getStatusColor(selectedVehicle.status)}`}>
                                                                 {getStatusIcon(selectedVehicle.status)}
@@ -1127,27 +1133,27 @@ const VehicleList = () => {
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Speed</label>
+                                                        <label className="text-sm font-medium text-secondary">Speed</label>
                                                         <p className={`text-sm font-medium ${getSpeedColor(selectedVehicle.speed, selectedVehicle.status)}`}>
                                                             {selectedVehicle.speed} km/h
                                                         </p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Miles Today</label>
-                                                        <p className="text-sm font-medium text-slate-900">
+                                                        <label className="text-sm font-medium text-secondary">Miles Today</label>
+                                                        <p className="text-sm font-medium text-primary">
                                                             {formatMiles(assignmentDetails.milesToday)}
                                                         </p>
-                                                        <p className="text-xs text-slate-500">
+                                                        <p className="text-xs text-secondary">
                                                             {formatMiles(assignmentDetails.milesThisWeek)} this week
                                                         </p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Engine</label>
-                                                        <p className="text-sm text-slate-900 font-medium">
+                                                        <label className="text-sm font-medium text-secondary">Engine</label>
+                                                        <p className="text-sm text-primary font-medium">
                                                             {selectedVehicle.engineOn ? (
-                                                                <span className="text-green-600">ON</span>
+                                                                <span className="text-[var(--accent-green)]">ON</span>
                                                             ) : (
-                                                                <span className="text-red-600">OFF</span>
+                                                                <span className="text-[var(--accent-purple)]">OFF</span>
                                                             )}
                                                         </p>
                                                     </div>
@@ -1155,145 +1161,145 @@ const VehicleList = () => {
                                             </div>
 
                                             {/* Location Information */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <MapPin className="w-5 h-5 mr-2 text-red-600" />
+                                            <div className="bg-card border border-theme rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
+                                                    <MapPin className="w-5 h-5 mr-2 text-[var(--accent-purple)]" />
                                                     Current Location
                                                 </h3>
                                                 <div className="space-y-2">
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Address</label>
-                                                        <p className="text-sm text-slate-900">{selectedVehicle.currentLocation.address}</p>
+                                                        <label className="text-sm font-medium text-secondary">Address</label>
+                                                        <p className="text-sm text-primary">{selectedVehicle.currentLocation.address}</p>
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div>
-                                                            <label className="text-sm font-medium text-slate-600">Latitude</label>
-                                                            <p className="text-sm text-slate-900 font-mono">{selectedVehicle.currentLocation.latitude}</p>
+                                                            <label className="text-sm font-medium text-secondary">Latitude</label>
+                                                            <p className="text-sm text-primary font-mono">{selectedVehicle.currentLocation.latitude}</p>
                                                         </div>
                                                         <div>
-                                                            <label className="text-sm font-medium text-slate-600">Longitude</label>
-                                                            <p className="text-sm text-slate-900 font-mono">{selectedVehicle.currentLocation.longitude}</p>
+                                                            <label className="text-sm font-medium text-secondary">Longitude</label>
+                                                            <p className="text-sm text-primary font-mono">{selectedVehicle.currentLocation.longitude}</p>
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Last Updated</label>
-                                                        <p className="text-sm text-slate-900">{new Date(selectedVehicle.currentLocation.updatedAt).toLocaleString()}</p>
+                                                        <label className="text-sm font-medium text-secondary">Last Updated</label>
+                                                        <p className="text-sm text-primary">{new Date(selectedVehicle.currentLocation.updatedAt).toLocaleString()}</p>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* Assignment Information */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <Route className="w-5 h-5 mr-2 text-blue-600" />
+                                            <div className="bg-card border border-theme rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
+                                                    <Route className="w-5 h-5 mr-2 text-accent" />
                                                     Current Load
                                                 </h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Load ID</label>
-                                                        <p className="text-sm text-slate-900 font-semibold">{assignmentDetails.loadId}</p>
-                                                        <p className="text-xs text-slate-500">{assignmentDetails.customer}</p>
+                                                        <label className="text-sm font-medium text-secondary">Load ID</label>
+                                                        <p className="text-sm text-primary font-semibold">{assignmentDetails.loadId}</p>
+                                                        <p className="text-xs text-secondary">{assignmentDetails.customer}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Dispatcher</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{assignmentDetails.dispatcher}</p>
-                                                        <p className="text-xs text-slate-500">{assignmentDetails.eta}</p>
+                                                        <label className="text-sm font-medium text-secondary">Dispatcher</label>
+                                                        <p className="text-sm text-primary font-medium">{assignmentDetails.dispatcher}</p>
+                                                        <p className="text-xs text-secondary">{assignmentDetails.eta}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Route</label>
-                                                        <p className="text-sm text-slate-900">{assignmentDetails.origin}</p>
-                                                        <p className="text-xs text-slate-500">→ {assignmentDetails.destination}</p>
+                                                        <label className="text-sm font-medium text-secondary">Route</label>
+                                                        <p className="text-sm text-primary">{assignmentDetails.origin}</p>
+                                                        <p className="text-xs text-secondary">→ {assignmentDetails.destination}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600">Last checkpoint</label>
-                                                        <p className="text-sm text-slate-900">{assignmentDetails.lastCheckpoint}</p>
+                                                        <label className="text-sm font-medium text-secondary">Last checkpoint</label>
+                                                        <p className="text-sm text-primary">{assignmentDetails.lastCheckpoint}</p>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* Trailer Information */}
                                             {selectedVehicle.hasTrailer && selectedVehicle.trailerDetails && (
-                                                <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                        <Truck className="w-5 h-5 mr-2 text-orange-600" />
+                                                <div className="bg-card border border-theme rounded-lg p-6">
+                                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
+                                                        <Truck className="w-5 h-5 mr-2 text-[var(--accent-orange)]" />
                                                         Trailer Information
                                                     </h3>
                                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                         <div>
-                                                            <label className="text-sm font-medium text-slate-600">Serial Number</label>
-                                                            <p className="text-sm text-slate-900 font-medium">{selectedVehicle.trailerDetails.serialNumber}</p>
+                                                            <label className="text-sm font-medium text-secondary">Serial Number</label>
+                                                            <p className="text-sm text-primary font-medium">{selectedVehicle.trailerDetails.serialNumber}</p>
                                                         </div>
                                                         <div>
-                                                            <label className="text-sm font-medium text-slate-600">Capacity</label>
-                                                            <p className="text-sm text-slate-900 font-medium">{selectedVehicle.trailerDetails.capacity}</p>
+                                                            <label className="text-sm font-medium text-secondary">Capacity</label>
+                                                            <p className="text-sm text-primary font-medium">{selectedVehicle.trailerDetails.capacity}</p>
                                                         </div>
                                                         <div>
-                                                            <label className="text-sm font-medium text-slate-600">Status</label>
-                                                            <p className="text-sm text-slate-900 font-medium capitalize">{selectedVehicle.trailerDetails.status}</p>
+                                                            <label className="text-sm font-medium text-secondary">Status</label>
+                                                            <p className="text-sm text-primary font-medium capitalize">{selectedVehicle.trailerDetails.status}</p>
                                                         </div>
                                                     </div>
                                                 </div>
                                             )}
 
                                             {/* Driver Behaviour */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <TrendingUp className="w-5 h-5 mr-2 text-indigo-600" />
+                                            <div className="bg-card border border-theme rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
+                                                    <TrendingUp className="w-5 h-5 mr-2 text-[var(--accent-blue)]" />
                                                     Driver Behaviour Metrics
                                                 </h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                    <div className="text-center p-4 bg-red-50 rounded-lg">
-                                                        <div className="text-2xl font-bold text-red-600">{selectedVehicle.driverBehaviour.harshBraking}</div>
-                                                        <div className="text-sm text-slate-600">Harsh Braking Events</div>
+                                                    <div className="text-center p-4 bg-[rgba(255,255,255,0.03)] rounded-lg border border-theme">
+                                                        <div className="text-2xl font-bold text-[var(--accent-purple)]">{selectedVehicle.driverBehaviour.harshBraking}</div>
+                                                        <div className="text-sm text-secondary">Harsh Braking Events</div>
                                                     </div>
-                                                    <div className="text-center p-4 bg-amber-50 rounded-lg">
-                                                        <div className="text-2xl font-bold text-amber-600">{selectedVehicle.driverBehaviour.speedingEvents}</div>
-                                                        <div className="text-sm text-slate-600">Speeding Events</div>
+                                                    <div className="text-center p-4 bg-[var(--accent-orange)]/10 rounded-lg border border-[var(--accent-orange)]/20">
+                                                        <div className="text-2xl font-bold text-[var(--accent-orange)]">{selectedVehicle.driverBehaviour.speedingEvents}</div>
+                                                        <div className="text-sm text-secondary">Speeding Events</div>
                                                     </div>
-                                                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                                                        <div className="text-2xl font-bold text-blue-600">{selectedVehicle.driverBehaviour.idlingDuration}</div>
-                                                        <div className="text-sm text-slate-600">Idling Duration (min)</div>
+                                                    <div className="text-center p-4 bg-[rgba(255,255,255,0.03)] rounded-lg border border-theme">
+                                                        <div className="text-2xl font-bold text-accent">{selectedVehicle.driverBehaviour.idlingDuration}</div>
+                                                        <div className="text-sm text-secondary">Idling Duration (min)</div>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* Engine Health */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <Wrench className="w-5 h-5 mr-2 text-emerald-600" />
+                                            <div className="bg-card border border-theme rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
+                                                    <Wrench className="w-5 h-5 mr-2 text-[var(--accent-green)]" />
                                                     Engine Health
                                                 </h3>
                                                 <div className="space-y-4">
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div>
-                                                            <label className="text-sm font-medium text-slate-600">Battery Voltage</label>
-                                                            <p className="text-sm text-slate-900 font-medium">{selectedVehicle.engineHealth.batteryVoltage}V</p>
+                                                            <label className="text-sm font-medium text-secondary">Battery Voltage</label>
+                                                            <p className="text-sm text-primary font-medium">{selectedVehicle.engineHealth.batteryVoltage}V</p>
                                                         </div>
                                                         <div>
-                                                            <label className="text-sm font-medium text-slate-600">Engine Hours</label>
-                                                            <p className="text-sm text-slate-900 font-medium">{selectedVehicle.engineHealth.engineHours} hours</p>
+                                                            <label className="text-sm font-medium text-secondary">Engine Hours</label>
+                                                            <p className="text-sm text-primary font-medium">{selectedVehicle.engineHealth.engineHours} hours</p>
                                                         </div>
                                                     </div>
 
                                                     {/* Fault Codes */}
                                                     <div>
-                                                        <label className="text-sm font-medium text-slate-600 mb-2 block">Fault Codes</label>
+                                                        <label className="text-sm font-medium text-secondary mb-2 block">Fault Codes</label>
                                                         {selectedVehicle.engineHealth.faultCodes.length > 0 ? (
                                                             <div className="space-y-2">
                                                                 {selectedVehicle.engineHealth.faultCodes.map((fault, index) => (
-                                                                    <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                                                    <div key={index} className="p-3 bg-[var(--accent-red)]/10 border border-[var(--accent-red)]/30 rounded-lg">
                                                                         <div className="flex items-start space-x-2">
-                                                                            <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5" />
+                                                                            <AlertTriangle className="w-4 h-4 text-[var(--accent-red)] mt-0.5" />
                                                                             <div>
-                                                                                <div className="text-sm font-medium text-red-900">{fault.code}</div>
-                                                                                <div className="text-sm text-red-700">{fault.description}</div>
+                                                                                <div className="text-sm font-medium text-[var(--accent-red)]">{fault.code}</div>
+                                                                                <div className="text-sm text-secondary">{fault.description}</div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
                                                                 ))}
                                                             </div>
                                                         ) : (
-                                                            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+                                                            <div className="p-3 bg-[var(--accent-green)]/10 border border-[var(--accent-green)]/30 rounded-lg text-sm text-[var(--accent-green)]">
                                                                 No fault codes detected
                                                             </div>
                                                         )}
@@ -1302,42 +1308,42 @@ const VehicleList = () => {
                                             </div>
 
                                             {/* Recent Trips */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <Route className="w-5 h-5 mr-2 text-cyan-600" />
+                                            <div className="bg-card border border-theme rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
+                                                    <Route className="w-5 h-5 mr-2 text-[var(--accent-blue)]" />
                                                     Recent Trips
                                                 </h3>
                                                 {selectedVehicle.trips.length > 0 ? (
                                                     <div className="space-y-3">
                                                         {selectedVehicle.trips.map((trip, index) => (
-                                                            <div key={index} className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                                                            <div key={index} className="p-4 bg-card border border-theme rounded-lg">
                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                                     <div>
-                                                                        <label className="text-xs font-medium text-slate-600">Start Time</label>
-                                                                        <p className="text-sm text-slate-900">{new Date(trip.startTime).toLocaleString()}</p>
+                                                                        <label className="text-xs font-medium text-secondary">Start Time</label>
+                                                                        <p className="text-sm text-primary">{new Date(trip.startTime).toLocaleString()}</p>
                                                                     </div>
                                                                     <div>
-                                                                        <label className="text-xs font-medium text-slate-600">End Time</label>
-                                                                        <p className="text-sm text-slate-900">{new Date(trip.endTime).toLocaleString()}</p>
+                                                                        <label className="text-xs font-medium text-secondary">End Time</label>
+                                                                        <p className="text-sm text-primary">{new Date(trip.endTime).toLocaleString()}</p>
                                                                     </div>
                                                                 </div>
                                                                 <div className="mt-2">
-                                                                    <label className="text-xs font-medium text-slate-600">Route Points</label>
-                                                                    <p className="text-sm text-slate-900">{trip.route.length} GPS coordinates recorded</p>
+                                                                    <label className="text-xs font-medium text-secondary">Route Points</label>
+                                                                    <p className="text-sm text-primary">{trip.route.length} GPS coordinates recorded</p>
                                                                 </div>
                                                             </div>
                                                         ))}
                                                     </div>
                                                 ) : (
-                                                    <div className="text-sm text-slate-500 italic">No recent trips recorded</div>
+                                                    <div className="text-sm text-secondary italic">No recent trips recorded</div>
                                                 )}
                                             </div>
 
                                             {/* Vehicle Images */}
                                             {selectedVehicle.vehicleImage.length > 0 && (
-                                                <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                        <ImageIcon className="w-5 h-5 mr-2 text-pink-600" />
+                                                <div className="bg-card border border-theme rounded-lg p-6">
+                                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
+                                                        <ImageIcon className="w-5 h-5 mr-2 text-[var(--accent-purple)]" />
                                                         Vehicle Images
                                                     </h3>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1346,7 +1352,7 @@ const VehicleList = () => {
                                                                 key={index}
                                                                 src={image.imageUrl}
                                                                 alt={`Vehicle ${index + 1}`}
-                                                                className="w-full h-48 object-cover rounded-lg border border-slate-200"
+                                                                className="w-full h-48 object-cover rounded-lg border border-theme"
                                                             />
                                                         ))}
                                                     </div>
@@ -1355,9 +1361,9 @@ const VehicleList = () => {
 
                                             {/* Documents */}
                                             {selectedVehicle.documents.length > 0 && (
-                                                <div className="bg-white border border-slate-200 rounded-lg p-6">
-                                                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                        <FileText className="w-5 h-5 mr-2 text-violet-600" />
+                                                <div className="bg-card border border-theme rounded-lg p-6">
+                                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
+                                                        <FileText className="w-5 h-5 mr-2 text-[var(--accent-purple)]" />
                                                         Documents
                                                     </h3>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1366,9 +1372,9 @@ const VehicleList = () => {
                                                                 <img
                                                                     src={doc.documentUrl}
                                                                     alt={`Document ${index + 1}`}
-                                                                    className="w-full h-32 object-cover rounded-lg border border-slate-200"
+                                                                    className="w-full h-32 object-cover rounded-lg border border-theme"
                                                                 />
-                                                                <div className="absolute top-2 left-2 px-2 py-1 bg-black bg-opacity-75 text-white text-xs rounded">
+                                                                <div className="absolute top-2 left-2 px-2 py-1 bg-black bg-opacity-75 text-accenttext-xs rounded">
                                                                     Document {index + 1}
                                                                 </div>
                                                             </div>
@@ -1390,7 +1396,7 @@ const VehicleList = () => {
                     <>
                         {/* Overlay */}
                         <div
-                            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
+                            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
                             onClick={() => {
                                 setShowDetailsSidebar(false);
                                 setTimeout(() => setSelectedVehicle(null), 300);
@@ -1399,18 +1405,18 @@ const VehicleList = () => {
 
                         {/* Sidebar Panel */}
                         <div
-                            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+                            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
                         >
                             <div className="p-6">
                                 {/* Header */}
-                                <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                                    <h2 className="text-2xl font-bold text-gray-900">Vehicle Details</h2>
+                                <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
+                                    <h2 className="text-2xl font-bold text-primary">Vehicle Details</h2>
                                     <button
                                         onClick={() => {
                                             setShowDetailsSidebar(false);
                                             setTimeout(() => setSelectedVehicle(null), 300);
                                         }}
-                                        className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                                        className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                                     >
                                         <X size={24} />
                                     </button>
@@ -1418,27 +1424,27 @@ const VehicleList = () => {
 
                                 <div className="space-y-6">
                                     {/* Vehicle Header */}
-                                    <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                                    <div className="bg-gradient-to-r from-[var(--accent-blue)]/20 to-[var(--accent-purple)]/20 border border-white/10 p-6 rounded-lg">
                                         <div className="flex items-center gap-4">
-                                            <div className="h-20 w-20 flex-shrink-0">
-                                                <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600">
-                                                    <Truck size={32} />
+                                            <div className="h-16 w-16 flex-shrink-0">
+                                                <div className="h-16 w-16 rounded-full flex items-center justify-center text-white text-2xl border-2 border-white/20 bg-[rgba(255,255,255,0.1)]">
+                                                    <Truck size={28} />
                                                 </div>
                                             </div>
                                             <div className="flex-1">
-                                                <h3 className="text-2xl font-bold mb-1">{selectedVehicle.plateNumber}</h3>
-                                                <p className="text-blue-100 text-sm flex items-center gap-2">
+                                                <h3 className="text-xl font-bold text-primary mb-1">{selectedVehicle.plateNumber}</h3>
+                                                <p className="text-secondary text-sm flex items-center gap-2">
                                                     <Car size={16} />
-                                                    Vehicle ID: <span className="font-semibold">{selectedVehicle.internalId}</span>
+                                                    Vehicle ID: <span className="font-semibold text-primary">{selectedVehicle.internalId}</span>
                                                 </p>
                                                 <span
-                                                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mt-2 ${selectedVehicle.status === "moving"
-                                                        ? "bg-emerald-500 text-white"
+                                                    className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mt-2 ${selectedVehicle.status === "moving"
+                                                        ? "bg-[var(--accent-green)]/20 text-[var(--accent-green)] border border-[var(--accent-green)]/30"
                                                         : selectedVehicle.status === "idle"
-                                                        ? "bg-amber-500 text-white"
-                                                        : selectedVehicle.status === "maintenance"
-                                                        ? "bg-red-500 text-white"
-                                                        : "bg-gray-500 text-white"
+                                                            ? "bg-[var(--accent-orange)]/20 text-[var(--accent-orange)] border border-[var(--accent-orange)]/30"
+                                                            : selectedVehicle.status === "maintenance"
+                                                                ? "bg-[var(--accent-red)]/20 text-[var(--accent-red)] border border-[var(--accent-red)]/30"
+                                                                : "bg-[rgba(255,255,255,0.08)] text-secondary border border-theme"
                                                         }`}
                                                 >
                                                     {selectedVehicle.status === "moving" ? (
@@ -1468,36 +1474,36 @@ const VehicleList = () => {
                                     </div>
 
                                     {/* Vehicle Information */}
-                                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                        <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                                            <Car size={20} className="text-blue-600" />
+                                    <div className="bg-card p-6 rounded-lg border border-theme">
+                                        <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                                            <Car size={20} className="text-accent" />
                                             Vehicle Information
                                         </h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Internal ID</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.internalId}</p>
+                                                <p className="text-sm text-secondary mb-1">Internal ID</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.internalId}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Plate Number</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.plateNumber}</p>
+                                                <p className="text-sm text-secondary mb-1">Plate Number</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.plateNumber}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">VIN Number</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.vinNumber || "—"}</p>
+                                                <p className="text-sm text-secondary mb-1">VIN Number</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.vinNumber || "—"}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Make / Model</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.make} {selectedVehicle.model}</p>
+                                                <p className="text-sm text-secondary mb-1">Make / Model</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.make} {selectedVehicle.model}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Year</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.year || "—"}</p>
+                                                <p className="text-sm text-secondary mb-1">Year</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.year || "—"}</p>
                                             </div>
                                             {selectedVehicle.driver && (
                                                 <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Assigned Driver</p>
-                                                    <p className="font-medium text-gray-900">{selectedVehicle.driver.name || "—"}</p>
+                                                    <p className="text-sm text-secondary mb-1">Assigned Driver</p>
+                                                    <p className="font-medium text-primary">{selectedVehicle.driver.name || "—"}</p>
                                                 </div>
                                             )}
                                         </div>
@@ -1505,15 +1511,15 @@ const VehicleList = () => {
 
                                     {/* Location Information */}
                                     {selectedVehicle.currentLocation && (
-                                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
-                                            <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                                                <MapPin size={20} className="text-blue-600" />
+                                        <div className="bg-card p-6 rounded-lg border border-theme">
+                                            <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                                                <MapPin size={20} className="text-accent" />
                                                 Current Location
                                             </h4>
                                             <div>
-                                                <p className="text-sm text-gray-600 mb-1">Address</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.currentLocation.address}</p>
-                                                <p className="text-xs text-gray-500 mt-1">
+                                                <p className="text-sm text-secondary mb-1">Address</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.currentLocation.address}</p>
+                                                <p className="text-xs text-secondary mt-1">
                                                     {selectedVehicle.currentLocation.latitude}, {selectedVehicle.currentLocation.longitude}
                                                 </p>
                                             </div>
@@ -1525,35 +1531,35 @@ const VehicleList = () => {
                                         const assignment = getAssignmentForVehicle(selectedVehicle, vehicleAssignments);
                                         if (assignment.loadId !== "Unassigned") {
                                             return (
-                                                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                                                        <Route size={20} className="text-blue-600" />
+                                                <div className="bg-card p-6 rounded-lg border border-theme">
+                                                    <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                                                        <Route size={20} className="text-accent" />
                                                         Current Assignment
                                                     </h4>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Load ID</p>
-                                                            <p className="font-medium text-gray-900">{assignment.loadId}</p>
+                                                            <p className="text-sm text-secondary mb-1">Load ID</p>
+                                                            <p className="font-medium text-primary">{assignment.loadId}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Customer</p>
-                                                            <p className="font-medium text-gray-900">{assignment.customer}</p>
+                                                            <p className="text-sm text-secondary mb-1">Customer</p>
+                                                            <p className="font-medium text-primary">{assignment.customer}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Origin</p>
-                                                            <p className="font-medium text-gray-900">{assignment.origin}</p>
+                                                            <p className="text-sm text-secondary mb-1">Origin</p>
+                                                            <p className="font-medium text-primary">{assignment.origin}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Destination</p>
-                                                            <p className="font-medium text-gray-900">{assignment.destination}</p>
+                                                            <p className="text-sm text-secondary mb-1">Destination</p>
+                                                            <p className="font-medium text-primary">{assignment.destination}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Miles Today</p>
-                                                            <p className="font-medium text-gray-900">{formatMiles(assignment.milesToday)}</p>
+                                                            <p className="text-sm text-secondary mb-1">Miles Today</p>
+                                                            <p className="font-medium text-primary">{formatMiles(assignment.milesToday)}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">ETA</p>
-                                                            <p className="font-medium text-gray-900">{assignment.eta}</p>
+                                                            <p className="text-sm text-secondary mb-1">ETA</p>
+                                                            <p className="font-medium text-primary">{assignment.eta}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1563,41 +1569,41 @@ const VehicleList = () => {
                                     })()}
 
                                     {/* Performance Metrics */}
-                                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                        <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                                            <Activity size={20} className="text-blue-600" />
+                                    <div className="bg-card p-6 rounded-lg border border-theme">
+                                        <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                                            <Activity size={20} className="text-accent" />
                                             Performance Metrics
                                         </h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Current Speed</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.speed} km/h</p>
+                                                <p className="text-sm text-secondary mb-1">Current Speed</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.speed} km/h</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Fuel Level</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.fuelLevel}%</p>
+                                                <p className="text-sm text-secondary mb-1">Fuel Level</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.fuelLevel}%</p>
                                             </div>
                                             {selectedVehicle.odometer && (
                                                 <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Odometer</p>
-                                                    <p className="font-medium text-gray-900">{selectedVehicle.odometer.toLocaleString()} mi</p>
+                                                    <p className="text-sm text-secondary mb-1">Odometer</p>
+                                                    <p className="font-medium text-primary">{selectedVehicle.odometer.toLocaleString()} mi</p>
                                                 </div>
                                             )}
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Engine Status</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.engineOn ? "On" : "Off"}</p>
+                                                <p className="text-sm text-secondary mb-1">Engine Status</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.engineOn ? "On" : "Off"}</p>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Action Buttons */}
-                                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                                         <button
                                             onClick={() => {
                                                 setShowDetailsSidebar(false);
                                                 setTimeout(() => setSelectedVehicle(null), 300);
                                             }}
-                                            className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                                            className="px-6 py-2.5 bg-[rgba(255,255,255,0.08)] text-secondary font-medium rounded-lg hover:bg-[rgba(255,255,255,0.12)] border border-theme transition-all"
                                         >
                                             Close
                                         </button>

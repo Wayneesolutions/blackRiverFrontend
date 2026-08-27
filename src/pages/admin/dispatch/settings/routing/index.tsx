@@ -35,12 +35,12 @@ export default function RoutingConfig() {
   return (
     <div className="min-h-[60vh] w-full bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4">
       <div className="mx-auto w-full max-w-2xl">
-        <div className="relative bg-white rounded-2xl shadow-xl ring-1 ring-gray-200 overflow-hidden">
+        <div className="relative bg-card rounded-2xl shadow-xl ring-1 ring-gray-200 overflow-hidden">
           {/* Header */}
           <button
             onClick={() => setOpen((s) => !s)}
             aria-expanded={open}
-            className="w-full flex items-center justify-between gap-4 p-6 border-b border-gray-100 hover:bg-gray-50"
+            className="w-full flex items-center justify-between gap-4 p-6 border-b border-theme hover:bg-[rgba(255,255,255,0.03)]"
           >
             <div className="flex items-center gap-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 ring-1 ring-indigo-100">
@@ -59,10 +59,10 @@ export default function RoutingConfig() {
                 </svg>
               </div>
               <div className="text-left">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-primary">
                   Configure Routing
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-secondary">
                   Choose routing engine and distance unit used across the
                   platform.
                 </p>
@@ -74,7 +74,7 @@ export default function RoutingConfig() {
               <svg
                 className={`h-5 w-5 transform transition-transform duration-200 ${
                   open ? "rotate-180" : "rotate-0"
-                } text-gray-400`}
+                } text-secondary`}
                 viewBox="0 0 20 20"
                 fill="currentColor"
                 aria-hidden="true"
@@ -89,10 +89,10 @@ export default function RoutingConfig() {
             <div className="p-6 space-y-6">
               {/* Routing Service */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-primary mb-2">
                   Routing Service
                   <span
-                    className="ml-2 text-xs text-gray-400"
+                    className="ml-2 text-xs text-secondary"
                     title="Which routing engine should be used to calculate routes."
                   >
                     ⓘ
@@ -103,7 +103,7 @@ export default function RoutingConfig() {
                   <select
                     value={service}
                     onChange={(e) => setService(e.target.value)}
-                    className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    className="block w-full rounded-lg border border-theme bg-card px-4 py-3 pr-10 text-sm text-primary shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
                     aria-label="Routing Service"
                   >
                     <option value="">Select routing service...</option>
@@ -115,7 +115,7 @@ export default function RoutingConfig() {
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
                     <svg
-                      className="h-5 w-5 text-gray-400"
+                      className="h-5 w-5 text-secondary"
                       viewBox="0 0 20 20"
                       fill="none"
                     >
@@ -133,10 +133,10 @@ export default function RoutingConfig() {
 
               {/* Routing Distance Unit */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-primary mb-2">
                   Routing Distance Unit
                   <span
-                    className="ml-2 text-xs text-gray-400"
+                    className="ml-2 text-xs text-secondary"
                     title="Unit used for route distances and calculations."
                   >
                     ⓘ
@@ -147,7 +147,7 @@ export default function RoutingConfig() {
                   <select
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
-                    className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    className="block w-full rounded-lg border border-theme bg-card px-4 py-3 pr-10 text-sm text-primary shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
                     aria-label="Routing Distance Unit"
                   >
                     <option value="">Select routing unit...</option>
@@ -159,7 +159,7 @@ export default function RoutingConfig() {
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
                     <svg
-                      className="h-5 w-5 text-gray-400"
+                      className="h-5 w-5 text-secondary"
                       viewBox="0 0 20 20"
                       fill="none"
                     >
@@ -177,7 +177,7 @@ export default function RoutingConfig() {
 
               {/* Footer actions */}
               <div className="flex items-center justify-between gap-4">
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-secondary">
                   Changes affect new route calculations immediately after saving.
                 </div>
 
@@ -185,7 +185,7 @@ export default function RoutingConfig() {
                   <button
                     type="button"
                     onClick={handleReset}
-                    className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                    className="rounded-md px-4 py-2 text-sm font-medium text-primary ring-1 ring-inset ring-gray-200 hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
                     disabled={!dirty}
                   >
                     Reset

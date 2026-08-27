@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { CSSProperties } from 'react';
 import {
   FaExclamationTriangle,
   FaPlus,
@@ -35,26 +34,7 @@ import { createIssue } from '../../../../axios/api/distapcher';
 import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { getAllTrailers } from '../../../../axios/api/trailer';
 import { listDriver } from '../../../../axios/api/distapcher';
-import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
-const ACCENT_PRIMARY = FLEET_COLORS.primary;
-const ACCENT_DARK = FLEET_COLORS.dark;
-const hexToRgba = (hex: string, alpha = 1) => {
-  const parsed = hex.replace('#', '');
-  const bigint = parseInt(parsed, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-const ACCENT_SOFT = hexToRgba(ACCENT_PRIMARY, 0.1);
-const ACCENT_SOFT_BORDER = hexToRgba(ACCENT_PRIMARY, 0.25);
-const ACCENT_VARS = {
-  '--accent-color': ACCENT_PRIMARY,
-  '--accent-dark': ACCENT_DARK,
-  '--accent-soft': ACCENT_SOFT,
-  '--accent-soft-border': ACCENT_SOFT_BORDER
-} as CSSProperties;
 
 
 
@@ -205,16 +185,16 @@ interface ToastNotification {
 
 const icons = {
   success: <FaCheckCircle className="text-green-600" size={20} />,
-  error: <FaExclamationCircle className="text-red-600" size={20} />,
+  error: <FaExclamationCircle className="text-[#A855F7]" size={20} />,
   info: <FaInfoCircle className="text-[var(--accent-color)]" size={20} />,
 };
 
 const ToastNotification: React.FC<ToastNotification & { onRemove: () => void }> = ({ type, message, onRemove }) => {
   return (
-    <div className={`fixed top-4 right-4 z-[9999] flex items-center gap-3 bg-white px-6 py-4 rounded-lg shadow-lg border-l-4 ${type === 'success' ? 'border-green-500' : type === 'error' ? 'border-red-500' : 'border-blue-500'} animate-slide-in`}>
+    <div className={`fixed top-4 right-4 z-[9999] flex items-center gap-3 bg-card px-6 py-4 rounded-lg shadow-lg border-l-4 ${type === 'success' ? 'border-green-500' : type === 'error' ? 'border-red-500' : 'border-blue-500'} animate-slide-in`}>
       {icons[type]}
-      <p className="text-gray-800 font-medium">{message}</p>
-      <button onClick={onRemove} className="ml-4 text-gray-400 hover:text-gray-600">
+      <p className="text-primary font-medium">{message}</p>
+      <button onClick={onRemove} className="ml-4 text-secondary hover:text-secondary">
         <FaTimes size={16} />
       </button>
     </div>
@@ -227,11 +207,11 @@ const Incidents: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [trailers, setTrailers] = useState<Trailer[]>([]);
   const [loading, setLoading] = useState(false);
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -349,8 +329,8 @@ const Incidents: React.FC = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -509,13 +489,13 @@ const Incidents: React.FC = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'open':
-        return <FaExclamationCircle className="text-red-600" size={20} />;
+        return <FaExclamationCircle className="text-[#A855F7]" size={20} />;
       case 'under-review':
-        return <FaInfoCircle className="text-orange-600" size={20} />;
+        return <FaInfoCircle className="text-[#F59E0B]" size={20} />;
       case 'closed':
         return <FaCheckCircle className="text-green-600" size={20} />;
       default:
-        return <FaExclamationTriangle className="text-gray-600" size={20} />;
+        return <FaExclamationTriangle className="text-secondary" size={20} />;
     }
   };
 
@@ -528,7 +508,7 @@ const Incidents: React.FC = () => {
       case 'closed':
         return 'bg-green-100 text-green-800 border-green-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-card text-primary border-theme';
     }
   };
 
@@ -650,7 +630,7 @@ const Incidents: React.FC = () => {
     try {
       // Create FormData to handle file uploads
       const formData = new FormData();
-      
+
       // Add all form fields
       formData.append('incidentDateTime', incidentForm.incidentDateTime);
       formData.append('location', JSON.stringify(incidentForm.location));
@@ -680,7 +660,7 @@ const Incidents: React.FC = () => {
       formData.append('fmcsaReportable', String(incidentForm.fmcsaReportable || false));
       if (incidentForm.fmcsaNotes) formData.append('fmcsaNotes', incidentForm.fmcsaNotes);
       if (incidentForm.notes) formData.append('notes', incidentForm.notes);
-      
+
       // Add files if they exist
       if (incidentForm.accidentReport instanceof File) {
         formData.append('accidentReport', incidentForm.accidentReport);
@@ -705,7 +685,7 @@ const Incidents: React.FC = () => {
               const vehiclesResponse = await getAllVehicles(1, 1000);
               if (vehiclesResponse?.success && vehiclesResponse?.data) {
                 const matchingVehicle = vehiclesResponse.data.find(
-                  (vehicle: any) => 
+                  (vehicle: any) =>
                     vehicle.unitNumber === incidentForm.unitNumber ||
                     vehicle.internalId === incidentForm.unitNumber ||
                     vehicle.plateNumber === incidentForm.unitNumber
@@ -783,7 +763,7 @@ const Incidents: React.FC = () => {
     try {
       // Create FormData to handle file uploads
       const formData = new FormData();
-      
+
       // Add all form fields
       formData.append('incidentDateTime', incidentForm.incidentDateTime);
       formData.append('location', JSON.stringify(incidentForm.location));
@@ -813,7 +793,7 @@ const Incidents: React.FC = () => {
       formData.append('fmcsaReportable', String(incidentForm.fmcsaReportable || false));
       if (incidentForm.fmcsaNotes) formData.append('fmcsaNotes', incidentForm.fmcsaNotes);
       if (incidentForm.notes) formData.append('notes', incidentForm.notes);
-      
+
       // Add files if they exist (only new files, existing file names are preserved)
       if (incidentForm.accidentReport instanceof File) {
         formData.append('accidentReport', incidentForm.accidentReport);
@@ -905,7 +885,8 @@ const Incidents: React.FC = () => {
     icon: Icon,
     onClick,
     bgColor,
-    iconColor
+    iconColor,
+    background
   }: {
     title: string;
     value: number | string;
@@ -914,19 +895,20 @@ const Incidents: React.FC = () => {
     onClick?: () => void;
     bgColor: string;
     iconColor: string;
+    background: string;
   }) => {
     return (
       <div
         onClick={onClick}
-        className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+        className={`bg-[${background}]/20 rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
       >
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-gray-900 mb-1">{title}</h3>
+            <h3 className="text-sm font-bold text-primary mb-1">{title}</h3>
             <div className="flex items-baseline gap-2 mb-0.5">
-              <span className="text-xl font-bold text-gray-900">{value}</span>
+              <span className="text-xl font-bold text-primary">{value}</span>
             </div>
-            {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
+            {subtitle && <p className="text-xs text-secondary">{subtitle}</p>}
           </div>
           <div className={`${bgColor} rounded-lg p-2 shadow-sm`}>
             {React.isValidElement(Icon) ? React.cloneElement(Icon as React.ReactElement<{ className?: string, size?: number }>, { className: iconColor, size: 21 }) : null}
@@ -937,7 +919,7 @@ const Incidents: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF', ...ACCENT_VARS }}>
+    <div className="min-h-screen pb-10 bg-main">
       {/* Toast Notifications */}
       {notifications.map((notification) => (
         <ToastNotification
@@ -955,16 +937,16 @@ const Incidents: React.FC = () => {
           <div className="mb-4 relative z-10">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-2xl font-bold text-black flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-headings flex items-center gap-2">
                   Accidents
                 </h1>
-                <div className="flex items-center gap-2 text-black/90">
+                <div className="flex items-center gap-2 text-secondary">
                   <span className="text-xs">Manage and track all accidents</span>
                 </div>
               </div>
               <button
                 onClick={handleAddIncident}
-                className="flex items-center gap-2 px-4 py-2 bg-white text-[#0ea3d8] rounded-lg hover:bg-white/90 shadow-sm transition-all font-bold text-sm"
+                className="flex items-center gap-2 px-4 py-2 text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm bg-[var(--accent-navyblue)]"
               >
                 <FaPlus /> Report Incident
               </button>
@@ -976,30 +958,34 @@ const Incidents: React.FC = () => {
             <StatCard
               title="Total Incidents"
               value={stats.total}
-              bgColor="bg-blue-50"
-              iconColor="text-[#0ea3d8]"
+              bgColor=""
+              iconColor="text-[var(--accent-blue)]"
               icon={<FaExclamationTriangle />}
+              background='var(--accent-blue)'
             />
             <StatCard
               title="Open"
               value={stats.open}
-              bgColor="bg-red-50"
-              iconColor="text-red-600"
+              bgColor=""
+              iconColor="text-[var(--accent-purple)]"
               icon={<FaExclamationCircle />}
+              background='var(--accent-purple)'
             />
             <StatCard
               title="Under Review"
               value={stats.underReview}
-              bgColor="bg-orange-50"
-              iconColor="text-orange-600"
+              bgColor=""
+              iconColor="text-[var(--accent-orange)]"
               icon={<FaInfoCircle />}
+              background='var(--accent-orange)'
             />
             <StatCard
               title="Closed"
               value={stats.closed}
-              bgColor="bg-green-50"
-              iconColor="text-green-600"
+              bgColor=""
+              iconColor="text-[var(--accent-green)]"
               icon={<FaCheckCircle />}
+              background='var(--accent-green)'
             />
           </div>
         </div>
@@ -1007,13 +993,13 @@ const Incidents: React.FC = () => {
 
       <div className="w-full mx-auto px-4 -mt-4">
         {/* Country Tabs */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-6">
-          <div className="flex gap-2 border-b border-gray-100 pb-4">
+        <div className="bg-card rounded-lg shadow-sm border border-theme p-4 mb-6">
+          <div className="flex gap-2 border-b border-theme pb-4">
             <button
               onClick={() => setCountryFilter('all')}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${countryFilter === 'all'
-                ? 'bg-[#E0F2FE] text-[#0284C7]'
-                : 'text-gray-600 hover:bg-gray-50'
+                ? 'bg-[var(--accent-navyblue)] text-[#0284C7]'
+                : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
             >
               All ({incidents.length})
@@ -1021,38 +1007,38 @@ const Incidents: React.FC = () => {
             <button
               onClick={() => setCountryFilter('canada')}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${countryFilter === 'canada'
-                ? 'bg-[#E0F2FE] text-[#0284C7]'
-                : 'text-gray-600 hover:bg-gray-50'
+                ? 'bg-[var(--accent-navyblue)] text-[#0284C7]'
+                : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
             >
-              <FaFlag className="text-red-600" size={14} />
+              <FaFlag className="text-[#A855F7]" size={14} />
               Canada ({incidents.filter(i => i.location?.country === 'canada').length})
             </button>
             <button
               onClick={() => setCountryFilter('usa')}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${countryFilter === 'usa'
-                ? 'bg-[#E0F2FE] text-[#0284C7]'
-                : 'text-gray-600 hover:bg-gray-50'
+                ? 'bg-[var(--accent-navyblue)] text-[#0284C7]'
+                : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
             >
-              <FaFlagUsa className="text-blue-600" size={14} />
+              <FaFlagUsa className="text-[#00D1FF]" size={14} />
               USA ({incidents.filter(i => i.location?.country === 'usa').length})
             </button>
           </div>
         </div>
 
         {/* Filters and Actions */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
+        <div className="bg-card rounded-lg shadow-sm border border-theme p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
             <div className="md:col-span-2">
               <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
                 <input
                   type="text"
                   placeholder="Search incidents..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                 />
               </div>
             </div>
@@ -1064,12 +1050,27 @@ const Incidents: React.FC = () => {
                   setStatusFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
               >
-                <option value="all">All Status</option>
-                <option value="open">Open</option>
-                <option value="under-review">Under Review</option>
-                <option value="closed">Closed</option>
+                <option value="all" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  All Status
+                </option>
+
+                <option value="open" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  Open
+                </option>
+
+                <option value="under-review" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  Under Review
+                </option>
+
+                <option value="closed" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  Closed
+                </option>
               </select>
             </div>
 
@@ -1080,11 +1081,27 @@ const Incidents: React.FC = () => {
                   setTypeFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
               >
-                <option value="all">All Types</option>
+                <option
+                  value="all"
+                  className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                >
+                  All Types
+                </option>
+
                 {incidentTypes.map((type) => (
-                  <option key={type} value={type}>{type}</option>
+                  <option
+                    key={type}
+                    value={type}
+                    className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                  >
+                    {type}
+                  </option>
                 ))}
               </select>
             </div>
@@ -1096,11 +1113,27 @@ const Incidents: React.FC = () => {
                   setLocationFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
               >
-                <option value="all">All Locations</option>
+                <option
+                  value="all"
+                  className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                >
+                  All Locations
+                </option>
+
                 {locations.map((location) => (
-                  <option key={location} value={location}>{location}</option>
+                  <option
+                    key={location}
+                    value={location}
+                    className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                  >
+                    {location}
+                  </option>
                 ))}
               </select>
             </div>
@@ -1112,25 +1145,41 @@ const Incidents: React.FC = () => {
                   setDriverFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
               >
-                <option value="all">All Drivers</option>
+                <option
+                  value="all"
+                  className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                >
+                  All Drivers
+                </option>
+
                 {drivers.map((driver) => (
-                  <option key={driver._id} value={driver._id}>{driver.name}</option>
+                  <option
+                    key={driver._id}
+                    value={driver._id}
+                    className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                  >
+                    {driver.name}
+                  </option>
                 ))}
               </select>
             </div>
           </div>
 
           <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-secondary">
               Showing <span className="font-semibold">{(currentPage - 1) * pageSize + 1}</span> to{' '}
               <span className="font-semibold">{Math.min(currentPage * pageSize, total)}</span> of{' '}
               <span className="font-semibold">{total}</span> incidents
             </p>
             <button
               onClick={handleAddIncident}
-              className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors flex items-center gap-2"
+              className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors flex items-center gap-2"
             >
               <FaPlus size={16} />
               Add Incident
@@ -1139,7 +1188,7 @@ const Incidents: React.FC = () => {
         </div>
 
         {/* Incidents Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
           <style>{`
             .top-scrollbar-container::-webkit-scrollbar {
               height: 8px;
@@ -1164,158 +1213,157 @@ const Incidents: React.FC = () => {
           `}</style>
           <div className="relative">
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
-            <div 
+            <div
               ref={topScrollRef}
               className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-              style={{ 
+              style={{
                 maxHeight: '20px',
                 marginBottom: '2px',
-                scrollbarWidth: 'thin',
-                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+
               }}
             >
               <div className="top-scroll-content" style={{ height: '1px' }}></div>
             </div>
             {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-            <div 
+            <div
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
               <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">
-                    Incident #
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date/Time
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Location
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Driver
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Unit/Trailer
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Case File #
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky right-0 bg-gray-50 z-10">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {loading ? (
+                <thead className="bg-card border-b border-theme">
                   <tr>
-                    <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
-                      Loading incidents...
-                    </td>
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider sticky left-0 bg-card z-10">
+                      Incident #
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider">
+                      Date/Time
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider">
+                      Location
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider">
+                      Driver
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider">
+                      Unit/Trailer
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider">
+                      Case File #
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider sticky right-0 bg-card z-10">
+                      Actions
+                    </th>
                   </tr>
-                ) : incidents.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
-                      No incidents found
-                    </td>
-                  </tr>
-                ) : (
-                  incidents.map((incident) => (
-                    <tr 
-                      key={incident._id} 
-                      className="hover:bg-gray-50 transition-colors cursor-pointer"
-                      onClick={() => handleViewIncident(incident)}
-                    >
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky left-0 bg-white z-10">
-                        <p className="text-sm font-semibold text-gray-800">{incident.incidentNumber || 'N/A'}</p>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <FaCalendarAlt size={14} />
-                          {incident.incidentDateTime ? formatDate(incident.incidentDateTime) : 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <p className="text-sm text-gray-800">{incident.incidentType || 'N/A'}</p>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <FaMapMarkerAlt size={14} />
-                          <span>
-                            {incident.location?.city || ''}{incident.location?.city && incident.location?.stateProvince ? ', ' : ''}
-                            {incident.location?.stateProvince || ''}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <FaUser size={14} />
-                          {getDriverName(incident.driver)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-600">
-                          {incident.unitNumber ? `Unit: ${incident.unitNumber}` : 'N/A'}
-                          {incident.trailerNumber && (
-                            <div className="text-xs text-gray-500">Trailer: {incident.trailerNumber}</div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <p className="text-sm text-gray-600">{incident.caseFileNumber || 'N/A'}</p>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(incident.incidentStatus)}
-                          <span className={`text-xs px-3 py-1 rounded-full font-semibold border ${getStatusBadgeColor(incident.incidentStatus)}`}>
-                            {incident.incidentStatus?.toUpperCase().replace('-', ' ') || 'N/A'}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-white z-10" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleViewIncident(incident)}
-                            className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
-                            title="View Details"
-                          >
-                            <FaEye size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleEditIncident(incident)}
-                            className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
-                            title="Edit Incident"
-                          >
-                            <FaEdit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteIncident(incident)}
-                            className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete Incident"
-                          >
-                            <FaTrash size={16} />
-                          </button>
-                        </div>
+                </thead>
+                <tbody className="bg-card divide-y divide-theme">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={9} className="px-6 py-12 text-center text-secondary">
+                        Loading incidents...
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
+                  ) : incidents.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="px-6 py-12 text-center text-secondary">
+                        No incidents found
+                      </td>
+                    </tr>
+                  ) : (
+                    incidents.map((incident) => (
+                      <tr
+                        key={incident._id}
+                        className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
+                        onClick={() => handleViewIncident(incident)}
+                      >
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky left-0 bg-card z-10">
+                          <p className="text-sm font-semibold text-primary">{incident.incidentNumber || 'N/A'}</p>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2 text-sm text-secondary">
+                            <FaCalendarAlt size={14} />
+                            {incident.incidentDateTime ? formatDate(incident.incidentDateTime) : 'N/A'}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <p className="text-sm text-primary">{incident.incidentType || 'N/A'}</p>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2 text-sm text-secondary">
+                            <FaMapMarkerAlt size={14} />
+                            <span>
+                              {incident.location?.city || ''}{incident.location?.city && incident.location?.stateProvince ? ', ' : ''}
+                              {incident.location?.stateProvince || ''}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2 text-sm text-secondary">
+                            <FaUser size={14} />
+                            {getDriverName(incident.driver)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-secondary">
+                            {incident.unitNumber ? `Unit: ${incident.unitNumber}` : 'N/A'}
+                            {incident.trailerNumber && (
+                              <div className="text-xs text-secondary">Trailer: {incident.trailerNumber}</div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <p className="text-sm text-secondary">{incident.caseFileNumber || 'N/A'}</p>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(incident.incidentStatus)}
+                            <span className={`text-xs px-3 py-1 rounded-full font-semibold border ${getStatusBadgeColor(incident.incidentStatus)}`}>
+                              {incident.incidentStatus?.toUpperCase().replace('-', ' ') || 'N/A'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-card z-10" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleViewIncident(incident)}
+                              className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
+                              title="View Details"
+                            >
+                              <FaEye size={16} className='text-headings' />
+                            </button>
+                            <button
+                              onClick={() => handleEditIncident(incident)}
+                              className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
+                              title="Edit Incident"
+                            >
+                              <FaEdit size={16} className='text-headings' />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteIncident(incident)}
+                              className="text-[#A855F7] hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete Incident"
+                            >
+                              <FaTrash size={16} className='text-[var(--accent-red)]' />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
               </table>
             </div>
           </div>
 
           {/* Pagination Controls */}
           {total > 0 && (
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
-              <div className="text-sm text-gray-700">
+            <div className="px-6 py-4 border-t border-theme flex items-center justify-between bg-card">
+              <div className="text-sm text-primary">
                 Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{' '}
                 <span className="font-medium">{Math.min(currentPage * pageSize, total)}</span> of{' '}
                 <span className="font-medium">{total}</span> incidents
@@ -1326,8 +1374,8 @@ const Incidents: React.FC = () => {
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
                     className={`px-3 py-2 rounded-lg border ${currentPage === 1
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
-                      : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                      ? 'bg-card text-secondary cursor-not-allowed border-theme'
+                      : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                       }`}
                   >
                     <FaChevronLeft size={14} />
@@ -1350,7 +1398,7 @@ const Incidents: React.FC = () => {
                           onClick={() => setCurrentPage(pageNum)}
                           className={`px-3 py-2 rounded-lg border ${currentPage === pageNum
                             ? 'bg-[var(--accent-color)] text-white border-[var(--accent-color)]'
-                            : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                            : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                             }`}
                         >
                           {pageNum}
@@ -1362,8 +1410,8 @@ const Incidents: React.FC = () => {
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
                     className={`px-3 py-2 rounded-lg border ${currentPage === totalPages
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
-                      : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                      ? 'bg-card text-secondary cursor-not-allowed border-theme'
+                      : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                       }`}
                   >
                     <FaChevronRight size={14} />
@@ -1374,7 +1422,7 @@ const Incidents: React.FC = () => {
                       setPageSize(Number(e.target.value));
                       setCurrentPage(1);
                     }}
-                    className="ml-4 px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-700"
+                    className="ml-4 px-3 py-2 rounded-lg border border-theme bg-card text-primary"
                   >
                     <option value={25}>25 per page</option>
                     <option value={50}>50 per page</option>
@@ -1389,66 +1437,66 @@ const Incidents: React.FC = () => {
         {/* Add Incident Modal */}
         {showAddModal && (
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b px-6 py-4 rounded-t-2xl z-10">
+            <div className="bg-card rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-card border-b px-6 py-4 rounded-t-2xl z-10">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-gray-800">Add New Incident</h3>
-                  <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <FaTimesCircle className="text-gray-500" size={20} />
+                  <h3 className="text-xl font-bold text-primary">Add New Incident</h3>
+                  <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors">
+                    <FaTimesCircle className="text-secondary" size={20} />
                   </button>
                 </div>
               </div>
 
               <div className="p-6 space-y-6">
                 {/* Essential Incident Details */}
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <h4 className="text-lg font-bold text-gray-800 mb-4">Essential Incident Details</h4>
+                <div className="bg-card rounded-xl p-6">
+                  <h4 className="text-lg font-bold text-headings mb-4">Essential Incident Details</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Incident Date/Time <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-medium text-headings mb-1">Incident Date/Time <span className="text-red-500">*</span></label>
                       <input
                         type="datetime-local"
                         value={incidentForm.incidentDateTime || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentDateTime: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Incident ID</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Incident ID</label>
                       <input
                         type="text"
                         placeholder="Incident ID (optional, auto-generated if left blank)"
                         value={incidentForm.incidentId || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentId: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Case/File Number</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Case/File Number</label>
                       <input
                         type="text"
                         placeholder="Case or file number"
                         value={incidentForm.caseFileNumber || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, caseFileNumber: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Country <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-medium text-primary mb-1">Country <span className="text-red-500">*</span></label>
                       <select
                         value={incidentForm.location?.country || 'usa'}
                         onChange={(e) => setIncidentForm(prev => ({
                           ...prev,
                           location: { ...prev.location, country: e.target.value as 'usa' | 'canada' }
                         }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
-                        <option value="usa">USA</option>
-                        <option value="canada">Canada</option>
+                        <option className='form-option' value="usa">USA</option>
+                        <option className='form-option' value="canada">Canada</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         {incidentForm.location?.country === 'canada' ? 'Province' : 'State'} <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -1459,11 +1507,11 @@ const Incidents: React.FC = () => {
                           ...prev,
                           location: { ...prev.location, stateProvince: e.target.value }
                         }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">City <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-medium text-primary mb-1">City <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         placeholder="City"
@@ -1472,11 +1520,11 @@ const Incidents: React.FC = () => {
                           ...prev,
                           location: { ...prev.location, city: e.target.value }
                         }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Full Street Address</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Full Street Address</label>
                       <input
                         type="text"
                         placeholder="Complete street address (street number, street name, etc.)"
@@ -1485,43 +1533,43 @@ const Incidents: React.FC = () => {
                           ...prev,
                           location: { ...prev.location, streetAddress: e.target.value }
                         }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Incident Type <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-medium text-primary mb-1">Incident Type <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         placeholder="e.g., Deer accident, Driver error, Hit another vehicle"
                         value={incidentForm.incidentType || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentType: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Incident Status <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-medium text-primary mb-1">Incident Status <span className="text-red-500">*</span></label>
                       <select
                         value={incidentForm.incidentStatus || 'open'}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentStatus: e.target.value as 'open' | 'under-review' | 'closed' }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
-                        <option value="open">Open</option>
-                        <option value="under-review">Under Review</option>
-                        <option value="closed">Closed</option>
+                        <option className='form-option' value="open">Open</option>
+                        <option className='form-option' value="under-review">Under Review</option>
+                        <option className='form-option' value="closed">Closed</option>
                       </select>
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Incident Description</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Incident Description</label>
                       <textarea
                         placeholder="Detailed description of the incident"
                         value={incidentForm.description || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, description: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         rows={3}
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Supporting Media URLs</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Supporting Media URLs</label>
                       <input
                         type="text"
                         placeholder="Comma-separated URLs for photos, videos, or reports"
@@ -1530,11 +1578,11 @@ const Incidents: React.FC = () => {
                           ...prev,
                           supportingMedia: e.target.value ? e.target.value.split(',').map(url => url.trim()).filter(Boolean) : []
                         }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         <FaImage className="inline mr-2" /> Upload Accident Pictures
                       </label>
                       <div className="mt-1">
@@ -1554,10 +1602,10 @@ const Incidents: React.FC = () => {
                         />
                         <label
                           htmlFor="accident-pictures-upload"
-                          className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
+                          className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-theme rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
                         >
-                          <FaUpload className="text-gray-400" size={18} />
-                          <span className="text-sm text-gray-600">
+                          <FaUpload className="text-secondary" size={18} />
+                          <span className="text-sm text-secondary">
                             {incidentForm.accidentPictures && incidentForm.accidentPictures.length > 0
                               ? `${incidentForm.accidentPictures.length} file(s) selected`
                               : 'Click to upload pictures'}
@@ -1566,8 +1614,8 @@ const Incidents: React.FC = () => {
                         {incidentForm.accidentPictures && incidentForm.accidentPictures.length > 0 && (
                           <div className="mt-2 space-y-1">
                             {incidentForm.accidentPictures.map((file, index) => (
-                              <div key={index} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
-                                <span className="text-gray-700 flex items-center gap-2">
+                              <div key={index} className="flex items-center justify-between bg-card px-3 py-2 rounded text-sm">
+                                <span className="text-primary flex items-center gap-2">
                                   <FaImage className="text-blue-500" size={14} />
                                   {file.name}
                                 </span>
@@ -1590,7 +1638,7 @@ const Incidents: React.FC = () => {
                       </div>
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         <FaVideo className="inline mr-2" /> Upload Accident Video
                       </label>
                       <div className="mt-1">
@@ -1608,18 +1656,18 @@ const Incidents: React.FC = () => {
                         />
                         <label
                           htmlFor="accident-video-upload"
-                          className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
+                          className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-theme rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
                         >
-                          <FaUpload className="text-gray-400" size={18} />
-                          <span className="text-sm text-gray-600">
+                          <FaUpload className="text-secondary" size={18} />
+                          <span className="text-sm text-secondary">
                             {incidentForm.accidentVideo
                               ? incidentForm.accidentVideo.name
                               : 'Click to upload video'}
                           </span>
                         </label>
                         {incidentForm.accidentVideo && (
-                          <div className="mt-2 flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
-                            <span className="text-gray-700 flex items-center gap-2">
+                          <div className="mt-2 flex items-center justify-between bg-card px-3 py-2 rounded text-sm">
+                            <span className="text-primary flex items-center gap-2">
                               <FaVideo className="text-red-500" size={14} />
                               {incidentForm.accidentVideo.name}
                             </span>
@@ -1640,75 +1688,75 @@ const Incidents: React.FC = () => {
                 </div>
 
                 {/* Personnel Details */}
-                <div className="bg-blue-50 rounded-xl p-6">
-                  <h4 className="text-lg font-bold text-gray-800 mb-4">Personnel Details</h4>
+                <div className="bg-card rounded-xl p-6">
+                  <h4 className="text-lg font-bold text-primary mb-4">Personnel Details</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Driver <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-medium text-primary mb-1">Driver <span className="text-red-500">*</span></label>
                       <select
                         value={incidentForm.driver || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, driver: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
-                        <option value="">Select Driver</option>
+                        <option className='form-option' value="">Select Driver</option>
                         {drivers.map((driver) => (
-                          <option key={driver._id} value={driver._id}>{driver.name}</option>
+                          <option className='form-option' key={driver._id} value={driver._id}>{driver.name}</option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Co-Driver</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Co-Driver</label>
                       <select
                         value={incidentForm.coDriver || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, coDriver: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
-                        <option value="">Select Co-Driver</option>
+                        <option className='form-option' value="">Select Co-Driver</option>
                         {drivers
                           .filter((driver) => driver._id !== incidentForm.driver) // Exclude the selected driver
                           .map((driver) => (
-                            <option key={driver._id} value={driver._id}>{driver.name}</option>
+                            <option className='form-option' key={driver._id} value={driver._id}>{driver.name}</option>
                           ))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Driver's License #</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Driver's License #</label>
                       <input
                         type="text"
                         placeholder="Driver's license number"
                         value={incidentForm.driversLicense || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, driversLicense: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Reporting Party</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Reporting Party</label>
                       <input
                         type="text"
                         placeholder="Who filed the report (if different from driver)"
                         value={incidentForm.reportingParty || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, reportingParty: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Witness Information</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Witness Information</label>
                       <input
                         type="text"
                         placeholder="Witness names and contact info"
                         value={incidentForm.witnessInfo || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, witnessInfo: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Police Report Number</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Police Report Number</label>
                       <input
                         type="text"
                         placeholder="Police report number (if applicable)"
                         value={incidentForm.policeReportNumber || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, policeReportNumber: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -1716,36 +1764,36 @@ const Incidents: React.FC = () => {
 
                 {/* Equipment Details */}
                 <div className="bg-[var(--accent-soft)] rounded-xl p-6">
-                  <h4 className="text-lg font-bold text-gray-800 mb-4">Equipment Details</h4>
+                  <h4 className="text-lg font-bold text-primary mb-4">Equipment Details</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Unit Number</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Unit Number</label>
                       <select
                         value={incidentForm.unitNumber || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, unitNumber: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
-                        <option value="">Select Truck</option>
+                        <option className='form-option' value="">Select Truck</option>
                         {vehicles.map((vehicle) => (
-                          <option key={vehicle._id} value={vehicle.unitNo}>
+                          <option className='form-option' key={vehicle._id} value={vehicle.unitNo}>
                             {vehicle.unitNo} - {vehicle.makeModel} ({vehicle.licensePlate})
                           </option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Trailer Number</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Trailer Number</label>
                       <select
                         value={incidentForm.trailerNumber || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, trailerNumber: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
-                        <option value="">Select Trailer</option>
+                        <option className='form-option' value="">Select Trailer</option>
                         {trailers.map((trailer) => {
                           const identifier = trailer.plateNumber || trailer.internalId || trailer.trailer || 'N/A';
                           const displayName = trailer.trailer || trailer.plateNumber || trailer.internalId || 'Trailer';
                           return (
-                            <option key={trailer._id} value={trailer.trailer || trailer.internalId || trailer._id}>
+                            <option className='form-option' key={trailer._id} value={trailer.trailer || trailer.internalId || trailer._id}>
                               {displayName} {identifier !== displayName ? `(${identifier})` : ''}
                             </option>
                           );
@@ -1753,22 +1801,22 @@ const Incidents: React.FC = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">VIN / Plate #</label>
+                      <label className="block text-sm font-medium text-primary mb-1">VIN / Plate #</label>
                       <input
                         type="text"
                         placeholder="VIN or plate number"
                         value={incidentForm.vinPlateNumber || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, vinPlateNumber: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Damage Description</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Damage Description</label>
                       <textarea
                         placeholder="Detailed description of damage sustained"
                         value={incidentForm.damageDescription || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, damageDescription: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         rows={3}
                       />
                     </div>
@@ -1776,8 +1824,8 @@ const Incidents: React.FC = () => {
                 </div>
 
                 {/* Investigation & Follow-up */}
-                <div className="bg-orange-50 rounded-xl p-6">
-                  <h4 className="text-lg font-bold text-gray-800 mb-4">Investigation & Follow-up</h4>
+                <div className="bg-card rounded-xl p-6">
+                  <h4 className="text-lg font-bold text-primary mb-4">Investigation & Follow-up</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2">
                       <label className="flex items-center gap-2 mb-2">
@@ -1785,9 +1833,9 @@ const Incidents: React.FC = () => {
                           type="checkbox"
                           checked={incidentForm.fmcsaReportable || false}
                           onChange={(e) => setIncidentForm(prev => ({ ...prev, fmcsaReportable: e.target.checked }))}
-                          className="w-4 h-4 text-[var(--accent-color)] border-gray-300 rounded focus:ring-[var(--accent-color)]"
+                          className="w-4 h-4 text-[var(--accent-color)] border-theme rounded focus:ring-[var(--accent-color)]"
                         />
-                        <span className="text-sm font-medium text-gray-700">FMCSA Reportable Accident</span>
+                        <span className="text-sm font-medium text-primary">FMCSA Reportable Accident</span>
                       </label>
                     </div>
                     <div className="col-span-2">
@@ -1796,9 +1844,9 @@ const Incidents: React.FC = () => {
                           type="checkbox"
                           checked={incidentForm.cvsaDotImpact || false}
                           onChange={(e) => setIncidentForm(prev => ({ ...prev, cvsaDotImpact: e.target.checked }))}
-                          className="w-4 h-4 text-[var(--accent-color)] border-gray-300 rounded focus:ring-[var(--accent-color)]"
+                          className="w-4 h-4 text-[var(--accent-color)] border-theme rounded focus:ring-[var(--accent-color)]"
                         />
-                        <span className="text-sm font-medium text-gray-700">CVSA & DOT Impact</span>
+                        <span className="text-sm font-medium text-primary">CVSA & DOT Impact</span>
                       </label>
                     </div>
                     <div className="col-span-2">
@@ -1807,47 +1855,47 @@ const Incidents: React.FC = () => {
                           type="checkbox"
                           checked={incidentForm.alsoCreateAsAccident || false}
                           onChange={(e) => setIncidentForm(prev => ({ ...prev, alsoCreateAsAccident: e.target.checked }))}
-                          className="w-4 h-4 text-[var(--accent-color)] border-gray-300 rounded focus:ring-[var(--accent-color)]"
+                          className="w-4 h-4 text-[var(--accent-color)] border-theme rounded focus:ring-[var(--accent-color)]"
                         />
-                        <span className="text-sm font-medium text-gray-700">Also create as accident (Issue)</span>
-                        <span className="text-xs text-gray-500">(Creates an accident record in the Issues system)</span>
+                        <span className="text-sm font-medium text-primary">Also create as accident (Issue)</span>
+                        <span className="text-xs text-secondary">(Creates an accident record in the Issues system)</span>
                       </label>
                     </div>
                     {incidentForm.fmcsaReportable && (
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">FMCSA Notes</label>
+                        <label className="block text-sm font-medium text-primary mb-1">FMCSA Notes</label>
                         <textarea
                           placeholder="FMCSA reporting details"
                           value={incidentForm.fmcsaNotes || ''}
                           onChange={(e) => setIncidentForm(prev => ({ ...prev, fmcsaNotes: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                           rows={2}
                         />
                       </div>
                     )}
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Preventative Measures</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Preventative Measures</label>
                       <textarea
                         placeholder="Record any changes to policies or training implemented"
                         value={incidentForm.preventativeMeasures || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, preventativeMeasures: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         rows={3}
                       />
                     </div>
 
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Additional Notes</label>
                       <textarea
                         placeholder="Any additional notes or comments"
                         value={incidentForm.notes || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, notes: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         rows={3}
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         <FaFileAlt className="inline mr-2" /> Accident Report
                       </label>
                       <div className="mt-1">
@@ -1866,18 +1914,18 @@ const Incidents: React.FC = () => {
                         />
                         <label
                           htmlFor="accident-report-upload"
-                          className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
+                          className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-theme rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
                         >
-                          <FaUpload className="text-gray-400" size={18} />
-                          <span className="text-sm text-gray-600">
+                          <FaUpload className="text-secondary" size={18} />
+                          <span className="text-sm text-secondary">
                             {incidentForm.accidentReport
                               ? incidentForm.accidentReport.name
                               : 'Click to upload accident report (PDF, DOC, DOCX, TXT)'}
                           </span>
                         </label>
                         {incidentForm.accidentReport && (
-                          <div className="mt-2 flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
-                            <span className="text-gray-700 flex items-center gap-2">
+                          <div className="mt-2 flex items-center justify-between bg-card px-3 py-2 rounded text-sm">
+                            <span className="text-primary flex items-center gap-2">
                               <FaFileAlt className="text-green-500" size={14} />
                               {incidentForm.accidentReport.name}
                             </span>
@@ -1893,17 +1941,17 @@ const Incidents: React.FC = () => {
                           </div>
                         )}
                       </div>
-                      <p className="mt-1 text-xs text-gray-500">Upload accident report document from safety system</p>
+                      <p className="mt-1 text-xs text-secondary">Upload accident report document from safety system</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
-                <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors" disabled={loading}>
+              <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
+                <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors" disabled={loading}>
                   Cancel
                 </button>
-                <button onClick={saveNewIncident} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
+                <button onClick={saveNewIncident} className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
                   {loading ? 'Saving...' : 'Save Incident'}
                 </button>
               </div>
@@ -1914,49 +1962,70 @@ const Incidents: React.FC = () => {
         {/* Edit Incident Modal - Similar structure to Add Modal */}
         {showEditModal && selectedIncident && (
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b px-6 py-4 rounded-t-2xl z-10">
+            <div className="bg-card rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-card border-b px-6 py-4 rounded-t-2xl z-10">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-gray-800">Edit Incident: {selectedIncident.incidentNumber}</h3>
-                  <button onClick={() => { setShowEditModal(false); setSelectedIncident(null); resetForm(); }} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <FaTimesCircle className="text-gray-500" size={20} />
+                  <h3 className="text-xl font-bold text-headings">Edit Incident: {selectedIncident.incidentNumber}</h3>
+                  <button onClick={() => { setShowEditModal(false); setSelectedIncident(null); resetForm(); }} className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors">
+                    <FaTimesCircle className="text-secondary" size={20} />
                   </button>
                 </div>
               </div>
 
               <div className="p-6 space-y-6">
                 {/* Similar form structure to Add Modal - using incidentForm state */}
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <h4 className="text-lg font-bold text-gray-800 mb-4">Essential Incident Details</h4>
+                <div className="bg-card rounded-xl p-6">
+                  <h4 className="text-lg font-bold text-headings mb-4">Essential Incident Details</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Incident Date/Time <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-medium text-headings mb-1">Incident Date/Time <span className="text-red-500">*</span></label>
                       <input
                         type="datetime-local"
                         value={incidentForm.incidentDateTime || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentDateTime: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        style={{ colorScheme: 'dark' }}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Incident Type <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-medium text-headings mb-1">Incident Type <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         value={incidentForm.incidentType || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentType: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-medium text-headings mb-1">Status <span className="text-red-500">*</span></label>
                       <select
-                        value={incidentForm.incidentStatus || 'open'}
-                        onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentStatus: e.target.value as 'open' | 'under-review' | 'closed' }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        value={incidentForm.incidentStatus || "open"}
+                        onChange={(e) =>
+                          setIncidentForm((prev) => ({
+                            ...prev,
+                            incidentStatus: e.target.value as
+                              | "open"
+                              | "under-review"
+                              | "closed",
+                          }))
+                        }
+                        className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                       >
-                        <option value="open">Open</option>
-                        <option value="under-review">Under Review</option>
-                        <option value="closed">Closed</option>
+                        <option value="open" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                          Open
+                        </option>
+
+                        <option value="under-review" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                          Under Review
+                        </option>
+
+                        <option value="closed" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                          Closed
+                        </option>
                       </select>
                     </div>
                   </div>
@@ -1964,11 +2033,11 @@ const Incidents: React.FC = () => {
                 {/* Add other sections similar to Add Modal */}
               </div>
 
-              <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
-                <button onClick={() => { setShowEditModal(false); setSelectedIncident(null); resetForm(); }} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors" disabled={loading}>
+              <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
+                <button onClick={() => { setShowEditModal(false); setSelectedIncident(null); resetForm(); }} className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors" disabled={loading}>
                   Cancel
                 </button>
-                <button onClick={saveEditedIncident} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
+                <button onClick={saveEditedIncident} className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
                   {loading ? 'Updating...' : 'Update Incident'}
                 </button>
               </div>
@@ -1980,41 +2049,41 @@ const Incidents: React.FC = () => {
         {showViewModal && selectedIncident && (
           <>
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] transition-all duration-300" onClick={() => setShowViewModal(false)} />
-            <div className="fixed top-0 right-0 h-full w-full sm:w-[600px] lg:w-[700px] bg-white shadow-2xl transform transition-transform duration-300 ease-out z-[101] border-l border-gray-200 overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b px-6 py-4 z-10 shadow-sm">
+            <div className="fixed top-0 right-0 h-full w-full sm:w-[600px] lg:w-[700px] bg-card shadow-2xl transform transition-transform duration-300 ease-out z-[101] border-l border-theme overflow-y-auto">
+              <div className="sticky top-0 bg-card border-b px-6 py-4 z-10 shadow-sm">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-800">{selectedIncident.incidentNumber || 'N/A'}</h3>
-                    <p className="text-xs text-gray-500 mt-1">{selectedIncident.incidentType || 'N/A'}</p>
+                    <h3 className="text-lg font-bold text-primary">{selectedIncident.incidentNumber || 'N/A'}</h3>
+                    <p className="text-xs text-secondary mt-1">{selectedIncident.incidentType || 'N/A'}</p>
                   </div>
-                  <button onClick={() => setShowViewModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <FaTimesCircle className="text-gray-500" size={20} />
+                  <button onClick={() => setShowViewModal(false)} className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors">
+                    <FaTimesCircle className="text-secondary" size={20} />
                   </button>
                 </div>
               </div>
 
               <div className="p-6 space-y-4">
                 {/* Essential Incident Details */}
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                    <FaInfoCircle className="text-[var(--accent-color)]" size={16} />
+                <div className="bg-card rounded-lg p-4 border border-theme">
+                  <h4 className="text-sm font-bold text-headings mb-3 flex items-center gap-2">
+                    <FaInfoCircle className="text-[var(--accent-navyblue)]" size={16} />
                     Essential Incident Details
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Incident Number</label>
-                      <p className="text-sm font-semibold text-gray-800">{selectedIncident.incidentNumber || 'N/A'}</p>
+                      <label className="block text-xs font-medium text-secondary mb-1">Incident Number</label>
+                      <p className="text-sm font-semibold text-primary">{selectedIncident.incidentNumber || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Incident ID</label>
-                      <p className="text-sm font-semibold text-gray-800">{selectedIncident.incidentId || 'N/A'}</p>
+                      <label className="block text-xs font-medium text-secondary mb-1">Incident ID</label>
+                      <p className="text-sm font-semibold text-primary">{selectedIncident.incidentId || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Date/Time</label>
-                      <p className="text-sm font-semibold text-gray-800">{selectedIncident.incidentDateTime ? formatDate(selectedIncident.incidentDateTime) : 'N/A'}</p>
+                      <label className="block text-xs font-medium text-secondary mb-1">Date/Time</label>
+                      <p className="text-sm font-semibold text-primary">{selectedIncident.incidentDateTime ? formatDate(selectedIncident.incidentDateTime) : 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                      <label className="block text-xs font-medium text-secondary mb-1">Status</label>
                       <div className="flex items-center gap-2">
                         {getStatusIcon(selectedIncident.incidentStatus)}
                         <span className={`text-xs px-2 py-1 rounded-full font-semibold border ${getStatusBadgeColor(selectedIncident.incidentStatus)}`}>
@@ -2023,86 +2092,86 @@ const Incidents: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Case/File Number</label>
-                      <p className="text-sm font-semibold text-gray-800">{selectedIncident.caseFileNumber || 'N/A'}</p>
+                      <label className="block text-xs font-medium text-secondary mb-1">Case/File Number</label>
+                      <p className="text-sm font-semibold text-primary">{selectedIncident.caseFileNumber || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Location Details */}
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <div className="bg-card rounded-lg p-4 border border-theme">
+                  <h4 className="text-sm font-bold text-primary mb-3 flex items-center gap-2">
                     <FaMapMarkerAlt className="text-[var(--accent-color)]" size={16} />
                     Location Details
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Street Address</label>
-                      <p className="text-sm text-gray-800">{selectedIncident.location?.streetAddress || 'N/A'}</p>
+                      <label className="block text-xs font-medium text-secondary mb-1">Street Address</label>
+                      <p className="text-sm text-primary">{selectedIncident.location?.streetAddress || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">City</label>
-                      <p className="text-sm text-gray-800">{selectedIncident.location?.city || 'N/A'}</p>
+                      <label className="block text-xs font-medium text-secondary mb-1">City</label>
+                      <p className="text-sm text-primary">{selectedIncident.location?.city || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                      <label className="block text-xs font-medium text-secondary mb-1">
                         {selectedIncident.location?.country === 'canada' ? 'Province' : 'State'}
                       </label>
-                      <p className="text-sm text-gray-800">{selectedIncident.location?.stateProvince || 'N/A'}</p>
+                      <p className="text-sm text-primary">{selectedIncident.location?.stateProvince || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Country</label>
-                      <p className="text-sm text-gray-800">{selectedIncident.location?.country?.toUpperCase() || 'N/A'}</p>
+                      <label className="block text-xs font-medium text-secondary mb-1">Country</label>
+                      <p className="text-sm text-primary">{selectedIncident.location?.country?.toUpperCase() || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Personnel Details */}
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <div className="bg-card rounded-lg p-4 border border-theme">
+                  <h4 className="text-sm font-bold text-primary mb-3 flex items-center gap-2">
                     <FaUser className="text-[var(--accent-color)]" size={16} />
                     Personnel Details
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Driver</label>
-                      <p className="text-sm font-semibold text-gray-800">{getDriverName(selectedIncident.driver)}</p>
+                      <label className="block text-xs font-medium text-secondary mb-1">Driver</label>
+                      <p className="text-sm font-semibold text-primary">{getDriverName(selectedIncident.driver)}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Co-Driver</label>
-                      <p className="text-sm font-semibold text-gray-800">{getCoDriverName(selectedIncident.coDriver)}</p>
+                      <label className="block text-xs font-medium text-secondary mb-1">Co-Driver</label>
+                      <p className="text-sm font-semibold text-primary">{getCoDriverName(selectedIncident.coDriver)}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Driver's License</label>
-                      <p className="text-sm text-gray-800">{selectedIncident.driversLicense || 'N/A'}</p>
+                      <label className="block text-xs font-medium text-secondary mb-1">Driver's License</label>
+                      <p className="text-sm text-primary">{selectedIncident.driversLicense || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Reporting Party</label>
-                      <p className="text-sm text-gray-800">{selectedIncident.reportingParty || 'N/A'}</p>
+                      <label className="block text-xs font-medium text-secondary mb-1">Reporting Party</label>
+                      <p className="text-sm text-primary">{selectedIncident.reportingParty || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Equipment Details */}
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <h4 className="text-sm font-bold text-gray-800 mb-3">Equipment Details</h4>
+                <div className="bg-card rounded-lg p-4 border border-theme">
+                  <h4 className="text-sm font-bold text-primary mb-3">Equipment Details</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Unit Number</label>
-                      <p className="text-sm text-gray-800">{selectedIncident.unitNumber || 'N/A'}</p>
+                      <label className="block text-xs font-medium text-secondary mb-1">Unit Number</label>
+                      <p className="text-sm text-primary">{selectedIncident.unitNumber || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Trailer Number</label>
-                      <p className="text-sm text-gray-800">{selectedIncident.trailerNumber || 'N/A'}</p>
+                      <label className="block text-xs font-medium text-secondary mb-1">Trailer Number</label>
+                      <p className="text-sm text-primary">{selectedIncident.trailerNumber || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">VIN/Plate Number</label>
-                      <p className="text-sm text-gray-800">{selectedIncident.vinPlateNumber || 'N/A'}</p>
+                      <label className="block text-xs font-medium text-secondary mb-1">VIN/Plate Number</label>
+                      <p className="text-sm text-primary">{selectedIncident.vinPlateNumber || 'N/A'}</p>
                     </div>
                     {selectedIncident.damageDescription && (
                       <div className="md:col-span-2">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Damage Description</label>
-                        <p className="text-sm text-gray-800 whitespace-pre-wrap">{selectedIncident.damageDescription}</p>
+                        <label className="block text-xs font-medium text-secondary mb-1">Damage Description</label>
+                        <p className="text-sm text-primary whitespace-pre-wrap">{selectedIncident.damageDescription}</p>
                       </div>
                     )}
                   </div>
@@ -2110,48 +2179,48 @@ const Incidents: React.FC = () => {
 
                 {/* Description */}
                 {selectedIncident.description && (
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <h4 className="text-sm font-bold text-gray-800 mb-2">Description</h4>
-                    <p className="text-sm text-gray-800 whitespace-pre-wrap">{selectedIncident.description}</p>
+                  <div className="bg-card rounded-lg p-4 border border-theme">
+                    <h4 className="text-sm font-bold text-primary mb-2">Description</h4>
+                    <p className="text-sm text-primary whitespace-pre-wrap">{selectedIncident.description}</p>
                   </div>
                 )}
 
                 {/* Witness Information */}
                 {selectedIncident.witnessInfo && (
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <h4 className="text-sm font-bold text-gray-800 mb-2">Witness Information</h4>
-                    <p className="text-sm text-gray-800 whitespace-pre-wrap">{selectedIncident.witnessInfo}</p>
+                  <div className="bg-card rounded-lg p-4 border border-theme">
+                    <h4 className="text-sm font-bold text-primary mb-2">Witness Information</h4>
+                    <p className="text-sm text-primary whitespace-pre-wrap">{selectedIncident.witnessInfo}</p>
                   </div>
                 )}
 
                 {/* Police Report */}
                 {selectedIncident.policeReportNumber && (
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <h4 className="text-sm font-bold text-gray-800 mb-2">Police Report</h4>
-                    <p className="text-sm text-gray-800">Report Number: {selectedIncident.policeReportNumber}</p>
+                  <div className="bg-card rounded-lg p-4 border border-theme">
+                    <h4 className="text-sm font-bold text-primary mb-2">Police Report</h4>
+                    <p className="text-sm text-primary">Report Number: {selectedIncident.policeReportNumber}</p>
                   </div>
                 )}
 
                 {/* Accident-Related Fields */}
                 {(selectedIncident.accidentReport || selectedIncident.accidentPictures?.length || selectedIncident.accidentVideo) && (
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                      <FaExclamationTriangle className="text-red-600" size={16} />
+                  <div className="bg-card rounded-lg p-4 border border-theme">
+                    <h4 className="text-sm font-bold text-[var(--accent-red)] mb-3 flex items-center gap-2">
+                      <FaExclamationTriangle className="text-[var(--accent-red)]" size={16} />
                       Accident Details
                     </h4>
                     {selectedIncident.accidentReport && (() => {
-                      const report = typeof selectedIncident.accidentReport === 'string' 
+                      const report = typeof selectedIncident.accidentReport === 'string'
                         ? { fileName: selectedIncident.accidentReport, signedUrl: null }
                         : selectedIncident.accidentReport;
                       return (
                         <div className="mb-3">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Accident Report</label>
+                          <label className="block text-xs font-medium text-secondary mb-1">Accident Report</label>
                           {report.signedUrl ? (
                             <a
                               href={report.signedUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                              className="flex items-center gap-2 text-blue-500 hover:text-blue-800 hover:underline"
                             >
                               <FaFileAlt className="text-blue-500" size={14} />
                               <span className="text-sm">{report.fileName}</span>
@@ -2159,7 +2228,7 @@ const Incidents: React.FC = () => {
                           ) : (
                             <div className="flex items-center gap-2">
                               <FaFileAlt className="text-blue-500" size={14} />
-                              <span className="text-sm text-gray-800">{report.fileName}</span>
+                              <span className="text-sm text-primary">{report.fileName}</span>
                             </div>
                           )}
                         </div>
@@ -2167,10 +2236,10 @@ const Incidents: React.FC = () => {
                     })()}
                     {selectedIncident.accidentPictures && selectedIncident.accidentPictures.length > 0 && (
                       <div className="mb-3">
-                        <label className="block text-xs font-medium text-gray-600 mb-2">Accident Pictures</label>
+                        <label className="block text-xs font-medium text-secondary mb-2">Accident Pictures</label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {selectedIncident.accidentPictures.map((picture, idx) => {
-                            const pic = typeof picture === 'string' 
+                            const pic = typeof picture === 'string'
                               ? { fileName: picture, signedUrl: null }
                               : picture;
                             return (
@@ -2193,15 +2262,15 @@ const Incidents: React.FC = () => {
                                       }}
                                     />
                                     <div className="hidden image-fallback aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
-                                      <FaImage className="text-gray-400" size={24} />
+                                      <FaImage className="text-secondary" size={24} />
                                     </div>
                                   </a>
                                 ) : (
                                   <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
-                                    <FaImage className="text-gray-400" size={24} />
+                                    <FaImage className="text-secondary" size={24} />
                                   </div>
                                 )}
-                                <p className="text-xs text-gray-600 mt-1 truncate">{pic.fileName}</p>
+                                <p className="text-xs text-secondary mt-1 truncate">{pic.fileName}</p>
                               </div>
                             );
                           })}
@@ -2209,18 +2278,18 @@ const Incidents: React.FC = () => {
                       </div>
                     )}
                     {selectedIncident.accidentVideo && (() => {
-                      const video = typeof selectedIncident.accidentVideo === 'string' 
+                      const video = typeof selectedIncident.accidentVideo === 'string'
                         ? { fileName: selectedIncident.accidentVideo, signedUrl: null }
                         : selectedIncident.accidentVideo;
                       return (
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Accident Video</label>
+                          <label className="block text-xs font-medium text-secondary mb-1">Accident Video</label>
                           {video.signedUrl ? (
                             <a
                               href={video.signedUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                              className="flex items-center gap-2 text-[#00D1FF] hover:text-blue-800 hover:underline cursor-pointer"
                             >
                               <FaVideo className="text-red-500" size={14} />
                               <span className="text-sm">{video.fileName}</span>
@@ -2228,7 +2297,7 @@ const Incidents: React.FC = () => {
                           ) : (
                             <div className="flex items-center gap-2">
                               <FaVideo className="text-red-500" size={14} />
-                              <span className="text-sm text-gray-800">{video.fileName}</span>
+                              <span className="text-sm text-primary">{video.fileName}</span>
                             </div>
                           )}
                         </div>
@@ -2239,8 +2308,8 @@ const Incidents: React.FC = () => {
 
                 {/* Supporting Media */}
                 {selectedIncident.supportingMedia && selectedIncident.supportingMedia.length > 0 && (
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  <div className="bg-card rounded-lg p-4 border border-theme">
+                    <h4 className="text-sm font-bold text-primary mb-3 flex items-center gap-2">
                       <FaImage className="text-[var(--accent-color)]" size={16} />
                       Supporting Media
                     </h4>
@@ -2248,9 +2317,9 @@ const Incidents: React.FC = () => {
                       {selectedIncident.supportingMedia.map((media, idx) => (
                         <div key={idx} className="relative group">
                           <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
-                            <FaImage className="text-gray-400" size={24} />
+                            <FaImage className="text-secondary" size={24} />
                           </div>
-                          <p className="text-xs text-gray-600 mt-1 truncate">{media}</p>
+                          <p className="text-xs text-secondary mt-1 truncate">{media}</p>
                         </div>
                       ))}
                     </div>
@@ -2259,20 +2328,20 @@ const Incidents: React.FC = () => {
 
                 {/* Investigation & Follow-up */}
                 {(selectedIncident.actionTakenLog?.length || selectedIncident.preventativeMeasures || selectedIncident.costTracking?.length || selectedIncident.cvsaDotImpact || selectedIncident.fmcsaReportable) && (
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <h4 className="text-sm font-bold text-gray-800 mb-3">Investigation & Follow-up</h4>
+                  <div className="bg-card rounded-lg p-4 border border-theme">
+                    <h4 className="text-sm font-bold text-primary mb-3">Investigation & Follow-up</h4>
                     {selectedIncident.actionTakenLog && selectedIncident.actionTakenLog.length > 0 && (
                       <div className="mb-3">
-                        <label className="block text-xs font-medium text-gray-600 mb-2">Action Taken Log</label>
+                        <label className="block text-xs font-medium text-secondary mb-2">Action Taken Log</label>
                         <div className="space-y-2">
                           {selectedIncident.actionTakenLog.map((action, idx) => (
-                            <div key={idx} className="bg-white p-2 rounded border border-gray-200">
+                            <div key={idx} className="bg-card p-2 rounded border border-theme">
                               <div className="flex justify-between items-start mb-1">
-                                <span className="text-xs font-semibold text-gray-800">{new Date(action.date).toLocaleDateString()}</span>
-                                <span className="text-xs text-gray-600">By: {action.takenBy}</span>
+                                <span className="text-xs font-semibold text-primary">{new Date(action.date).toLocaleDateString()}</span>
+                                <span className="text-xs text-secondary">By: {action.takenBy}</span>
                               </div>
-                              <p className="text-xs text-gray-800">{action.action}</p>
-                              {action.notes && <p className="text-xs text-gray-600 mt-1">{action.notes}</p>}
+                              <p className="text-xs text-primary">{action.action}</p>
+                              {action.notes && <p className="text-xs text-secondary mt-1">{action.notes}</p>}
                             </div>
                           ))}
                         </div>
@@ -2280,24 +2349,24 @@ const Incidents: React.FC = () => {
                     )}
                     {selectedIncident.preventativeMeasures && (
                       <div className="mb-3">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Preventative Measures</label>
-                        <p className="text-sm text-gray-800 whitespace-pre-wrap">{selectedIncident.preventativeMeasures}</p>
+                        <label className="block text-xs font-medium text-secondary mb-1">Preventative Measures</label>
+                        <p className="text-sm text-primary whitespace-pre-wrap">{selectedIncident.preventativeMeasures}</p>
                       </div>
                     )}
                     {selectedIncident.costTracking && selectedIncident.costTracking.length > 0 && (
                       <div className="mb-3">
-                        <label className="block text-xs font-medium text-gray-600 mb-2">Cost Tracking</label>
+                        <label className="block text-xs font-medium text-secondary mb-2">Cost Tracking</label>
                         <div className="space-y-2">
                           {selectedIncident.costTracking.map((cost, idx) => (
-                            <div key={idx} className="bg-white p-2 rounded border border-gray-200">
+                            <div key={idx} className="bg-card p-2 rounded border border-theme">
                               <div className="flex justify-between items-center mb-1">
-                                <span className="text-xs font-semibold text-gray-800">{cost.category}</span>
-                                <span className="text-xs text-gray-600">
+                                <span className="text-xs font-semibold text-primary">{cost.category}</span>
+                                <span className="text-xs text-secondary">
                                   Est: ${cost.estimated?.toLocaleString() || '0'}
                                   {cost.actual !== undefined && ` | Actual: $${cost.actual.toLocaleString()}`}
                                 </span>
                               </div>
-                              {cost.notes && <p className="text-xs text-gray-600">{cost.notes}</p>}
+                              {cost.notes && <p className="text-xs text-secondary">{cost.notes}</p>}
                             </div>
                           ))}
                         </div>
@@ -2305,18 +2374,18 @@ const Incidents: React.FC = () => {
                     )}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">CVSA/DOT Impact</label>
-                        <p className="text-sm text-gray-800">{selectedIncident.cvsaDotImpact ? 'Yes' : 'No'}</p>
+                        <label className="block text-xs font-medium text-secondary mb-1">CVSA/DOT Impact</label>
+                        <p className="text-sm text-primary">{selectedIncident.cvsaDotImpact ? 'Yes' : 'No'}</p>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">FMCSA Reportable</label>
-                        <p className="text-sm text-gray-800">{selectedIncident.fmcsaReportable ? 'Yes' : 'No'}</p>
+                        <label className="block text-xs font-medium text-secondary mb-1">FMCSA Reportable</label>
+                        <p className="text-sm text-primary">{selectedIncident.fmcsaReportable ? 'Yes' : 'No'}</p>
                       </div>
                     </div>
                     {selectedIncident.fmcsaNotes && (
                       <div className="mt-3">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">FMCSA Notes</label>
-                        <p className="text-sm text-gray-800 whitespace-pre-wrap">{selectedIncident.fmcsaNotes}</p>
+                        <label className="block text-xs font-medium text-secondary mb-1">FMCSA Notes</label>
+                        <p className="text-sm text-primary whitespace-pre-wrap">{selectedIncident.fmcsaNotes}</p>
                       </div>
                     )}
                   </div>
@@ -2324,15 +2393,15 @@ const Incidents: React.FC = () => {
 
                 {/* Notes */}
                 {selectedIncident.notes && (
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <h4 className="text-sm font-bold text-gray-800 mb-2">Additional Notes</h4>
-                    <p className="text-sm text-gray-800 whitespace-pre-wrap">{selectedIncident.notes}</p>
+                  <div className="bg-card rounded-lg p-4 border border-theme">
+                    <h4 className="text-sm font-bold text-primary mb-2">Additional Notes</h4>
+                    <p className="text-sm text-primary whitespace-pre-wrap">{selectedIncident.notes}</p>
                   </div>
                 )}
 
                 {/* Created At */}
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <div className="flex justify-between items-center text-xs text-gray-600">
+                <div className="bg-card rounded-lg p-4 border border-theme">
+                  <div className="flex justify-between items-center text-xs text-secondary">
                     <span>Created: {selectedIncident.createdAt ? new Date(selectedIncident.createdAt).toLocaleString() : 'N/A'}</span>
                     {(selectedIncident as any).updatedAt && (
                       <span>Updated: {new Date((selectedIncident as any).updatedAt).toLocaleString()}</span>
@@ -2341,17 +2410,17 @@ const Incidents: React.FC = () => {
                 </div>
               </div>
 
-              <div className="sticky bottom-0 bg-white px-6 py-4 flex justify-end gap-3 border-t shadow-lg">
-                <button 
+              <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t shadow-lg">
+                <button
                   onClick={() => {
                     setShowViewModal(false);
                     handleEditIncident(selectedIncident);
-                  }} 
+                  }}
                   className="px-4 py-2 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors text-sm"
                 >
                   Edit
                 </button>
-                <button onClick={() => setShowViewModal(false)} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors text-sm">
+                <button onClick={() => setShowViewModal(false)} className="px-4 py-2 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors text-sm">
                   Close
                 </button>
               </div>
@@ -2362,24 +2431,24 @@ const Incidents: React.FC = () => {
         {/* Delete Confirmation Modal */}
         {showDeleteModal && incidentToDelete && (
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md">
               <div className="p-6">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="bg-red-100 rounded-full p-3">
-                    <FaExclamationTriangle className="text-red-600" size={24} />
+                    <FaExclamationTriangle className="text-[#A855F7]" size={24} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-800">Delete Incident</h3>
-                    <p className="text-sm text-gray-600">This action cannot be undone</p>
+                    <h3 className="text-lg font-bold text-primary">Delete Incident</h3>
+                    <p className="text-sm text-secondary">This action cannot be undone</p>
                   </div>
                 </div>
-                <p className="text-gray-700 mb-6">
+                <p className="text-primary mb-6">
                   Are you sure you want to delete incident <span className="font-semibold">{incidentToDelete.incidentNumber}</span>?
                 </p>
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => { setShowDeleteModal(false); setIncidentToDelete(null); }}
-                    className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                    className="px-4 py-2 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                     disabled={loading}
                   >
                     Cancel

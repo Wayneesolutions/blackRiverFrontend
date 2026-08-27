@@ -249,7 +249,7 @@ const UnifiedSchedulingPage = () => {
     return Array.from(driverMap.values());
   }, [orders]);
 
-  
+
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
 
@@ -298,7 +298,7 @@ const UnifiedSchedulingPage = () => {
     }
   };
 
- 
+
 
   const handleDrop = (date: Date) => {
     if (draggedOrder) {
@@ -368,15 +368,15 @@ const UnifiedSchedulingPage = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'COMPLETED':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-[var(--accent-green)]/10 text-[var(--accent-green)] border-theme';
       case 'IN_PROGRESS':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] border-theme';
       case 'CONFIRMED':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
+        return 'bg-[var(--accent-purple)]/10 text-[var(--accent-purple)] border-theme';
       case 'QUOTED':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] border-theme';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-card text-primary border-theme';
     }
   };
 
@@ -401,27 +401,27 @@ const UnifiedSchedulingPage = () => {
 
   if (loading && orders.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-card flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading orders...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-blue)] mx-auto mb-4"></div>
+          <p className="text-secondary">Loading orders...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF]">
+    <div className="min-h-screen bg-main">
       {/* Header */}
       <div className=" p-5">
         <div className="w-full mx-auto">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Order Scheduling</h1>
-              <p className="text-gray-600 mt-0.5 text-sm">Schedule orders, view calendar, and manage driver assignments</p>
+              <h1 className="text-2xl font-bold text-primary">Order Scheduling</h1>
+              <p className="text-secondary mt-0.5 text-sm">Schedule orders, view calendar, and manage driver assignments</p>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-3 text-sm text-gray-600">
+              <div className="flex items-center space-x-3 text-sm text-secondary">
                 <div className="flex items-center space-x-1">
                   <Calendar className="w-3.5 h-3.5" />
                   <span><strong>{scheduledOrders.length}</strong> Scheduled</span>
@@ -433,7 +433,7 @@ const UnifiedSchedulingPage = () => {
               </div>
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center px-3.5 py-1.5 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                className="flex items-center px-3.5 py-1.5 border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >
                 <Filter className="w-3.5 h-3.5 mr-1.5" />
                 Filters
@@ -443,17 +443,17 @@ const UnifiedSchedulingPage = () => {
 
           {/* Quick Info Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-md p-3 border border-blue-200">
-              <div className="text-xl font-bold text-blue-700">{scheduledOrders.length}</div>
-              <div className="text-xs text-blue-600">Scheduled Orders</div>
+            <div className="bg-gradient-to-br from-[var(--accent-blue)]/10 to-[var(--accent-blue)]/5 rounded-md p-3 border border-blue-200">
+              <div className="text-xl font-bold text-[var(--accent-blue)]">{scheduledOrders.length}</div>
+              <div className="text-xs text-accent">Scheduled Orders</div>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-md p-3 border border-green-200">
-              <div className="text-xl font-bold text-green-700">{orders.filter(o => o.status === 'COMPLETED').length}</div>
-              <div className="text-xs text-green-600">Completed</div>
+            <div className="bg-gradient-to-br from-[var(--accent-green)]/10 to-[var(--accent-green)]/5 rounded-md p-3 border border-green-200">
+              <div className="text-xl font-bold text-[var(--accent-green)]">{orders.filter(o => o.status === 'COMPLETED').length}</div>
+              <div className="text-xs text-[var(--accent-green)]">Completed</div>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-md p-3 border border-purple-200">
-              <div className="text-xl font-bold text-purple-700">{orders.filter(o => o.status === 'IN_PROGRESS').length}</div>
-              <div className="text-xs text-purple-600">In Progress</div>
+            <div className="bg-gradient-to-br from-[var(--accent-purple)]/10 to-[var(--accent-purple)]/5 rounded-md p-3 border border-purple-200">
+              <div className="text-xl font-bold text-[var(--accent-purple)]">{orders.filter(o => o.status === 'IN_PROGRESS').length}</div>
+              <div className="text-xs text-[var(--accent-purple)]">In Progress</div>
             </div>
           </div>
         </div>
@@ -465,11 +465,11 @@ const UnifiedSchedulingPage = () => {
           <div className="w-full mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Driver</label>
+                <label className="block text-sm font-medium text-primary mb-1.5">Driver</label>
                 <select
                   value={driverFilter}
                   onChange={(e) => setDriverFilter(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2.5 py-1.5 border border-theme rounded-md focus:ring-2 focus:ring-[var(--accent-blue)]"
                 >
                   <option value="all">All Drivers</option>
                   {uniqueDrivers.map((driver) => (
@@ -480,11 +480,11 @@ const UnifiedSchedulingPage = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+                <label className="block text-sm font-medium text-primary mb-1.5">Status</label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2.5 py-1.5 border border-theme rounded-md focus:ring-2 focus:ring-[var(--accent-blue)]"
                 >
                   <option value="all">All Status</option>
                   <option value="QUOTED">Quoted</option>
@@ -499,7 +499,7 @@ const UnifiedSchedulingPage = () => {
                     setDriverFilter('all');
                     setStatusFilter('all');
                   }}
-                  className="w-[50%] px-2 py-1.5 text-sm text-gray-700 bg-white hover:bg-gray-200 rounded-md transition-colors"
+                  className="w-[50%] px-2 py-1.5 text-sm text-primary bg-card hover:bg-[rgba(255,255,255,0.05)] rounded-md transition-colors"
                 >
                   Clear Filters
                 </button>
@@ -511,7 +511,7 @@ const UnifiedSchedulingPage = () => {
 
       {emptyStateMessage && orders.length === 0 && (
         <div className="w-full mx-auto p-5">
-          <div className="bg-blue-50 border border-blue-100 text-blue-700 px-3.5 py-2.5 rounded-md flex items-center gap-2.5">
+          <div className="bg-card border border-blue-100 text-[var(--accent-blue)] px-3.5 py-2.5 rounded-md flex items-center gap-2.5">
             <Calendar className="text-lg" />
             <span className="text-sm">{emptyStateMessage}</span>
           </div>
@@ -521,9 +521,9 @@ const UnifiedSchedulingPage = () => {
       <div className="w-full mx-auto p-5">
         <div className="flex flex-col gap-5">
           {/* Scheduled Orders List - Collapsible Sidebar */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="p-3.5 border-b border-gray-200 bg-gray-50">
-              <h3 className="text-sm font-semibold text-gray-700">Scheduled Orders ({scheduledOrders.length})</h3>
+          <div className="bg-card rounded-lg shadow-sm border border-theme">
+            <div className="p-3.5 border-b border-theme bg-card">
+              <h3 className="text-sm font-semibold text-primary">Scheduled Orders ({scheduledOrders.length})</h3>
             </div>
 
             <div className="p-3.5 max-h-[200px] overflow-y-auto">
@@ -532,30 +532,30 @@ const UnifiedSchedulingPage = () => {
                   scheduledOrders.map((order) => (
                     <div
                       key={order._id || order.id}
-                      className="p-2.5 rounded-md border bg-green-50 border-green-200 cursor-pointer transition-all hover:shadow-md"
+                      className="p-2.5 rounded-md border bg-[var(--accent-green)]/10 border-theme cursor-pointer transition-all hover:shadow-md"
                       onClick={() => {
                         setSelectedOrder(order);
                       }}
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900 truncate">
+                        <div className="font-medium text-primary truncate">
                           {getOrderIdentifier(order)}
                         </div>
-                        <div className="text-sm text-gray-600 flex items-center mt-1">
+                        <div className="text-sm text-secondary flex items-center mt-1">
                           <User className="w-3 h-3 mr-1 flex-shrink-0" />
                           <span className="truncate">{order.driverName || order.driver?.name || 'No driver'}</span>
                         </div>
                         {getCustomerName(order) !== "No customer" && (
-                          <div className="text-xs text-gray-500 mt-1 truncate">
+                          <div className="text-xs text-secondary mt-1 truncate">
                             {getCustomerName(order)}
                           </div>
                         )}
-                        <div className="text-xs text-gray-500 mt-2 flex items-center">
+                        <div className="text-xs text-secondary mt-2 flex items-center">
                           <Clock className="w-3 h-3 mr-1 flex-shrink-0" />
                           <span className="capitalize">{order.status.replace('_', ' ')}</span>
                         </div>
                         {order.scheduledDate && (
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-secondary mt-1">
                             {typeof order.scheduledDate === 'string'
                               ? new Date(order.scheduledDate).toLocaleDateString("en-GB")
                               : order.scheduledDate.toLocaleDateString("en-GB")
@@ -563,7 +563,7 @@ const UnifiedSchedulingPage = () => {
                           </div>
                         )}
                         {order.pickupDate && (
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-secondary mt-1">
                             {formatTime(order.pickupDate)}
                           </div>
                         )}
@@ -572,10 +572,10 @@ const UnifiedSchedulingPage = () => {
                   ))
                 ) : (
                   <div className="col-span-full text-center py-7">
-                    <Truck className="mx-auto mb-2.5 text-gray-300" size={30} />
-                    <p className="text-gray-500 text-sm">No scheduled orders found</p>
+                    <Truck className="mx-auto mb-2.5 text-secondary" size={30} />
+                    <p className="text-secondary text-sm">No scheduled orders found</p>
                     {emptyStateMessage && (
-                      <p className="text-xs text-gray-400 mt-1">{emptyStateMessage}</p>
+                      <p className="text-xs text-secondary mt-1">{emptyStateMessage}</p>
                     )}
                   </div>
                 )}
@@ -584,45 +584,45 @@ const UnifiedSchedulingPage = () => {
           </div>
 
           {/* Calendar Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          <div className="bg-card rounded-lg shadow-sm border border-theme p-5">
             {/* Calendar Navigation */}
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center space-x-3.5">
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => viewMode === 'month' ? navigateMonth(-1) : viewMode === 'week' ? navigateWeek(-1) : navigateDay(-1)}
-                    className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
+                    className="p-1.5 rounded-md hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
-                  <h2 className="text-lg font-semibold text-gray-900 min-w-[180px] text-center">
+                  <h2 className="text-lg font-semibold text-primary min-w-[180px] text-center">
                     {viewMode === 'month' && monthName}
                     {viewMode === 'week' && `Week of ${weekDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
                     {viewMode === 'day' && currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                   </h2>
                   <button
                     onClick={() => viewMode === 'month' ? navigateMonth(1) : viewMode === 'week' ? navigateWeek(1) : navigateDay(1)}
-                    className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
+                    className="p-1.5 rounded-md hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
                 <button
                   onClick={goToToday}
-                  className="px-2.5 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+                  className="px-2.5 py-1 text-sm bg-[var(--accent-blue)]/20 text-[var(--accent-blue)] rounded-md hover:bg-[var(--accent-blue)]/20 transition-colors"
                 >
                   Today
                 </button>
               </div>
 
-              <div className="flex items-center space-x-1.5 bg-gray-100 rounded-md p-0.5">
+              <div className="flex items-center space-x-1.5 bg-card border border-theme rounded-md p-0.5">
                 {['month', 'week', 'day'].map((mode) => (
                   <button
                     key={mode}
                     onClick={() => setViewMode(mode as 'month' | 'week' | 'day')}
                     className={`px-2.5 py-0.5 rounded-md text-sm font-medium transition-colors ${viewMode === mode
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-card text-primary shadow-sm'
+                      : 'text-secondary hover:text-primary'
                       }`}
                   >
                     {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -634,15 +634,15 @@ const UnifiedSchedulingPage = () => {
             {/* Calendar View */}
             {viewMode === 'month' && (
               <>
-                <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200 rounded-t-md">
+                <div className="grid grid-cols-7 bg-card border-b border-theme rounded-t-md">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                    <div key={day} className="p-2.5 text-center text-sm font-medium text-gray-500 border-r last:border-r-0">
+                    <div key={day} className="p-2.5 text-center text-sm font-medium text-secondary border-r last:border-r-0">
                       {day}
                     </div>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-7 border border-gray-200 border-t-0 rounded-b-md overflow-hidden">
+                <div className="grid grid-cols-7 border border-theme border-t-0 rounded-b-md overflow-hidden">
                   {calendarDays.map((day, index) => {
                     const dayOrders = getOrdersForDate(day.date);
                     const isToday = day.date.toDateString() === new Date().toDateString();
@@ -655,14 +655,14 @@ const UnifiedSchedulingPage = () => {
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={() => handleDrop(day.date)}
                         className={`min-h-[115px] p-1.5 border-r border-b last:border-r-0 cursor-pointer transition-colors
-                          ${!day.isCurrentMonth ? 'bg-gray-50' : 'bg-white'}
-                          ${isToday ? 'bg-blue-50' : ''}
-                          ${hasOrder && !isToday ? 'bg-green-50' : ''}
-                          ${draggedOrder ? 'bg-blue-100 border-2 border-dashed border-blue-300' : ''}
-                          hover:bg-gray-50
+                          ${!day.isCurrentMonth ? 'bg-card' : 'bg-card'}
+                          ${isToday ? 'bg-card' : ''}
+                          ${hasOrder && !isToday ? 'bg-[var(--accent-green)]/10' : ''}
+                          ${draggedOrder ? 'bg-[var(--accent-blue)]/10 border-2 border-dashed border-[var(--accent-blue)]' : ''}
+                          hover:bg-[rgba(255,255,255,0.03)]
                         `}
                       >
-                        <div className={`text-sm font-medium mb-1.5 ${!day.isCurrentMonth ? 'text-gray-400' : isToday ? 'text-blue-600 font-bold' : 'text-gray-900'
+                        <div className={`text-sm font-medium mb-1.5 ${!day.isCurrentMonth ? 'text-secondary' : isToday ? 'text-accent font-bold' : 'text-primary'
                           }`}>
                           {day.date.getDate()}
                         </div>
@@ -687,7 +687,7 @@ const UnifiedSchedulingPage = () => {
                             </div>
                           ))}
                           {dayOrders.length > 3 && (
-                            <div className="text-xs text-gray-500 text-center py-0.5">
+                            <div className="text-xs text-secondary text-center py-0.5">
                               +{dayOrders.length - 3} more
                             </div>
                           )}
@@ -698,27 +698,27 @@ const UnifiedSchedulingPage = () => {
                 </div>
 
                 {/* Legend */}
-                <div className="mt-3 bg-gray-50 rounded-md p-3">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2.5">Calendar Legend</h4>
+                <div className="mt-3 bg-card rounded-md p-3">
+                  <h4 className="text-sm font-medium text-primary mb-2.5">Calendar Legend</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
                     <div className="flex items-center">
-                      <div className="w-3.5 h-3.5 bg-blue-50 border-2 border-blue-300 rounded mr-1.5"></div>
+                      <div className="w-3.5 h-3.5 bg-card border-2 border-[var(--accent-blue)] rounded mr-1.5"></div>
                       <span>Today</span>
                     </div>
                     <div className="flex items-center">
-                      <div className="w-3.5 h-3.5 bg-green-50 rounded mr-1.5"></div>
+                      <div className="w-3.5 h-3.5 bg-[var(--accent-green)]/10 rounded mr-1.5"></div>
                       <span>Has Orders</span>
                     </div>
                     <div className="flex items-center">
-                      <div className="w-3.5 h-3.5 bg-blue-100 border-2 border-dashed border-blue-300 rounded mr-1.5"></div>
+                      <div className="w-3.5 h-3.5 bg-[var(--accent-blue)]/10 border-2 border-dashed border-[var(--accent-blue)] rounded mr-1.5"></div>
                       <span>Drop Zone</span>
                     </div>
                     <div className="flex items-center">
-                      <div className="w-3.5 h-3.5 bg-gray-400 rounded mr-1.5"></div>
+                      <div className="w-3.5 h-3.5 bg-secondary rounded mr-1.5"></div>
                       <span>Other Month</span>
                     </div>
                   </div>
-                  <div className="mt-1.5 text-xs text-gray-500">
+                  <div className="mt-1.5 text-xs text-secondary">
                     💡 Click on calendar dates to view scheduled orders
                   </div>
                 </div>
@@ -727,22 +727,22 @@ const UnifiedSchedulingPage = () => {
 
             {viewMode === 'week' && (
               <>
-                <div className="grid grid-cols-8 bg-gray-50 border-b border-gray-200 rounded-t-md">
+                <div className="grid grid-cols-8 bg-card border-b border-theme rounded-t-md">
                   <div className="p-2.5 border-r"></div>
                   {weekDays.map((day) => {
                     const isToday = day.toDateString() === new Date().toDateString();
                     const dayOrders = getOrdersForDate(day);
 
                     return (
-                      <div key={day.toISOString()} className={`p-2.5 text-center border-r last:border-r-0 ${isToday ? 'bg-blue-50' : ''}`}>
-                        <div className="text-sm font-medium text-gray-500">
+                      <div key={day.toISOString()} className={`p-2.5 text-center border-r last:border-r-0 ${isToday ? 'bg-card' : ''}`}>
+                        <div className="text-sm font-medium text-secondary">
                           {day.toLocaleDateString('en-US', { weekday: 'short' })}
                         </div>
-                        <div className={`text-base font-semibold ${isToday ? 'text-blue-600' : 'text-gray-900'}`}>
+                        <div className={`text-base font-semibold ${isToday ? 'text-accent' : 'text-primary'}`}>
                           {day.getDate()}
                         </div>
                         {dayOrders.length > 0 && (
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-secondary mt-1">
                             {dayOrders.length} orders
                           </div>
                         )}
@@ -751,7 +751,7 @@ const UnifiedSchedulingPage = () => {
                   })}
                 </div>
 
-                <div className="p-3 border border-gray-200 border-t-0 rounded-b-md">
+                <div className="p-3 border border-theme border-t-0 rounded-b-md">
                   <div className="grid grid-cols-7 gap-3">
                     {weekDays.map((day) => {
                       const dayOrders = getOrdersForDate(day);
@@ -766,10 +766,10 @@ const UnifiedSchedulingPage = () => {
                             >
                               <div className="font-medium text-sm truncate">{order.driverName || order.driver?.name || 'Unknown Driver'}</div>
                               {(order.customerOrderNo || order.orderNumber) && (
-                                <div className="text-xs text-gray-600 mt-1 truncate">{order.customerOrderNo || order.orderNumber}</div>
+                                <div className="text-xs text-secondary mt-1 truncate">{order.customerOrderNo || order.orderNumber}</div>
                               )}
                               {order.pickupDate && (
-                                <div className="text-xs text-gray-600 mt-1">
+                                <div className="text-xs text-secondary mt-1">
                                   {formatTime(order.pickupDate)}
                                   {order.deliveryDate && ` - ${formatTime(order.deliveryDate)}`}
                                 </div>
@@ -785,10 +785,10 @@ const UnifiedSchedulingPage = () => {
             )}
 
             {viewMode === 'day' && (
-              <div className="border border-gray-200 rounded-md p-5">
+              <div className="border border-theme rounded-md p-5">
                 <div className="space-y-3">
                   {getOrdersForDate(currentDate).length === 0 ? (
-                    <div className="text-center py-10 text-gray-500">
+                    <div className="text-center py-10 text-secondary">
                       <Calendar className="w-11 h-11 mx-auto mb-3 opacity-50" />
                       <p>No orders scheduled for this day</p>
                     </div>
@@ -801,14 +801,14 @@ const UnifiedSchedulingPage = () => {
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center space-x-2.5">
-                            <User className="w-7 h-7 text-gray-600" />
+                            <User className="w-7 h-7 text-secondary" />
                             <div>
                               <span className="font-medium text-base">{order.driverName || order.driver?.name || 'Unknown Driver'}</span>
                               {(order.customerOrderNo || order.orderNumber) && (
-                                <p className="text-sm text-gray-600">Order: {order.customerOrderNo || order.orderNumber}</p>
+                                <p className="text-sm text-secondary">Order: {order.customerOrderNo || order.orderNumber}</p>
                               )}
                               {order.truck && (
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-secondary">
                                   Truck: {order.truck.licensePlate || order.truck.plateNumber || order.truck.unitNo || order.truck.internalId || 'N/A'}
                                 </p>
                               )}
@@ -821,17 +821,17 @@ const UnifiedSchedulingPage = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                           {order.pickupDate && (
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-secondary">
                               <strong>Pickup:</strong> {new Date(order.pickupDate).toLocaleString()}
                             </div>
                           )}
                           {order.deliveryDate && (
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-secondary">
                               <strong>Delivery:</strong> {new Date(order.deliveryDate).toLocaleString()}
                             </div>
                           )}
                           {order.truck && (
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-secondary">
                               <strong>Truck:</strong> {order.truck.licensePlate || order.truck.plateNumber || order.truck.unitNo || order.truck.internalId || 'N/A'}
                             </div>
                           )}
@@ -849,7 +849,7 @@ const UnifiedSchedulingPage = () => {
                             pickupPlace = order.pickupLocation.placeId.name;
                           }
                           return pickupPlace ? (
-                            <div className="text-sm text-gray-600 mb-1.5">
+                            <div className="text-sm text-secondary mb-1.5">
                               <strong>From:</strong> {pickupPlace}
                             </div>
                           ) : null;
@@ -866,7 +866,7 @@ const UnifiedSchedulingPage = () => {
                             deliveryPlace = order.deliveryLocation.placeId.name;
                           }
                           return deliveryPlace ? (
-                            <div className="text-sm text-gray-600 mb-1.5">
+                            <div className="text-sm text-secondary mb-1.5">
                               <strong>To:</strong> {deliveryPlace}
                             </div>
                           ) : null;
@@ -883,33 +883,33 @@ const UnifiedSchedulingPage = () => {
 
       {/* Schedule Modal */}
       {showScheduleModal && selectedOrder && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-full">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-lg p-6 w-96 max-w-full">
+            <h3 className="text-lg font-semibold text-primary mb-4">
               Schedule Order
             </h3>
 
             <div className="mb-4">
-              <div className="font-medium text-gray-900">
+              <div className="font-medium text-primary">
                 {getOrderIdentifier(selectedOrder)}
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-secondary">
                 Customer: {getCustomerName(selectedOrder)}
               </div>
               {selectedOrder.driver?.name && (
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-secondary">
                   Driver: {selectedOrder.driver.name}
                 </div>
               )}
               {selectedOrder.truck?.internalId && (
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-secondary">
                   Truck: {selectedOrder.truck.internalId}
                 </div>
               )}
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Select Date
               </label>
               <input
@@ -920,19 +920,19 @@ const UnifiedSchedulingPage = () => {
                     setCurrentDate(new Date(e.target.value));
                   }
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
               />
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Select Time
               </label>
               <input
                 type="time"
                 value={selectedTime}
                 onChange={(e) => setSelectedTime(e.target.value || DEFAULT_SCHEDULE_TIME)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
               />
             </div>
 
@@ -943,7 +943,7 @@ const UnifiedSchedulingPage = () => {
                   setSelectedOrder(null);
                   setSelectedTime(DEFAULT_SCHEDULE_TIME);
                 }}
-                className="px-4 py-2 text-sm !mr-3 font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 text-sm !mr-3 font-medium text-primary bg-card border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)]"
               >
                 Cancel
               </button>
@@ -954,9 +954,9 @@ const UnifiedSchedulingPage = () => {
                   setSelectedOrder(null);
                   setSelectedTime(DEFAULT_SCHEDULE_TIME);
                 }}
-                className="px-4 py-2 text-sm font-medium !text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                className="px-4 py-2 text-sm font-medium !text-white bg-[var(--accent-blue)] rounded-md hover:bg-[var(--accent-blue)]"
                 style={{
-                  background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
+                  background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)",
                 }}
               >
                 Schedule Order
@@ -968,19 +968,19 @@ const UnifiedSchedulingPage = () => {
 
       {/* Order Details Modal */}
       {selectedOrder && !showScheduleModal && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-card rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
-                  <User className="w-8 h-8 text-gray-600" />
+                  <User className="w-8 h-8 text-secondary" />
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{selectedOrder.driverName || selectedOrder.driver?.name || 'Unknown Driver'}</h2>
+                    <h2 className="text-2xl font-bold text-primary">{selectedOrder.driverName || selectedOrder.driver?.name || 'Unknown Driver'}</h2>
                     {(selectedOrder.customerOrderNo || selectedOrder.orderNumber) && (
-                      <p className="text-gray-600">Order: {selectedOrder.customerOrderNo || selectedOrder.orderNumber}</p>
+                      <p className="text-secondary">Order: {selectedOrder.customerOrderNo || selectedOrder.orderNumber}</p>
                     )}
                     {selectedOrder.truck && (
-                      <p className="text-gray-600">
+                      <p className="text-secondary">
                         Truck: {selectedOrder.truck.licensePlate || selectedOrder.truck.plateNumber || selectedOrder.truck.unitNo || selectedOrder.truck.internalId || 'N/A'}
                       </p>
                     )}
@@ -988,7 +988,7 @@ const UnifiedSchedulingPage = () => {
                 </div>
                 <button
                   onClick={() => setSelectedOrder(null)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-secondary hover:text-secondary transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -997,8 +997,8 @@ const UnifiedSchedulingPage = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <h3 className="font-medium text-gray-900">Order Details</h3>
-                    <div className="text-sm text-gray-600 space-y-1">
+                    <h3 className="font-medium text-primary">Order Details</h3>
+                    <div className="text-sm text-secondary space-y-1">
                       {selectedOrder.pickupDate && (
                         <div><strong>Pickup Date:</strong> {new Date(selectedOrder.pickupDate).toLocaleString()}</div>
                       )}
@@ -1018,8 +1018,8 @@ const UnifiedSchedulingPage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <h3 className="font-medium text-gray-900">Status & Location</h3>
-                    <div className="text-sm text-gray-600 space-y-1">
+                    <h3 className="font-medium text-primary">Status & Location</h3>
+                    <div className="text-sm text-secondary space-y-1">
                       {selectedOrder.pickupDate && selectedOrder.deliveryDate && (
                         <div><strong>Duration:</strong> {Math.round((new Date(selectedOrder.deliveryDate).getTime() - new Date(selectedOrder.pickupDate).getTime()) / (1000 * 60 * 60) * 10) / 10} hours</div>
                       )}
@@ -1059,8 +1059,8 @@ const UnifiedSchedulingPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <h3 className="font-medium text-gray-900">Driver Contact</h3>
-                  <div className="text-sm text-gray-600 space-y-1">
+                  <h3 className="font-medium text-primary">Driver Contact</h3>
+                  <div className="text-sm text-secondary space-y-1">
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4" />
                       <span>{selectedOrder.driverPhone || selectedOrder.driver?.phone || 'N/A'}</span>
@@ -1074,8 +1074,8 @@ const UnifiedSchedulingPage = () => {
 
                 {(selectedOrder.notes || selectedOrder.internalNotes || selectedOrder.customerNotes) && (
                   <div className="space-y-2">
-                    <h3 className="font-medium text-gray-900">Notes</h3>
-                    <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-700">
+                    <h3 className="font-medium text-primary">Notes</h3>
+                    <div className="p-3 bg-card rounded-lg text-sm text-primary">
                       {selectedOrder.notes || selectedOrder.internalNotes || selectedOrder.customerNotes}
                     </div>
                   </div>
@@ -1084,7 +1084,7 @@ const UnifiedSchedulingPage = () => {
                 <div className="flex justify-end space-x-3 pt-4 border-t">
                   <button
                     onClick={() => setSelectedOrder(null)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                    className="px-4 py-2 text-sm font-medium text-primary bg-card border border-theme rounded-md hover:bg-[rgba(255,255,255,0.05)]"
                   >
                     Close
                   </button>

@@ -79,7 +79,7 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
+    error: 'bg-card border-red-200',
     info: 'bg-[#9793E4]/10 border-[#9793E4]/30'
   };
 
@@ -95,10 +95,10 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -201,8 +201,8 @@ const ExpensesPage = () => {
   useEffect(() => {
     if (formData.categoryId) {
       // Ensure categoryId is a string
-      const categoryIdStr = typeof formData.categoryId === 'string' 
-        ? formData.categoryId 
+      const categoryIdStr = typeof formData.categoryId === 'string'
+        ? formData.categoryId
         : (formData.categoryId as any)?._id || String(formData.categoryId);
       if (categoryIdStr) {
         fetchExpenseTypes(categoryIdStr);
@@ -261,13 +261,13 @@ const ExpensesPage = () => {
       } else if (categoryId && typeof categoryId === 'object' && categoryId !== null) {
         categoryIdStr = (categoryId as any)._id || String(categoryId);
       }
-      
+
       if (!categoryIdStr || categoryIdStr.trim() === '') {
         setExpenseTypes([]);
         setLoadingTypes(false);
         return;
       }
-      
+
       const response = await listExpenseTypes(categoryIdStr);
       if (response?.success && Array.isArray(response.data)) {
         // Normalize categoryId to string for all types
@@ -411,16 +411,16 @@ const ExpensesPage = () => {
     try {
       let response;
       if (editingType) {
-        response = await updateExpenseType(editingType._id, { 
-          name, 
-          categoryId: typeFormData.categoryId, 
-          status: typeFormData.status 
+        response = await updateExpenseType(editingType._id, {
+          name,
+          categoryId: typeFormData.categoryId,
+          status: typeFormData.status
         });
       } else {
-        response = await createExpenseType({ 
-          name, 
-          categoryId: typeFormData.categoryId, 
-          status: typeFormData.status 
+        response = await createExpenseType({
+          name,
+          categoryId: typeFormData.categoryId,
+          status: typeFormData.status
         });
       }
 
@@ -459,12 +459,12 @@ const ExpensesPage = () => {
     try {
       const deletedType = deleteTypeConfirm.type;
       const categoryId = deletedType.categoryId?.toString() || deletedType.categoryId || '';
-      
+
       const response = await deleteExpenseType(deletedType._id);
       if (response?.success) {
         addNotification('success', 'Expense type deleted successfully');
         setDeleteTypeConfirm({ show: false, type: null });
-        
+
         // Refresh types for the category that had the deleted type
         if (categoryId) {
           await fetchExpenseTypes(categoryId);
@@ -708,8 +708,8 @@ const ExpensesPage = () => {
       : expense.userId || '';
     const categoryId = expense.categoryId || (expense.category?._id) || '';
     // Ensure categoryId is a string
-    const categoryIdStr = typeof categoryId === 'string' 
-      ? categoryId 
+    const categoryIdStr = typeof categoryId === 'string'
+      ? categoryId
       : (categoryId as any)?._id || String(categoryId);
     // Get typeId if available (from typeId field or from type object)
     const typeId = (expense as any).typeId || (typeof (expense as any).type === 'object' && (expense as any).type?._id) || '';
@@ -865,7 +865,7 @@ const ExpensesPage = () => {
       'Cash': 'bg-purple-100 text-purple-800',
       'Cash Advance': 'bg-purple-100 text-purple-800',
     };
-    return typeMap[typeName] || 'bg-gray-100 text-gray-800';
+    return typeMap[typeName] || 'bg-card text-primary';
   };
 
   const getTypeIcon = (typeName: string) => {
@@ -895,7 +895,7 @@ const ExpensesPage = () => {
     // Category matching - handle both string and object categoryId
     if (selectedCategoryTab !== 'all') {
       const selectedCategoryIdStr = String(selectedCategoryTab);
-      
+
       // Get expense category ID - handle both string and populated object
       let expenseCategoryId: string | null = null;
       if (expense.categoryId) {
@@ -905,7 +905,7 @@ const ExpensesPage = () => {
           expenseCategoryId = String((expense.categoryId as any)._id || expense.categoryId);
         }
       }
-      
+
       // Get populated category object ID
       let expenseCategoryObjId: string | null = null;
       if (expense.category) {
@@ -913,31 +913,31 @@ const ExpensesPage = () => {
           expenseCategoryObjId = String(expense.category._id || (expense.category as any)._id);
         }
       }
-      
+
       // Compare normalized strings
       const categoryMatch = (expenseCategoryId && String(expenseCategoryId) === selectedCategoryIdStr) ||
-                           (expenseCategoryObjId && String(expenseCategoryObjId) === selectedCategoryIdStr);
-      
+        (expenseCategoryObjId && String(expenseCategoryObjId) === selectedCategoryIdStr);
+
       if (!categoryMatch) {
         return false;
       }
     }
-    
+
     // Type matching - handle both string and object type (legacy filter)
     if (filterType !== 'all') {
-      const expenseTypeName = typeof expense.type === 'string' 
-        ? expense.type 
+      const expenseTypeName = typeof expense.type === 'string'
+        ? expense.type
         : (expense.type as any)?.name;
       const expenseTypeIdName = typeof expense.typeId === 'object' && expense.typeId !== null
         ? (expense.typeId as any)?.name
         : null;
-      
+
       const typeMatch = expenseTypeName === filterType || expenseTypeIdName === filterType;
       if (!typeMatch) {
         return false;
       }
     }
-    
+
     return true;
   });
 
@@ -967,15 +967,15 @@ const ExpensesPage = () => {
 
   if (loading && !emptyStateMessage) {
     return (
-      <div className="min-h-screen bg-[#EDF8FF] flex flex-col items-center justify-center text-center space-y-4">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#42aeec]"></div>
+      <div className="min-h-screen bg-main flex flex-col items-center justify-center text-center space-y-4">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-blue)]"></div>
         <p className="text-[#063f6f]">Loading expenses...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-6 bg-[#EDF8FF]">
+    <div className="min-h-screen p-6 bg-main">
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
@@ -988,7 +988,7 @@ const ExpensesPage = () => {
       <div className="w-full mx-auto p-2">
         {emptyStateMessage && (
           <div className="mb-6">
-            <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 shadow-sm">
+            <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-card px-4 py-3 text-sm text-blue-700 shadow-sm">
               <Building2 className="h-5 w-5 mt-0.5 text-blue-500" />
               <div className="flex-1">
                 <p className="font-semibold text-blue-900">No expense data available</p>
@@ -1008,8 +1008,8 @@ const ExpensesPage = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Expense Management</h1>
-              <p className="text-[#063f6f] mt-2">Track and manage all expenses</p>
+              <h1 className="text-3xl font-bold text-[var(--accent-navyblue)]" >Expense Management</h1>
+              <p className="text-secondary mt-2">Track and manage all expenses</p>
             </div>
             <button
               onClick={() => {
@@ -1032,7 +1032,7 @@ const ExpensesPage = () => {
                 setActiveTab('create');
               }}
               className="!text-white px-4 py-2 rounded-lg hover:shadow-lg flex items-center gap-2 transition-all transform hover:scale-105"
-              style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+              style={{ background: 'var(--accent-navyblue)' }}
             >
               <Plus size={20} />
               Add Expense
@@ -1042,21 +1042,29 @@ const ExpensesPage = () => {
 
         {/* Stats Cards - Dynamic based on categories */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <div className="bg-[#E3F2FD] p-6 rounded-xl border-blue-100 shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative">
+
+          {/* 🔷 TOTAL EXPENSES */}
+          <div className="bg-[var(--bg-card)] p-6 rounded-xl border border-[rgba(255,255,255,0.08)] shadow-sm hover:shadow-lg hover:shadow-[#42aeec]/10 transition-all duration-300">
             <div className="flex items-center justify-between gap-3">
               <div className="flex-1 min-w-0 pr-2">
-                <p className="text-[#063f6f] text-sm">Total Expenses</p>
-                <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>${totalAmount.toLocaleString()}</p>
+                <p className="text-secondary text-sm">Total Expenses</p>
+                <p className="text-2xl font-bold text-primary">
+                  ${totalAmount.toLocaleString()}
+                </p>
               </div>
-              <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
-                <DollarSign className="text-[#42aeec]" size={20} />
+              <div className="bg-[rgba(66,174,236,0.1)] p-2.5 rounded-full">
+                <DollarSign className="text-[var(--accent-blue)]" size={20} />
               </div>
             </div>
           </div>
 
+
+          {/* 🔷 CATEGORY CARDS */}
           {categories.slice(0, 3).map((category, index) => {
+
             const categoryExpenses = expenses.filter(e => {
               const categoryIdStr = String(category._id);
+
               let expenseCategoryId: string | null = null;
               if (e.categoryId) {
                 if (typeof e.categoryId === 'string') {
@@ -1065,34 +1073,47 @@ const ExpensesPage = () => {
                   expenseCategoryId = String((e.categoryId as any)._id || e.categoryId);
                 }
               }
+
               let expenseCategoryObjId: string | null = null;
-              if (e.category) {
-                if (typeof e.category === 'object' && e.category !== null) {
-                  expenseCategoryObjId = String(e.category._id || (e.category as any)._id);
-                }
+              if (e.category && typeof e.category === 'object') {
+                expenseCategoryObjId = String(e.category._id);
               }
-              return (expenseCategoryId && String(expenseCategoryId) === categoryIdStr) ||
-                     (expenseCategoryObjId && String(expenseCategoryObjId) === categoryIdStr);
+
+              return (
+                (expenseCategoryId && expenseCategoryId === categoryIdStr) ||
+                (expenseCategoryObjId && expenseCategoryObjId === categoryIdStr)
+              );
             });
+
             const categoryTotal = categoryExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-            
+
+            // 🎨 HR STYLE COLORS
             const cardColors = [
-              { bg: 'bg-[#E1F5FE]', border: 'border-cyan-100', icon: '⛽' },
-              { bg: 'bg-[#E8F5E9]', border: 'border-green-100', icon: '🔧' },
-              { bg: 'bg-[#F3E5F5]', border: 'border-purple-100', icon: '💰' }
+              { accent: 'text-cyan-400', iconBg: 'bg-cyan-400/10', icon: '⛽' },
+              { accent: 'text-green-400', iconBg: 'bg-green-400/10', icon: '🔧' },
+              { accent: 'text-purple-400', iconBg: 'bg-purple-400/10', icon: '💰' }
             ];
-            const colors = cardColors[index] || { bg: 'bg-[#E1F5FE]', border: 'border-cyan-100', icon: '📊' };
+
+            const colors = cardColors[index] || {
+              accent: 'text-blue-400',
+              iconBg: 'bg-blue-400/10',
+              icon: '📊'
+            };
 
             return (
-              <div key={category._id} className={`${colors.bg} p-6 rounded-xl ${colors.border} shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative`}>
+              <div
+                key={category._id}
+                className="bg-[var(--bg-card)] p-6 rounded-xl border border-[rgba(255,255,255,0.08)] shadow-sm hover:shadow-lg hover:shadow-[#42aeec]/10 transition-all duration-300"
+              >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 min-w-0 pr-2">
-                    <p className="text-[#063f6f] text-sm">{category.name}</p>
-                    <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
+                    <p className="text-secondary text-sm">{category.name}</p>
+                    <p className={`text-2xl font-bold ${colors.accent}`}>
                       ${categoryTotal.toLocaleString()}
                     </p>
                   </div>
-                  <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
+
+                  <div className={`${colors.iconBg} p-2.5 rounded-full`}>
                     <span className="text-xl">{colors.icon}</span>
                   </div>
                 </div>
@@ -1100,34 +1121,37 @@ const ExpensesPage = () => {
             );
           })}
 
-          <div className="bg-[#FFF3E0] p-6 rounded-xl border-orange-100 shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative">
+
+          {/* 🔷 TOTAL PAYROLL */}
+          <div className="bg-[var(--bg-card)] p-6 rounded-xl border border-[rgba(255,255,255,0.08)] shadow-sm hover:shadow-lg hover:shadow-[#42aeec]/10 transition-all duration-300">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <p className="text-[#063f6f] text-sm mb-1">Total Payroll</p>
-                <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
+                <p className="text-secondary text-sm mb-1">Total Payroll</p>
+                <p className="text-2xl font-bold text-primary">
                   ${totalPayroll.toLocaleString()}
                 </p>
               </div>
-              <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
-                <Users className="text-[#42aeec]" size={20} />
+
+              <div className="bg-[rgba(66,174,236,0.1)] p-2.5 rounded-full">
+                <Users className="text-[var(--accent-blue)]" size={20} />
               </div>
             </div>
           </div>
+
         </div>
 
         {/* Category Tabs */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+        <div className="bg-card rounded-xl border border-theme shadow-sm mb-6 overflow-hidden">
           <div className="px-6 py-4 flex items-center justify-between gap-4">
             {/* Scrollable Category Tabs */}
             <div className="flex-1 overflow-x-auto scrollbar-hide">
               <div className="flex gap-2 min-w-max pb-1">
                 <button
                   onClick={() => setSelectedCategoryTab('all')}
-                  className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
-                    selectedCategoryTab === 'all'
-                      ? 'bg-blue-50 text-blue-700 border-2 border-blue-400 shadow-sm'
-                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-2 border-transparent hover:border-gray-200'
-                  }`}
+                  className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${selectedCategoryTab === 'all'
+                    ? 'bg-card text-blue-700 border-2 border-blue-400 shadow-sm'
+                    : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)] border-2 border-transparent hover:border-theme'
+                    }`}
                 >
                   All Expenses <span className="font-normal">({expenses.length})</span>
                 </button>
@@ -1136,7 +1160,7 @@ const ExpensesPage = () => {
                     // Check if expense belongs to this category
                     // Normalize all IDs to strings for comparison
                     const categoryIdStr = String(category._id);
-                    
+
                     // Get expense category ID - handle both string and populated object
                     let expenseCategoryId: string | null = null;
                     if (e.categoryId) {
@@ -1146,7 +1170,7 @@ const ExpensesPage = () => {
                         expenseCategoryId = String((e.categoryId as any)._id || e.categoryId);
                       }
                     }
-                    
+
                     // Get populated category object ID
                     let expenseCategoryObjId: string | null = null;
                     if (e.category) {
@@ -1154,20 +1178,19 @@ const ExpensesPage = () => {
                         expenseCategoryObjId = String(e.category._id || (e.category as any)._id);
                       }
                     }
-                    
+
                     // Compare normalized strings
                     return (expenseCategoryId && String(expenseCategoryId) === categoryIdStr) ||
-                           (expenseCategoryObjId && String(expenseCategoryObjId) === categoryIdStr);
+                      (expenseCategoryObjId && String(expenseCategoryObjId) === categoryIdStr);
                   }).length;
                   return (
                     <button
                       key={category._id}
                       onClick={() => setSelectedCategoryTab(category._id)}
-                      className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
-                        selectedCategoryTab === category._id
-                          ? 'bg-blue-50 text-blue-700 border-2 border-blue-400 shadow-sm'
-                          : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-2 border-transparent hover:border-gray-200'
-                      }`}
+                      className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${selectedCategoryTab === category._id
+                        ? 'bg-card text-blue-700 border-2 border-blue-400 shadow-sm'
+                        : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)] border-2 border-transparent hover:border-theme'
+                        }`}
                     >
                       {category.name} <span className="font-normal">({categoryExpenseCount})</span>
                     </button>
@@ -1175,12 +1198,12 @@ const ExpensesPage = () => {
                 })}
               </div>
             </div>
-            
+
             {/* Action Buttons */}
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={() => handleOpenTypeModal()}
-                className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-lg transition-all duration-200 flex items-center gap-2 shadow-sm"
+                className="px-4 py-2.5 text-sm font-medium text-primary bg-card border border-theme hover:bg-[rgba(255,255,255,0.03)] hover:border-gray-400 rounded-lg transition-all duration-200 flex items-center gap-2 shadow-sm"
                 title="Add Expense Type"
               >
                 <Plus size={16} />
@@ -1189,7 +1212,7 @@ const ExpensesPage = () => {
               <button
                 onClick={() => handleOpenCategoryModal()}
                 className="px-4 py-2.5 text-sm font-medium !text-white rounded-lg transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg"
-                style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                style={{ background: 'var(--accent-navyblue)' }}
                 title="Manage Categories"
               >
                 <Settings size={16} />
@@ -1200,16 +1223,15 @@ const ExpensesPage = () => {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-          <div className="border-b border-gray-200">
+        <div className="bg-card rounded-xl border border-theme shadow-sm">
+          <div className="border-b border-theme">
             <div className="flex">
               <button
                 onClick={() => setActiveTab('list')}
-                className={`px-6 py-4 text-sm font-semibold transition-all duration-200 relative ${
-                  activeTab === 'list'
-                    ? 'text-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
+                className={`px-6 py-4 text-sm font-semibold transition-all duration-200 relative ${activeTab === 'list'
+                  ? 'text-[#00D1FF]'
+                  : 'text-secondary hover:text-primary'
+                  }`}
               >
                 Expense List
                 {activeTab === 'list' && (
@@ -1218,11 +1240,10 @@ const ExpensesPage = () => {
               </button>
               <button
                 onClick={() => setActiveTab('create')}
-                className={`px-6 py-4 text-sm font-semibold transition-all duration-200 relative ${
-                  activeTab === 'create'
-                    ? 'text-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
+                className={`px-6 py-4 text-sm font-semibold transition-all duration-200 relative ${activeTab === 'create'
+                  ? 'text-[#00D1FF]'
+                  : 'text-secondary hover:text-primary'
+                  }`}
               >
                 {editingExpense ? 'Edit Expense' : 'Add Expense'}
                 {activeTab === 'create' && (
@@ -1239,11 +1260,11 @@ const ExpensesPage = () => {
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <Filter size={20} className="text-gray-500" />
+                      <Filter size={20} className="text-secondary" />
                       <select
                         value={filterType}
                         onChange={(e) => setFilterType(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="all">All Types</option>
                         {legacyExpenseTypes.map(type => (
@@ -1257,14 +1278,14 @@ const ExpensesPage = () => {
                 {/* Expense List */}
                 {loading ? (
                   <div className="text-center py-8">
-                    <p className="text-gray-500">Loading expenses...</p>
+                    <p className="text-secondary">Loading expenses...</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {filteredExpenses.map((expense) => (
-                      <div 
-                        key={expense._id} 
-                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                      <div
+                        key={expense._id}
+                        className="border border-theme rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                         onClick={() => handleView(expense)}
                       >
                         <div className="flex items-center justify-between">
@@ -1278,12 +1299,12 @@ const ExpensesPage = () => {
                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(getTypeName(expense))}`}>
                                   {getTypeName(expense)}
                                 </span>
-                                <span className="text-lg font-semibold text-gray-900">
+                                <span className="text-lg font-semibold text-primary">
                                   ${(expense.amount || 0).toLocaleString()}
                                 </span>
                               </div>
-                              <p className="text-gray-600 text-sm mb-1">{expense.description || 'No description'}</p>
-                              <div className="flex items-center gap-4 text-xs text-gray-500 flex-wrap">
+                              <p className="text-secondary text-sm mb-1">{expense.description || 'No description'}</p>
+                              <div className="flex items-center gap-4 text-xs text-secondary flex-wrap">
                                 <span className="flex items-center gap-1">
                                   <User size={12} />
                                   {getEmployeeName(expense.userId)}
@@ -1317,21 +1338,21 @@ const ExpensesPage = () => {
                           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                             <button
                               onClick={() => handleView(expense)}
-                              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-2 text-secondary hover:text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
                               title="View Details"
                             >
                               <Eye size={16} />
                             </button>
                             <button
                               onClick={() => handleEdit(expense)}
-                              className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              className="p-2 text-secondary hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                               title="Edit Expense"
                             >
                               <Edit size={16} />
                             </button>
                             <button
                               onClick={() => handleDelete(expense._id)}
-                              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-2 text-secondary hover:text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete Expense"
                             >
                               <Trash2 size={16} />
@@ -1342,7 +1363,7 @@ const ExpensesPage = () => {
                     ))}
 
                     {filteredExpenses.length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
+                      <div className="text-center py-8 text-secondary">
                         <FileText size={48} className="mx-auto mb-4 text-gray-300" />
                         <p>No expenses found for the selected filter.</p>
                       </div>
@@ -1354,25 +1375,25 @@ const ExpensesPage = () => {
 
             {activeTab === 'create' && (
               <div className="max-w-2xl">
-                <h2 className="text-xl font-semibold mb-6" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                <h2 className="text-xl font-semibold mb-6" style={{ background: 'var(--accent-navyblue)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   {editingExpense ? 'Edit Expense' : 'Add New Expense'}
                 </h2>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Employee
                       </label>
                       <select
                         name="userId"
                         value={formData.userId}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="">Select Employee</option>
+                        <option className='form-option' value="">Select Employee</option>
                         {employees.map(emp => (
-                          <option key={emp._id} value={emp._id}>
+                          <option className='form-option' key={emp._id} value={emp._id}>
                             {emp.name} - {emp.role || emp.position || 'Employee'}
                           </option>
                         ))}
@@ -1380,7 +1401,7 @@ const ExpensesPage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Expense Category *
                       </label>
                       <select
@@ -1388,11 +1409,11 @@ const ExpensesPage = () => {
                         value={formData.categoryId}
                         onChange={handleInputChange}
                         required
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="">Select Category</option>
+                        <option className='form-option' value="">Select Category</option>
                         {categories.map(category => (
-                          <option key={category._id} value={category._id}>
+                          <option className='form-option' key={category._id} value={category._id}>
                             {category.name}
                           </option>
                         ))}
@@ -1401,7 +1422,7 @@ const ExpensesPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       Expense Type *
                     </label>
                     <select
@@ -1410,31 +1431,31 @@ const ExpensesPage = () => {
                       onChange={(e) => {
                         const selectedTypeId = e.target.value;
                         const selectedType = expenseTypes.find(t => t._id === selectedTypeId);
-                        setFormData(prev => ({ 
-                          ...prev, 
+                        setFormData(prev => ({
+                          ...prev,
                           typeId: selectedTypeId,
                           type: selectedType?.name || '' // Keep type for backward compatibility
                         }));
                       }}
                       required
                       disabled={!formData.categoryId || loadingTypes}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-card disabled:cursor-not-allowed"
                     >
-                      <option value="">
-                        {loadingTypes 
-                          ? 'Loading types...' 
-                          : !formData.categoryId 
-                            ? 'Select a category first' 
+                      <option className='form-option' value="">
+                        {loadingTypes
+                          ? 'Loading types...'
+                          : !formData.categoryId
+                            ? 'Select a category first'
                             : 'Select Type'}
                       </option>
                       {expenseTypes.map((type: ExpenseType) => (
-                        <option key={type._id} value={type._id}>
+                        <option className='form-option' key={type._id} value={type._id}>
                           {type.name}
                         </option>
                       ))}
                     </select>
                     {!formData.categoryId && (
-                      <p className="mt-1 text-xs text-gray-500">
+                      <p className="mt-1 text-xs text-secondary">
                         Please select an expense category first to see available types
                       </p>
                     )}
@@ -1442,7 +1463,7 @@ const ExpensesPage = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Amount ($) *
                       </label>
                       <input
@@ -1453,13 +1474,13 @@ const ExpensesPage = () => {
                         required
                         min="0"
                         step="0.01"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter amount"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Date *
                       </label>
                       <input
@@ -1468,13 +1489,13 @@ const ExpensesPage = () => {
                         value={formData.date}
                         onChange={handleInputChange}
                         required
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       Description
                     </label>
                     <textarea
@@ -1482,14 +1503,14 @@ const ExpensesPage = () => {
                       value={formData.description}
                       onChange={handleInputChange}
                       rows={3}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Enter expense description..."
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Select Truck
                       </label>
                       <select
@@ -1497,11 +1518,11 @@ const ExpensesPage = () => {
                         value={formData.truckId}
                         onChange={handleInputChange}
                         disabled={loadingFleet}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-card disabled:cursor-not-allowed"
                       >
-                        <option value="">Select Truck (Optional)</option>
+                        <option className='form-option' value="">Select Truck (Optional)</option>
                         {trucks.map(truck => (
-                          <option key={truck._id} value={truck._id}>
+                          <option className='form-option' key={truck._id} value={truck._id}>
                             {truck.unitNo || truck.unitNumber || truck.internalId || truck.plateNumber || truck._id}
                             {truck.make && truck.model ? ` - ${truck.make} ${truck.model}` : ''}
                           </option>
@@ -1510,7 +1531,7 @@ const ExpensesPage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Select Trailer
                       </label>
                       <select
@@ -1518,11 +1539,11 @@ const ExpensesPage = () => {
                         value={formData.trailerId}
                         onChange={handleInputChange}
                         disabled={loadingFleet}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-card disabled:cursor-not-allowed"
                       >
-                        <option value="">Select Trailer (Optional)</option>
+                        <option className='form-option' value="">Select Trailer (Optional)</option>
                         {trailers.map(trailer => (
-                          <option key={trailer._id} value={trailer._id}>
+                          <option className='form-option' key={trailer._id} value={trailer._id}>
                             {trailer.unitNo || trailer.unitNumber || trailer.internalId || trailer.plateNumber || trailer._id}
                             {trailer.make && trailer.model ? ` - ${trailer.make} ${trailer.model}` : ''}
                           </option>
@@ -1532,11 +1553,11 @@ const ExpensesPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       Receipt Upload
                     </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
-                      <Receipt className="mx-auto mb-2 text-gray-400" size={32} />
+                    <div className="border-2 border-dashed border-theme rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
+                      <Receipt className="mx-auto mb-2 text-secondary" size={32} />
                       <input
                         type="file"
                         name="receiptFile"
@@ -1546,10 +1567,10 @@ const ExpensesPage = () => {
                         id="receipt-upload"
                       />
                       <label htmlFor="receipt-upload" className="cursor-pointer">
-                        <span className="text-blue-600 hover:text-blue-700">Click to upload</span>
-                        <span className="text-gray-500"> or drag and drop</span>
+                        <span className="text-[#00D1FF] hover:text-blue-700">Click to upload</span>
+                        <span className="text-secondary"> or drag and drop</span>
                       </label>
-                      <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 10MB</p>
+                      <p className="text-xs text-secondary mt-1">PNG, JPG up to 10MB</p>
                       {formData.receiptFile && (
                         <div className="mt-3 space-y-2">
                           <p className="text-sm text-green-600">
@@ -1583,7 +1604,7 @@ const ExpensesPage = () => {
                       type="submit"
                       disabled={loading}
                       className="!text-white px-6 py-2 rounded-lg hover:shadow-lg flex items-center gap-2 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                      style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                      style={{ background: 'var(--accent-navyblue)' }}
                     >
                       <Plus size={16} />
                       {loading ? 'Saving...' : editingExpense ? 'Update Expense' : 'Add Expense'}
@@ -1592,7 +1613,7 @@ const ExpensesPage = () => {
                       type="button"
                       onClick={handleCancel}
                       disabled={loading}
-                      className="text-gray-600 hover:text-gray-900 px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:cursor-not-allowed"
+                      className="text-secondary hover:text-primary px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>
@@ -1600,275 +1621,277 @@ const ExpensesPage = () => {
                 </form>
               </div>
             )}
-          </div>
-        </div>
-      </div>
+          </div >
+        </div >
+      </div >
 
       {/* View Expense Modal */}
-      {showViewModal && viewingExpense && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">Expense Details</h2>
-              <button
-                onClick={() => {
-                  setShowViewModal(false);
-                  setViewingExpense(null);
-                  setReceiptSignedUrl(null);
-                }}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <span className="text-2xl">&times;</span>
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {/* Expense Type and Amount */}
-              <div className="flex items-center justify-between pb-4 border-b border-gray-200">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <div className="text-4xl">{getTypeIcon(getTypeName(viewingExpense))}</div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
-                      {getCategoryName(viewingExpense)}
-                    </span>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTypeColor(getTypeName(viewingExpense))}`}>
-                      {getTypeName(viewingExpense)}
-                    </span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-600">Amount</p>
-                  <p className="text-3xl font-bold text-gray-900">
-                    ${(viewingExpense.amount || 0).toLocaleString()}
-                  </p>
-                </div>
+      {
+        showViewModal && viewingExpense && (
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-card rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-primary">Expense Details</h2>
+                <button
+                  onClick={() => {
+                    setShowViewModal(false);
+                    setViewingExpense(null);
+                    setReceiptSignedUrl(null);
+                  }}
+                  className="text-secondary hover:text-primary transition-colors"
+                >
+                  <span className="text-2xl">&times;</span>
+                </button>
               </div>
 
-              {/* Employee Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User size={18} className="text-gray-500" />
-                    <p className="text-sm font-medium text-gray-600">Employee</p>
+              <div className="p-6 space-y-6">
+                {/* Expense Type and Amount */}
+                <div className="flex items-center justify-between pb-4 border-b border-theme">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="text-4xl">{getTypeIcon(getTypeName(viewingExpense))}</div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                        {getCategoryName(viewingExpense)}
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTypeColor(getTypeName(viewingExpense))}`}>
+                        {getTypeName(viewingExpense)}
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {getEmployeeName(viewingExpense.userId)}
-                  </p>
-                  {getEmployeeRole(viewingExpense.userId) && (
-                    <p className="text-sm text-gray-500 mt-1">{getEmployeeRole(viewingExpense.userId)}</p>
-                  )}
+                  <div className="text-right">
+                    <p className="text-sm text-secondary">Amount</p>
+                    <p className="text-3xl font-bold text-primary">
+                      ${(viewingExpense.amount || 0).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Calendar size={18} className="text-gray-500" />
-                    <p className="text-sm font-medium text-gray-600">Date</p>
-                  </div>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {viewingExpense.date
-                      ? new Date(viewingExpense.date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })
-                      : 'No date'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Vehicle and Trailer Information */}
-              {(viewingExpense.vehicle || viewingExpense.trailer || (viewingExpense as any).truckId || (viewingExpense as any).trailerId) && (
+                {/* Employee Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {viewingExpense.vehicle && (
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Truck size={18} className="text-gray-500" />
-                        <p className="text-sm font-medium text-gray-600">Vehicle</p>
-                      </div>
-                      <p className="text-lg font-semibold text-gray-900">
-                        {typeof viewingExpense.vehicle === 'object' && viewingExpense.vehicle !== null
-                          ? (viewingExpense.vehicle as any).unitNo || (viewingExpense.vehicle as any).unitNumber || (viewingExpense.vehicle as any).internalId || (viewingExpense.vehicle as any).licensePlate || (viewingExpense.vehicle as any).plateNumber || 'Vehicle'
-                          : 'Vehicle'}
-                      </p>
-                      {typeof viewingExpense.vehicle === 'object' && viewingExpense.vehicle !== null && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          {[(viewingExpense.vehicle as any).make, (viewingExpense.vehicle as any).model].filter(Boolean).join(' ') || 'No details'}
-                        </p>
-                      )}
+                  <div className="bg-card p-4 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <User size={18} className="text-secondary" />
+                      <p className="text-sm font-medium text-secondary">Employee</p>
                     </div>
-                  )}
-                  {viewingExpense.trailer && (
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Package size={18} className="text-gray-500" />
-                        <p className="text-sm font-medium text-gray-600">Trailer</p>
-                      </div>
-                      <p className="text-lg font-semibold text-gray-900">
-                        {typeof viewingExpense.trailer === 'object' && viewingExpense.trailer !== null
-                          ? (viewingExpense.trailer as any).unitNo || (viewingExpense.trailer as any).unitNumber || (viewingExpense.trailer as any).internalId || (viewingExpense.trailer as any).licensePlate || (viewingExpense.trailer as any).plateNumber || 'Trailer'
-                          : 'Trailer'}
-                      </p>
-                      {typeof viewingExpense.trailer === 'object' && viewingExpense.trailer !== null && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          {[(viewingExpense.trailer as any).make, (viewingExpense.trailer as any).model].filter(Boolean).join(' ') || 'No details'}
-                        </p>
-                      )}
+                    <p className="text-lg font-semibold text-primary">
+                      {getEmployeeName(viewingExpense.userId)}
+                    </p>
+                    {getEmployeeRole(viewingExpense.userId) && (
+                      <p className="text-sm text-secondary mt-1">{getEmployeeRole(viewingExpense.userId)}</p>
+                    )}
+                  </div>
+
+                  <div className="bg-card p-4 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar size={18} className="text-secondary" />
+                      <p className="text-sm font-medium text-secondary">Date</p>
                     </div>
-                  )}
-                </div>
-              )}
-
-              {/* Description */}
-              {viewingExpense.description && (
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <FileText size={18} className="text-gray-500" />
-                    <p className="text-sm font-medium text-gray-600">Description</p>
+                    <p className="text-lg font-semibold text-primary">
+                      {viewingExpense.date
+                        ? new Date(viewingExpense.date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })
+                        : 'No date'}
+                    </p>
                   </div>
-                  <p className="text-gray-900 bg-gray-50 p-4 rounded-lg">
-                    {viewingExpense.description}
-                  </p>
                 </div>
-              )}
 
-              {/* Receipt */}
-              {viewingExpense.receiptUrl && (
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Receipt size={18} className="text-gray-500" />
-                    <p className="text-sm font-medium text-gray-600">Receipt</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    {loadingReceiptUrl ? (
-                      <div className="text-center py-4">
-                        <p className="text-gray-600">Loading receipt...</p>
-                      </div>
-                    ) : receiptSignedUrl ? (
-                      <>
-                        <div className="flex items-center gap-4">
-                          <div className="flex-1">
-                            <p className="text-sm text-gray-600 mb-1">Receipt Available</p>
-                            <a
-                              href={receiptSignedUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 underline text-sm"
-                            >
-                              View Receipt
-                            </a>
-                          </div>
-                          <button
-                            onClick={() => window.open(receiptSignedUrl, '_blank')}
-                            style={{
-                              background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
-                            }}
-                            className=" !text-white px-4 py-2 rounded-lg  flex items-center gap-2 transition-colors"
-                          >
-                            <Eye size={16} />
-                            Open Receipt
-                          </button>
+                {/* Vehicle and Trailer Information */}
+                {(viewingExpense.vehicle || viewingExpense.trailer || (viewingExpense as any).truckId || (viewingExpense as any).trailerId) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {viewingExpense.vehicle && (
+                      <div className="bg-card p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Truck size={18} className="text-secondary" />
+                          <p className="text-sm font-medium text-secondary">Vehicle</p>
                         </div>
-                        {receiptSignedUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) && (
-                          <div className="mt-4">
-                            <img
-                              src={receiptSignedUrl}
-                              alt="Receipt"
-                              className="max-w-full h-auto rounded-lg border border-gray-200"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
-                            />
-                          </div>
+                        <p className="text-lg font-semibold text-primary">
+                          {typeof viewingExpense.vehicle === 'object' && viewingExpense.vehicle !== null
+                            ? (viewingExpense.vehicle as any).unitNo || (viewingExpense.vehicle as any).unitNumber || (viewingExpense.vehicle as any).internalId || (viewingExpense.vehicle as any).licensePlate || (viewingExpense.vehicle as any).plateNumber || 'Vehicle'
+                            : 'Vehicle'}
+                        </p>
+                        {typeof viewingExpense.vehicle === 'object' && viewingExpense.vehicle !== null && (
+                          <p className="text-sm text-secondary mt-1">
+                            {[(viewingExpense.vehicle as any).make, (viewingExpense.vehicle as any).model].filter(Boolean).join(' ') || 'No details'}
+                          </p>
                         )}
-                      </>
-                    ) : (
-                      <div className="text-center py-4">
-                        <p className="text-gray-600">Failed to load receipt URL</p>
+                      </div>
+                    )}
+                    {viewingExpense.trailer && (
+                      <div className="bg-card p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Package size={18} className="text-secondary" />
+                          <p className="text-sm font-medium text-secondary">Trailer</p>
+                        </div>
+                        <p className="text-lg font-semibold text-primary">
+                          {typeof viewingExpense.trailer === 'object' && viewingExpense.trailer !== null
+                            ? (viewingExpense.trailer as any).unitNo || (viewingExpense.trailer as any).unitNumber || (viewingExpense.trailer as any).internalId || (viewingExpense.trailer as any).licensePlate || (viewingExpense.trailer as any).plateNumber || 'Trailer'
+                            : 'Trailer'}
+                        </p>
+                        {typeof viewingExpense.trailer === 'object' && viewingExpense.trailer !== null && (
+                          <p className="text-sm text-secondary mt-1">
+                            {[(viewingExpense.trailer as any).make, (viewingExpense.trailer as any).model].filter(Boolean).join(' ') || 'No details'}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Timestamps */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Created At</p>
-                  <p className="text-sm text-gray-900">
-                    {(() => {
-                      const createdAt = viewingExpense.createdAt || (viewingExpense as any).createdAt;
-                      if (!createdAt) return 'N/A';
-                      try {
-                        return new Date(createdAt).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        });
-                      } catch (e) {
-                        return 'Invalid Date';
-                      }
-                    })()}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Last Updated</p>
-                  <p className="text-sm text-gray-900">
-                    {(() => {
-                      const updatedAt = viewingExpense.updatedAt || (viewingExpense as any).updatedAt;
-                      const createdAt = viewingExpense.createdAt || (viewingExpense as any).createdAt;
-                      // If no updatedAt, show createdAt as fallback
-                      const dateToShow = updatedAt || createdAt;
-                      if (!dateToShow) return 'N/A';
-                      try {
-                        return new Date(dateToShow).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        });
-                      } catch (e) {
-                        return 'Invalid Date';
-                      }
-                    })()}
-                  </p>
+                {/* Description */}
+                {viewingExpense.description && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileText size={18} className="text-secondary" />
+                      <p className="text-sm font-medium text-secondary">Description</p>
+                    </div>
+                    <p className="text-primary bg-card p-4 rounded-lg">
+                      {viewingExpense.description}
+                    </p>
+                  </div>
+                )}
+
+                {/* Receipt */}
+                {viewingExpense.receiptUrl && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Receipt size={18} className="text-secondary" />
+                      <p className="text-sm font-medium text-secondary">Receipt</p>
+                    </div>
+                    <div className="bg-card p-4 rounded-lg">
+                      {loadingReceiptUrl ? (
+                        <div className="text-center py-4">
+                          <p className="text-secondary">Loading receipt...</p>
+                        </div>
+                      ) : receiptSignedUrl ? (
+                        <>
+                          <div className="flex items-center gap-4">
+                            <div className="flex-1">
+                              <p className="text-sm text-secondary mb-1">Receipt Available</p>
+                              <a
+                                href={receiptSignedUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[#00D1FF] hover:text-blue-800 underline text-sm"
+                              >
+                                View Receipt
+                              </a>
+                            </div>
+                            <button
+                              onClick={() => window.open(receiptSignedUrl, '_blank')}
+                              style={{
+                                background: 'var(--accent-navyblue)'
+                              }}
+                              className=" !text-white px-4 py-2 rounded-lg  flex items-center gap-2 transition-colors"
+                            >
+                              <Eye size={16} />
+                              Open Receipt
+                            </button>
+                          </div>
+                          {receiptSignedUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) && (
+                            <div className="mt-4">
+                              <img
+                                src={receiptSignedUrl}
+                                alt="Receipt"
+                                className="max-w-full h-auto rounded-lg border border-theme"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="text-center py-4">
+                          <p className="text-secondary">Failed to load receipt URL</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Timestamps */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-theme">
+                  <div>
+                    <p className="text-xs text-secondary mb-1">Created At</p>
+                    <p className="text-sm text-primary">
+                      {(() => {
+                        const createdAt = viewingExpense.createdAt || (viewingExpense as any).createdAt;
+                        if (!createdAt) return 'N/A';
+                        try {
+                          return new Date(createdAt).toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          });
+                        } catch (e) {
+                          return 'Invalid Date';
+                        }
+                      })()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-secondary mb-1">Last Updated</p>
+                    <p className="text-sm text-primary">
+                      {(() => {
+                        const updatedAt = viewingExpense.updatedAt || (viewingExpense as any).updatedAt;
+                        const createdAt = viewingExpense.createdAt || (viewingExpense as any).createdAt;
+                        // If no updatedAt, show createdAt as fallback
+                        const dateToShow = updatedAt || createdAt;
+                        if (!dateToShow) return 'N/A';
+                        try {
+                          return new Date(dateToShow).toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          });
+                        } catch (e) {
+                          return 'Invalid Date';
+                        }
+                      })()}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
-              <button
-                onClick={() => {
-                  handleEdit(viewingExpense);
-                  setShowViewModal(false);
-                  setViewingExpense(null);
-                  setReceiptSignedUrl(null);
-                }}
-                style={{
-                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
-                }}
-                className=" !text-white px-4 py-2 rounded-lg  flex items-center gap-2 transition-colors"
-              >
-                <Edit size={16} />
-                Edit Expense
-              </button>
-              <button
-                onClick={() => {
-                  setShowViewModal(false);
-                  setViewingExpense(null);
-                  setReceiptSignedUrl(null);
-                }}
-                className="text-gray-600 hover:text-gray-900 px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Close
-              </button>
+              {/* Modal Footer */}
+              <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4 flex items-center justify-end gap-3">
+                <button
+                  onClick={() => {
+                    handleEdit(viewingExpense);
+                    setShowViewModal(false);
+                    setViewingExpense(null);
+                    setReceiptSignedUrl(null);
+                  }}
+                  style={{
+                    background: 'var(--accent-navyblue)'
+                  }}
+                  className=" !text-white px-4 py-2 rounded-lg  flex items-center gap-2 transition-colors"
+                >
+                  <Edit size={16} />
+                  Edit Expense
+                </button>
+                <button
+                  onClick={() => {
+                    setShowViewModal(false);
+                    setViewingExpense(null);
+                    setReceiptSignedUrl(null);
+                  }}
+                  className="text-secondary hover:text-primary px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Notifications Container */}
       <div className="fixed top-4 right-4 z-[200] space-y-3 max-w-md">
@@ -1894,328 +1917,335 @@ const ExpensesPage = () => {
       />
 
       {/* Category Management Modal */}
-      {showCategoryModal && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
-            {/* Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-5 rounded-t-2xl flex items-center justify-between z-10">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {editingCategory ? 'Edit Category' : 'Add New Category'}
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  {editingCategory ? 'Update category details' : 'Create a new expense category'}
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setShowCategoryModal(false);
-                  setEditingCategory(null);
-                  setCategoryFormData({ name: '', status: 'active' });
-                }}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-6">
-                {/* Form Section */}
-                <div className="bg-gray-50 rounded-xl p-5 space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Category Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={categoryFormData.name}
-                      onChange={(e) => setCategoryFormData(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="e.g., Office Expenses, Vehicle Expenses, Rental Expenses"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                      autoFocus
-                    />
-                  </div>
-
-              
-                </div>
-
-                {/* Categories List */}
+      {
+        showCategoryModal && (
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+              {/* Header */}
+              <div className="sticky top-0 bg-card border-b border-theme px-6 py-5 rounded-t-2xl flex items-center justify-between z-10">
                 <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Existing Categories</h3>
-                    <span className="text-sm text-gray-500">{categories.length} {categories.length === 1 ? 'category' : 'categories'}</span>
-                  </div>
-                  <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
-                    {categories.map((category) => (
-                      <div
-                        key={category._id}
-                        className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all"
-                      >
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-900">{category.name}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                           
-                            <span className="text-xs text-gray-500">
-                              {expenses.filter(e => e.categoryId === category._id || e.category?._id === category._id).length} expenses
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleOpenCategoryModal(category)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Edit Category"
-                          >
-                            <Edit size={18} />
-                          </button>
-                          <button
-                            onClick={() => setDeleteCategoryConfirm({ show: true, category })}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete Category"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    {categories.length === 0 && (
-                      <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                        <FileText className="mx-auto mb-2 text-gray-400" size={32} />
-                        <p className="text-sm text-gray-500">No categories yet</p>
-                        <p className="text-xs text-gray-400 mt-1">Create your first category above</p>
-                      </div>
-                    )}
-                  </div>
+                  <h2 className="text-2xl font-bold text-primary">
+                    {editingCategory ? 'Edit Category' : 'Add New Category'}
+                  </h2>
+                  <p className="text-sm text-secondary mt-1">
+                    {editingCategory ? 'Update category details' : 'Create a new expense category'}
+                  </p>
                 </div>
+                <button
+                  onClick={() => {
+                    setShowCategoryModal(false);
+                    setEditingCategory(null);
+                    setCategoryFormData({ name: '', status: 'active' });
+                  }}
+                  className="p-2 text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
               </div>
-            </div>
 
-            {/* Footer */}
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowCategoryModal(false);
-                  setEditingCategory(null);
-                  setCategoryFormData({ name: '', status: 'active' });
-                }}
-                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                disabled={savingCategory}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveCategory}
-                disabled={savingCategory || !categoryFormData.name.trim()}
-                className="px-5 py-2.5 !text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md hover:shadow-lg"
-                style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
-              >
-                {savingCategory ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-6">
+                  {/* Form Section */}
+                  <div className="bg-card rounded-xl p-5 space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-primary mb-2">
+                        Category Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={categoryFormData.name}
+                        onChange={(e) => setCategoryFormData(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="e.g., Office Expenses, Vehicle Expenses, Rental Expenses"
+                        className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        autoFocus
+                      />
+                    </div>
 
-      {/* Expense Type Management Modal */}
-      {showTypeModal && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
-            {/* Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-5 rounded-t-2xl flex items-center justify-between z-10">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {editingType ? 'Edit Expense Type' : 'Add New Expense Type'}
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  {editingType ? 'Update expense type details' : 'Create a new expense type under a category'}
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setShowTypeModal(false);
-                  setEditingType(null);
-                  setTypeFormData({ name: '', categoryId: '', status: 'active' });
-                }}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-6">
-                {/* Form Section */}
-                <div className="bg-gray-50 rounded-xl p-5 space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Category <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={typeFormData.categoryId}
-                      onChange={async (e) => {
-                        const categoryId = e.target.value;
-                        setTypeFormData(prev => ({ ...prev, categoryId }));
-                        // Fetch types when category is selected
-                        if (categoryId) {
-                          await fetchExpenseTypes(categoryId);
-                        } else {
-                          setExpenseTypes([]);
-                        }
-                      }}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                      required
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map(category => (
-                        <option key={category._id} value={category._id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
-                    {!typeFormData.categoryId && (
-                      <p className="text-xs text-gray-500 mt-1.5">Please select a category first to see existing types</p>
-                    )}
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Expense Type Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={typeFormData.name}
-                      onChange={(e) => setTypeFormData(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="e.g., Office Rent, Electricity, Fuel, Maintenance"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                      autoFocus
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Status
-                    </label>
-                    <select
-                      value={typeFormData.status}
-                      onChange={(e) => setTypeFormData(prev => ({ ...prev, status: e.target.value as 'active' | 'inactive' }))}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Types List for Selected Category */}
-                {typeFormData.categoryId && (
+                  {/* Categories List */}
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        Types in {categories.find(c => {
-                          const catId = c._id?.toString() || c._id || '';
-                          const formCatId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
-                          return catId === formCatId;
-                        })?.name || 'Selected Category'}
-                      </h3>
-                      <span className="text-sm text-gray-500">
-                        {expenseTypes.filter(type => {
-                          const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
-                          const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
-                          return typeCategoryId === formCategoryId;
-                        }).length} {expenseTypes.filter(type => {
-                          const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
-                          const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
-                          return typeCategoryId === formCategoryId;
-                        }).length === 1 ? 'type' : 'types'}
-                      </span>
+                      <h3 className="text-lg font-semibold text-primary">Existing Categories</h3>
+                      <span className="text-sm text-secondary">{categories.length} {categories.length === 1 ? 'category' : 'categories'}</span>
                     </div>
                     <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
-                      {expenseTypes
-                        .filter(type => {
-                          const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
-                          const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
-                          return typeCategoryId === formCategoryId;
-                        })
-                        .map((type) => (
-                          <div
-                            key={type._id}
-                            className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all"
-                          >
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-semibold text-gray-900">{type.name}</p>
-                                <span className={`px-2 py-0.5 text-xs rounded-full ${
-                                  type.status === 'active' 
-                                    ? 'bg-green-100 text-green-700' 
-                                    : 'bg-gray-100 text-gray-600'
-                                }`}>
-                                  {type.status === 'active' ? 'Active' : 'Inactive'}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleOpenTypeModal(type)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="Edit Type"
-                              >
-                                <Edit size={18} />
-                              </button>
-                              <button
-                                onClick={() => setDeleteTypeConfirm({ show: true, type })}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Delete Type"
-                              >
-                                <Trash2 size={18} />
-                              </button>
+                      {categories.map((category) => (
+                        <div
+                          key={category._id}
+                          className="flex items-center justify-between p-4 bg-card border border-theme rounded-lg hover:border-theme hover:shadow-sm transition-all"
+                        >
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-primary">{category.name}</p>
+                            <div className="flex items-center gap-2 mt-1">
+
+                              <span className="text-xs text-secondary">
+                                {expenses.filter(e => e.categoryId === category._id || e.category?._id === category._id).length} expenses
+                              </span>
                             </div>
                           </div>
-                        ))}
-                      {expenseTypes.filter(type => {
-                        const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
-                        const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
-                        return typeCategoryId === formCategoryId;
-                      }).length === 0 && (
-                        <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                          <FileText className="mx-auto mb-2 text-gray-400" size={32} />
-                          <p className="text-sm text-gray-500">No types in this category yet</p>
-                          <p className="text-xs text-gray-400 mt-1">Create your first type above</p>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleOpenCategoryModal(category)}
+                              className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Edit Category"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button
+                              onClick={() => setDeleteCategoryConfirm({ show: true, category })}
+                              className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete Category"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      {categories.length === 0 && (
+                        <div className="text-center py-8 bg-card rounded-lg border-2 border-dashed border-theme">
+                          <FileText className="mx-auto mb-2 text-secondary" size={32} />
+                          <p className="text-sm text-secondary">No categories yet</p>
+                          <p className="text-xs text-secondary mt-1">Create your first category above</p>
                         </div>
                       )}
                     </div>
                   </div>
-                )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowCategoryModal(false);
+                    setEditingCategory(null);
+                    setCategoryFormData({ name: '', status: 'active' });
+                  }}
+                  className="px-5 py-2.5 text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                  disabled={savingCategory}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveCategory}
+                  disabled={savingCategory || !categoryFormData.name.trim()}
+                  className="px-5 py-2.5 !text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md hover:shadow-lg"
+                  style={{
+                    background: 'var(--accent-navyblue)'
+                  }}
+                >
+                  {savingCategory ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
+                </button>
               </div>
             </div>
+          </div >
+        )
+      }
 
-            {/* Footer */}
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowTypeModal(false);
-                  setEditingType(null);
-                  setTypeFormData({ name: '', categoryId: '', status: 'active' });
-                }}
-                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                disabled={savingType}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveType}
-                disabled={savingType || !typeFormData.name.trim() || !typeFormData.categoryId}
-                className="px-5 py-2.5 !text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md hover:shadow-lg"
-                style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
-              >
-                {savingType ? 'Saving...' : editingType ? 'Update Type' : 'Create Type'}
-              </button>
+      {/* Expense Type Management Modal */}
+      {
+        showTypeModal && (
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+              {/* Header */}
+              <div className="sticky top-0 bg-card border-b border-theme px-6 py-5 rounded-t-2xl flex items-center justify-between z-10">
+                <div>
+                  <h2 className="text-2xl font-bold text-primary">
+                    {editingType ? 'Edit Expense Type' : 'Add New Expense Type'}
+                  </h2>
+                  <p className="text-sm text-secondary mt-1">
+                    {editingType ? 'Update expense type details' : 'Create a new expense type under a category'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowTypeModal(false);
+                    setEditingType(null);
+                    setTypeFormData({ name: '', categoryId: '', status: 'active' });
+                  }}
+                  className="p-2 text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-6">
+                  {/* Form Section */}
+                  <div className="bg-card rounded-xl p-5 space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-primary mb-2">
+                        Category <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={typeFormData.categoryId}
+                        onChange={async (e) => {
+                          const categoryId = e.target.value;
+                          setTypeFormData(prev => ({ ...prev, categoryId }));
+                          // Fetch types when category is selected
+                          if (categoryId) {
+                            await fetchExpenseTypes(categoryId);
+                          } else {
+                            setExpenseTypes([]);
+                          }
+                        }}
+                        className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        required
+                      >
+                        <option className='form-option' value="">Select Category</option>
+                        {categories.map(category => (
+                          <option className='form-option' key={category._id} value={category._id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                      {!typeFormData.categoryId && (
+                        <p className="text-xs text-secondary mt-1.5">Please select a category first to see existing types</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-primary mb-2">
+                        Expense Type Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={typeFormData.name}
+                        onChange={(e) => setTypeFormData(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="e.g., Office Rent, Electricity, Fuel, Maintenance"
+                        className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        autoFocus
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-primary mb-2">
+                        Status
+                      </label>
+                      <select
+                        value={typeFormData.status}
+                        onChange={(e) => setTypeFormData(prev => ({ ...prev, status: e.target.value as 'active' | 'inactive' }))}
+                        className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      >
+                        <option className='form-option' value="active">Active</option>
+                        <option className='form-option' value="inactive">Inactive</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Types List for Selected Category */}
+                  {typeFormData.categoryId && (
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-primary">
+                          Types in {categories.find(c => {
+                            const catId = c._id?.toString() || c._id || '';
+                            const formCatId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
+                            return catId === formCatId;
+                          })?.name || 'Selected Category'}
+                        </h3>
+                        <span className="text-sm text-secondary">
+                          {expenseTypes.filter(type => {
+                            const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
+                            const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
+                            return typeCategoryId === formCategoryId;
+                          }).length} {expenseTypes.filter(type => {
+                            const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
+                            const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
+                            return typeCategoryId === formCategoryId;
+                          }).length === 1 ? 'type' : 'types'}
+                        </span>
+                      </div>
+                      <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                        {expenseTypes
+                          .filter(type => {
+                            const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
+                            const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
+                            return typeCategoryId === formCategoryId;
+                          })
+                          .map((type) => (
+                            <div
+                              key={type._id}
+                              className="flex items-center justify-between p-4 bg-card border border-theme rounded-lg hover:border-theme hover:shadow-sm transition-all"
+                            >
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-semibold text-primary">{type.name}</p>
+                                  <span className={`px-2 py-0.5 text-xs rounded-full ${type.status === 'active'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-card text-secondary'
+                                    }`}>
+                                    {type.status === 'active' ? 'Active' : 'Inactive'}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleOpenTypeModal(type)}
+                                  className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
+                                  title="Edit Type"
+                                >
+                                  <Edit size={18} />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteTypeConfirm({ show: true, type })}
+                                  className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
+                                  title="Delete Type"
+                                >
+                                  <Trash2 size={18} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        {expenseTypes.filter(type => {
+                          const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
+                          const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
+                          return typeCategoryId === formCategoryId;
+                        }).length === 0 && (
+                            <div className="text-center py-8 bg-card rounded-lg border-2 border-dashed border-theme">
+                              <FileText className="mx-auto mb-2 text-secondary" size={32} />
+                              <p className="text-sm text-secondary">No types in this category yet</p>
+                              <p className="text-xs text-secondary mt-1">Create your first type above</p>
+                            </div>
+                          )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowTypeModal(false);
+                    setEditingType(null);
+                    setTypeFormData({ name: '', categoryId: '', status: 'active' });
+                  }}
+                  className="px-5 py-2.5 text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                  disabled={savingType}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveType}
+                  disabled={savingType || !typeFormData.name.trim() || !typeFormData.categoryId}
+                  className="px-5 py-2.5 !text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md hover:shadow-lg"
+                  style={{
+                    background: 'var(--accent-navyblue)'
+                  }}
+                >
+                  {savingType ? 'Saving...' : editingType ? 'Update Type' : 'Create Type'}
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div >
+        )
+      }
 
       {/* Delete Category Confirmation */}
       <ConfirmationModal
@@ -2240,7 +2270,7 @@ const ExpensesPage = () => {
         cancelText="Cancel"
         type="danger"
       />
-    </div>
+    </div >
   );
 };
 
