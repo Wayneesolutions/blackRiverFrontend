@@ -13,6 +13,7 @@ import {
 // import { FLEET_COLORS } from "../colorUtils"; // Removing dependency on old colorUtils for new design
 import { getTruckProfile } from "../../../../axios/api/admin";
 import { listVehicle, listTrailers } from "../../../../axios/api/distapcher";
+import TimelineNotes from "../../../../components/common/TimelineNotes";
 
 // Helper Component for Stats
 const StatCard = ({ title, value, subtitle, icon: Icon, bgColor, iconColor, textColor }: any) => (
@@ -736,6 +737,14 @@ const TruckProfile = () => {
                 ))}
               </div>
             </section>
+          )}
+
+          {/* Timeline & Notes */}
+          {selectedVehicle && (
+            <TimelineNotes
+              entityType={activeTab === "truck" ? "trucks" : "trailers"}
+              entityId={selectedVehicle._id}
+            />
           )}
         </div>
       </div>

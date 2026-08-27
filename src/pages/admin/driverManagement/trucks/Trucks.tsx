@@ -12,6 +12,9 @@ import { getAllEmployees } from '../../../../axios/api/employee';
 import { getAllYards, type Yard } from '../../../../axios/api/fleet.yards';
 import apiClient from '../../../../axios/apiClient';
 import ConfirmationModal from '../../../../components/common/ConfirmationModal';
+import { useAutoSaveDraft } from '../../../../customHooks/useAutoSaveDraft';
+import DraftRestoreBanner from '../../../../components/common/DraftRestoreBanner';
+import AutoSaveIndicator from '../../../../components/common/AutoSaveIndicator';
 
 
 
@@ -384,6 +387,27 @@ const Trucks: React.FC = () => {
         yard: '',
         subType: '' as '' | 'HIGHWAY USE' | 'CITY USE' | 'STORAGE USE' | 'RENTAL' | 'OTHER'
     });
+
+    // Auto-save draft protection (crash/power-loss safety net for the create/edit form)
+    const {
+        status: draftStatus,
+        lastSavedAt: draftLastSavedAt,
+        pendingRestore: draftPendingRestore,
+        restoreDraft: restoreTruckDraft,
+        discardDraft: discardTruckDraft,
+        clearDraft: clearTruckDraft,
+    } = useAutoSaveDraft({
+        entityType: 'trucks',
+        entityId: editingId || 'new',
+        formData,
+        enabled: showSidebar,
+    });
+
+    const handleRestoreTruckDraft = () => {
+        const draft = restoreTruckDraft();
+        if (!draft) return;
+        setFormData((prev) => ({ ...prev, ...draft }));
+    };
 
     // Update activeTab when route changes
     useEffect(() => {
@@ -1199,6 +1223,7 @@ const Trucks: React.FC = () => {
                         }));
                         setTrucks(transformedTrucks);
                     }
+                    clearTruckDraft();
                 } else {
                     alert(response?.message || 'Failed to update truck. Please try again.');
                 }
@@ -1382,6 +1407,7 @@ const Trucks: React.FC = () => {
                         }));
                         setTrucks(transformedTrucks);
                     }
+                    clearTruckDraft();
                 } else if (response?.code === 'TRUCK_LIMIT_REACHED') {
                     setTruckLimitModal({
                         show: true,
@@ -2170,6 +2196,7 @@ const Trucks: React.FC = () => {
                             <div className="flex items-center justify-between p-4 border-b border-theme bg-card">
                                 <h2 className="text-xl font-bold text-[var(--accent-navyblue)]">{editingId ? 'Edit Truck' : 'New Truck'}</h2>
                                 <div className="flex items-center gap-2">
+                                    <AutoSaveIndicator status={draftStatus} lastSavedAt={draftLastSavedAt} />
                                     <button
                                         onClick={handleSaveTruck}
                                         disabled={loading}
@@ -2194,6 +2221,13 @@ const Trucks: React.FC = () => {
 
                             {/* Content Area - scrollable; footer stays at bottom */}
                             <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-card">
+                                {draftPendingRestore && (
+                                    <DraftRestoreBanner
+                                        updatedAt={draftPendingRestore.updatedAt}
+                                        onRestore={handleRestoreTruckDraft}
+                                        onDiscard={discardTruckDraft}
+                                    />
+                                )}
                                 {/* Details Step */}
                                 {activeStep === 'Details' && (
                                     <div className="space-y-4">

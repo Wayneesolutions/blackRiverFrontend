@@ -9,6 +9,9 @@ import { createVehicleDocument, updateVehicleDocument } from '../../../../axios/
 import { getAllYards, type Yard } from '../../../../axios/api/fleet.yards';
 import apiClient from '../../../../axios/apiClient';
 import ConfirmationModal from '../../../../components/common/ConfirmationModal';
+import { useAutoSaveDraft } from '../../../../customHooks/useAutoSaveDraft';
+import DraftRestoreBanner from '../../../../components/common/DraftRestoreBanner';
+import AutoSaveIndicator from '../../../../components/common/AutoSaveIndicator';
 
 interface Trailer {
     _id?: string;
@@ -93,6 +96,27 @@ const TrailersPage: React.FC = () => {
         subType: '' as '' | 'HIGHWAY USE' | 'CITY USE' | 'STORAGE USE' | 'RENTAL' | 'OTHER',
         yard: ''
     });
+
+    // Auto-save draft protection (crash/power-loss safety net for the create/edit form)
+    const {
+        status: draftStatus,
+        lastSavedAt: draftLastSavedAt,
+        pendingRestore: draftPendingRestore,
+        restoreDraft: restoreTrailerDraft,
+        discardDraft: discardTrailerDraft,
+        clearDraft: clearTrailerDraft,
+    } = useAutoSaveDraft({
+        entityType: 'trailers',
+        entityId: editingId || 'new',
+        formData,
+        enabled: showSidebar,
+    });
+
+    const handleRestoreTrailerDraft = () => {
+        const draft = restoreTrailerDraft();
+        if (!draft) return;
+        setFormData((prev) => ({ ...prev, ...draft }));
+    };
 
     // Store original trailer data for partial updates
     const [originalTrailerData, setOriginalTrailerData] = useState<any>(null);
@@ -880,6 +904,7 @@ const TrailersPage: React.FC = () => {
                     }
                 }
 
+                clearTrailerDraft();
                 setShowSidebar(false);
                 setEditingId(null);
                 setFormData({
@@ -1975,6 +2000,7 @@ const TrailersPage: React.FC = () => {
                             <div className="flex items-center justify-between p-4 border-b border-theme bg-card">
                                 <h2 className="text-xl font-bold text-headings">New Trailer</h2>
                                 <div className="flex items-center gap-2">
+                                    <AutoSaveIndicator status={draftStatus} lastSavedAt={draftLastSavedAt} />
                                     <button
                                         onClick={handleSaveTrailer}
                                         disabled={loading}
@@ -1993,6 +2019,13 @@ const TrailersPage: React.FC = () => {
 
                             {/* Content Area - scrollable; footer stays at bottom */}
                             <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-card">
+                                {draftPendingRestore && (
+                                    <DraftRestoreBanner
+                                        updatedAt={draftPendingRestore.updatedAt}
+                                        onRestore={handleRestoreTrailerDraft}
+                                        onDiscard={discardTrailerDraft}
+                                    />
+                                )}
                                 {/* Details Step */}
                                 {activeStep === 'Details' && (
                                     <div className="space-y-4">
