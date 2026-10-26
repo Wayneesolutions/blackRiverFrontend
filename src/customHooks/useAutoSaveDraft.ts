@@ -15,7 +15,7 @@ export interface DraftRestoreInfo {
 }
 
 interface UseAutoSaveDraftOptions {
-  /** One of drivers | trucks | trailers | employees */
+  /** One of drivers | trucks | trailers | employees | trips */
   entityType: DraftEntityType;
   /** The record's id, or "new" for a creation-form draft */
   entityId: string;
@@ -176,6 +176,18 @@ export const useAutoSaveDraft = ({
     };
   }, [enabled, pendingRestore, saveLocal, saveRemote]);
 
+  // Immediate local + backend save (e.g. for an explicit "Save & Next"). Skipped while a
+  // restore banner is unresolved so it can't overwrite the draft that is still waiting to be applied.
+  const saveNow = useCallback(
+    (overrides?: Record<string, unknown>) => {
+      if (!enabled || pendingRestore) return;
+      const data = { ...formDataRef.current, ...overrides };
+      saveLocal(data);
+      return saveRemote(data);
+    },
+    [enabled, pendingRestore, saveLocal, saveRemote]
+  );
+
   const restoreDraft = useCallback(() => {
     const draft = pendingRestore;
     setPendingRestore(null);
@@ -208,5 +220,6 @@ export const useAutoSaveDraft = ({
     restoreDraft,
     discardDraft,
     clearDraft,
+    saveNow,
   };
 };

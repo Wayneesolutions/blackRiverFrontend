@@ -8,6 +8,10 @@ import { getAllDrivers, getDriverOnboardingStatus, getDrugTests } from "../../..
 import { getAllEmployees } from "../../../../../axios/api/employee";
 import { getUserInfo } from "../../../../../utils/auth";
 import AddressSearch from "../../../../../components/common/AddressSearch";
+import { useAutoSaveDraft } from "../../../../../customHooks/useAutoSaveDraft";
+import { toDraftSafe } from "../../../../../utils/draftSnapshot";
+import DraftRestoreBanner from "../../../../../components/common/DraftRestoreBanner";
+import AutoSaveIndicator from "../../../../../components/common/AutoSaveIndicator";
 
 // Color constants
 const PRIMARY_GRADIENT = 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)';
@@ -506,6 +510,212 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
     const [podFile, setPodFile] = useState<File | null>(null);
     const [stampedManifestFile, setStampedManifestFile] = useState<File | null>(null);
+
+    // Draft protection for NEW trips (power-loss / portal-close safety net). Every wizard
+    // field plus the current step is saved, so "Save & Next" / auto-save can be restored later.
+    // Files can't be stored in a draft and must be re-attached; the fetched dropdown lists,
+    // search boxes and open/closed flags are intentionally excluded.
+    const draftRestoredRef = useRef(false);
+    const tripDraftSnapshot = useMemo(
+        () => toDraftSafe({ selectedCustomer, selectedShipperCustomer, selectedReceiverCustomer, pickupLocationAddress, deliveryLocationAddress, customerOrderNo, loadType, freightOn, selectedSalesman, orderNotes, commodity, valueOfGoods, valueOfGoodsCurrency, selectedEquipment, noOfPackages, noOfPackagesType, weight, weightUnit, temperature, temperatureUnit, weatherConditions, dimensionL, dimensionB, dimensionH, dimensionUnit, pickupRefNo, pickupDate, pickupTime, pickupAppointment, pickupNote, deliveryRefNo, deliveryDate, deliveryTime, deliveryAppointment, deliveryNote, distance, additionalInfo, customerUnit, customerPostalCode, customerPrimaryPhone, customerSecondaryPhone, customerContact, payableEmail, secondaryPayableEmail, billingDate, rate, rateCurrency, dispatcher, dispatcherEmail, bookedForCarrier, sendToFactor, taxCode, taxAmount, pars, paps, trailerSealNo, csaFastApproved, bondedShipmentCA, bondedShipmentUS, highPriority, cityDriver, teamLoad, roundTrip, oversized, empty, otherCharges, newChargeCategory, newChargePercent, newChargeAmount, newChargeDescription, newChargeGst, invoiceInstructions, invoiceNotes, borderRequired, borderDirection, portOfEntry, cargoDescription, hsCode, brokerName, brokerPhone, brokerEmail, commercialValue, countryOfOrigin, currentStep, shipperName, shipperPhone, shipperEmail, shipperAddress, shipperUnit, shipperCountry, shipperProvince, shipperCity, shipperPostalCode, shipperPrimaryPhone, shipperSecondaryPhone, shipperContact, shipperStore, shipperType, pickupAppointmentType, pickupAppointmentDate, pickupAppointmentTime, pickupStartDate, pickupStartTime, pickupEndDate, pickupEndTime, pickupSpecialInstructions, pickupGatePass, goods, pickUpNotes, pickUpNumber, pickupSkids, pickupCases, pickupUoM, pickupTempUnits, stops, receiverName, receiverPhone, receiverAddress, deliveryAppointmentType, deliveryAppointmentDate, deliveryAppointmentTime, deliveryStartDate, deliveryStartTime, deliveryEndDate, deliveryEndTime, deliveryUnloadingInstructions, deliveryGoods, dropOffNotes, dropOffNumber, deliverySkids, deliveryCases, deliveryUoM, deliveryTempUnits, receiverStops, internalNotes, customerNotes, assignmentType, selectedTruck, selectedTrailer, selectedDriver, selectedCoDriver, selectedCarrier, selectedPayDriver, payType, payCurrency, payRateUnit, payRate, payHours, payAmount, payDate, payMemo, payGst, presetMemo, payItems, deductionItems, deductionAmount, deductionDate, deductionMemo, deductionGst, deductionPresetMemo, routeSegments, totalMiles, jobStops, selectedStopIndex, noteType, noteText, notes }),
+        [selectedCustomer, selectedShipperCustomer, selectedReceiverCustomer, pickupLocationAddress, deliveryLocationAddress, customerOrderNo, loadType, freightOn, selectedSalesman, orderNotes, commodity, valueOfGoods, valueOfGoodsCurrency, selectedEquipment, noOfPackages, noOfPackagesType, weight, weightUnit, temperature, temperatureUnit, weatherConditions, dimensionL, dimensionB, dimensionH, dimensionUnit, pickupRefNo, pickupDate, pickupTime, pickupAppointment, pickupNote, deliveryRefNo, deliveryDate, deliveryTime, deliveryAppointment, deliveryNote, distance, additionalInfo, customerUnit, customerPostalCode, customerPrimaryPhone, customerSecondaryPhone, customerContact, payableEmail, secondaryPayableEmail, billingDate, rate, rateCurrency, dispatcher, dispatcherEmail, bookedForCarrier, sendToFactor, taxCode, taxAmount, pars, paps, trailerSealNo, csaFastApproved, bondedShipmentCA, bondedShipmentUS, highPriority, cityDriver, teamLoad, roundTrip, oversized, empty, otherCharges, newChargeCategory, newChargePercent, newChargeAmount, newChargeDescription, newChargeGst, invoiceInstructions, invoiceNotes, borderRequired, borderDirection, portOfEntry, cargoDescription, hsCode, brokerName, brokerPhone, brokerEmail, commercialValue, countryOfOrigin, currentStep, shipperName, shipperPhone, shipperEmail, shipperAddress, shipperUnit, shipperCountry, shipperProvince, shipperCity, shipperPostalCode, shipperPrimaryPhone, shipperSecondaryPhone, shipperContact, shipperStore, shipperType, pickupAppointmentType, pickupAppointmentDate, pickupAppointmentTime, pickupStartDate, pickupStartTime, pickupEndDate, pickupEndTime, pickupSpecialInstructions, pickupGatePass, goods, pickUpNotes, pickUpNumber, pickupSkids, pickupCases, pickupUoM, pickupTempUnits, stops, receiverName, receiverPhone, receiverAddress, deliveryAppointmentType, deliveryAppointmentDate, deliveryAppointmentTime, deliveryStartDate, deliveryStartTime, deliveryEndDate, deliveryEndTime, deliveryUnloadingInstructions, deliveryGoods, dropOffNotes, dropOffNumber, deliverySkids, deliveryCases, deliveryUoM, deliveryTempUnits, receiverStops, internalNotes, customerNotes, assignmentType, selectedTruck, selectedTrailer, selectedDriver, selectedCoDriver, selectedCarrier, selectedPayDriver, payType, payCurrency, payRateUnit, payRate, payHours, payAmount, payDate, payMemo, payGst, presetMemo, payItems, deductionItems, deductionAmount, deductionDate, deductionMemo, deductionGst, deductionPresetMemo, routeSegments, totalMiles, jobStops, selectedStopIndex, noteType, noteText, notes]
+    );
+    const tripDraftSetters: Record<string, (value: any) => void> = {
+        selectedCustomer: setSelectedCustomer,
+        selectedShipperCustomer: setSelectedShipperCustomer,
+        selectedReceiverCustomer: setSelectedReceiverCustomer,
+        pickupLocationAddress: setPickupLocationAddress,
+        deliveryLocationAddress: setDeliveryLocationAddress,
+        customerOrderNo: setCustomerOrderNo,
+        loadType: setLoadType,
+        freightOn: setFreightOn,
+        selectedSalesman: setSelectedSalesman,
+        orderNotes: setOrderNotes,
+        commodity: setCommodity,
+        valueOfGoods: setValueOfGoods,
+        valueOfGoodsCurrency: setValueOfGoodsCurrency,
+        selectedEquipment: setSelectedEquipment,
+        noOfPackages: setNoOfPackages,
+        noOfPackagesType: setNoOfPackagesType,
+        weight: setWeight,
+        weightUnit: setWeightUnit,
+        temperature: setTemperature,
+        temperatureUnit: setTemperatureUnit,
+        weatherConditions: setWeatherConditions,
+        dimensionL: setDimensionL,
+        dimensionB: setDimensionB,
+        dimensionH: setDimensionH,
+        dimensionUnit: setDimensionUnit,
+        pickupRefNo: setPickupRefNo,
+        pickupDate: setPickupDate,
+        pickupTime: setPickupTime,
+        pickupAppointment: setPickupAppointment,
+        pickupNote: setPickupNote,
+        deliveryRefNo: setDeliveryRefNo,
+        deliveryDate: setDeliveryDate,
+        deliveryTime: setDeliveryTime,
+        deliveryAppointment: setDeliveryAppointment,
+        deliveryNote: setDeliveryNote,
+        distance: setDistance,
+        additionalInfo: setAdditionalInfo,
+        customerUnit: setCustomerUnit,
+        customerPostalCode: setCustomerPostalCode,
+        customerPrimaryPhone: setCustomerPrimaryPhone,
+        customerSecondaryPhone: setCustomerSecondaryPhone,
+        customerContact: setCustomerContact,
+        payableEmail: setPayableEmail,
+        secondaryPayableEmail: setSecondaryPayableEmail,
+        billingDate: setBillingDate,
+        rate: setRate,
+        rateCurrency: setRateCurrency,
+        dispatcher: setDispatcher,
+        dispatcherEmail: setDispatcherEmail,
+        bookedForCarrier: setBookedForCarrier,
+        sendToFactor: setSendToFactor,
+        taxCode: setTaxCode,
+        taxAmount: setTaxAmount,
+        pars: setPars,
+        paps: setPaps,
+        trailerSealNo: setTrailerSealNo,
+        csaFastApproved: setCsaFastApproved,
+        bondedShipmentCA: setBondedShipmentCA,
+        bondedShipmentUS: setBondedShipmentUS,
+        highPriority: setHighPriority,
+        cityDriver: setCityDriver,
+        teamLoad: setTeamLoad,
+        roundTrip: setRoundTrip,
+        oversized: setOversized,
+        empty: setEmpty,
+        otherCharges: setOtherCharges,
+        newChargeCategory: setNewChargeCategory,
+        newChargePercent: setNewChargePercent,
+        newChargeAmount: setNewChargeAmount,
+        newChargeDescription: setNewChargeDescription,
+        newChargeGst: setNewChargeGst,
+        invoiceInstructions: setInvoiceInstructions,
+        invoiceNotes: setInvoiceNotes,
+        borderRequired: setBorderRequired,
+        borderDirection: setBorderDirection,
+        portOfEntry: setPortOfEntry,
+        cargoDescription: setCargoDescription,
+        hsCode: setHsCode,
+        brokerName: setBrokerName,
+        brokerPhone: setBrokerPhone,
+        brokerEmail: setBrokerEmail,
+        commercialValue: setCommercialValue,
+        countryOfOrigin: setCountryOfOrigin,
+        currentStep: setCurrentStep,
+        shipperName: setShipperName,
+        shipperPhone: setShipperPhone,
+        shipperEmail: setShipperEmail,
+        shipperAddress: setShipperAddress,
+        shipperUnit: setShipperUnit,
+        shipperCountry: setShipperCountry,
+        shipperProvince: setShipperProvince,
+        shipperCity: setShipperCity,
+        shipperPostalCode: setShipperPostalCode,
+        shipperPrimaryPhone: setShipperPrimaryPhone,
+        shipperSecondaryPhone: setShipperSecondaryPhone,
+        shipperContact: setShipperContact,
+        shipperStore: setShipperStore,
+        shipperType: setShipperType,
+        pickupAppointmentType: setPickupAppointmentType,
+        pickupAppointmentDate: setPickupAppointmentDate,
+        pickupAppointmentTime: setPickupAppointmentTime,
+        pickupStartDate: setPickupStartDate,
+        pickupStartTime: setPickupStartTime,
+        pickupEndDate: setPickupEndDate,
+        pickupEndTime: setPickupEndTime,
+        pickupSpecialInstructions: setPickupSpecialInstructions,
+        pickupGatePass: setPickupGatePass,
+        goods: setGoods,
+        pickUpNotes: setPickUpNotes,
+        pickUpNumber: setPickUpNumber,
+        pickupSkids: setPickupSkids,
+        pickupCases: setPickupCases,
+        pickupUoM: setPickupUoM,
+        pickupTempUnits: setPickupTempUnits,
+        stops: setStops,
+        receiverName: setReceiverName,
+        receiverPhone: setReceiverPhone,
+        receiverAddress: setReceiverAddress,
+        deliveryAppointmentType: setDeliveryAppointmentType,
+        deliveryAppointmentDate: setDeliveryAppointmentDate,
+        deliveryAppointmentTime: setDeliveryAppointmentTime,
+        deliveryStartDate: setDeliveryStartDate,
+        deliveryStartTime: setDeliveryStartTime,
+        deliveryEndDate: setDeliveryEndDate,
+        deliveryEndTime: setDeliveryEndTime,
+        deliveryUnloadingInstructions: setDeliveryUnloadingInstructions,
+        deliveryGoods: setDeliveryGoods,
+        dropOffNotes: setDropOffNotes,
+        dropOffNumber: setDropOffNumber,
+        deliverySkids: setDeliverySkids,
+        deliveryCases: setDeliveryCases,
+        deliveryUoM: setDeliveryUoM,
+        deliveryTempUnits: setDeliveryTempUnits,
+        receiverStops: setReceiverStops,
+        internalNotes: setInternalNotes,
+        customerNotes: setCustomerNotes,
+        assignmentType: setAssignmentType,
+        selectedTruck: setSelectedTruck,
+        selectedTrailer: setSelectedTrailer,
+        selectedDriver: setSelectedDriver,
+        selectedCoDriver: setSelectedCoDriver,
+        selectedCarrier: setSelectedCarrier,
+        selectedPayDriver: setSelectedPayDriver,
+        payType: setPayType,
+        payCurrency: setPayCurrency,
+        payRateUnit: setPayRateUnit,
+        payRate: setPayRate,
+        payHours: setPayHours,
+        payAmount: setPayAmount,
+        payDate: setPayDate,
+        payMemo: setPayMemo,
+        payGst: setPayGst,
+        presetMemo: setPresetMemo,
+        payItems: setPayItems,
+        deductionItems: setDeductionItems,
+        deductionAmount: setDeductionAmount,
+        deductionDate: setDeductionDate,
+        deductionMemo: setDeductionMemo,
+        deductionGst: setDeductionGst,
+        deductionPresetMemo: setDeductionPresetMemo,
+        routeSegments: setRouteSegments,
+        totalMiles: setTotalMiles,
+        jobStops: setJobStops,
+        selectedStopIndex: setSelectedStopIndex,
+        noteType: setNoteType,
+        noteText: setNoteText,
+        notes: setNotes,
+    };
+    const {
+        status: draftStatus,
+        lastSavedAt: draftLastSavedAt,
+        pendingRestore: draftPendingRestore,
+        restoreDraft: restoreTripDraft,
+        discardDraft: discardTripDraft,
+        clearDraft: clearTripDraft,
+        saveNow: saveTripDraftNow,
+    } = useAutoSaveDraft({
+        entityType: 'trips',
+        entityId: 'new',
+        formData: tripDraftSnapshot,
+        enabled: !order?._id,
+    });
+
+    const handleRestoreTripDraft = () => {
+        const draft = restoreTripDraft();
+        if (!draft) return;
+        draftRestoredRef.current = true;
+        Object.entries(draft).forEach(([key, value]) => {
+            if (value !== undefined) tripDraftSetters[key]?.(value);
+        });
+    };
+
+    const handleDiscardTripDraft = () => {
+        discardTripDraft();
+    };
 
     // Existing document URLs (from database when editing)
     const [, setExistingDocuments] = useState<{
@@ -1026,7 +1236,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
             // Load assignment data
             loadAssignmentData();
-        } else {
+        } else if (!draftRestoredRef.current) {
             // Reset all fields when creating new order
             setSelectedCustomer(null);
             setCustomerSearch('');
@@ -1753,6 +1963,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
     const handleNextStep = () => {
         if (validateStep(currentStep)) {
+            // New trips: persist the draft (pointing at the next step) before moving on
+            if (!order?._id) saveTripDraftNow({ currentStep: currentStep + 1 });
             nextStep();
         }
     };
@@ -2143,6 +2355,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     }
 
                     addNotification('success', message);
+                    clearTripDraft();
                     if (onSave) {
                         onSave();
                     }
@@ -2685,6 +2898,13 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
             {/* Scrollable Content */}
             <div ref={scrollableContentRef} className="flex-1 overflow-auto px-4 py-4">
+                {draftPendingRestore && !order?._id && (
+                    <DraftRestoreBanner
+                        updatedAt={draftPendingRestore.updatedAt}
+                        onRestore={handleRestoreTripDraft}
+                        onDiscard={handleDiscardTripDraft}
+                    />
+                )}
                 <div className="w-full mx-auto space-y-6 min-w-0">
                     {/* Step 1: Details Section */}
                     {currentStep === 1 && (
@@ -6692,7 +6912,8 @@ focus:outline-none focus:ring-2 focus:ring-[#00D1FF]"
             {/* Fixed Footer */}
             < div className="border-t border-theme p-4 bg-card flex-shrink-0 shadow-lg" >
                 <div className="flex gap-3 justify-between">
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 items-center">
+                        {!order?._id && <AutoSaveIndicator status={draftStatus} lastSavedAt={draftLastSavedAt} />}
                         {currentStep > 1 && (
                             <button
                                 onClick={prevStep}
@@ -6744,7 +6965,7 @@ focus:outline-none focus:ring-2 focus:ring-[#00D1FF]"
                                 className="px-6 py-2.5 !text-white font-medium rounded-lg transition-opacity flex items-center gap-2 shadow-md hover:shadow-lg hover:opacity-90"
                                 style={{ background: PRIMARY_GRADIENT }}
                             >
-                                Next
+                                {order?._id ? 'Next' : 'Save & Next'}
                                 <ArrowRight className="w-4 h-4" />
                             </button>
                         ) : (

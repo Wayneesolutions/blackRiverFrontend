@@ -12,6 +12,7 @@ import { deleteViolation } from '../../../../axios/api/violations';
 import { deleteDeductionAddition } from '../../../../axios/api/account.settlement';
 import AddressSearch from '../../../../components/common/AddressSearch';
 import { useAutoSaveDraft } from '../../../../customHooks/useAutoSaveDraft';
+import { toDraftSafe } from '../../../../utils/draftSnapshot';
 import DraftRestoreBanner from '../../../../components/common/DraftRestoreBanner';
 import AutoSaveIndicator from '../../../../components/common/AutoSaveIndicator';
 
@@ -321,27 +322,6 @@ const DriverManagement = () => {
     stateProvince: '',
     profileImage: null as File | null
   });
-
-  // Auto-save draft protection (crash/power-loss safety net for the create/edit form)
-  const {
-    status: draftStatus,
-    lastSavedAt: draftLastSavedAt,
-    pendingRestore: draftPendingRestore,
-    restoreDraft: restoreDriverDraft,
-    discardDraft: discardDriverDraft,
-    clearDraft: clearDriverDraft,
-  } = useAutoSaveDraft({
-    entityType: 'drivers',
-    entityId: editingId || 'new',
-    formData,
-    enabled: showNewDriverModal,
-  });
-
-  const handleRestoreDriverDraft = () => {
-    const draft = restoreDriverDraft();
-    if (!draft) return;
-    setFormData((prev) => ({ ...prev, ...draft }));
-  };
 
   // Form state for Personal Information
   const [personalData, setPersonalData] = useState({
@@ -674,6 +654,73 @@ const DriverManagement = () => {
     newValue: boolean;
     currentValue: boolean;
   } | null>(null);
+
+  // Auto-save draft protection (crash/power-loss safety net for the create/edit form).
+  // Snapshot covers every tab's state so a restore brings back the whole form.
+  const driverDraftSnapshot = useMemo(
+    () =>
+      toDraftSafe({
+        formData: { ...formData, profileImage: null },
+        personalData,
+        travelData,
+        documents,
+        certifications,
+        violations,
+        tickets,
+        drugTests,
+        notes,
+        deductions,
+        additions,
+        handlesHazardousLoads,
+        winterTestRequired,
+        activeFormTab,
+      }),
+    [formData, personalData, travelData, documents, certifications, violations, tickets, drugTests, notes, deductions, additions, handlesHazardousLoads, winterTestRequired, activeFormTab]
+  );
+  const {
+    status: draftStatus,
+    lastSavedAt: draftLastSavedAt,
+    pendingRestore: draftPendingRestore,
+    restoreDraft: restoreDriverDraft,
+    discardDraft: discardDriverDraft,
+    clearDraft: clearDriverDraft,
+  } = useAutoSaveDraft({
+    entityType: 'drivers',
+    entityId: editingId || 'new',
+    formData: driverDraftSnapshot,
+    enabled: showNewDriverModal,
+  });
+
+  const handleRestoreDriverDraft = () => {
+    const draft = restoreDriverDraft() as any;
+    if (!draft) return;
+    // Older drafts only stored the Basic tab as a flat object
+    if (!draft.formData) {
+      setFormData((prev) => ({ ...prev, ...draft, profileImage: prev.profileImage }));
+      return;
+    }
+    setFormData((prev) => ({ ...prev, ...draft.formData, profileImage: prev.profileImage }));
+    if (draft.personalData) setPersonalData((prev) => ({ ...prev, ...draft.personalData }));
+    if (draft.travelData) {
+      setTravelData((prev) => ({
+        ...prev,
+        ...draft.travelData,
+        workPermitDocument: prev.workPermitDocument,
+        prCardDocument: prev.prCardDocument,
+      }));
+    }
+    if (Array.isArray(draft.documents)) setDocuments(draft.documents);
+    if (Array.isArray(draft.certifications)) setCertifications(draft.certifications);
+    if (Array.isArray(draft.violations)) setViolations(draft.violations);
+    if (Array.isArray(draft.tickets)) setTickets(draft.tickets);
+    if (Array.isArray(draft.drugTests)) setDrugTests(draft.drugTests);
+    if (Array.isArray(draft.notes)) setNotes(draft.notes);
+    if (Array.isArray(draft.deductions)) setDeductions(draft.deductions);
+    if (Array.isArray(draft.additions)) setAdditions(draft.additions);
+    if (typeof draft.handlesHazardousLoads === 'boolean') setHandlesHazardousLoads(draft.handlesHazardousLoads);
+    if (typeof draft.winterTestRequired === 'boolean') setWinterTestRequired(draft.winterTestRequired);
+    if (draft.activeFormTab) setActiveFormTab(draft.activeFormTab);
+  };
 
   // Fetch test results for a driver
   const fetchDriverTestResults = async (driverId: string) => {
