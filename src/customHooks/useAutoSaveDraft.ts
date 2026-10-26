@@ -65,6 +65,14 @@ export const useAutoSaveDraft = ({
     () => baselineRef.current === null || JSON.stringify(formDataRef.current) === baselineRef.current,
     []
   );
+  // Reset flags when modal closes so next open re-checks for a draft
+  useEffect(() => {
+    if (!enabled) {
+      hasCheckedRef.current = false;
+      isFirstChangeRef.current = true;
+      setPendingRestore(null);
+    }
+  }, [enabled]);
 
   const saveLocal = useCallback(
     (data: Record<string, unknown>) => {

@@ -1,7 +1,8 @@
 import {
-  MdDashboard,         
+  MdDashboard,
   MdAccessTime,           // Attendance
   MdPerson,               // Profile / Portfolio
+  MdHistory,              // Audit Trail
 } from "react-icons/md";
 
 import { FaUserTie } from "react-icons/fa";      // Employees
@@ -97,6 +98,11 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     key: "/admin/Management/training",
     icon: <FaGraduationCap />,
     label: "Training Content",
+  },
+  {
+    key: "/admin/Management/audit-trail",
+    icon: <MdHistory />,
+    label: "Audit Trail",
   },
 ];
 

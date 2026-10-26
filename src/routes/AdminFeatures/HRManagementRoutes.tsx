@@ -25,6 +25,7 @@ const Trucks = lazy(() => import("../../pages/admin/driverManagement/trucks/Truc
 const Trailers = lazy(() => import("../../pages/admin/driverManagement/trailers/index"));
 const HRRoleBasedTraining = lazy(() => import("../../pages/admin/training/hrTraining/HRRoleBasedTraining"));
 const TrainingContent = lazy(() => import("../../pages/admin/training/TrainingContentView"));
+const HRAuditTrail = lazy(() => import("../../pages/admin/driverManagement/auditTrail/index"));
 
 function DriverManagementRoutes() {
     return (
@@ -55,6 +56,7 @@ function DriverManagementRoutes() {
                     <Route path="/trailers" element={<Trailers />} />
                     <Route path="/role-based-training" element={<HRRoleBasedTraining />} />
                     <Route path="/training" element={<TrainingContent />} />
+                    <Route path="/audit-trail" element={<HRAuditTrail />} />
                 </Route>
             </Routes>
         </Suspense>

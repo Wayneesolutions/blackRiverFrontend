@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, X, Upload, FileText, Sparkles } from "lucide-react";
+import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, X, Upload, FileText, Sparkles, CreditCard } from "lucide-react";
 import { FaFileInvoiceDollar, FaGasPump, FaClipboardList } from "react-icons/fa";
 import { message } from "antd";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import NewFuelReportSidebar from "./NewFuelReportSidebar";
+import FuelCardImportModal from "./FuelCardImportModal";
 import {
   listFuelReport,
   deleteFuelReport,
@@ -156,6 +157,7 @@ const FuelReports = () => {
   const [endDateFilter, setEndDateFilter] = useState<string>("");
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [ocrModalOpen, setOcrModalOpen] = useState(false);
+  const [fuelCardModalOpen, setFuelCardModalOpen] = useState(false);
   const [ocrFile, setOcrFile] = useState<File | null>(null);
   const [ocrExtracting, setOcrExtracting] = useState(false);
   const [ocrExtractedData, setOcrExtractedData] = useState<any>(null);
@@ -1250,6 +1252,14 @@ const FuelReports = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setFuelCardModalOpen(true)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{ backgroundColor: 'rgba(0,209,255,0.1)', border: '1px solid rgba(0,209,255,0.25)', color: 'var(--accent-blue)' }}
+              >
+                <CreditCard className="w-4 h-4" />
+                Import Fuel Card
+              </button>
               <button
                 onClick={() => setImportModalOpen(true)}
                 className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
@@ -2636,6 +2646,14 @@ const FuelReports = () => {
             )}
           </div>
         </div>
+      )}
+
+      {fuelCardModalOpen && (
+        <FuelCardImportModal
+          onClose={() => { setFuelCardModalOpen(false); fetchFuelReports(); }}
+          onImported={fetchFuelReports}
+          fleetUnits={units}
+        />
       )}
     </div>
   );

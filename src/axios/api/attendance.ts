@@ -29,4 +29,24 @@ export const deleteAttendance = async (id: string) => {
   return res.data;
 };
 
+export const getCurrentSession = async () => {
+  const res = await apiClient.get(`/hr/attendance/session/current`);
+  return res.data;
+};
+
+export const clockIn = async () => {
+  const res = await apiClient.post(`/hr/attendance/session/start`);
+  return res.data;
+};
+
+export const startBreak = async () => {
+  const res = await apiClient.post(`/hr/attendance/break/start`);
+  return res.data;
+};
+
+export const endBreak = async () => {
+  const res = await apiClient.post(`/hr/attendance/break/end`);
+  return res.data;
+};
+
 
