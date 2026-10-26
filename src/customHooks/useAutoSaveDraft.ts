@@ -5,6 +5,7 @@ import { deleteDraft, getDraft, saveDraft, type DraftEntityType } from '../axios
 
 const LOCAL_SAVE_DEBOUNCE_MS = 1000;
 const REMOTE_SAVE_INTERVAL_MS = 12000;
+const BASELINE_SETTLE_MS = 800;
 
 export type AutoSaveStatus = 'idle' | 'saving' | 'saved';
 
@@ -49,6 +50,22 @@ export const useAutoSaveDraft = ({
   const formDataRef = useRef(formData);
   formDataRef.current = formData;
 
+  // Baseline = the form as it looks once it has settled after opening. Until the user
+  // changes something, nothing is persisted (so just opening a form never leaves a draft behind).
+  const baselineRef = useRef<string | null>(null);
+  useEffect(() => {
+    baselineRef.current = null;
+    if (!enabled) return;
+    const timer = setTimeout(() => {
+      baselineRef.current = JSON.stringify(formDataRef.current);
+    }, BASELINE_SETTLE_MS);
+    return () => clearTimeout(timer);
+  }, [enabled, entityId]);
+  const isPristine = useCallback(
+    () => baselineRef.current === null || JSON.stringify(formDataRef.current) === baselineRef.current,
+    []
+  );
+
   const saveLocal = useCallback(
     (data: Record<string, unknown>) => {
       try {
@@ -86,6 +103,7 @@ export const useAutoSaveDraft = ({
     if (!enabled || hasCheckedRef.current) return;
     hasCheckedRef.current = true;
     let cancelled = false;
+    let finished = false;
 
     (async () => {
       let local: DraftRestoreInfo | null = null;
@@ -112,6 +130,7 @@ export const useAutoSaveDraft = ({
       }
 
       if (cancelled) return;
+      finished = true;
 
       let winner: DraftRestoreInfo | null = null;
       if (local && server) {
@@ -124,6 +143,8 @@ export const useAutoSaveDraft = ({
 
     return () => {
       cancelled = true;
+      // An aborted check (e.g. React StrictMode's mount/unmount/mount) must be allowed to run again
+      if (!finished) hasCheckedRef.current = false;
     };
   }, [enabled, entityType, entityId, storageKey]);
 
@@ -137,30 +158,33 @@ export const useAutoSaveDraft = ({
     }
 
     const timer = setTimeout(() => {
+      if (isPristine()) return;
       saveLocal(formDataRef.current);
       setLastSavedAt(Date.now());
       setStatus('saved');
     }, LOCAL_SAVE_DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
-  }, [formData, enabled, pendingRestore, saveLocal]);
+  }, [formData, enabled, pendingRestore, saveLocal, isPristine]);
 
   // Throttled backend save so the draft survives a full browser/device loss.
   useEffect(() => {
     if (!enabled || pendingRestore) return;
 
     const interval = setInterval(() => {
+      if (isPristine()) return;
       saveRemote(formDataRef.current);
     }, REMOTE_SAVE_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [enabled, pendingRestore, saveRemote]);
+  }, [enabled, pendingRestore, saveRemote, isPristine]);
 
   // Flush on tab blur / visibility change (covers the tab-close / power-loss case).
   useEffect(() => {
     if (!enabled || pendingRestore) return;
 
     const flush = () => {
+      if (isPristine()) return;
       saveLocal(formDataRef.current);
       saveRemote(formDataRef.current);
     };
@@ -174,7 +198,7 @@ export const useAutoSaveDraft = ({
       window.removeEventListener('blur', flush);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [enabled, pendingRestore, saveLocal, saveRemote]);
+  }, [enabled, pendingRestore, saveLocal, saveRemote, isPristine]);
 
   // Immediate local + backend save (e.g. for an explicit "Save & Next"). Skipped while a
   // restore banner is unresolved so it can't overwrite the draft that is still waiting to be applied.
