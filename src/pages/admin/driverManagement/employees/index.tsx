@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { Plus, Info, ChevronUp, ChevronDown, X, User, FileText, Upload, Edit, Trash2, Save, Calendar, Eye, EyeOff, FileDown, MessageSquare } from 'lucide-react';
 import TimelineNotes from '../../../../components/common/TimelineNotes';
 import { useAutoSaveDraft } from '../../../../customHooks/useAutoSaveDraft';
+import { toDraftSafe } from '../../../../utils/draftSnapshot';
 import DraftRestoreBanner from '../../../../components/common/DraftRestoreBanner';
 import AutoSaveIndicator from '../../../../components/common/AutoSaveIndicator';
 import ExcelJS from 'exceljs';
@@ -287,8 +288,8 @@ const EmployeesPage = () => {
 
   // Auto-save draft protection (crash/power-loss safety net for the create/edit form)
   const employeeDraftSnapshot = useMemo(
-    () => ({ basicData, personalData, notesBenefits, deductions, additions }),
-    [basicData, personalData, notesBenefits, deductions, additions]
+    () => toDraftSafe({ basicData, personalData, notesBenefits, deductions, additions, documents, activeFormTab }),
+    [basicData, personalData, notesBenefits, deductions, additions, documents, activeFormTab]
   );
   const {
     status: draftStatus,
@@ -312,6 +313,8 @@ const EmployeesPage = () => {
     if (typeof draft.notesBenefits === 'string') setNotesBenefits(draft.notesBenefits);
     if (Array.isArray(draft.deductions)) setDeductions(draft.deductions);
     if (Array.isArray(draft.additions)) setAdditions(draft.additions);
+    if (Array.isArray(draft.documents)) setDocuments(draft.documents);
+    if (draft.activeFormTab) setActiveFormTab(draft.activeFormTab);
   };
 
   // Toast notifications state

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Plus, Upload, ChevronUp, ChevronDown, HelpCircle, Clock, X, Image as ImageIcon, Edit, Trash2, Calendar, ChevronLeft, ChevronRight, FileText, FileDown } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { getAllTrailers, createTrailer, updateTrailer, deleteTrailer, getTrailerById } from '../../../../axios/api/trailer';
@@ -10,6 +10,7 @@ import { getAllYards, type Yard } from '../../../../axios/api/fleet.yards';
 import apiClient from '../../../../axios/apiClient';
 import ConfirmationModal from '../../../../components/common/ConfirmationModal';
 import { useAutoSaveDraft } from '../../../../customHooks/useAutoSaveDraft';
+import { toDraftSafe } from '../../../../utils/draftSnapshot';
 import DraftRestoreBanner from '../../../../components/common/DraftRestoreBanner';
 import AutoSaveIndicator from '../../../../components/common/AutoSaveIndicator';
 
@@ -97,27 +98,6 @@ const TrailersPage: React.FC = () => {
         yard: ''
     });
 
-    // Auto-save draft protection (crash/power-loss safety net for the create/edit form)
-    const {
-        status: draftStatus,
-        lastSavedAt: draftLastSavedAt,
-        pendingRestore: draftPendingRestore,
-        restoreDraft: restoreTrailerDraft,
-        discardDraft: discardTrailerDraft,
-        clearDraft: clearTrailerDraft,
-    } = useAutoSaveDraft({
-        entityType: 'trailers',
-        entityId: editingId || 'new',
-        formData,
-        enabled: showSidebar,
-    });
-
-    const handleRestoreTrailerDraft = () => {
-        const draft = restoreTrailerDraft();
-        if (!draft) return;
-        setFormData((prev) => ({ ...prev, ...draft }));
-    };
-
     // Store original trailer data for partial updates
     const [originalTrailerData, setOriginalTrailerData] = useState<any>(null);
 
@@ -198,6 +178,50 @@ const TrailersPage: React.FC = () => {
         category: 'Category'
     });
     const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+
+    // Auto-save draft protection (crash/power-loss safety net for the create/edit form).
+    // Snapshot covers every step's state so a restore brings back the whole form.
+    const trailerDraftSnapshot = useMemo(
+        () =>
+            toDraftSafe({
+                formData,
+                oneTimeInspections,
+                recurringInspections,
+                documents,
+                notes,
+                activeStep,
+            }),
+        [formData, oneTimeInspections, recurringInspections, documents, notes, activeStep]
+    );
+    const {
+        status: draftStatus,
+        lastSavedAt: draftLastSavedAt,
+        pendingRestore: draftPendingRestore,
+        restoreDraft: restoreTrailerDraft,
+        discardDraft: discardTrailerDraft,
+        clearDraft: clearTrailerDraft,
+    } = useAutoSaveDraft({
+        entityType: 'trailers',
+        entityId: editingId || 'new',
+        formData: trailerDraftSnapshot,
+        enabled: showSidebar,
+    });
+
+    const handleRestoreTrailerDraft = () => {
+        const draft = restoreTrailerDraft() as any;
+        if (!draft) return;
+        // Older drafts only stored the Details step as a flat object
+        if (!draft.formData) {
+            setFormData((prev) => ({ ...prev, ...draft }));
+            return;
+        }
+        setFormData((prev) => ({ ...prev, ...draft.formData }));
+        if (Array.isArray(draft.oneTimeInspections)) setOneTimeInspections(draft.oneTimeInspections);
+        if (Array.isArray(draft.recurringInspections)) setRecurringInspections(draft.recurringInspections);
+        if (Array.isArray(draft.documents)) setDocuments(draft.documents);
+        if (Array.isArray(draft.notes)) setNotes(draft.notes);
+        if (draft.activeStep) setActiveStep(draft.activeStep);
+    };
 
     // Column filters
     const [filters, setFilters] = useState({
