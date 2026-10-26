@@ -154,7 +154,7 @@ export const importFuelReportsFromCsv = async (file: File, columnMapping: Record
     if (defaultUnit) formData.append('defaultUnit', defaultUnit);
     if (defaultCurrency) formData.append('defaultCurrency', defaultCurrency);
     if (defaultProduct) formData.append('defaultProduct', defaultProduct);
-    
+
     const res: AxiosResponse = await apiClient.post(`dispatcher/fuel-report/import-csv`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -164,5 +164,27 @@ export const importFuelReportsFromCsv = async (file: File, columnMapping: Record
   } catch (error: any) {
     const err = error as Error;
     return err.response?.data;
+  }
+}
+
+export const parseFuelCardPdf = async (file: File) => {
+  try {
+    const formData = new FormData();
+    formData.append('pdf', file);
+    const res: AxiosResponse = await apiClient.post(`dispatcher/fuel-report/parse-fuel-card`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  } catch (error: any) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const confirmFuelCardImport = async (rows: any[]) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/fuel-report/confirm-fuel-card`, { rows });
+    return res.data;
+  } catch (error: any) {
+    return (error as Error).response?.data;
   }
 }
