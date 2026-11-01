@@ -10,6 +10,7 @@ import { useNotifications } from "../../hooks/useNotifications";
 import { NotificationBell } from "../common/NotificationPanel";
 import PortalSwitcher from '../common/PortalSwitcher';
 import AttendanceWidget from '../common/AttendanceWidget';
+import DriverMessagesButton from '../chat/DriverMessagesButton';
 
 function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -152,6 +153,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
           <PortalSwitcher />
 
           {/* Logout */}
+          <DriverMessagesButton className="header-btn" />
           <button onClick={handleLogoutClick} className="header-btn" title="Logout">
             <FaSignOutAlt size={18} />
           </button>

@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
 import { usePageTitle } from "../../hooks/usePageTitle";
+import DriverMessagesButton from '../chat/DriverMessagesButton';
 
 function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -146,6 +147,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                     </button>
 
                     {/* Logout */}
+                    <DriverMessagesButton className="header-btn" />
                     <button
                         onClick={handleLogoutClick}
                         className="header-btn"
