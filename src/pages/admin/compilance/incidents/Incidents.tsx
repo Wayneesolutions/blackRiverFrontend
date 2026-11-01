@@ -34,6 +34,8 @@ import { createIssue } from '../../../../axios/api/distapcher';
 import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { getAllTrailers } from '../../../../axios/api/trailer';
 import { listDriver } from '../../../../axios/api/distapcher';
+import { FileDown } from 'lucide-react';
+import { downloadExcel, summarySheet, countBy, fmtDateTime, titleCase, monthKey, yesNo } from '../../../../utils/excelExport';
 
 
 
@@ -355,6 +357,100 @@ const Incidents: React.FC = () => {
   useEffect(() => {
     refreshData();
   }, [statusFilter, typeFilter, locationFilter, driverFilter, countryFilter, debouncedSearch, currentPage, pageSize]);
+
+  // Excel export: all accidents matching the current filters, not just this page
+  const [exporting, setExporting] = useState<boolean>(false);
+  const handleExportIncidents = async () => {
+    setExporting(true);
+    try {
+      const params: any = { page: 1, limit: 10000, sortBy: 'incidentDateTime', sortOrder: 'desc' };
+      if (statusFilter !== 'all') params.status = statusFilter;
+      if (typeFilter !== 'all') params.type = typeFilter;
+      if (locationFilter !== 'all') params.location = locationFilter;
+      if (driverFilter !== 'all') params.driver = driverFilter;
+      if (countryFilter !== 'all') params.country = countryFilter;
+      if (debouncedSearch) params.search = debouncedSearch;
+      const res = await getIncidents(params);
+      const rows: Incident[] = res?.success ? (res.data || []) : [];
+      const estimated = (i: Incident) => (i.costTracking || []).reduce((a, c) => a + (Number(c.estimated) || 0), 0);
+      const actual = (i: Incident) => (i.costTracking || []).reduce((a, c) => a + (Number(c.actual) || 0), 0);
+      const totalEst = rows.reduce((a, i) => a + estimated(i), 0);
+      const totalAct = rows.reduce((a, i) => a + actual(i), 0);
+      const costRows = rows.flatMap(i => (i.costTracking || []).map(c => ({ i, c })));
+      const place = (i: Incident) => [i.location?.city, i.location?.stateProvince].filter(Boolean).join(', ');
+
+      await downloadExcel('Accidents', [
+        {
+          name: 'Accidents',
+          rows,
+          columns: [
+            { header: 'Accident #', width: 16, value: i => i.incidentNumber },
+            { header: 'Date & Time', width: 20, value: i => fmtDateTime(i.incidentDateTime) },
+            { header: 'Type', width: 18, value: i => titleCase(i.incidentType) },
+            { header: 'Status', width: 14, value: i => titleCase(i.incidentStatus) },
+            { header: 'Country', width: 10, value: i => (i.location?.country || '').toUpperCase() },
+            { header: 'City / Province', width: 22, value: i => place(i) },
+            { header: 'Street Address', width: 24, value: i => i.location?.streetAddress },
+            { header: 'Driver', width: 22, value: i => getDriverName(i.driver) },
+            { header: 'Co-Driver', width: 20, value: i => (i.coDriver ? getCoDriverName(i.coDriver) : '') },
+            { header: "Driver's Licence", width: 16, value: i => i.driversLicense },
+            { header: 'Unit #', width: 12, value: i => i.unitNumber },
+            { header: 'Trailer #', width: 12, value: i => i.trailerNumber },
+            { header: 'VIN / Plate', width: 18, value: i => i.vinPlateNumber },
+            { header: 'Damage', width: 30, value: i => i.damageDescription },
+            { header: 'Description', width: 36, value: i => i.description },
+            { header: 'Police Report #', width: 16, value: i => i.policeReportNumber },
+            { header: 'Case File #', width: 14, value: i => i.caseFileNumber },
+            { header: 'Reporting Party', width: 18, value: i => i.reportingParty },
+            { header: 'CVSA/DOT Impact', width: 12, value: i => yesNo(i.cvsaDotImpact) },
+            { header: 'FMCSA Reportable', width: 12, value: i => yesNo(i.fmcsaReportable) },
+            { header: 'Estimated Cost', width: 14, value: i => estimated(i), numFmt: '#,##0.00' },
+            { header: 'Actual Cost', width: 14, value: i => actual(i), numFmt: '#,##0.00' },
+            { header: 'Preventative Measures', width: 30, value: i => i.preventativeMeasures },
+            { header: 'Notes', width: 30, value: i => i.notes },
+          ]
+        },
+        {
+          name: 'Costs',
+          rows: costRows,
+          columns: [
+            { header: 'Accident #', width: 16, value: r => r.i.incidentNumber },
+            { header: 'Date', width: 20, value: r => fmtDateTime(r.i.incidentDateTime) },
+            { header: 'Category', width: 20, value: r => r.c.category },
+            { header: 'Estimated', width: 14, value: r => Number(r.c.estimated) || 0, numFmt: '#,##0.00' },
+            { header: 'Actual', width: 14, value: r => Number(r.c.actual) || 0, numFmt: '#,##0.00' },
+            { header: 'Notes', width: 30, value: r => r.c.notes },
+          ]
+        },
+        summarySheet([
+          ['Total accidents', rows.length],
+          ['Open', rows.filter(i => i.incidentStatus === 'open').length],
+          ['Under review', rows.filter(i => i.incidentStatus === 'under-review').length],
+          ['Closed', rows.filter(i => i.incidentStatus === 'closed').length],
+          ['FMCSA reportable', rows.filter(i => i.fmcsaReportable).length],
+          ['With CVSA/DOT impact', rows.filter(i => i.cvsaDotImpact).length],
+          ['Total estimated cost', Number(totalEst.toFixed(2))],
+          ['Total actual cost', Number(totalAct.toFixed(2))],
+          ['', ''],
+          ['BY TYPE', ''],
+          ...countBy(rows, i => titleCase(i.incidentType)),
+          ['', ''],
+          ['BY COUNTRY', ''],
+          ...countBy(rows, i => (i.location?.country || '').toUpperCase() || undefined),
+          ['', ''],
+          ['BY DRIVER', ''],
+          ...countBy(rows, i => getDriverName(i.driver)),
+          ['', ''],
+          ['BY MONTH', ''],
+          ...countBy(rows, i => monthKey(i.incidentDateTime)).sort((a, b) => a[0].localeCompare(b[0])),
+        ]),
+      ]);
+    } catch (error) {
+      console.error('Error exporting accidents:', error);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const refreshData = async () => {
     setLoading(true);
@@ -944,12 +1040,22 @@ const Incidents: React.FC = () => {
                   <span className="text-xs">Manage and track all accidents</span>
                 </div>
               </div>
+              <div className="flex items-center gap-2">
+              <button
+                onClick={handleExportIncidents}
+                disabled={exporting}
+                title="Export to Excel"
+                className="w-10 h-10 !text-white rounded-lg flex items-center justify-center bg-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)] transition-colors shadow-md disabled:opacity-60"
+              >
+                <FileDown className={`w-5 h-5 ${exporting ? 'animate-pulse' : ''}`} />
+              </button>
               <button
                 onClick={handleAddIncident}
                 className="flex items-center gap-2 px-4 py-2 text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm bg-[var(--accent-navyblue)]"
               >
                 <FaPlus /> Report Incident
               </button>
+              </div>
             </div>
           </div>
 
