@@ -246,3 +246,36 @@ export const getAllowedRolesForAdmin = async () => {
   }
 };
 
+
+// ── Website contact-form leads (logistiqinnovations.ca/contact) ──────────────
+export interface ContactInquiry {
+  _id: string;
+  name: string;
+  email: string;
+  company?: string;
+  fleetSize?: string;
+  message: string;
+  language?: 'en' | 'fr';
+  emailSent?: boolean;
+  emailError?: string;
+  status: 'new' | 'contacted' | 'closed';
+  createdAt: string;
+}
+
+export const getContactInquiries = async (): Promise<{ success: boolean; data: ContactInquiry[]; message?: string }> => {
+  try {
+    const res: AxiosResponse = await apiClient.get('superadmin/contact-inquiries');
+    return res.data;
+  } catch (error) {
+    return { success: false, data: [], message: (error as Error).response?.data?.message || 'Failed to load inquiries' };
+  }
+};
+
+export const updateContactInquiryStatus = async (id: string, status: ContactInquiry['status']) => {
+  try {
+    const res: AxiosResponse = await apiClient.patch(`superadmin/contact-inquiries/${id}/status`, { status });
+    return res.data as { success: boolean; data?: ContactInquiry; message?: string };
+  } catch (error) {
+    return { success: false, message: (error as Error).response?.data?.message || 'Failed to update' };
+  }
+};
