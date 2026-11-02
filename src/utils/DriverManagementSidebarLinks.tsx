@@ -10,6 +10,7 @@ import { FaTruck } from "react-icons/fa";        // Drivers
 import { FaIdCard } from "react-icons/fa";       // Driver Portfolio
 import { FaFolderOpen } from "react-icons/fa";   // Company Documents
 import { FaUsers } from "react-icons/fa";        // Customers
+import { FaSatelliteDish } from "react-icons/fa"; // GPS Dashboard
 
 import { FaGraduationCap } from "react-icons/fa"; // Training & Test Management
 import { FileText } from "lucide-react";         // ELD Documents
@@ -103,6 +104,12 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     key: "/admin/Management/audit-trail",
     icon: <MdHistory />,
     label: "Audit Trail",
+  },
+  {
+    // Shared read-only GPS dashboard (absolute path, not rewritten for HR)
+    key: "/gps-dashboard",
+    icon: <FaSatelliteDish />,
+    label: "GPS Dashboard",
   },
 ];
 
