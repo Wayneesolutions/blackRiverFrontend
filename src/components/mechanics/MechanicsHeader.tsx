@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
 import { usePageTitle } from "../../hooks/usePageTitle";
+import DriverMessagesButton from '../chat/DriverMessagesButton';
 
 interface MechanicsHeaderProps {
   isSidebarCollapsed?: boolean;
@@ -205,6 +206,7 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
           </button>
 
           {/* Logout */}
+          <DriverMessagesButton className="header-btn" />
           <button onClick={handleLogoutClick} className="header-btn" title="Logout">
             <FaSignOutAlt size={18} />
           </button>

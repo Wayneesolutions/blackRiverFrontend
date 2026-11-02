@@ -9,6 +9,7 @@ import { useQuickActions } from "../common/QuickAction";
 import { useChat } from "../../contexts/ChatContext";
 import PortalSwitcher from '../common/PortalSwitcher';
 import AttendanceWidget from '../common/AttendanceWidget';
+import DriverMessagesButton from '../chat/DriverMessagesButton';
 
 const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -157,6 +158,7 @@ const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
                     <PortalSwitcher />
 
                     {/* Logout */}
+                    <DriverMessagesButton className="header-btn" />
                     <button
                         onClick={handleLogoutClick}
                         className="header-btn"

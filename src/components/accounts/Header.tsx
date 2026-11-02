@@ -8,6 +8,7 @@ import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
 import PortalSwitcher from '../common/PortalSwitcher';
 import AttendanceWidget from '../common/AttendanceWidget';
+import DriverMessagesButton from '../chat/DriverMessagesButton';
 
 function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -142,6 +143,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
           <PortalSwitcher />
 
           {/* Logout shortcut */}
+          <DriverMessagesButton className="header-btn" />
           <button onClick={handleLogoutClick} className="header-btn" title="Logout">
             <FaSignOutAlt size={18} />
           </button>
