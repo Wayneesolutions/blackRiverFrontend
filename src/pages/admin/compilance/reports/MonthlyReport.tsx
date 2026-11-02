@@ -24,6 +24,8 @@ import { getCvsaMonthlyReport, deleteOldCvsaData, uploadCarrierProfileDocument, 
 import { getViolationsForMonthlyReport, getViolationStats } from '../../../../axios/api/violations';
 import jsPDF from 'jspdf';
 import DocLogo from '../../../../assets/doclogo.png';
+import { FileDown } from 'lucide-react';
+import { downloadExcel, summarySheet, autoColumns, titleCase } from '../../../../utils/excelExport';
 
 // Types
 interface MonthlyStats {
@@ -878,6 +880,87 @@ const MonthlyReport: React.FC = () => {
     setShowDeleteConfirm(false);
   };
 
+  // Excel export of the Carrier Profile: monthly CVSA summary for the selected year/country,
+  // carrier performance history and violation breakdown
+  const handleDownloadExcel = async () => {
+    const months = monthlyData || [];
+    const sum = (k: keyof MonthlyStats) => months.reduce((a, m) => a + (Number(m[k]) || 0), 0);
+    const total = sum('totalInspections');
+    const pass = sum('passCount');
+    const latest = carrierPerformance?.summary?.latestRecord;
+    const trends = carrierPerformance?.trends;
+    const perfRows: Array<Record<string, any>> = Array.isArray(carrierPerformance?.monthlyData) ? carrierPerformance.monthlyData : [];
+    const vs = violationStats || {};
+    const kv = (obj: any): Array<[string, any]> =>
+      obj && typeof obj === 'object' ? Object.entries(obj).map(([k, v]) => [titleCase(k), typeof v === 'object' ? JSON.stringify(v) : v]) : [];
+    const countryLabel = selectedCountry === 'all' ? 'All' : selectedCountry.toUpperCase();
+
+    const sheets: any[] = [
+      summarySheet([
+        ['Year', selectedYear],
+        ['Country', countryLabel],
+        ['Total inspections', total],
+        ['Pass', pass],
+        ['Fail', sum('failCount')],
+        ['Warning', sum('warningCount')],
+        ['Out-of-service', sum('outOfServiceCount')],
+        ['Pass rate', total ? `${((pass / total) * 100).toFixed(1)}%` : ''],
+        ['Canada inspections', sum('canadaInspections')],
+        ['USA inspections', sum('usaInspections')],
+        ['', ''],
+        ['LATEST CARRIER PROFILE', ''],
+        ['Period', latest ? [latest.month, latest.year].filter(Boolean).join(' ') : ''],
+        ['Safety rating', latest?.safetyRating ?? ''],
+        ['Pass rate', latest?.passRate ?? ''],
+        ['OOS rate', latest?.ossRate ?? ''],
+        ['Average pass rate', carrierPerformance?.summary?.avgPassRate ?? ''],
+        ['Trend', trends ? (trends.isImproving ? 'Improving' : trends.isDeclining ? 'Declining' : 'Stable') : ''],
+        ['Recent avg pass rate', trends?.recentAvgPassRate ?? ''],
+        ['Previous avg pass rate', trends?.previousAvgPassRate ?? ''],
+        ['', ''],
+        ['VIOLATIONS', ''],
+        ['Total violations', vs.total ?? ''],
+        ...kv(vs.bySeverity).map(([k, v]) => [`Severity: ${k}`, v] as [string, any]),
+        ...kv(vs.byType).map(([k, v]) => [`Type: ${k}`, v] as [string, any]),
+      ]),
+      {
+        name: 'Monthly CVSA',
+        rows: months,
+        columns: [
+          { header: 'Month', width: 14, value: (m: MonthlyStats) => m.month },
+          { header: 'Year', width: 8, value: (m: MonthlyStats) => m.year },
+          { header: 'Total', width: 10, value: (m: MonthlyStats) => m.totalInspections },
+          { header: 'Pass', width: 10, value: (m: MonthlyStats) => m.passCount },
+          { header: 'Fail', width: 10, value: (m: MonthlyStats) => m.failCount },
+          { header: 'Warning', width: 10, value: (m: MonthlyStats) => m.warningCount },
+          { header: 'Out-of-Service', width: 14, value: (m: MonthlyStats) => m.outOfServiceCount },
+          { header: 'Canada', width: 10, value: (m: MonthlyStats) => m.canadaInspections },
+          { header: 'USA', width: 10, value: (m: MonthlyStats) => m.usaInspections },
+          { header: 'Vehicles Inspected', width: 16, value: (m: MonthlyStats) => m.vehiclesInspected },
+          { header: 'Drivers Inspected', width: 16, value: (m: MonthlyStats) => m.driversInspected },
+        ],
+      },
+    ];
+    if (perfRows.length) sheets.push({ name: 'Carrier Performance', rows: perfRows, columns: autoColumns(perfRows) });
+    if (Array.isArray(vs.topViolators) && vs.topViolators.length) {
+      sheets.push({
+        name: 'Top Violators',
+        rows: vs.topViolators,
+        columns: [
+          { header: 'Driver', width: 24, value: (v: any) => v.driver?.name },
+          { header: 'Driver ID', width: 14, value: (v: any) => v.driver?.internalId },
+          { header: 'Violations', width: 12, value: (v: any) => v.count },
+          { header: 'Total Points', width: 12, value: (v: any) => v.totalPoints },
+        ],
+      });
+    }
+    try {
+      await downloadExcel(`Carrier-Profile-${selectedYear}-${countryLabel}`, sheets);
+    } catch (error) {
+      console.error('Error exporting carrier profile:', error);
+    }
+  };
+
   // Handle PDF download
   const handleDownloadPDF = async () => {
     const doc = new jsPDF();
@@ -1571,6 +1654,13 @@ const MonthlyReport: React.FC = () => {
                   >
                     <FaDownload size={16} />
                     Download PDF
+                  </button>
+                  <button
+                    onClick={handleDownloadExcel}
+                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 transition-colors shadow-sm"
+                  >
+                    <FileDown size={16} />
+                    Download Excel
                   </button>
                   <button
                     onClick={handleDeleteOldData}

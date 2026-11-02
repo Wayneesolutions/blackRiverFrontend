@@ -30,6 +30,8 @@ import {
 import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { listDriver } from '../../../../axios/api/distapcher';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
+import { FileDown } from 'lucide-react';
+import { downloadExcel, summarySheet, countBy, fmtDate, titleCase, monthKey, yesNo } from '../../../../utils/excelExport';
 import AddressSearch from '../../../../components/common/AddressSearch';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
@@ -283,6 +285,93 @@ const CvsaInspection: React.FC = () => {
     fetchVehicles();
     fetchDrivers();
   }, []);
+
+  // Excel export: all inspections for the selected country matching the current filters
+  const [exporting, setExporting] = useState<boolean>(false);
+  const handleExportInspections = async () => {
+    setExporting(true);
+    try {
+      const res = await getCvsaInspections({
+        country: activeTab,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        search: searchQuery || undefined,
+        page: 1,
+        limit: 10000
+      });
+      const rows: Inspection[] = res?.success ? (res.data || []) : [];
+      const violationRows = rows.flatMap(i => (i.violations || []).map(v => ({ i, v })));
+      const oos = rows.filter(i => i.status === 'out-of-service' || i.outOfServiceIssued).length;
+      const country = activeTab === 'usa' ? 'USA' : 'Canada';
+
+      await downloadExcel(`CVSA-Inspections-${country}`, [
+        {
+          name: 'Inspections',
+          rows,
+          columns: [
+            { header: 'Inspection ID', width: 16, value: i => i.inspectionId },
+            { header: 'Report #', width: 16, value: i => i.reportNumber },
+            { header: 'Country', width: 10, value: i => (i.country || '').toUpperCase() },
+            { header: 'Date', width: 14, value: i => fmtDate(i.date) },
+            { header: 'Time', width: 10, value: i => i.timeOfInspection },
+            { header: 'Level', width: 8, value: i => i.inspectionLevel },
+            { header: 'Jurisdiction', width: 12, value: i => i.jurisdiction },
+            { header: 'Location', width: 22, value: i => i.location },
+            { header: 'Status', width: 14, value: i => titleCase(i.status) },
+            { header: 'Driver', width: 22, value: i => getDriverName(i.driver) },
+            { header: 'Driver Licence #', width: 16, value: i => i.driverLicenseNumber },
+            { header: 'Vehicle', width: 22, value: i => getVehicleInfo(i.vehicle) },
+            { header: 'Inspector', width: 18, value: i => i.inspectorName },
+            { header: 'Violations', width: 10, value: (i: Inspection) => (i.violations || []).length },
+            { header: 'Violation Codes', width: 30, value: i => (i.violations || []).map((v: Violation) => v.code).filter(Boolean).join(', ') },
+            { header: 'OOS Issued', width: 10, value: i => yesNo(i.outOfServiceIssued) },
+            { header: 'OOS Released', width: 14, value: i => fmtDate(i.outOfServiceReleaseDate) },
+            { header: 'Defect Repair Needed', width: 12, value: i => yesNo(i.defectRepairNeeded) },
+            { header: 'USDOT #', width: 12, value: i => i.carrierUSDOTNumber },
+            { header: 'MC #', width: 12, value: i => i.carrierMotorCarrierNumber },
+            { header: 'Notes', width: 30, value: i => i.notes },
+          ]
+        },
+        {
+          name: 'Violations',
+          rows: violationRows,
+          columns: [
+            { header: 'Inspection ID', width: 16, value: r => r.i.inspectionId },
+            { header: 'Date', width: 14, value: r => fmtDate(r.i.date) },
+            { header: 'Driver', width: 22, value: r => getDriverName(r.i.driver) },
+            { header: 'Vehicle', width: 22, value: r => getVehicleInfo(r.i.vehicle) },
+            { header: 'Code', width: 12, value: r => r.v.code },
+            { header: 'Description', width: 40, value: r => r.v.description },
+            { header: 'Severity', width: 12, value: r => titleCase(r.v.severity) },
+          ]
+        },
+        summarySheet([
+          [`Country`, country],
+          ['Total inspections', rows.length],
+          ['Out-of-service', oos],
+          ['Total violations', violationRows.length],
+          ['', ''],
+          ['BY STATUS', ''],
+          ...countBy(rows, i => titleCase(i.status)),
+          ['', ''],
+          ['BY LEVEL', ''],
+          ...countBy(rows, i => (i.inspectionLevel ? `Level ${i.inspectionLevel}` : undefined)),
+          ['', ''],
+          ['VIOLATIONS BY SEVERITY', ''],
+          ...countBy(violationRows, r => titleCase(r.v.severity)),
+          ['', ''],
+          ['BY DRIVER', ''],
+          ...countBy(rows, i => getDriverName(i.driver)),
+          ['', ''],
+          ['BY MONTH', ''],
+          ...countBy(rows, i => monthKey(i.date)).sort((a, b) => a[0].localeCompare(b[0])),
+        ]),
+      ]);
+    } catch (error) {
+      console.error('Error exporting inspections:', error);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   // Function to refresh inspections and stats
   const refreshData = async (useFilters = true, page = currentPage, limit = pageSize) => {
@@ -926,6 +1015,14 @@ const CvsaInspection: React.FC = () => {
 
 
 
+                <button
+                  onClick={handleExportInspections}
+                  disabled={exporting}
+                  title="Export to Excel"
+                  className="w-10 h-10 !text-white rounded-lg flex items-center justify-center bg-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)] transition-colors shadow-md disabled:opacity-60"
+                >
+                  <FileDown className={`w-5 h-5 ${exporting ? 'animate-pulse' : ''}`} />
+                </button>
                 <button
                   onClick={handleAddInspection}
 
