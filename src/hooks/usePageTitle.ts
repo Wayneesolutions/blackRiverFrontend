@@ -41,6 +41,7 @@ const SEGMENT_TITLES: Record<string, string> = {
     'chat': 'Chat',
 
     // GPS
+    'gpsvehicle': 'GPS Vehicle',
     'livetracking': 'Live Tracking',
     'vehicles': 'Fleets',
     'truck': 'Truck Tracking',

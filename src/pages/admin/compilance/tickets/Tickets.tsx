@@ -37,7 +37,7 @@ import { getAllTrailers } from '../../../../axios/api/trailer';
 import { listDriver } from '../../../../axios/api/distapcher';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 import { FileDown } from 'lucide-react';
-import { downloadExcel, summarySheet, countBy, fmtDate, titleCase, monthKey } from '../../../../utils/excelExport';
+import { fmtMoney, MONEY_FMT, downloadExcel, summarySheet, countBy, fmtDate, titleCase, monthKey } from '../../../../utils/excelExport';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
 const hexToRgba = (hex: string, alpha = 1) => {
@@ -53,6 +53,13 @@ const ACCENT_SOFT_BORDER = hexToRgba(ACCENT_PRIMARY, 0.25);
 
 
 // Types
+type TicketStatus = 'paid' | 'unpaid' | 'fight' | 'dismissed' | 'reduced';
+type TicketOutcome = 'paid' | 'reduced' | 'dismissed' | 'on fight' | 'unpaid';
+
+// Outcome follows Status unless someone deliberately picks a different one afterwards
+const outcomeForStatus = (status: TicketStatus): TicketOutcome =>
+  status === 'fight' ? 'on fight' : status;
+
 interface Ticket {
   _id: string;
   ticketNumber: string;
@@ -63,8 +70,8 @@ interface Ticket {
   location: string; // Province (Canada) or State (USA)
   amount: number; // Fine Amount
   finalAmount?: number; // Final amount after reduction
-  status: 'paid' | 'unpaid' | 'fight' | 'dismissed' | 'reduced';
-  outcome?: 'paid' | 'reduced' | 'dismissed' | 'on fight' | 'unpaid';
+  status: TicketStatus;
+  outcome?: TicketOutcome;
   driver: {
     _id: string;
     name?: string;
@@ -375,8 +382,8 @@ const Tickets: React.FC = () => {
             { header: 'Unit #', width: 12, value: t => t.unitNumber },
             { header: 'Trailer #', width: 12, value: t => t.trailerNumber },
             { header: 'Officer', width: 18, value: t => t.officerName },
-            { header: 'Fine Amount', width: 14, value: t => fine(t), numFmt: '#,##0.00' },
-            { header: 'Final Amount', width: 14, value: t => finalAmt(t), numFmt: '#,##0.00' },
+            { header: 'Fine Amount', width: 14, value: t => fine(t), numFmt: MONEY_FMT },
+            { header: 'Final Amount', width: 14, value: t => finalAmt(t), numFmt: MONEY_FMT },
             { header: 'Status', width: 12, value: t => titleCase(t.status) },
             { header: 'Outcome', width: 12, value: t => titleCase(t.outcome) },
             { header: 'Due Date', width: 14, value: t => fmtDate(t.dueDate) },
@@ -391,10 +398,10 @@ const Tickets: React.FC = () => {
         },
         summarySheet([
           ['Total tickets', rows.length],
-          ['Total fine amount', Number(totalFines.toFixed(2))],
-          ['Total final amount (after reductions)', Number(totalFinal.toFixed(2))],
-          ['Paid amount', Number(paid.toFixed(2))],
-          ['Unpaid amount', Number(unpaid.toFixed(2))],
+          ['Total fine amount', fmtMoney(totalFines)],
+          ['Total final amount (after reductions)', fmtMoney(totalFinal)],
+          ['Paid amount', fmtMoney(paid)],
+          ['Unpaid amount', fmtMoney(unpaid)],
           ['', ''],
           ['BY STATUS', ''],
           ...countBy(rows, t => titleCase(t.status)),
@@ -797,7 +804,7 @@ const Tickets: React.FC = () => {
       amount: ticket.amount,
       finalAmount: ticket.finalAmount,
       status: ticket.status,
-      outcome: ticket.outcome || ticket.status === 'fight' ? 'on fight' : ticket.status,
+      outcome: ticket.outcome || outcomeForStatus(ticket.status),
       driver: typeof ticket.driver === 'string' ? ticket.driver : ticket.driver?._id || '',
       vehicle: typeof ticket.vehicle === 'string' ? ticket.vehicle : ticket.vehicle?._id || '',
       unitNumber: ticket.unitNumber || '',
@@ -1797,7 +1804,10 @@ const Tickets: React.FC = () => {
                     <label className="block text-sm font-medium text-headings mb-1">Status <span className="text-red-500">*</span></label>
                     <select
                       value={ticketForm.status}
-                      onChange={(e) => setTicketForm(prev => ({ ...prev, status: e.target.value as 'paid' | 'unpaid' | 'fight' | 'dismissed' | 'reduced' }))}
+                      onChange={(e) => {
+                        const status = e.target.value as TicketStatus;
+                        setTicketForm(prev => ({ ...prev, status, outcome: outcomeForStatus(status) }));
+                      }}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option className='form-option' value="unpaid">Unpaid</option>
@@ -2325,17 +2335,10 @@ const Tickets: React.FC = () => {
                     <label className="block text-sm font-medium text-headings mb-1">Status <span className="text-red-500">*</span></label>
                     <select
                       value={ticketForm.status}
-                      onChange={(e) =>
-                        setTicketForm((prev) => ({
-                          ...prev,
-                          status: e.target.value as
-                            | "paid"
-                            | "unpaid"
-                            | "fight"
-                            | "dismissed"
-                            | "reduced",
-                        }))
-                      }
+                      onChange={(e) => {
+                        const status = e.target.value as TicketStatus;
+                        setTicketForm((prev) => ({ ...prev, status, outcome: outcomeForStatus(status) }));
+                      }}
                       className="w-full px-3 py-2 text-sm border border-theme rounded-lg
   bg-[var(--bg-card)] text-[var(--text-primary)]
   focus:ring-2 focus:ring-[var(--accent-blue)]

@@ -904,16 +904,16 @@ const MonthlyReport: React.FC = () => {
         ['Fail', sum('failCount')],
         ['Warning', sum('warningCount')],
         ['Out-of-service', sum('outOfServiceCount')],
-        ['Pass rate', total ? `${((pass / total) * 100).toFixed(1)}%` : ''],
+        ['Pass rate (inspections this period)', total ? `${((pass / total) * 100).toFixed(1)}%` : ''],
         ['Canada inspections', sum('canadaInspections')],
         ['USA inspections', sum('usaInspections')],
         ['', ''],
         ['LATEST CARRIER PROFILE', ''],
         ['Period', latest ? [latest.month, latest.year].filter(Boolean).join(' ') : ''],
         ['Safety rating', latest?.safetyRating ?? ''],
-        ['Pass rate', latest?.passRate ?? ''],
+        ['Pass rate (latest month)', latest?.passRate ?? ''],
         ['OOS rate', latest?.ossRate ?? ''],
-        ['Average pass rate', carrierPerformance?.summary?.avgPassRate ?? ''],
+        ['Average monthly pass rate', carrierPerformance?.summary?.avgPassRate ?? ''],
         ['Trend', trends ? (trends.isImproving ? 'Improving' : trends.isDeclining ? 'Declining' : 'Stable') : ''],
         ['Recent avg pass rate', trends?.recentAvgPassRate ?? ''],
         ['Previous avg pass rate', trends?.previousAvgPassRate ?? ''],
@@ -942,18 +942,17 @@ const MonthlyReport: React.FC = () => {
       },
     ];
     if (perfRows.length) sheets.push({ name: 'Carrier Performance', rows: perfRows, columns: autoColumns(perfRows) });
-    if (Array.isArray(vs.topViolators) && vs.topViolators.length) {
-      sheets.push({
-        name: 'Top Violators',
-        rows: vs.topViolators,
-        columns: [
-          { header: 'Driver', width: 24, value: (v: any) => v.driver?.name },
-          { header: 'Driver ID', width: 14, value: (v: any) => v.driver?.internalId },
-          { header: 'Violations', width: 12, value: (v: any) => v.count },
-          { header: 'Total Points', width: 12, value: (v: any) => v.totalPoints },
-        ],
-      });
-    }
+    // Always included, so an empty sheet reads as "no violators" rather than a missing report
+    sheets.push({
+      name: 'Top Violators',
+      rows: Array.isArray(vs.topViolators) ? vs.topViolators : [],
+      columns: [
+        { header: 'Driver', width: 24, value: (v: any) => v.driver?.name },
+        { header: 'Driver ID', width: 14, value: (v: any) => v.driver?.internalId },
+        { header: 'Violations', width: 12, value: (v: any) => v.count },
+        { header: 'Total Points', width: 12, value: (v: any) => v.totalPoints },
+      ],
+    });
     try {
       await downloadExcel(`Carrier-Profile-${selectedYear}-${countryLabel}`, sheets);
     } catch (error) {
@@ -1029,7 +1028,7 @@ const MonthlyReport: React.FC = () => {
       yPos += 7;
       doc.text(`Pass: ${twoYearData.summary.totalPass} | Fail: ${twoYearData.summary.totalFail} | Warning: ${twoYearData.summary.totalWarning} | Out of Service: ${twoYearData.summary.totalOutOfService}`, margin, yPos);
       yPos += 7;
-      doc.text(`Overall Pass Rate: ${twoYearData.summary.overallPassRate}%`, margin, yPos);
+      doc.text(`2-Year Pass Rate (Inspections): ${twoYearData.summary.overallPassRate}%`, margin, yPos);
       yPos += 15;
 
       // Year 1
@@ -1756,7 +1755,7 @@ const MonthlyReport: React.FC = () => {
                       </p>
                     </div>
                     <div className="bg-card rounded-lg p-4 border border-theme">
-                      <p className="text-xs text-secondary mb-1">Pass Rate</p>
+                      <p className="text-xs text-secondary mb-1">Latest Month Pass Rate</p>
                       <p className={`text-2xl font-bold ${carrierPerformance.summary.latestRecord.passRate >= 80 ? 'text-green-400' : carrierPerformance.summary.latestRecord.passRate >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
                         {carrierPerformance.summary.latestRecord.passRate}%
                       </p>
@@ -1803,7 +1802,7 @@ const MonthlyReport: React.FC = () => {
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-secondary">Overall Avg Pass Rate</p>
+                        <p className="text-xs text-secondary">Avg Monthly Pass Rate (Carrier Profile)</p>
                         <p className="text-lg font-bold text-primary">{carrierPerformance.summary?.avgPassRate || 0}%</p>
                       </div>
                     </div>
@@ -1971,7 +1970,7 @@ const MonthlyReport: React.FC = () => {
                     background="var(--accent-blue)"
                   />
                   <StatCard
-                    title="Overall Pass Rate"
+                    title="2-Year Pass Rate (Inspections)"
                     value={`${twoYearData.summary.overallPassRate}%`}
                     icon={<FaCheckCircle />}
                     bgColor=""

@@ -143,7 +143,7 @@ const SuperAdminOverview = () => {
       color: 'bg-green-500'
     },
     {
-      title: 'Current Month Revenue',
+      title: `Revenue (last ${selectedTimeRange})`,
       value: formatCurrency(typeof stats.currentMonthRevenue === 'number' ? stats.currentMonthRevenue : 0),
       change: typeof stats.revenueChange === 'number' ? `${stats.revenueChange >= 0 ? '+' : ''}${stats.revenueChange.toFixed(1)}%` : '0%',
       trend: (typeof stats.revenueChange === 'number' && stats.revenueChange >= 0) ? 'up' : 'down',

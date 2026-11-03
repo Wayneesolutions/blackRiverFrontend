@@ -20,6 +20,9 @@ export interface ExcelSheet<T = any> {
   rows: T[];
 }
 
+/** Excel number format for money columns: $1,250.50 */
+export const MONEY_FMT = '"$"#,##0.00';
+
 const HEADER_FILL = 'FF42AEEC';
 const ZEBRA_FILL = 'FFF0F9FF';
 
@@ -106,6 +109,10 @@ export const fmtDateTime = (v?: string | Date | null) => {
   const d = new Date(v);
   return isNaN(d.getTime()) ? String(v) : d.toLocaleString();
 };
+
+/** Money as text, for sheets that mix amounts and counts in one column (Summary). */
+export const fmtMoney = (v?: number | null) =>
+  `$${(Number(v) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export const yesNo = (v?: boolean | null) => (v === true ? 'Yes' : v === false ? 'No' : '');
 

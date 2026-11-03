@@ -91,6 +91,7 @@ const Billing = () => {
   const [sortType, setSortType] = useState<SortType>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [previewTab, setPreviewTab] = useState<'monthly' | '6months' | 'annual'>('monthly');
+  const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
 
   const [formData, setFormData] = useState({
@@ -232,16 +233,22 @@ const Billing = () => {
 
   const handleEdit = (plan: Plan) => {
     setSelectedPlan(plan);
+    setEditName(plan.planName || '');
     setEditDescription(plan.description || '');
     setShowEditModal(true);
   };
 
   const handleUpdate = async () => {
     if (!selectedPlan) return;
+    const planName = editName.trim();
+    if (!planName) {
+      message.error('Plan name is required');
+      return;
+    }
     try {
-      const response = await updatePlan(selectedPlan._id, { description: editDescription });
+      const response = await updatePlan(selectedPlan._id, { planName, description: editDescription });
       if (response?.success) {
-        message.success('Description updated successfully');
+        message.success('Plan updated successfully');
         setShowEditModal(false);
         fetchPlans();
       } else {
@@ -1348,7 +1355,11 @@ const Billing = () => {
           <div className="rounded-lg px-3 py-2.5 text-sm border flex items-center gap-2"
             style={{ backgroundColor: 'rgba(245,158,11,0.08)', borderColor: 'rgba(245,158,11,0.2)', color: '#F59E0B' }}>
             <Sparkles className="w-4 h-4 flex-shrink-0" />
-            Only the plan description can be edited after creation.
+            Only the plan name and description can be edited after creation.
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-secondary">Plan Name</label>
+            <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Plan name" />
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-secondary">Description</label>

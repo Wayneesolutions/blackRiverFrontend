@@ -11,6 +11,7 @@ import {
   FaBan,
   FaEdit,
   FaTrash,
+  FaPlus,
   FaEye,
   FaFilter,
   FaSearch,
@@ -317,7 +318,7 @@ const CvsaInspection: React.FC = () => {
             { header: 'Jurisdiction', width: 12, value: i => i.jurisdiction },
             { header: 'Location', width: 22, value: i => i.location },
             { header: 'Status', width: 14, value: i => titleCase(i.status) },
-            { header: 'Driver', width: 22, value: i => getDriverName(i.driver) },
+            { header: 'Driver', width: 22, value: i => getDriverName(i.driver) || 'N/A' },
             { header: 'Driver Licence #', width: 16, value: i => i.driverLicenseNumber },
             { header: 'Vehicle', width: 22, value: i => getVehicleInfo(i.vehicle) },
             { header: 'Inspector', width: 18, value: i => i.inspectorName },
@@ -337,7 +338,7 @@ const CvsaInspection: React.FC = () => {
           columns: [
             { header: 'Inspection ID', width: 16, value: r => r.i.inspectionId },
             { header: 'Date', width: 14, value: r => fmtDate(r.i.date) },
-            { header: 'Driver', width: 22, value: r => getDriverName(r.i.driver) },
+            { header: 'Driver', width: 22, value: r => getDriverName(r.i.driver) || 'N/A' },
             { header: 'Vehicle', width: 22, value: r => getVehicleInfo(r.i.vehicle) },
             { header: 'Code', width: 12, value: r => r.v.code },
             { header: 'Description', width: 40, value: r => r.v.description },
@@ -680,6 +681,74 @@ const CvsaInspection: React.FC = () => {
     return '';
   };
 
+  const updateViolation = (index: number, patch: Partial<Violation>) => {
+    setInspectionForm(prev => ({
+      ...prev,
+      violations: (prev.violations || []).map((v, i) => (i === index ? { ...v, ...patch } : v)),
+    }));
+  };
+
+  const renderViolationsEditor = () => (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <label className="block text-sm font-medium text-primary">Violations</label>
+        <button
+          type="button"
+          onClick={() => setInspectionForm(prev => ({
+            ...prev,
+            violations: [...(prev.violations || []), { _id: `new-${Date.now()}`, code: '', description: '', severity: 'minor' }],
+          }))}
+          className="flex items-center gap-1 text-sm font-medium text-[var(--accent-navyblue)]"
+        >
+          <FaPlus size={12} /> Add Violation
+        </button>
+      </div>
+      {(inspectionForm.violations || []).length === 0 && (
+        <p className="text-xs text-secondary">No violations added yet.</p>
+      )}
+      <div className="space-y-2">
+        {(inspectionForm.violations || []).map((violation, index) => (
+          <div key={violation._id || index} className="grid grid-cols-2 sm:grid-cols-[1fr_2fr_1fr_auto] gap-2 items-center">
+            <input
+              type="text"
+              aria-label="Violation code"
+              placeholder="Code (required)"
+              value={violation.code}
+              onChange={(e) => updateViolation(index, { code: e.target.value })}
+              className="px-3 py-2 text-sm border border-theme rounded-lg"
+            />
+            <input
+              type="text"
+              aria-label="Violation description"
+              placeholder="Description (required)"
+              value={violation.description}
+              onChange={(e) => updateViolation(index, { description: e.target.value })}
+              className="px-3 py-2 text-sm border border-theme rounded-lg"
+            />
+            <select
+              aria-label="Violation severity"
+              value={violation.severity}
+              onChange={(e) => updateViolation(index, { severity: e.target.value as Violation['severity'] })}
+              className="px-3 py-2 text-sm border border-theme rounded-lg bg-[var(--bg-card)] text-[var(--text-primary)]"
+            >
+              <option value="minor">Minor</option>
+              <option value="major">Major</option>
+              <option value="critical">Critical</option>
+            </select>
+            <button
+              type="button"
+              aria-label="Remove violation"
+              onClick={() => setInspectionForm(prev => ({ ...prev, violations: (prev.violations || []).filter((_, i) => i !== index) }))}
+              className="p-2"
+            >
+              <FaTrash size={14} className="text-[var(--accent-red)]" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   const getDriverName = (driver: Inspection['driver']): string => {
     if (typeof driver === 'string') {
       const d = drivers.find(d => d._id === driver);
@@ -707,7 +776,8 @@ const CvsaInspection: React.FC = () => {
       !!inspectionForm.location &&
       !!inspectionForm.status &&
       !!inspectionForm.vehicle &&
-      !!inspectionForm.driver
+      !!inspectionForm.driver &&
+      (inspectionForm.violations || []).every(v => !!v.code.trim() && !!v.description.trim())
     );
   };
 
@@ -811,6 +881,9 @@ const CvsaInspection: React.FC = () => {
           formData.append(`violations[${i}][description]`, v.description);
           formData.append(`violations[${i}][severity]`, v.severity);
         });
+      } else if (selectedInspection?.violations?.length) {
+        // Every violation was removed: send an empty list so they are cleared
+        formData.append('violations', '[]');
       }
       if (inspectionForm.notes) formData.append('notes', inspectionForm.notes);
       if (inspectionForm.reportNumber) formData.append('reportNumber', inspectionForm.reportNumber);
@@ -1900,6 +1973,7 @@ const CvsaInspection: React.FC = () => {
                           ))}
                         </select>
                       </div>
+                      <div className="col-span-2">{renderViolationsEditor()}</div>
                       <div className="col-span-2">
                         <label className="block text-sm font-medium text-primary mb-1">Notes</label>
                         <textarea
@@ -2185,6 +2259,7 @@ const CvsaInspection: React.FC = () => {
                           ))}
                         </select>
                       </div>
+                      <div className="col-span-2">{renderViolationsEditor()}</div>
                       <div className="col-span-2">
                         <label className="block text-sm font-medium text-primary mb-1">Notes</label>
                         <textarea value={inspectionForm.notes || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, notes: e.target.value }))} className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent" rows={3} />

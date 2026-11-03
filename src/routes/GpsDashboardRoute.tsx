@@ -23,12 +23,12 @@ function GpsDashboardRoute() {
     <Suspense fallback={<Loading />}>
       <Routes>
         <Route element={<GpsDashboard />}>
-          <Route index element={<Navigate to="truck" replace />} />
+          <Route index element={<Navigate to="/gps-dashboard/truck" replace />} />
           <Route path="truck" element={<TruckTracker />} />
           <Route path="trailer" element={<TrailerTracker />} />
           <Route path="trip" element={<TripTracker />} />
           <Route path="people" element={<PeopleDirectory />} />
-          <Route path="*" element={<Navigate to="truck" replace />} />
+          <Route path="*" element={<Navigate to="/gps-dashboard/truck" replace />} />
         </Route>
       </Routes>
     </Suspense>

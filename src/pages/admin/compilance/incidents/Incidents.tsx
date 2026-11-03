@@ -35,7 +35,7 @@ import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { getAllTrailers } from '../../../../axios/api/trailer';
 import { listDriver } from '../../../../axios/api/distapcher';
 import { FileDown } from 'lucide-react';
-import { downloadExcel, summarySheet, countBy, fmtDateTime, titleCase, monthKey, yesNo } from '../../../../utils/excelExport';
+import { downloadExcel, summarySheet, countBy, fmtDateTime, fmtMoney, MONEY_FMT, titleCase, monthKey, yesNo } from '../../../../utils/excelExport';
 
 
 
@@ -47,6 +47,12 @@ interface ActionTakenLog {
   takenBy: string;
   notes?: string;
 }
+
+// A datetime-local input needs the browser's local time, not UTC from toISOString()
+const toLocalInputValue = (value: string) => {
+  const d = new Date(value);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+};
 
 interface CostTracking {
   category: string;
@@ -404,8 +410,8 @@ const Incidents: React.FC = () => {
             { header: 'Reporting Party', width: 18, value: i => i.reportingParty },
             { header: 'CVSA/DOT Impact', width: 12, value: i => yesNo(i.cvsaDotImpact) },
             { header: 'FMCSA Reportable', width: 12, value: i => yesNo(i.fmcsaReportable) },
-            { header: 'Estimated Cost', width: 14, value: i => estimated(i), numFmt: '#,##0.00' },
-            { header: 'Actual Cost', width: 14, value: i => actual(i), numFmt: '#,##0.00' },
+            { header: 'Estimated Cost', width: 14, value: i => estimated(i), numFmt: MONEY_FMT },
+            { header: 'Actual Cost', width: 14, value: i => actual(i), numFmt: MONEY_FMT },
             { header: 'Preventative Measures', width: 30, value: i => i.preventativeMeasures },
             { header: 'Notes', width: 30, value: i => i.notes },
           ]
@@ -417,8 +423,8 @@ const Incidents: React.FC = () => {
             { header: 'Accident #', width: 16, value: r => r.i.incidentNumber },
             { header: 'Date', width: 20, value: r => fmtDateTime(r.i.incidentDateTime) },
             { header: 'Category', width: 20, value: r => r.c.category },
-            { header: 'Estimated', width: 14, value: r => Number(r.c.estimated) || 0, numFmt: '#,##0.00' },
-            { header: 'Actual', width: 14, value: r => Number(r.c.actual) || 0, numFmt: '#,##0.00' },
+            { header: 'Estimated', width: 14, value: r => Number(r.c.estimated) || 0, numFmt: MONEY_FMT },
+            { header: 'Actual', width: 14, value: r => Number(r.c.actual) || 0, numFmt: MONEY_FMT },
             { header: 'Notes', width: 30, value: r => r.c.notes },
           ]
         },
@@ -429,8 +435,8 @@ const Incidents: React.FC = () => {
           ['Closed', rows.filter(i => i.incidentStatus === 'closed').length],
           ['FMCSA reportable', rows.filter(i => i.fmcsaReportable).length],
           ['With CVSA/DOT impact', rows.filter(i => i.cvsaDotImpact).length],
-          ['Total estimated cost', Number(totalEst.toFixed(2))],
-          ['Total actual cost', Number(totalAct.toFixed(2))],
+          ['Total estimated cost', fmtMoney(totalEst)],
+          ['Total actual cost', fmtMoney(totalAct)],
           ['', ''],
           ['BY TYPE', ''],
           ...countBy(rows, i => titleCase(i.incidentType)),
@@ -650,7 +656,7 @@ const Incidents: React.FC = () => {
   const handleEditIncident = (incident: Incident) => {
     setSelectedIncident(incident);
     setIncidentForm({
-      incidentDateTime: incident.incidentDateTime ? new Date(incident.incidentDateTime).toISOString().slice(0, 16) : '',
+      incidentDateTime: incident.incidentDateTime ? toLocalInputValue(incident.incidentDateTime) : '',
       location: {
         city: incident.location?.city || '',
         stateProvince: incident.location?.stateProvince || '',
@@ -708,12 +714,88 @@ const Incidents: React.FC = () => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
+  const updateCost = (index: number, patch: Partial<CostTracking>) => {
+    setIncidentForm(prev => ({
+      ...prev,
+      costTracking: (prev.costTracking || []).map((c, i) => (i === index ? { ...c, ...patch } : c)),
+    }));
+  };
+
+  const renderCostEditor = () => (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <label className="block text-sm font-medium text-primary">Accident Costs</label>
+        <button
+          type="button"
+          onClick={() => setIncidentForm(prev => ({ ...prev, costTracking: [...(prev.costTracking || []), { category: '', estimated: 0 }] }))}
+          className="flex items-center gap-1 text-sm font-medium text-[var(--accent-navyblue)]"
+        >
+          <FaPlus size={12} /> Add Cost
+        </button>
+      </div>
+      {(incidentForm.costTracking || []).length === 0 && (
+        <p className="text-xs text-secondary">No costs added yet.</p>
+      )}
+      <div className="space-y-2">
+        {(incidentForm.costTracking || []).map((cost, index) => (
+          <div key={index} className="grid grid-cols-2 sm:grid-cols-[2fr_1fr_1fr_2fr_auto] gap-2 items-center">
+            <input
+              type="text"
+              aria-label="Cost category"
+              placeholder="Category (required)"
+              value={cost.category}
+              onChange={(e) => updateCost(index, { category: e.target.value })}
+              className="px-3 py-2 text-sm border border-theme rounded-lg"
+            />
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              aria-label="Estimated cost"
+              placeholder="Estimated"
+              value={cost.estimated}
+              onChange={(e) => updateCost(index, { estimated: Math.max(0, Number(e.target.value) || 0) })}
+              className="px-3 py-2 text-sm border border-theme rounded-lg"
+            />
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              aria-label="Actual cost"
+              placeholder="Actual"
+              value={cost.actual ?? ''}
+              onChange={(e) => updateCost(index, { actual: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value) || 0) })}
+              className="px-3 py-2 text-sm border border-theme rounded-lg"
+            />
+            <input
+              type="text"
+              aria-label="Cost notes"
+              placeholder="Notes"
+              value={cost.notes || ''}
+              onChange={(e) => updateCost(index, { notes: e.target.value })}
+              className="px-3 py-2 text-sm border border-theme rounded-lg"
+            />
+            <button
+              type="button"
+              aria-label="Remove cost"
+              onClick={() => setIncidentForm(prev => ({ ...prev, costTracking: (prev.costTracking || []).filter((_, i) => i !== index) }))}
+              className="p-2"
+            >
+              <FaTrash size={14} className="text-[var(--accent-red)]" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   const validateForm = () => {
     return !!incidentForm.incidentDateTime &&
       !!incidentForm.location?.city &&
       !!incidentForm.location?.stateProvince &&
       !!incidentForm.incidentType &&
-      !!incidentForm.driver;
+      !!incidentForm.driver &&
+      (incidentForm.costTracking || []).every(c => !!c.category.trim());
   };
 
   const saveNewIncident = async () => {
@@ -728,7 +810,7 @@ const Incidents: React.FC = () => {
       const formData = new FormData();
 
       // Add all form fields
-      formData.append('incidentDateTime', incidentForm.incidentDateTime);
+      formData.append('incidentDateTime', new Date(incidentForm.incidentDateTime).toISOString());
       formData.append('location', JSON.stringify(incidentForm.location));
       formData.append('incidentType', incidentForm.incidentType);
       formData.append('incidentStatus', incidentForm.incidentStatus);
@@ -861,7 +943,7 @@ const Incidents: React.FC = () => {
       const formData = new FormData();
 
       // Add all form fields
-      formData.append('incidentDateTime', incidentForm.incidentDateTime);
+      formData.append('incidentDateTime', new Date(incidentForm.incidentDateTime).toISOString());
       formData.append('location', JSON.stringify(incidentForm.location));
       formData.append('incidentType', incidentForm.incidentType);
       formData.append('incidentStatus', incidentForm.incidentStatus);
@@ -882,9 +964,8 @@ const Incidents: React.FC = () => {
         formData.append('actionTakenLog', JSON.stringify(incidentForm.actionTakenLog));
       }
       if (incidentForm.preventativeMeasures) formData.append('preventativeMeasures', incidentForm.preventativeMeasures);
-      if (incidentForm.costTracking && incidentForm.costTracking.length > 0) {
-        formData.append('costTracking', JSON.stringify(incidentForm.costTracking));
-      }
+      // Always sent on edit so that removing the last cost actually clears the list
+      formData.append('costTracking', JSON.stringify(incidentForm.costTracking || []));
       formData.append('cvsaDotImpact', String(incidentForm.cvsaDotImpact || false));
       formData.append('fmcsaReportable', String(incidentForm.fmcsaReportable || false));
       if (incidentForm.fmcsaNotes) formData.append('fmcsaNotes', incidentForm.fmcsaNotes);
@@ -1990,6 +2071,8 @@ const Incidents: React.FC = () => {
                       />
                     </div>
 
+                    <div className="col-span-2">{renderCostEditor()}</div>
+
                     <div className="col-span-2">
                       <label className="block text-sm font-medium text-primary mb-1">Additional Notes</label>
                       <textarea
@@ -2136,7 +2219,7 @@ const Incidents: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                {/* Add other sections similar to Add Modal */}
+                <div className="bg-card rounded-xl p-6">{renderCostEditor()}</div>
               </div>
 
               <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
