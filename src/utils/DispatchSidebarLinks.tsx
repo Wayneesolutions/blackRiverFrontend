@@ -15,6 +15,7 @@ import {
   FaHistory,
   FaComments,
   FaGraduationCap,
+  FaSatelliteDish,
 } from "react-icons/fa";
 
 type DispatchSidebarLinks = {
@@ -30,6 +31,10 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
     key: "/admin/dispatch/dashboard",
     icon: <MdDashboard />,
     label: "Dashboard",
+  }, {
+    key: "/gps-dashboard",
+    icon: <FaSatelliteDish />,
+    label: "GPS Dashboard",
   }, {
     key: "/admin/dispatch/trips",
     icon: <FaRoute />,

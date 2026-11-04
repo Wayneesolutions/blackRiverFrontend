@@ -34,6 +34,7 @@ import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { getAllTrailers } from '../../../../axios/api/trailer';
 import { FLEET_COLORS } from '../colorUtils';
 import AddressSearch from '../../../../components/common/AddressSearch';
+import { MONEY_FMT } from '../../../../utils/excelExport';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
 const ACCENT_GRADIENT = FLEET_COLORS.gradient;
@@ -756,8 +757,8 @@ const SparePartsInventory = () => {
                 { header: 'Stock Qty', key: 'stockQty', width: 12 },
                 { header: 'Min Level', key: 'minStockLevel', width: 12 },
                 { header: 'Location', key: 'location', width: 18 },
-                { header: 'Buying Price', key: 'buyingPrice', width: 14 },
-                { header: 'Selling Price', key: 'sellingPrice', width: 14 },
+                { header: 'Buying Price', key: 'buyingPrice', width: 14, style: { numFmt: MONEY_FMT } },
+                { header: 'Selling Price', key: 'sellingPrice', width: 14, style: { numFmt: MONEY_FMT } },
                 { header: 'Purchase Date', key: 'purchaseDate', width: 16 },
                 { header: 'Supplier', key: 'supplier', width: 24 },
                 { header: 'Warranty Expiry', key: 'warrantyExpiry', width: 18 },

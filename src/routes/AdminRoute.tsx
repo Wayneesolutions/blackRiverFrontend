@@ -22,6 +22,7 @@ const CompanyDocuments = lazy(() => import("../pages/admin/dashboard/documents/i
 
 const DispatchRoutes = lazy(() => import("./AdminFeatures/DispatchRoutes"));
 const GpsVehicleRoutes = lazy(() => import("./AdminFeatures/GpsVehicleRoutes"))
+const NotFound = lazy(() => import("../pages/NotFound"))
 const DriverManagement = lazy(() => import("./AdminFeatures/HRManagementRoutes"))
 const ComplianceRoute = lazy(() => import('./AdminFeatures/CompilanceRoute'))
 const FleetMaintainRoute = lazy(() => import("./AdminFeatures/FleetMaintainRoutes"))
@@ -144,6 +145,9 @@ function AdminRoute() {
           path="manifest/*"
           element={<ManifestRoutes />}
         />
+        {/* The GPS dashboard is shared and lives outside /admin */}
+        <Route path="gps-dashboard/*" element={<Navigate to="/gps-dashboard" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
   );

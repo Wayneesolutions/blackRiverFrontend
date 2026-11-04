@@ -127,8 +127,8 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                 </div>
 
                 {/* CENTER: Page Title */}
-                <div className="absolute left-1/2 -translate-x-1/2">
-                    <span className="text-primary font-semibold text-lg tracking-wide">
+                <div className="absolute left-1/2 -translate-x-1/2 hidden lg:block max-w-[40%]">
+                    <span className="block truncate text-primary font-semibold text-lg tracking-wide">
                         {pageTitle || 'GPS Tracking & Vehicle Telematics'}
                     </span>
                 </div>

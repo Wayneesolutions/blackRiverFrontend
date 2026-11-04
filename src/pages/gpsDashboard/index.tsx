@@ -9,12 +9,14 @@ import { getDashboardRoute } from '../../utils/auth';
 // admin/dispatcher GPS module, so every department sees where trucks, trailers and
 // active trips are. No create/edit/delete actions live here.
 const TABS = [
-  { to: 'truck', label: 'Trucks', icon: Truck },
-  { to: 'trailer', label: 'Trailers', icon: Package },
-  { to: 'trip', label: 'Trips', icon: RouteIcon },
-  { to: 'people', label: 'Drivers & Staff', icon: Users },
+  { to: '/gps-dashboard/truck', label: 'Trucks', icon: Truck },
+  { to: '/gps-dashboard/trailer', label: 'Trailers', icon: Package },
+  { to: '/gps-dashboard/trip', label: 'Trips', icon: RouteIcon },
+  { to: '/gps-dashboard/people', label: 'Drivers & Staff', icon: Users },
 ];
 
+// Absolute paths on purpose: this page is a pathless layout under a splat route, so a
+// relative link resolves against the current tab and piles up as /truck/truck/...
 const HEADER_HEIGHT = 64; // px — keep in sync with the header below
 
 const GpsDashboard = () => {
