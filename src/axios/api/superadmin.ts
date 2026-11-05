@@ -89,6 +89,8 @@ export const assignPlanToAdmin = async (
     customAmount?: number;
     allowedRoles?: string[];
     blockedRoles?: string[];
+    paymentStatus?: 'paid' | 'pending';
+    paymentMethod?: string;
   }
 ) => {
   try {
@@ -202,6 +204,54 @@ export const getSuperAdminRevenue = async (status?: string, page: number = 1, li
 export const getSuperAdminInvoices = async () => {
   try {
     const res: AxiosResponse = await apiClient.get('superadmin/invoices');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export interface CreateInvoicePayload {
+  adminId: string;
+  planId?: string;
+  planName?: string;
+  billingCycle: 'monthly' | '6-months' | 'yearly' | 'one-time' | 'installment';
+  amount: number;
+  taxAmount?: number;
+  discountAmount?: number;
+  currency?: string;
+  paymentStatus: 'pending' | 'paid';
+  paymentMethod?: string;
+  transactionId?: string;
+  subscriptionStartDate: string;
+  subscriptionEndDate?: string;
+  notes?: string;
+}
+
+// ✅ Create an invoice by hand (offline payment, custom charge, renewal)
+export const createSuperAdminInvoice = async (data: CreateInvoicePayload) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('superadmin/invoices', data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+// ✅ Mark an invoice paid / pending / refunded, or cancel it
+export const updateSuperAdminInvoice = async (
+  id: string,
+  data: {
+    paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded';
+    invoiceStatus?: 'generated' | 'cancelled';
+    paymentMethod?: string;
+    transactionId?: string;
+    notes?: string;
+  }
+) => {
+  try {
+    const res: AxiosResponse = await apiClient.patch(`superadmin/invoices/${id}`, data);
     return res.data;
   } catch (error) {
     console.log(error);
