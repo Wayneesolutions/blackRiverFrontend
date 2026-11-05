@@ -22,7 +22,7 @@ import { Modal, Button, message, Input, Select, Tag } from 'antd';
 import { getSuperAdminInvoices, getSuperAdminSettings, updateSuperAdminInvoice } from '../../../axios/api/superadmin';
 import RowActionMenu from '../../../components/common/RowActionMenu';
 import CreateInvoiceModal from './CreateInvoiceModal';
-import { billingCycleLabel } from './billingCycle';
+import { invoiceCycleLabel, invoiceEndDate } from './billingCycle';
 import jsPDF from 'jspdf';
 import DocLogo from '../../../assets/doclogo.png';
 
@@ -68,6 +68,9 @@ interface Invoice {
 
 const InvoicesPage = () => {
   const navigate = useNavigate();
+  // antd's static Modal.confirm and message.* don't render on React 19
+  const [modal, modalContextHolder] = Modal.useModal();
+  const [messageApi, messageContextHolder] = message.useMessage();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -139,12 +142,12 @@ const InvoicesPage = () => {
 
   const handleCopyId = (id: string) => {
     navigator.clipboard.writeText(id);
-    message.success('ID copied to clipboard');
+    messageApi.success('ID copied to clipboard');
   };
 
   const handleCopyInvoiceNumber = (invoiceNumber: string) => {
     navigator.clipboard.writeText(invoiceNumber);
-    message.success('Invoice number copied to clipboard');
+    messageApi.success('Invoice number copied to clipboard');
   };
 
   const handleExport = async (invoice: Invoice) => {
@@ -329,7 +332,7 @@ const InvoicesPage = () => {
       doc.setTextColor(grayR, grayG, grayB);
       doc.text('Billing Cycle:', margin, yPos);
       doc.setTextColor(textR, textG, textB);
-      doc.text(billingCycleLabel(invoice.billingCycle), margin + 45, yPos);
+      doc.text(invoiceCycleLabel(invoice), margin + 45, yPos);
       yPos += 6;
 
       // Subscription Period
@@ -337,9 +340,7 @@ const InvoicesPage = () => {
       doc.text('Subscription Period:', margin, yPos);
       doc.setTextColor(textR, textG, textB);
       const startDate = new Date(invoice.subscriptionStartDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      const endDate = invoice.subscriptionEndDate && invoice.billingCycle !== 'one-time'
-        ? new Date(invoice.subscriptionEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-        : '';
+      const endDate = invoiceEndDate(invoice)?.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) || '';
       doc.text(endDate ? `${startDate} - ${endDate}` : `From ${startDate}`, margin + 45, yPos);
       yPos += 15; // Spacing before payment details
 
@@ -390,7 +391,7 @@ const InvoicesPage = () => {
       // Subscription Item
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
-      doc.text(`${invoice.planName} - ${billingCycleLabel(invoice.billingCycle)}`, margin + 3, yPos);
+      doc.text(`${invoice.planName} - ${invoiceCycleLabel(invoice)}`, margin + 3, yPos);
       doc.text(formatCurrency(invoice.amount, invoice.currency), pageWidth - margin - 3, yPos, { align: 'right' });
       yPos += 8;
 
@@ -467,10 +468,10 @@ const InvoicesPage = () => {
       // Save PDF
       const fileName = `Invoice_${invoice.invoiceNumber}_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(fileName);
-      message.success('Invoice exported successfully');
+      messageApi.success('Invoice exported successfully');
     } catch (error: any) {
       console.error('Error exporting invoice:', error);
-      message.error('Failed to export invoice. Please try again.');
+      messageApi.error('Failed to export invoice. Please try again.');
     }
   };
 
@@ -481,15 +482,15 @@ const InvoicesPage = () => {
   ) => {
     const response = await updateSuperAdminInvoice(invoice._id, data);
     if (response?.success) {
-      message.success(successText);
+      messageApi.success(successText);
       setInvoices(prev => prev.map(i => (i._id === invoice._id ? { ...i, ...response.data } : i)));
     } else {
-      message.error(response?.message || 'Failed to update invoice');
+      messageApi.error(response?.message || 'Failed to update invoice');
     }
   };
 
   const confirmCancel = (invoice: Invoice) => {
-    Modal.confirm({
+    modal.confirm({
       title: `Cancel invoice ${invoice.invoiceNumber}?`,
       content: 'The invoice stays on record but is marked cancelled and no longer counts as owed.',
       okText: 'Cancel invoice',
@@ -528,10 +529,11 @@ const InvoicesPage = () => {
   });
 
   // Calculate statistics
-  // Cancelled invoices stay listed but don't count towards totals
+  // Cancelled invoices stay listed but don't count towards any stat
   const liveInvoices = invoices.filter(i => i.invoiceStatus !== 'cancelled');
   const stats = {
-    total: invoices.length,
+    total: liveInvoices.length,
+    cancelled: invoices.length - liveInvoices.length,
     paid: liveInvoices.filter(i => i.paymentStatus === 'paid').length,
     pending: liveInvoices.filter(i => i.paymentStatus === 'pending').length,
     failed: liveInvoices.filter(i => i.paymentStatus === 'failed').length,
@@ -568,6 +570,8 @@ const InvoicesPage = () => {
 
   return (
     <div className="min-h-screen bg-card">
+      {modalContextHolder}
+      {messageContextHolder}
       {/* Header */}
       <div className="bg-card border-b border-theme px-6 py-4">
         <div className="flex items-center justify-between">
@@ -596,6 +600,9 @@ const InvoicesPage = () => {
               <div>
                 <p className="text-sm text-secondary mb-1">Total Invoices</p>
                 <p className="text-2xl font-bold text-primary">{stats.total}</p>
+                {stats.cancelled > 0 && (
+                  <p className="text-xs text-secondary mt-1">{stats.cancelled} cancelled not included</p>
+                )}
               </div>
               <div className="bg-purple-100 p-3 rounded-lg">
                 <FileText className="w-6 h-6 text-purple-600" />
@@ -852,7 +859,7 @@ const InvoicesPage = () => {
                               {invoice.invoiceNumber}
                             </div>
                             <div className="text-xs text-secondary">
-                              {billingCycleLabel(invoice.billingCycle)}
+                              {invoiceCycleLabel(invoice)}
                             </div>
                           </div>
                         </div>
@@ -915,6 +922,9 @@ const InvoicesPage = () => {
                             {invoice.paymentStatus.charAt(0).toUpperCase() + invoice.paymentStatus.slice(1)}
                           </span>
                         </div>
+                        {invoice.invoiceStatus === 'cancelled' && (
+                          <div className="text-xs font-medium text-red-400 mt-1">Invoice cancelled</div>
+                        )}
                         {invoice.paymentMethod && (
                           <div className="text-xs text-secondary mt-1">
                             {invoice.paymentMethod}
@@ -927,8 +937,8 @@ const InvoicesPage = () => {
                           {new Date(invoice.subscriptionStartDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </div>
                         <div className="text-xs text-secondary">
-                          {invoice.subscriptionEndDate && invoice.billingCycle !== 'one-time'
-                            ? `to ${new Date(invoice.subscriptionEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                          {invoiceEndDate(invoice)
+                            ? `to ${invoiceEndDate(invoice)!.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
                             : 'No end date'}
                         </div>
                       </td>
@@ -1173,7 +1183,7 @@ const InvoicesPage = () => {
                 </div>
                 <div>
                   <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Billing Cycle</p>
-                  <p style={{ fontSize: '13px', fontWeight: 500, color: '#e2e8f0', margin: 0 }}>{billingCycleLabel(selectedInvoice.billingCycle)}</p>
+                  <p style={{ fontSize: '13px', fontWeight: 500, color: '#e2e8f0', margin: 0 }}>{invoiceCycleLabel(selectedInvoice)}</p>
                 </div>
                 <div>
                   <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Subscription Start</p>
@@ -1184,9 +1194,7 @@ const InvoicesPage = () => {
                 <div>
                   <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Subscription End</p>
                   <p style={{ fontSize: '13px', fontWeight: 500, color: '#e2e8f0', margin: 0 }}>
-                    {selectedInvoice.subscriptionEndDate && selectedInvoice.billingCycle !== 'one-time'
-                      ? new Date(selectedInvoice.subscriptionEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                      : 'No end date'}
+                    {invoiceEndDate(selectedInvoice)?.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) || 'No end date'}
                   </p>
                 </div>
               </div>
