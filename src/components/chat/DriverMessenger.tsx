@@ -14,10 +14,12 @@ import {
 } from '../../axios/api/chat';
 import { getUserRole } from '../../utils/auth';
 import { OPEN_DRIVER_MESSENGER, type OpenDriverMessengerDetail } from './driverMessengerEvents';
+import { playMessageSound, showBrowserNotification, unlockMessageAlerts } from '../../utils/messageAlert';
 
 // Global driver messenger for every staff department (HR, Accounts, Fleet, Compliance,
 // Safety, Mechanics, Admin, Dispatch...):
-//  - pop-up notification whenever a driver sends a message from the mobile app
+//  - pop-up, sound and background-tab notification whenever a driver sends a message
+//    from the mobile app (the only place that handles these alerts and the unread count)
 //  - side panel with 1-to-1 chats per driver
 //  - "Compose" to message all drivers or a selected group at once
 
@@ -86,6 +88,7 @@ const DriverMessenger = () => {
   const openRef = useRef(false);
   const driversRef = useRef<DriverRow[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const openConversationRef = useRef<(driver: DriverRow) => void>(() => {});
   useEffect(() => { activeDriverIdRef.current = activeDriver?._id || null; }, [activeDriver]);
   useEffect(() => { openRef.current = open; }, [open]);
   useEffect(() => { driversRef.current = drivers; }, [drivers]);
@@ -117,6 +120,17 @@ const DriverMessenger = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
 
+  // Browsers only allow sound and the notification prompt after a user interaction
+  useEffect(() => {
+    if (!enabled) return;
+    window.addEventListener('pointerdown', unlockMessageAlerts);
+    window.addEventListener('keydown', unlockMessageAlerts);
+    return () => {
+      window.removeEventListener('pointerdown', unlockMessageAlerts);
+      window.removeEventListener('keydown', unlockMessageAlerts);
+    };
+  }, [enabled]);
+
   // ── Real-time: driver messages → notification + live chat ──────────────────
   const dismissToast = (id: number) => setToasts((t) => t.filter((x) => x.id !== id));
 
@@ -138,16 +152,26 @@ const DriverMessenger = () => {
     if (msg.senderType !== 'driver') return;
     const viewingThisChat = openRef.current && activeDriverIdRef.current === driverId;
     if (viewingThisChat) return;
-    // The Dispatch portal shows its own pop-up for dispatchers on dispatch pages
     if (chat?.activeDriverId === driverId) return;
-    const onDispatchPortal = window.location.pathname.startsWith('/dispatch') || window.location.pathname.startsWith('/gpsvehicle');
     chat?.addUnread?.(driverId);
-    if (onDispatchPortal && (getUserRole() === 'dispatcher')) return;
 
     const name = msg.senderName || driversRef.current.find((d) => d._id === driverId)?.name || 'Driver';
+    const text = msg.message || '📎 Sent an attachment';
     const id = Date.now() + Math.random();
-    setToasts((t) => [...t.slice(-2), { id, driverId, driverName: name, text: msg.message || '📎 Sent an attachment' }]);
-    window.setTimeout(() => dismissToast(id), 8000);
+    setToasts((t) => [...t.slice(-2), { id, driverId, driverName: name, text }]);
+    // Keep the pop-up until dismissed if nobody is looking at this tab
+    if (!document.hidden) window.setTimeout(() => dismissToast(id), 8000);
+
+    playMessageSound();
+    showBrowserNotification({
+      title: `New message from ${name}`,
+      body: text,
+      tag: `driver-message-${idOf(msg._id) || id}`,
+      onClick: () => {
+        setOpen(true);
+        openConversationRef.current(driversRef.current.find((d) => d._id === driverId) || { _id: driverId, name });
+      },
+    });
   }, [chat]);
 
   useEffect(() => {
@@ -189,6 +213,8 @@ const DriverMessenger = () => {
       setLoadingMessages(false);
     }
   }, [chat]);
+
+  useEffect(() => { openConversationRef.current = openConversation; }, [openConversation]);
 
   const closeConversation = useCallback(() => {
     if (activeDriver) socketService.leaveDriverChat?.(activeDriver._id);
