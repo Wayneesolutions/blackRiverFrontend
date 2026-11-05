@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FileText,
@@ -14,12 +14,15 @@ import {
   Eye,
   Copy,
   Search,
-  MoreHorizontal,
+  Plus,
   ExternalLink,
   Receipt,
 } from 'lucide-react';
 import { Modal, Button, message, Input, Select, Tag } from 'antd';
-import { getSuperAdminInvoices, getSuperAdminSettings } from '../../../axios/api/superadmin';
+import { getSuperAdminInvoices, getSuperAdminSettings, updateSuperAdminInvoice } from '../../../axios/api/superadmin';
+import RowActionMenu from '../../../components/common/RowActionMenu';
+import CreateInvoiceModal from './CreateInvoiceModal';
+import { billingCycleLabel } from './billingCycle';
 import jsPDF from 'jspdf';
 import DocLogo from '../../../assets/doclogo.png';
 
@@ -43,7 +46,7 @@ interface Invoice {
     planName: string;
   };
   planName: string;
-  billingCycle: 'monthly' | 'yearly';
+  billingCycle: 'monthly' | '6-months' | 'yearly' | 'one-time' | 'installment';
   invoiceNumber: string;
   currency: string;
   amount: number;
@@ -54,7 +57,9 @@ interface Invoice {
   paymentMethod?: string;
   transactionId?: string;
   subscriptionStartDate: string;
-  subscriptionEndDate: string;
+  subscriptionEndDate?: string;
+  source?: 'stripe' | 'manual';
+  paidAt?: string;
   invoiceStatus: 'generated' | 'cancelled';
   notes?: string;
   createdAt: string;
@@ -68,42 +73,14 @@ const InvoicesPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('all');
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState<string>('all');
-  const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     fetchInvoices();
   }, []);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (activeDropdown && dropdownRefs.current[activeDropdown]) {
-        const dropdownElement = dropdownRefs.current[activeDropdown];
-        if (dropdownElement && !dropdownElement.contains(event.target as Node)) {
-          setActiveDropdown(null);
-        }
-      }
-    };
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && activeDropdown) {
-        setActiveDropdown(null);
-      }
-    };
-
-    if (activeDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleEscape);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-        document.removeEventListener('keydown', handleEscape);
-      };
-    }
-  }, [activeDropdown]);
 
   const fetchInvoices = async () => {
     try {
@@ -352,7 +329,7 @@ const InvoicesPage = () => {
       doc.setTextColor(grayR, grayG, grayB);
       doc.text('Billing Cycle:', margin, yPos);
       doc.setTextColor(textR, textG, textB);
-      doc.text(invoice.billingCycle.charAt(0).toUpperCase() + invoice.billingCycle.slice(1), margin + 45, yPos);
+      doc.text(billingCycleLabel(invoice.billingCycle), margin + 45, yPos);
       yPos += 6;
 
       // Subscription Period
@@ -360,8 +337,10 @@ const InvoicesPage = () => {
       doc.text('Subscription Period:', margin, yPos);
       doc.setTextColor(textR, textG, textB);
       const startDate = new Date(invoice.subscriptionStartDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      const endDate = new Date(invoice.subscriptionEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      doc.text(`${startDate} - ${endDate}`, margin + 45, yPos);
+      const endDate = invoice.subscriptionEndDate && invoice.billingCycle !== 'one-time'
+        ? new Date(invoice.subscriptionEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : '';
+      doc.text(endDate ? `${startDate} - ${endDate}` : `From ${startDate}`, margin + 45, yPos);
       yPos += 15; // Spacing before payment details
 
       // Payment Details Section
@@ -411,7 +390,7 @@ const InvoicesPage = () => {
       // Subscription Item
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
-      doc.text(`${invoice.planName} - ${invoice.billingCycle} subscription`, margin + 3, yPos);
+      doc.text(`${invoice.planName} - ${billingCycleLabel(invoice.billingCycle)}`, margin + 3, yPos);
       doc.text(formatCurrency(invoice.amount, invoice.currency), pageWidth - margin - 3, yPos, { align: 'right' });
       yPos += 8;
 
@@ -495,9 +474,29 @@ const InvoicesPage = () => {
     }
   };
 
-  const handleMoreActions = (invoiceId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setActiveDropdown(activeDropdown === invoiceId ? null : invoiceId);
+  const handleUpdateStatus = async (
+    invoice: Invoice,
+    data: { paymentStatus?: Invoice['paymentStatus']; invoiceStatus?: Invoice['invoiceStatus'] },
+    successText: string
+  ) => {
+    const response = await updateSuperAdminInvoice(invoice._id, data);
+    if (response?.success) {
+      message.success(successText);
+      setInvoices(prev => prev.map(i => (i._id === invoice._id ? { ...i, ...response.data } : i)));
+    } else {
+      message.error(response?.message || 'Failed to update invoice');
+    }
+  };
+
+  const confirmCancel = (invoice: Invoice) => {
+    Modal.confirm({
+      title: `Cancel invoice ${invoice.invoiceNumber}?`,
+      content: 'The invoice stays on record but is marked cancelled and no longer counts as owed.',
+      okText: 'Cancel invoice',
+      okButtonProps: { danger: true },
+      cancelText: 'Keep',
+      onOk: () => handleUpdateStatus(invoice, { invoiceStatus: 'cancelled' }, 'Invoice cancelled'),
+    });
   };
 
   // Filter invoices
@@ -529,13 +528,15 @@ const InvoicesPage = () => {
   });
 
   // Calculate statistics
+  // Cancelled invoices stay listed but don't count towards totals
+  const liveInvoices = invoices.filter(i => i.invoiceStatus !== 'cancelled');
   const stats = {
     total: invoices.length,
-    paid: invoices.filter(i => i.paymentStatus === 'paid').length,
-    pending: invoices.filter(i => i.paymentStatus === 'pending').length,
-    failed: invoices.filter(i => i.paymentStatus === 'failed').length,
-    totalAmount: invoices.reduce((sum, i) => sum + (i.totalAmount || 0), 0),
-    paidAmount: invoices.filter(i => i.paymentStatus === 'paid').reduce((sum, i) => sum + (i.totalAmount || 0), 0),
+    paid: liveInvoices.filter(i => i.paymentStatus === 'paid').length,
+    pending: liveInvoices.filter(i => i.paymentStatus === 'pending').length,
+    failed: liveInvoices.filter(i => i.paymentStatus === 'failed').length,
+    totalAmount: liveInvoices.reduce((sum, i) => sum + (i.totalAmount || 0), 0),
+    paidAmount: liveInvoices.filter(i => i.paymentStatus === 'paid').reduce((sum, i) => sum + (i.totalAmount || 0), 0),
   };
 
   if (loading) {
@@ -577,6 +578,13 @@ const InvoicesPage = () => {
             </h1>
             <p className="text-secondary mt-1">View and manage all subscription invoices</p>
           </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-4 py-2 rounded-lg text-sm font-semibold text-white flex items-center gap-2 transition-colors"
+            style={{ backgroundColor: 'var(--accent-navyblue)' }}
+          >
+            <Plus className="w-4 h-4" /> Create Invoice
+          </button>
         </div>
       </div>
 
@@ -844,7 +852,7 @@ const InvoicesPage = () => {
                               {invoice.invoiceNumber}
                             </div>
                             <div className="text-xs text-secondary">
-                              {invoice.billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}
+                              {billingCycleLabel(invoice.billingCycle)}
                             </div>
                           </div>
                         </div>
@@ -857,7 +865,7 @@ const InvoicesPage = () => {
                           </div>
                           <div>
                             <div className="text-sm font-medium text-primary">
-                              {invoice.admin?.name || 'N/A'}
+                              {invoice.admin?.name || invoice.company?.companyName || 'Deleted account'}
                             </div>
                             {invoice.company?.companyName && (
                               <div className="text-xs text-secondary">
@@ -919,7 +927,9 @@ const InvoicesPage = () => {
                           {new Date(invoice.subscriptionStartDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </div>
                         <div className="text-xs text-secondary">
-                          to {new Date(invoice.subscriptionEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {invoice.subscriptionEndDate && invoice.billingCycle !== 'one-time'
+                            ? `to ${new Date(invoice.subscriptionEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                            : 'No end date'}
                         </div>
                       </td>
 
@@ -941,80 +951,41 @@ const InvoicesPage = () => {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <div className="relative" ref={(el) => { dropdownRefs.current[invoice._id] = el; }}>
-                            <button
-                              onClick={(e) => handleMoreActions(invoice._id, e)}
-                              className="text-secondary hover:text-secondary p-1 rounded transition-colors"
-                              title="More Actions"
-                            >
-                              <MoreHorizontal className="w-4 h-4" />
-                            </button>
-                            {activeDropdown === invoice._id && (
-                              <>
-                                <div
-                                  className="fixed inset-0 z-[9998]"
-                                  onClick={() => setActiveDropdown(null)}
-                                />
-                                <div className="absolute right-0 bottom-full mb-2 w-48 bg-card rounded-lg shadow-xl border border-theme z-[9999] py-1 overflow-hidden">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleCopyInvoiceNumber(invoice.invoiceNumber);
-                                      setActiveDropdown(null);
-                                    }}
-                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
-                                  >
-                                    <Copy className="w-4 h-4" />
-                                    <span>Copy Invoice #</span>
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleCopyId(invoice._id);
-                                      setActiveDropdown(null);
-                                    }}
-                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
-                                  >
-                                    <Copy className="w-4 h-4" />
-                                    <span>Copy Invoice ID</span>
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleExport(invoice);
-                                      setActiveDropdown(null);
-                                    }}
-                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
-                                  >
-                                    <Download className="w-4 h-4" />
-                                    <span>Export Invoice</span>
-                                  </button>
-                                  {invoice.admin?._id && (
-                                    <>
-                                      <div className="border-t border-theme my-1"></div>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setActiveDropdown(null);
-                                          navigate('/superadmin/viewalladmins');
-                                          setTimeout(() => {
-                                            message.info({
-                                              content: `Navigate to Admin Accounts page. Search for admin ID: ${invoice.admin?._id}`,
-                                              duration: 5,
-                                            });
-                                          }, 300);
-                                        }}
-                                        className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
-                                      >
-                                        <ExternalLink className="w-4 h-4" />
-                                        <span>View Admin Profile</span>
-                                      </button>
-                                    </>
-                                  )}
-                                </div>
-                              </>
-                            )}
-                          </div>
+                          <RowActionMenu
+                            actions={[
+                              { label: 'Copy Invoice #', icon: <Copy className="w-4 h-4" />, onClick: () => handleCopyInvoiceNumber(invoice.invoiceNumber) },
+                              { label: 'Copy Invoice ID', icon: <Copy className="w-4 h-4" />, onClick: () => handleCopyId(invoice._id) },
+                              { label: 'Export Invoice', icon: <Download className="w-4 h-4" />, onClick: () => handleExport(invoice) },
+                              {
+                                label: 'Mark as Paid',
+                                icon: <CheckCircle className="w-4 h-4" />,
+                                dividerBefore: true,
+                                hidden: invoice.paymentStatus === 'paid' || invoice.invoiceStatus === 'cancelled',
+                                onClick: () => handleUpdateStatus(invoice, { paymentStatus: 'paid' }, 'Invoice marked as paid'),
+                              },
+                              {
+                                label: 'Mark as Pending',
+                                icon: <Clock className="w-4 h-4" />,
+                                dividerBefore: true,
+                                hidden: invoice.paymentStatus !== 'paid' || invoice.invoiceStatus === 'cancelled',
+                                onClick: () => handleUpdateStatus(invoice, { paymentStatus: 'pending' }, 'Invoice marked as pending'),
+                              },
+                              {
+                                label: 'Cancel Invoice',
+                                icon: <XCircle className="w-4 h-4" />,
+                                danger: true,
+                                hidden: invoice.invoiceStatus === 'cancelled',
+                                onClick: () => confirmCancel(invoice),
+                              },
+                              {
+                                label: 'View Admin Profile',
+                                icon: <ExternalLink className="w-4 h-4" />,
+                                dividerBefore: true,
+                                hidden: !invoice.admin?._id,
+                                onClick: () => navigate(`/superadmin/viewalladmins?search=${encodeURIComponent(invoice.admin?.email || '')}`),
+                              },
+                            ]}
+                          />
                         </div>
                       </td>
                     </tr>
@@ -1033,6 +1004,12 @@ const InvoicesPage = () => {
           </div>
         )}
       </div>
+
+      <CreateInvoiceModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreated={(created) => setInvoices(prev => [created, ...prev])}
+      />
 
       {/* View Invoice Details Modal */}
       <Modal
@@ -1196,7 +1173,7 @@ const InvoicesPage = () => {
                 </div>
                 <div>
                   <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Billing Cycle</p>
-                  <p style={{ fontSize: '13px', fontWeight: 500, color: '#e2e8f0', margin: 0, textTransform: 'capitalize' }}>{selectedInvoice.billingCycle}</p>
+                  <p style={{ fontSize: '13px', fontWeight: 500, color: '#e2e8f0', margin: 0 }}>{billingCycleLabel(selectedInvoice.billingCycle)}</p>
                 </div>
                 <div>
                   <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Subscription Start</p>
@@ -1207,7 +1184,9 @@ const InvoicesPage = () => {
                 <div>
                   <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Subscription End</p>
                   <p style={{ fontSize: '13px', fontWeight: 500, color: '#e2e8f0', margin: 0 }}>
-                    {new Date(selectedInvoice.subscriptionEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {selectedInvoice.subscriptionEndDate && selectedInvoice.billingCycle !== 'one-time'
+                      ? new Date(selectedInvoice.subscriptionEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      : 'No end date'}
                   </p>
                 </div>
               </div>
