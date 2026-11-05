@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     DollarSign,
@@ -6,7 +6,6 @@ import {
     Users,
     Calendar,
     Eye,
-    MoreHorizontal,
     Building2,
     CreditCard,
     AlertCircle,
@@ -18,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Modal, Button, message } from 'antd';
 import { getSuperAdminRevenue } from '../../../axios/api/superadmin';
+import RowActionMenu from '../../../components/common/RowActionMenu';
 
 const RevenueDashboard = () => {
     const navigate = useNavigate();
@@ -30,39 +30,10 @@ const RevenueDashboard = () => {
     const [limit] = useState(50);
     const [showViewModal, setShowViewModal] = useState(false);
     const [selectedRevenue, setSelectedRevenue] = useState<any>(null);
-    const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-    const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
     useEffect(() => {
         fetchRevenueData();
     }, [revenueFilter, currentPage]);
-
-    // Close dropdown when clicking outside or pressing Escape
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (activeDropdown && dropdownRefs.current[activeDropdown]) {
-                const dropdownElement = dropdownRefs.current[activeDropdown];
-                if (dropdownElement && !dropdownElement.contains(event.target as Node)) {
-                    setActiveDropdown(null);
-                }
-            }
-        };
-
-        const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === 'Escape' && activeDropdown) {
-                setActiveDropdown(null);
-            }
-        };
-
-        if (activeDropdown) {
-            document.addEventListener('mousedown', handleClickOutside);
-            document.addEventListener('keydown', handleEscape);
-            return () => {
-                document.removeEventListener('mousedown', handleClickOutside);
-                document.removeEventListener('keydown', handleEscape);
-            };
-        }
-    }, [activeDropdown]);
 
     const fetchRevenueData = async () => {
         try {
@@ -191,10 +162,6 @@ const RevenueDashboard = () => {
         message.success('ID copied to clipboard');
     };
 
-    const handleMoreActions = (revenueId: string, event: React.MouseEvent) => {
-        event.stopPropagation();
-        setActiveDropdown(activeDropdown === revenueId ? null : revenueId);
-    };
 
     return (
         <div className="min-h-screen bg-card">
@@ -419,70 +386,18 @@ const RevenueDashboard = () => {
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                 </button>
-                                                <div className="relative" ref={(el) => { dropdownRefs.current[revenue.id] = el; }}>
-                                                    <button
-                                                        onClick={(e) => handleMoreActions(revenue.id, e)}
-                                                        className="text-secondary hover:text-secondary p-1 rounded transition-colors"
-                                                        title="More Actions"
-                                                    >
-                                                        <MoreHorizontal className="w-4 h-4" />
-                                                    </button>
-                                                    {activeDropdown === revenue.id && (
-                                                        <>
-                                                            {/* Backdrop to close on click outside */}
-                                                            <div
-                                                                className="fixed inset-0 z-[9998]"
-                                                                onClick={() => setActiveDropdown(null)}
-                                                            />
-                                                            {/* Dropdown menu */}
-                                                            <div className="absolute right-0 bottom-full mb-2 w-48 bg-card rounded-lg shadow-xl border border-theme z-[9999] py-1 overflow-hidden">
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleCopyId(revenue.id);
-                                                                        setActiveDropdown(null);
-                                                                    }}
-                                                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
-                                                                >
-                                                                    <Copy className="w-4 h-4" />
-                                                                    <span>Copy Revenue ID</span>
-                                                                </button>
-                                                               
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleCopyId(revenue.customerId);
-                                                                        setActiveDropdown(null);
-                                                                    }}
-                                                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
-                                                                >
-                                                                    <Copy className="w-4 h-4" />
-                                                                    <span>Copy Customer ID</span>
-                                                                </button>
-                                                                <div className="border-t border-theme my-1"></div>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setActiveDropdown(null);
-                                                                        // Navigate to viewalladmins page
-                                                                        navigate('/superadmin/viewalladmins');
-                                                                        // Show message with customer ID for easy searching
-                                                                        setTimeout(() => {
-                                                                            message.info({
-                                                                                content: `Navigate to Admin Accounts page. Search for customer ID: ${revenue.customerId}`,
-                                                                                duration: 5,
-                                                                            });
-                                                                        }, 300);
-                                                                    }}
-                                                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
-                                                                >
-                                                                    <ExternalLink className="w-4 h-4" />
-                                                                    <span>View Customer Profile</span>
-                                                                </button>
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </div>
+                                                <RowActionMenu
+                                                    actions={[
+                                                        { label: 'Copy Revenue ID', icon: <Copy className="w-4 h-4" />, onClick: () => handleCopyId(revenue.id) },
+                                                        { label: 'Copy Customer ID', icon: <Copy className="w-4 h-4" />, onClick: () => handleCopyId(revenue.customerId) },
+                                                        {
+                                                            label: 'View Customer Profile',
+                                                            icon: <ExternalLink className="w-4 h-4" />,
+                                                            dividerBefore: true,
+                                                            onClick: () => navigate(`/superadmin/viewalladmins?search=${encodeURIComponent(revenue.customerId || '')}`),
+                                                        },
+                                                    ]}
+                                                />
                                             </div>
                                         </td>
                                     </tr>
