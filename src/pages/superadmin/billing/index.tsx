@@ -221,6 +221,23 @@ const Billing = () => {
         return;
       }
 
+      const tiers = formData.monthly?.truckPricing?.tiers;
+      if (Array.isArray(tiers) && tiers.length > 0) {
+        const sorted = [...tiers].sort((a: any, b: any) => a.minTrucks - b.minTrucks);
+        if (sorted[0].minTrucks !== 1) {
+          message.error('Truck pricing tiers must start at 1 truck');
+          return;
+        }
+        for (let i = 1; i < sorted.length; i++) {
+          if (sorted[i].minTrucks !== sorted[i - 1].maxTrucks + 1) {
+            message.error(
+              `Tier gap detected: tier ${i + 1} starts at ${sorted[i].minTrucks} but tier ${i} ends at ${sorted[i - 1].maxTrucks}. Tiers must be contiguous with no gaps.`
+            );
+            return;
+          }
+        }
+      }
+
       const response = await createPlan(formData);
       if (response?.success) {
         message.success(response.message || 'Plan created successfully');

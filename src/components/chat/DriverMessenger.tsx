@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { MessageSquare, X, Send, ArrowLeft, Search, Users, PenSquare, CheckCircle2 } from 'lucide-react';
+import { MessageSquare, X, Send, ArrowLeft, Search, Users, PenSquare, CheckCircle2, AlertCircle } from 'lucide-react';
 import { socketService } from '../../services/socketService';
 import { useChat } from '../../contexts/ChatContext';
 import { listDriver } from '../../axios/api/distapcher';
@@ -10,6 +10,7 @@ import {
   markDriverMessagesAsRead,
   getDriversLastMessages,
   broadcastDriverMessage,
+  getChatMessageFileSignedUrl,
   type ChatMessage,
 } from '../../axios/api/chat';
 import { getUserRole } from '../../utils/auth';
@@ -76,6 +77,9 @@ const DriverMessenger = () => {
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [driversError, setDriversError] = useState('');
+  const [messagesError, setMessagesError] = useState('');
+  const [sendError, setSendError] = useState('');
 
   // Compose (group message)
   const [composeAll, setComposeAll] = useState(true);
@@ -98,6 +102,11 @@ const DriverMessenger = () => {
     setLoadingDrivers(true);
     try {
       const [dRes, lRes] = await Promise.all([listDriver({ limit: 500 }), getDriversLastMessages()]);
+      if (!dRes?.success) {
+        setDriversError(dRes?.message || 'Could not load drivers. Please try again.');
+        return;
+      }
+      setDriversError('');
       const list: DriverRow[] = (dRes?.success ? dRes.data || [] : [])
         .filter((d: { role?: string }) => !d.role || d.role === 'driver')
         .map((d: { _id: string; name?: string; phone?: string }) => ({ _id: d._id, name: d.name || 'Driver', phone: d.phone }));
@@ -109,6 +118,7 @@ const DriverMessenger = () => {
       chat?.setInitialUnreadCounts?.(counts);
     } catch (e) {
       console.error('Driver messenger: failed to load drivers', e);
+      setDriversError('Could not load drivers. Please try again.');
     } finally {
       setLoadingDrivers(false);
     }
@@ -137,6 +147,8 @@ const DriverMessenger = () => {
   const handleIncoming = useCallback((msg: ChatMessage) => {
     const driverId = idOf(msg?.driverId);
     if (!driverId) return;
+    // Automatic trip status updates are not chat messages
+    if (msg.isSystemMessage || msg.senderType === 'system') return;
 
     // Live update of the open conversation (both driver and staff messages)
     if (activeDriverIdRef.current === driverId) {
@@ -183,7 +195,22 @@ const DriverMessenger = () => {
       attached = true;
     };
     attach();
-    const onReady = () => { if (attached) socketService.offNewMessage(handleIncoming); attached = false; attach(); };
+    const onReady = () => {
+      if (attached) socketService.offNewMessage(handleIncoming);
+      attached = false;
+      attach();
+      // A reconnect drops the chat room and may have missed messages
+      const openDriverId = activeDriverIdRef.current;
+      if (openDriverId) {
+        socketService.joinDriverChat(openDriverId).catch(() => {});
+        getDriverChatMessages(openDriverId, 1, 100)
+          .then((res) => {
+            if (activeDriverIdRef.current !== openDriverId || !res?.success) return;
+            setMessages((res.data?.messages || []).slice().sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()));
+          })
+          .catch(() => {});
+      }
+    };
     window.addEventListener('socket-ready', onReady);
     const retry = window.setInterval(attach, 2000);
     return () => {
@@ -200,15 +227,24 @@ const DriverMessenger = () => {
     setActiveDriver(driver);
     chat?.setActiveDriverId?.(driver._id);
     setMessages([]);
+    setMessagesError('');
+    setSendError('');
     setLoadingMessages(true);
     try {
       socketService.joinDriverChat?.(driver._id)?.catch?.(() => {});
       const res = await getDriverChatMessages(driver._id, 1, 100);
+      if (!res?.success) {
+        setMessagesError(res?.message || 'Could not load messages. Please try again.');
+        return;
+      }
       const list = (res?.data?.messages || []).slice().sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
       setMessages(list);
       await markDriverMessagesAsRead(driver._id);
       chat?.clearUnread?.(driver._id);
       setDrivers((prev) => prev.map((d) => (d._id === driver._id ? { ...d, unreadCount: 0 } : d)));
+    } catch (e) {
+      console.error('Driver messenger: failed to load messages', e);
+      setMessagesError('Could not load messages. Please try again.');
     } finally {
       setLoadingMessages(false);
     }
@@ -252,12 +288,18 @@ const DriverMessenger = () => {
     const text = draft.trim();
     if (!text || !activeDriver || sending) return;
     setSending(true);
+    setSendError('');
     try {
       const res = await sendDriverChatMessage(activeDriver._id, text);
       if (res?.success && res.data) {
         setMessages((prev) => (prev.some((m) => idOf(m._id) === idOf(res.data!._id)) ? prev : [...prev, res.data!]));
         setDraft('');
+      } else {
+        setSendError(res?.message || 'Message not sent. Please try again.');
       }
+    } catch (e) {
+      console.error('Driver messenger: failed to send message', e);
+      setSendError('Message not sent. Please try again.');
     } finally {
       setSending(false);
     }
@@ -276,8 +318,28 @@ const DriverMessenger = () => {
       const res = await broadcastDriverMessage(composeAll ? { message: text, allDrivers: true } : { message: text, driverIds: composeSelected });
       setComposeResult({ ok: !!res?.success, text: res?.message || (res?.success ? 'Sent' : 'Failed to send') });
       if (res?.success) { setComposeText(''); setComposeSelected([]); loadDrivers(); }
+    } catch (e) {
+      console.error('Driver messenger: failed to send group message', e);
+      setComposeResult({ ok: false, text: 'Message not sent. Please try again.' });
     } finally {
       setSending(false);
+    }
+  };
+
+  const openAttachment = async (messageId: string) => {
+    setMessagesError('');
+    // Open the tab first: browsers block pop-ups opened after an await
+    const tab = window.open('', '_blank');
+    try {
+      const res = await getChatMessageFileSignedUrl(messageId, 'inline');
+      const url = res?.url;
+      if (!url) throw new Error('No file link returned');
+      if (tab) tab.location.href = url;
+      else window.location.href = url;
+    } catch (e) {
+      tab?.close();
+      console.error('Driver messenger: failed to open attachment', e);
+      setMessagesError('Could not open the attachment. Please try again.');
     }
   };
 
@@ -385,6 +447,11 @@ const DriverMessenger = () => {
                 <div className="flex-1 overflow-y-auto">
                   {loadingDrivers && drivers.length === 0 ? (
                     <p className="text-center text-secondary text-sm py-10">Loading drivers...</p>
+                  ) : driversError && drivers.length === 0 ? (
+                    <div className="text-center py-10 px-4">
+                      <p className="text-red-500 text-sm">{driversError}</p>
+                      <button onClick={loadDrivers} className="mt-2 text-sm font-medium text-primary underline">Try again</button>
+                    </div>
                   ) : filteredDrivers.length === 0 ? (
                     <p className="text-center text-secondary text-sm py-10">No drivers found</p>
                   ) : filteredDrivers.map((d) => {
@@ -419,9 +486,12 @@ const DriverMessenger = () => {
             {mode === 'chats' && activeDriver && (
               <>
                 <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-main">
+                  {messagesError && (
+                    <p className="text-center text-red-500 text-sm">{messagesError}</p>
+                  )}
                   {loadingMessages ? (
                     <p className="text-center text-secondary text-sm py-10">Loading messages...</p>
-                  ) : messages.length === 0 ? (
+                  ) : messages.length === 0 && !messagesError ? (
                     <p className="text-center text-secondary text-sm py-10">No messages yet. Say hello 👋</p>
                   ) : messages.filter((m) => !m.isSystemMessage).map((m) => {
                     const mine = m.senderType !== 'driver';
@@ -432,7 +502,11 @@ const DriverMessenger = () => {
                           style={mine ? { backgroundColor: 'var(--accent-navyblue)' } : undefined}>
                           {mine && !byMe && <p className="text-[10px] opacity-80 mb-0.5">{m.senderName}</p>}
                           {m.message && <p className="whitespace-pre-wrap break-words">{m.message}</p>}
-                          {m.fileUrl && <p className="text-xs underline opacity-90">📎 {m.fileName || 'Attachment'}</p>}
+                          {m.fileUrl && (
+                            <button onClick={() => openAttachment(idOf(m._id))} className="block text-left text-xs underline opacity-90">
+                              📎 {m.fileName || 'Attachment'}
+                            </button>
+                          )}
                           <p className={`text-[10px] mt-1 ${mine ? 'opacity-75' : 'text-secondary'}`}>{timeLabel(m.createdAt)}</p>
                         </div>
                       </div>
@@ -440,6 +514,9 @@ const DriverMessenger = () => {
                   })}
                   <div ref={bottomRef} />
                 </div>
+                {sendError && (
+                  <p className="px-3 pt-2 text-sm text-red-500 flex items-center gap-1.5"><AlertCircle size={14} /> {sendError}</p>
+                )}
                 <div className="p-3 border-t border-theme flex items-end gap-2">
                   <textarea
                     value={draft}
