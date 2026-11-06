@@ -17,6 +17,7 @@ import DraftRestoreBanner from '../../../../components/common/DraftRestoreBanner
 import AutoSaveIndicator from '../../../../components/common/AutoSaveIndicator';
 
 import DateField from "../../../../components/common/DateField"
+import DateOfBirthField from "../../../../components/common/DateOfBirthField"
 
 // US States
 const US_STATES = [
@@ -175,7 +176,6 @@ const DriverManagement = () => {
   const expiryRef = useRef<HTMLInputElement>(null);
   const hireDateRef = useRef<HTMLInputElement>(null);
   const terminationDateRef = useRef<HTMLInputElement>(null);
-  const dateRef = useRef<HTMLInputElement>(null);
   const [filterBy, setFilterBy] = useState('Active');
   const [category, setCategory] = useState('');
   const [complianceStatus, setComplianceStatus] = useState('All');
@@ -4489,40 +4489,16 @@ const DriverManagement = () => {
                           Date Of Birth <span className="text-[var(--accent-red)]">*</span>
                         </label>
 
-                        <div
-                          className="relative cursor-pointer"
-                          onMouseDown={(e) => {
-                            e.preventDefault(); // IMPORTANT
-                            if (dateRef.current) {
-                              dateRef.current.showPicker?.(); // open calendar
-                              dateRef.current.focus();
+                        <DateOfBirthField
+                          value={formData.dateOfBirth}
+                          error={!!validationErrors.dateOfBirth}
+                          onChange={(dateOfBirth) => {
+                            setFormData((prev) => ({ ...prev, dateOfBirth }));
+                            if (validationErrors.dateOfBirth) {
+                              setValidationErrors((prev) => ({ ...prev, dateOfBirth: '' }));
                             }
                           }}
-                        >
-                          {/* Icon */}
-                          <Calendar className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-secondary pointer-events-none z-10" />
-
-                          {/* Input */}
-                          <input
-                            ref={dateRef}
-                            type="date"
-                            value={formData.dateOfBirth}
-                            onChange={(e) => {
-                              setFormData({ ...formData, dateOfBirth: e.target.value });
-                              if (validationErrors.dateOfBirth) {
-                                setValidationErrors({
-                                  ...validationErrors,
-                                  dateOfBirth: "",
-                                });
-                              }
-                            }}
-                            className={`w-full pl-7 pr-2 py-2 text-sm bg-[rgba(255,255,255,0.05)] text-primary border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 cursor-pointer ${validationErrors.dateOfBirth
-                              ? "border-[var(--accent-red)]"
-                              : "border-theme"
-                              }`}
-                            max={new Date().toISOString().split("T")[0]}
-                          />
-                        </div>
+                        />
 
                         {validationErrors.dateOfBirth && (
                           <p className="text-xs text-[var(--accent-red)] mt-0.5">
