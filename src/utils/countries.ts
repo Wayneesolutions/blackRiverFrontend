@@ -259,8 +259,8 @@ export const COUNTRIES: Country[] = [
   { name: 'Zimbabwe', code: 'ZW', flag: '🇿🇼', dialCode: '+263' },
 ];
 
-// Where several countries share a dial code, the US and Russia match first.
-const DIAL_CODE_DEFAULTS = ['US', 'RU'];
+// Where several countries share a dial code, the main country matches first.
+const DIAL_CODE_DEFAULTS = ['US', 'RU', 'GB', 'NO', 'RE', 'CW'];
 
 /** Longest dial code first, so a phone number matches its most specific country. */
 export const sortByDialCodeMatch = (countries: Country[]) =>
