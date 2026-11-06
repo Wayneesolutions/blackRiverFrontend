@@ -5,6 +5,7 @@ import { FaTimes, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import * as customerApi from '../../../../axios/api/customer';
 import ImportButton from '../../../../components/common/ImportButton';
 import AddressSearch from '../../../../components/common/AddressSearch';
+import { COUNTRIES, sortByDialCodeMatch, type Country } from '../../../../utils/countries';
 
 interface Customer {
   _id?: string;
@@ -87,14 +88,7 @@ const CustomersPage = () => {
   const [billingType, setBillingType] = useState<'DEFAULT / LOAD' | 'BATCH WEEKLY' | 'BATCH MONTHLY'>('DEFAULT / LOAD');
 
   // Country selector state for phones
-  interface Country {
-    name: string;
-    code: string;
-    flag: string;
-    dialCode: string;
-  }
-
-  const [countries, setCountries] = useState<Country[]>([]);
+  const countries = COUNTRIES;
   const [primaryPhoneCountry, setPrimaryPhoneCountry] = useState<string>('US');
   const [secondaryPhoneCountry, setSecondaryPhoneCountry] = useState<string>('US');
   const [primaryCountryDropdownOpen, setPrimaryCountryDropdownOpen] = useState(false);
@@ -109,7 +103,7 @@ const CustomersPage = () => {
     if (!phone) return { countryCode: 'US', phoneNumber: '' };
 
     const cleanPhone = phone.trim();
-    const sortedCountries = [...countriesList].sort((a, b) => b.dialCode.length - a.dialCode.length);
+    const sortedCountries = sortByDialCodeMatch(countriesList);
 
     for (const country of sortedCountries) {
       if (cleanPhone.startsWith(country.dialCode)) {
@@ -122,42 +116,6 @@ const CustomersPage = () => {
 
     return { countryCode: 'US', phoneNumber: cleanPhone.replace(/^\+1/, '').trim() };
   };
-
-  // Fetch countries data
-  useEffect(() => {
-    fetch('https://restcountries.com/v3.1/all?fields=name,flag,idd,cca2')
-      .then(res => res.json())
-      .then(data => {
-        const sortedCountries = data
-          .filter((c: any) => c.idd && c.idd.root)
-          .map((c: any) => ({
-            name: c.name.common,
-            code: c.cca2,
-            flag: c.flag,
-            dialCode: c.idd.root + (c.idd.suffixes ? c.idd.suffixes[0] : ''),
-          }))
-          .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
-
-        setCountries(sortedCountries);
-        const defaultCountry = sortedCountries.find((c: Country) => c.code === 'US');
-        if (defaultCountry) {
-          setPrimaryPhoneCountry('US');
-          setSecondaryPhoneCountry('US');
-        }
-      })
-      .catch(() => {
-        const fallback = [
-          { name: 'United States', code: 'US', flag: '🇺🇸', dialCode: '+1' },
-          { name: 'Canada', code: 'CA', flag: '🇨🇦', dialCode: '+1' },
-          { name: 'India', code: 'IN', flag: '🇮🇳', dialCode: '+91' },
-          { name: 'United Kingdom', code: 'GB', flag: '🇬🇧', dialCode: '+44' },
-          { name: 'Australia', code: 'AU', flag: '🇦🇺', dialCode: '+61' },
-        ];
-        setCountries(fallback);
-        setPrimaryPhoneCountry('US');
-        setSecondaryPhoneCountry('US');
-      });
-  }, []);
 
   // Toast notifications state
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);

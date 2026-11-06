@@ -16,6 +16,7 @@ import { useAutoSaveDraft } from '../../../../customHooks/useAutoSaveDraft';
 import { toDraftSafe } from '../../../../utils/draftSnapshot';
 import DraftRestoreBanner from '../../../../components/common/DraftRestoreBanner';
 import AutoSaveIndicator from '../../../../components/common/AutoSaveIndicator';
+import { COUNTRIES } from '../../../../utils/countries';
 
 
 
@@ -48,13 +49,6 @@ interface Truck {
     lastDispatchDate?: string | Date;
     lastDropLocation?: string;
     yard?: string | { _id: string; yardName: string; yardCode: string };
-}
-
-interface Country {
-    name: string;
-    code: string;
-    flag: string;
-    dialCode: string;
 }
 
 // Static truck data - removed, now using API
@@ -467,36 +461,7 @@ const Trucks: React.FC = () => {
     });
 
     // Countries data
-    const [countries, setCountries] = useState<Country[]>([]);
-
-    // Fetch countries data
-    useEffect(() => {
-        fetch('https://restcountries.com/v3.1/all?fields=name,flag,idd,cca2')
-            .then(res => res.json())
-            .then(data => {
-                const sortedCountries = data
-                    .filter((c: any) => c.idd && c.idd.root)
-                    .map((c: any) => ({
-                        name: c.name.common,
-                        code: c.cca2,
-                        flag: c.flag,
-                        dialCode: c.idd.root + (c.idd.suffixes ? c.idd.suffixes[0] : ''),
-                    }))
-                    .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
-
-                setCountries(sortedCountries);
-            })
-            .catch(() => {
-                const fallback = [
-                    { name: 'United States', code: 'US', flag: '🇺🇸', dialCode: '+1' },
-                    { name: 'Canada', code: 'CA', flag: '🇨🇦', dialCode: '+1' },
-                    { name: 'India', code: 'IN', flag: '🇮🇳', dialCode: '+91' },
-                    { name: 'United Kingdom', code: 'GB', flag: '🇬🇧', dialCode: '+44' },
-                    { name: 'Australia', code: 'AU', flag: '🇦🇺', dialCode: '+61' },
-                ];
-                setCountries(fallback);
-            });
-    }, []);
+    const countries = COUNTRIES;
 
     // Fetch yards from API
     useEffect(() => {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText, MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check, ClipboardCheck, Ticket, FlaskConical, Lock, Eye, EyeOff, FileDown } from 'lucide-react';
+import { COUNTRIES, sortByDialCodeMatch, type Country } from '../../../../utils/countries';
 import ExcelJS from 'exceljs';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import * as driverApi from '../../../../axios/api/driver';
@@ -209,14 +210,7 @@ const DriverManagement = () => {
   } | null>(null);
 
   // Country data for phone inputs
-  interface Country {
-    name: string;
-    code: string;
-    flag: string;
-    dialCode: string;
-  }
-
-  const [countries, setCountries] = useState<Country[]>([]);
+  const countries = COUNTRIES;
   const [primaryPhoneCountry, setPrimaryPhoneCountry] = useState<string>('US');
   const [secondaryPhoneCountry, setSecondaryPhoneCountry] = useState<string>('US');
   const [primaryCountryDropdownOpen, setPrimaryCountryDropdownOpen] = useState(false);
@@ -234,7 +228,7 @@ const DriverManagement = () => {
     const cleanPhone = phone.trim();
 
     // Try to match country code (try longer codes first to avoid partial matches)
-    const sortedCountries = [...countriesList].sort((a, b) => b.dialCode.length - a.dialCode.length);
+    const sortedCountries = sortByDialCodeMatch(countriesList);
     for (const country of sortedCountries) {
       if (cleanPhone.startsWith(country.dialCode)) {
         return {
@@ -247,42 +241,6 @@ const DriverManagement = () => {
     // Default to US if no match found
     return { countryCode: 'US', phoneNumber: cleanPhone.replace(/^\+1/, '').trim() };
   };
-
-  // Fetch countries data
-  useEffect(() => {
-    fetch('https://restcountries.com/v3.1/all?fields=name,flag,idd,cca2')
-      .then(res => res.json())
-      .then(data => {
-        const sortedCountries = data
-          .filter((c: any) => c.idd && c.idd.root)
-          .map((c: any) => ({
-            name: c.name.common,
-            code: c.cca2,
-            flag: c.flag,
-            dialCode: c.idd.root + (c.idd.suffixes ? c.idd.suffixes[0] : ''),
-          }))
-          .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
-
-        setCountries(sortedCountries);
-        const defaultCountry = sortedCountries.find((c: Country) => c.code === 'US');
-        if (defaultCountry) {
-          setPrimaryPhoneCountry('US');
-          setSecondaryPhoneCountry('US');
-        }
-      })
-      .catch(() => {
-        const fallback = [
-          { name: 'United States', code: 'US', flag: '🇺🇸', dialCode: '+1' },
-          { name: 'Canada', code: 'CA', flag: '🇨🇦', dialCode: '+1' },
-          { name: 'India', code: 'IN', flag: '🇮🇳', dialCode: '+91' },
-          { name: 'United Kingdom', code: 'GB', flag: '🇬🇧', dialCode: '+44' },
-          { name: 'Australia', code: 'AU', flag: '🇦🇺', dialCode: '+61' },
-        ];
-        setCountries(fallback);
-        setPrimaryPhoneCountry('US');
-        setSecondaryPhoneCountry('US');
-      });
-  }, []);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
