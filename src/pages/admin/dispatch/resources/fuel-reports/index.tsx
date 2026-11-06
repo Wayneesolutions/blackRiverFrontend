@@ -24,6 +24,7 @@ import { listFleetUnits } from "../../../../../axios/api/fleet.units";
 import { FLEET_COLORS } from "../../../fleetMaintenance/colorUtils";
 import AddressSearch from "../../../../../components/common/AddressSearch";
 import { downloadExcel, MONEY_FMT, type ExcelColumn } from "../../../../../utils/excelExport";
+import { xlsxToCsvFile } from "../../../../../utils/spreadsheetToCsv";
 
 interface FuelReportType {
   _id: string;
@@ -161,6 +162,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
   const [ocrModalOpen, setOcrModalOpen] = useState(false);
   const [fuelCardModalOpen, setFuelCardModalOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [analyticsReports, setAnalyticsReports] = useState<FuelReportType[]>([]);
   const [ocrFile, setOcrFile] = useState<File | null>(null);
   const [ocrExtracting, setOcrExtracting] = useState(false);
   const [ocrExtractedData, setOcrExtractedData] = useState<any>(null);
@@ -357,6 +359,29 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
       setUnitsLoading(false);
     }
   }, []);
+
+  // Loads every matching report, one page of results at a time
+  const fetchAllReports = useCallback(async (filters: { search?: string; status?: string } = {}) => {
+    const allReports: FuelReportType[] = [];
+    const limit = 500;
+    for (let page = 1; ; page++) {
+      const res = await listFuelReport({ ...filters, page, limit, sortBy: 'createdAt', sortOrder: 'desc' });
+      if (!res?.success) throw new Error(res?.message || 'Failed to load fuel reports');
+      const data: FuelReportType[] = Array.isArray(res.data) ? res.data : [];
+      allReports.push(...data);
+      if (data.length < limit) return allReports;
+    }
+  }, []);
+
+  // Keep analytics current after reports are added, changed or removed
+  useEffect(() => {
+    if (!userInfoReady) return;
+    let cancelled = false;
+    fetchAllReports()
+      .then((reports) => { if (!cancelled) setAnalyticsReports(reports); })
+      .catch((error) => console.error('Failed to load fuel analytics', error));
+    return () => { cancelled = true; };
+  }, [userInfoReady, fuelReports, fetchAllReports]);
 
   // Fetch fuel reports when user info is ready and when filters/pagination change
   useEffect(() => {
@@ -727,16 +752,17 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
 
   // CSV Import Handlers
   const handleCsvFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const selected = e.target.files?.[0];
+    if (!selected) return;
 
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      messageApi.error('Please upload a CSV file');
+    const fileName = selected.name.toLowerCase();
+    const isExcel = fileName.endsWith('.xlsx');
+    if (!isExcel && !fileName.endsWith('.csv')) {
+      messageApi.error(fileName.endsWith('.xls') ? 'Please save this file as .xlsx, then upload it again' : 'Please upload a CSV or Excel (.xlsx) file');
       e.target.value = '';
       return;
     }
 
-    setCsvFile(file);
     setCsvParsing(true);
     setCsvHeaders([]);
     setCsvSampleRows([]);
@@ -744,6 +770,8 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
     setCsvImportResult(null);
 
     try {
+      const file = isExcel ? await xlsxToCsvFile(selected) : selected;
+      setCsvFile(file);
       const response = await parseCsvHeaders(file);
       if (response?.success && response?.data) {
         setCsvHeaders(response.data.headers);
@@ -766,12 +794,12 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
         });
         setCsvMapping(autoMapping);
       } else {
-        messageApi.error(response?.message || 'Failed to parse CSV file');
+        messageApi.error(response?.message || 'Failed to read this file');
         setCsvFile(null);
       }
     } catch (error: any) {
       console.error('Error parsing CSV:', error);
-      messageApi.error(error?.message || 'Failed to parse CSV file');
+      messageApi.error(error?.message || 'Failed to read this file');
       setCsvFile(null);
     } finally {
       setCsvParsing(false);
@@ -781,7 +809,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
 
   const handleCsvImport = async () => {
     if (!csvFile) {
-      messageApi.warning('Please select a CSV file first');
+      messageApi.warning('Please select a CSV or Excel file first');
       return;
     }
 
@@ -913,46 +941,30 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
 
 
 
-  // Static mock data for analytics (used when API returns little/no data)
-  const STATIC_SPEND_TREND = [
-    { month: "Jan", spend: 12400 },
-    { month: "Feb", spend: 13100 },
-    { month: "Mar", spend: 11800 },
-    { month: "Apr", spend: 14200 },
-    { month: "May", spend: 13900 },
-    { month: "Jun", spend: 15200 },
-    { month: "Jul", spend: 14800 },
-    { month: "Aug", spend: 16100 },
-    { month: "Sep", spend: 15500 },
-    { month: "Oct", spend: 16800 },
-    { month: "Nov", spend: 14200 },
-    { month: "Dec", spend: 0 },
-  ];
+  // Analytics use every report from this year, not just the visible page
   const currentYear = new Date().getFullYear();
-  const ytdConsumption = useMemo(() => {
-    const fromData = fuelReports.reduce((acc, r) => {
-      const amt = r.fuelAmount ?? (r.fuelAmounts?.[0] ?? parseFloat(r.volume || "0"));
-      return acc + amt;
-    }, 0);
-    return fromData > 0 ? fromData : 125000; // Static fallback
-  }, [fuelReports]);
+  const yearReports = useMemo(
+    () => analyticsReports.filter((r) => new Date(r.date || r.createdAt).getFullYear() === currentYear),
+    [analyticsReports, currentYear]
+  );
+  const ytdConsumption = useMemo(() => yearReports.reduce((acc, r) => {
+    const amt = r.fuelAmount ?? (r.fuelAmounts?.[0] ?? parseFloat(r.volume || "0"));
+    return acc + (Number.isNaN(amt) ? 0 : amt);
+  }, 0), [yearReports]);
   const spendTrendData = useMemo(() => {
-    if (fuelReports.length < 3) return STATIC_SPEND_TREND;
-    const byMonth: Record<string, number> = {};
-    fuelReports.forEach((r) => {
-      const d = r.date ? new Date(r.date) : new Date(r.createdAt);
-      const key = d.toLocaleString("default", { month: "short" });
-      byMonth[key] = (byMonth[key] || 0) + (r.transactionAmount ?? Number(r.cost) ?? 0);
-    });
-    return STATIC_SPEND_TREND.map((t) => ({
-      month: t.month,
-      spend: byMonth[t.month] ?? t.spend,
+    const months = Array.from({ length: 12 }, (_, i) => ({
+      month: new Date(currentYear, i, 1).toLocaleString("default", { month: "short" }),
+      spend: 0,
     }));
-  }, [fuelReports]);
+    yearReports.forEach((r) => {
+      months[new Date(r.date || r.createdAt).getMonth()].spend += r.transactionAmount ?? (Number(r.cost) || 0);
+    });
+    return months;
+  }, [yearReports, currentYear]);
   const topConsumingTrucks = useMemo(() => {
-    if (fuelReports.length < 3) return [];
+    if (yearReports.length < 3) return [];
     const byUnit: Record<string, number> = {};
-    fuelReports.forEach((r) => {
+    yearReports.forEach((r) => {
       // Use the same logic as getVehicleDetails to extract unit number
       const vehicleId = r.vehicle?._id || "";
       const matched = vehicleId ? unitsMap.get(vehicleId) : undefined;
@@ -984,7 +996,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
       .slice(0, 5);
 
     return result;
-  }, [fuelReports, unitsMap]);
+  }, [yearReports, unitsMap]);
 
   // Filter by date range (client-side)
   const applyDateFilter = useCallback((list: FuelReportType[]) => {
@@ -1010,22 +1022,10 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      const allReports: FuelReportType[] = [];
-      const limit = 500;
-      for (let page = 1; ; page++) {
-        const params: Parameters<typeof listFuelReport>[0] = { page, limit, sortBy: 'createdAt', sortOrder: 'desc' };
-        if (debouncedSearch) params.search = debouncedSearch;
-        if (statusFilter !== 'all') params.status = statusFilter;
-        const res = await listFuelReport(params);
-        if (!res?.success) {
-          messageApi.error(res?.message || 'Failed to download fuel reports');
-          return;
-        }
-        const data: FuelReportType[] = Array.isArray(res.data) ? res.data : [];
-        allReports.push(...data);
-        if (data.length < limit) break;
-      }
-
+      const allReports = await fetchAllReports({
+        ...(debouncedSearch ? { search: debouncedSearch } : {}),
+        ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
+      });
       const rows = applyDateFilter(allReports);
       if (rows.length === 0) {
         messageApi.warning('No fuel reports match these filters');
@@ -1063,7 +1063,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
       messageApi.success(`Downloaded ${rows.length} fuel report${rows.length === 1 ? '' : 's'}`);
     } catch (error) {
       console.error('Error downloading fuel reports:', error);
-      messageApi.error('Failed to download fuel reports');
+      messageApi.error(error instanceof Error && error.message ? error.message : 'Failed to download fuel reports');
     } finally {
       setDownloading(false);
     }
@@ -1157,7 +1157,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                 <p className="text-2xl font-bold text-primary">
                   {ytdConsumption.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                   <span className="text-sm font-normal text-secondary ml-1">
-                    {fuelReports[0]?.measurementUnit || "L"}
+                    {yearReports[0]?.measurementUnit || "L"}
                   </span>
                 </p>
                 <p className="text-xs text-secondary mt-1">Total {currentYear}</p>
@@ -1333,7 +1333,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                 className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >
                 <Upload className="w-4 h-4" />
-                Import Fuel (CSV)
+                Import Fuel (CSV / Excel)
               </button>
               <button
                 onClick={() => setOcrModalOpen(true)}
@@ -2254,12 +2254,12 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
           <div className="bg-card rounded-2xl shadow-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-primary">Import Fuel Records (CSV)</h3>
+              <h3 className="text-lg font-semibold text-primary">Import Fuel Records (CSV / Excel)</h3>
               <button onClick={closeImportModal} disabled={csvImporting} className="text-secondary hover:text-secondary">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-sm text-secondary">Upload a CSV from your fuel provider (e.g., Flying J, Shell). Map columns to fields.</p>
+            <p className="text-sm text-secondary">Upload a CSV or Excel file from your fuel provider (e.g., Flying J, Shell). Map columns to fields.</p>
 
             {/* File Upload */}
             {!csvFile && (
@@ -2270,13 +2270,13 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                 <input
                   ref={csvFileInputRef}
                   type="file"
-                  accept=".csv"
+                  accept=".csv,.xlsx"
                   onChange={handleCsvFileSelect}
                   className="hidden"
                 />
                 <Upload className="w-10 h-10 mx-auto text-secondary mb-2" />
-                <p className="text-sm text-secondary">Click to browse or drag & drop CSV file</p>
-                <p className="text-xs text-secondary mt-1">Supported: CSV files only</p>
+                <p className="text-sm text-secondary">Click to browse or drag & drop a file</p>
+                <p className="text-xs text-secondary mt-1">Supported: CSV and Excel (.xlsx). Excel imports the first sheet with data.</p>
               </div>
             )}
 
@@ -2284,7 +2284,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
             {csvParsing && (
               <div className="text-center py-8">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                <p className="mt-2 text-sm text-secondary">Parsing CSV file...</p>
+                <p className="mt-2 text-sm text-secondary">Reading file...</p>
               </div>
             )}
 
@@ -2292,7 +2292,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
             {csvHeaders.length > 0 && !csvParsing && (
               <div className="space-y-4">
                 <div className="bg-card border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm font-medium text-blue-900 mb-2">CSV File: {csvFile?.name}</p>
+                  <p className="text-sm font-medium text-blue-900 mb-2">File: {csvFile?.name}</p>
                   <p className="text-xs text-blue-700">Found {csvHeaders.length} columns, {csvSampleRows.length} sample rows</p>
                 </div>
 
@@ -2341,7 +2341,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
 
                 {/* Column Mapping */}
                 <div className="border border-theme rounded-lg p-4">
-                  <h4 className="text-sm font-semibold text-primary mb-3">Map CSV Columns to Fields</h4>
+                  <h4 className="text-sm font-semibold text-primary mb-3">Map Columns to Fields</h4>
                   <div className="space-y-3">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
