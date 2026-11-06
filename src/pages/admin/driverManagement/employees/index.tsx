@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Plus, Info, ChevronUp, ChevronDown, X, User, FileText, Upload, Edit, Trash2, Save, Calendar, Eye, EyeOff, FileDown, MessageSquare } from 'lucide-react';
+import { COUNTRIES, sortByDialCodeMatch, type Country } from '../../../../utils/countries';
 import TimelineNotes from '../../../../components/common/TimelineNotes';
 import { useAutoSaveDraft } from '../../../../customHooks/useAutoSaveDraft';
 import { toDraftSafe } from '../../../../utils/draftSnapshot';
@@ -13,7 +14,6 @@ import ImportButton from '../../../../components/common/ImportButton';
 import { getDocumentsByEmployee, updateEmployeeDocument, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
 import { deleteDeductionAddition } from '../../../../axios/api/account.settlement';
 import AddressSearch from '../../../../components/common/AddressSearch';
-import { COUNTRIES, sortByDialCodeMatch, type Country } from '../../../../utils/countries';
 
 interface Employee {
   _id?: string;
