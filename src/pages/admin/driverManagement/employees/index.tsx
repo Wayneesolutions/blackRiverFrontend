@@ -13,6 +13,7 @@ import ImportButton from '../../../../components/common/ImportButton';
 import { getDocumentsByEmployee, updateEmployeeDocument, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
 import { deleteDeductionAddition } from '../../../../axios/api/account.settlement';
 import AddressSearch from '../../../../components/common/AddressSearch';
+import DateOfBirthField from '../../../../components/common/DateOfBirthField';
 
 interface Employee {
   _id?: string;
@@ -2170,11 +2171,9 @@ const EmployeesPage = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">Date of Birth</label>
-                        <input
-                          type="date"
+                        <DateOfBirthField
                           value={personalData.dateOfBirth}
-                          onChange={(e) => setPersonalData({ ...personalData, dateOfBirth: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                          onChange={(dateOfBirth) => setPersonalData((prev) => ({ ...prev, dateOfBirth }))}
                         />
                       </div>
                       <div>
