@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, X, Upload, FileText, Sparkles, CreditCard } from "lucide-react";
+import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, X, Upload, Download, FileText, Sparkles, CreditCard } from "lucide-react";
 import { FaFileInvoiceDollar, FaGasPump, FaClipboardList } from "react-icons/fa";
 import { message } from "antd";
+import type { MessageInstance } from "antd/es/message/interface";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import NewFuelReportSidebar from "./NewFuelReportSidebar";
 import FuelCardImportModal from "./FuelCardImportModal";
@@ -22,6 +23,7 @@ import {
 import { listFleetUnits } from "../../../../../axios/api/fleet.units";
 import { FLEET_COLORS } from "../../../fleetMaintenance/colorUtils";
 import AddressSearch from "../../../../../components/common/AddressSearch";
+import { downloadExcel, MONEY_FMT, type ExcelColumn } from "../../../../../utils/excelExport";
 
 interface FuelReportType {
   _id: string;
@@ -92,7 +94,7 @@ interface FleetUnitOption {
   licensePlate?: string;
 }
 
-const FuelReports = () => {
+const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [fuelReports, setFuelReports] = useState<FuelReportType[]>([]);
   const [loading, setLoading] = useState(false);
@@ -158,6 +160,7 @@ const FuelReports = () => {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [ocrModalOpen, setOcrModalOpen] = useState(false);
   const [fuelCardModalOpen, setFuelCardModalOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [ocrFile, setOcrFile] = useState<File | null>(null);
   const [ocrExtracting, setOcrExtracting] = useState(false);
   const [ocrExtractedData, setOcrExtractedData] = useState<any>(null);
@@ -307,7 +310,7 @@ const FuelReports = () => {
           setEmptyStateMessage(null);
         }
       } else {
-        message.error(res.message || "Failed to fetch fuel reports");
+        messageApi.error(res.message || "Failed to fetch fuel reports");
         setFuelReports([]);
         setTotal(0);
         setTotalPages(0);
@@ -430,7 +433,7 @@ const FuelReports = () => {
       setDeleteLoading(true);
       const res = await deleteFuelReport(deleteTarget._id);
       if (res.success) {
-        message.success(res.message || "Fuel report deleted successfully");
+        messageApi.success(res.message || "Fuel report deleted successfully");
         // If we're on the last page and it becomes empty, go to previous page
         if (fuelReports.length === 1 && currentPage > 1) {
           setCurrentPage(currentPage - 1);
@@ -439,11 +442,11 @@ const FuelReports = () => {
         }
         closeDeleteModal();
       } else {
-        message.error(res.message || "Failed to delete fuel report");
+        messageApi.error(res.message || "Failed to delete fuel report");
       }
     } catch (error: any) {
       console.error(error);
-      message.error(error?.message || "Failed to delete fuel report");
+      messageApi.error(error?.message || "Failed to delete fuel report");
     } finally {
       setDeleteLoading(false);
     }
@@ -496,7 +499,7 @@ const FuelReports = () => {
 
   const handleEditAddNewType = async () => {
     if (!newEditTypeName.trim()) {
-      message.warning('Please enter a fuel type name');
+      messageApi.warning('Please enter a fuel type name');
       return;
     }
     setAddingEditType(true);
@@ -512,12 +515,12 @@ const FuelReports = () => {
             type: response.data.name
           }));
         }
-        message.success('Fuel type added successfully');
+        messageApi.success('Fuel type added successfully');
       } else {
-        message.error(response?.message || 'Failed to create fuel type');
+        messageApi.error(response?.message || 'Failed to create fuel type');
       }
     } catch (error: any) {
-      message.error(error?.message || 'Failed to create fuel type');
+      messageApi.error(error?.message || 'Failed to create fuel type');
     } finally {
       setAddingEditType(false);
     }
@@ -525,7 +528,7 @@ const FuelReports = () => {
 
   const handleEditAddNewUnit = async () => {
     if (!newEditUnitName.trim()) {
-      message.warning('Please enter a unit name');
+      messageApi.warning('Please enter a unit name');
       return;
     }
     setAddingEditUnit(true);
@@ -541,12 +544,12 @@ const FuelReports = () => {
             measurementUnit: response.data.name
           }));
         }
-        message.success('Unit added successfully');
+        messageApi.success('Unit added successfully');
       } else {
-        message.error(response?.message || 'Failed to create unit');
+        messageApi.error(response?.message || 'Failed to create unit');
       }
     } catch (error: any) {
-      message.error(error?.message || 'Failed to create unit');
+      messageApi.error(error?.message || 'Failed to create unit');
     } finally {
       setAddingEditUnit(false);
     }
@@ -554,7 +557,7 @@ const FuelReports = () => {
 
   const handleEditAddNewVendor = async () => {
     if (!newEditVendorName.trim()) {
-      message.warning('Please enter a fuel vendor name');
+      messageApi.warning('Please enter a fuel vendor name');
       return;
     }
     setAddingEditVendor(true);
@@ -570,12 +573,12 @@ const FuelReports = () => {
             fuelVendor: response.data.name
           }));
         }
-        message.success('Fuel vendor added successfully');
+        messageApi.success('Fuel vendor added successfully');
       } else {
-        message.error(response?.message || 'Failed to create fuel vendor');
+        messageApi.error(response?.message || 'Failed to create fuel vendor');
       }
     } catch (error: any) {
-      message.error(error?.message || 'Failed to create fuel vendor');
+      messageApi.error(error?.message || 'Failed to create fuel vendor');
     } finally {
       setAddingEditVendor(false);
     }
@@ -665,16 +668,16 @@ const FuelReports = () => {
   const handleUpdateSubmit = async () => {
     if (!editingReport) return;
     if (!editForm.unit) {
-      message.warning("Please select a unit");
+      messageApi.warning("Please select a unit");
       return;
     }
     if (!editForm.fullAddress && !editForm.state) {
-      message.warning("Please select a location");
+      messageApi.warning("Please select a location");
       return;
     }
     const fuelType = editForm.product || editForm.type;
     if (!fuelType || !fuelType.trim()) {
-      message.warning("Please select a product (fuel type)");
+      messageApi.warning("Please select a product (fuel type)");
       return;
     }
     try {
@@ -704,15 +707,15 @@ const FuelReports = () => {
       };
       const res = await updateFuelReport(editingReport._id, payload);
       if (res.success) {
-        message.success(res.message || "Fuel report updated successfully");
+        messageApi.success(res.message || "Fuel report updated successfully");
         await fetchFuelReports();
         closeEditModal();
       } else {
-        message.error(res.message || "Failed to update fuel report");
+        messageApi.error(res.message || "Failed to update fuel report");
       }
     } catch (error: any) {
       console.error(error);
-      message.error(error?.message || "Failed to update fuel report");
+      messageApi.error(error?.message || "Failed to update fuel report");
     } finally {
       setEditSubmitting(false);
     }
@@ -728,7 +731,7 @@ const FuelReports = () => {
     if (!file) return;
 
     if (!file.name.toLowerCase().endsWith('.csv')) {
-      message.error('Please upload a CSV file');
+      messageApi.error('Please upload a CSV file');
       e.target.value = '';
       return;
     }
@@ -763,12 +766,12 @@ const FuelReports = () => {
         });
         setCsvMapping(autoMapping);
       } else {
-        message.error(response?.message || 'Failed to parse CSV file');
+        messageApi.error(response?.message || 'Failed to parse CSV file');
         setCsvFile(null);
       }
     } catch (error: any) {
       console.error('Error parsing CSV:', error);
-      message.error(error?.message || 'Failed to parse CSV file');
+      messageApi.error(error?.message || 'Failed to parse CSV file');
       setCsvFile(null);
     } finally {
       setCsvParsing(false);
@@ -778,18 +781,18 @@ const FuelReports = () => {
 
   const handleCsvImport = async () => {
     if (!csvFile) {
-      message.warning('Please select a CSV file first');
+      messageApi.warning('Please select a CSV file first');
       return;
     }
 
     // Validate required mappings
     if (!csvMapping.date || !csvMapping.transactionAmount || !csvMapping.fuelAmount) {
-      message.warning('Please map Date, Transaction Amount, and Fuel Amount columns');
+      messageApi.warning('Please map Date, Transaction Amount, and Fuel Amount columns');
       return;
     }
 
     if (!defaultUnitForImport) {
-      message.warning('Please select a default unit for import');
+      messageApi.warning('Please select a default unit for import');
       return;
     }
 
@@ -807,7 +810,7 @@ const FuelReports = () => {
 
       if (response?.success) {
         setCsvImportResult(response.data);
-        message.success(response.message || `Import completed: ${response.data?.success || 0} successful, ${response.data?.failed || 0} failed`);
+        messageApi.success(response.message || `Import completed: ${response.data?.success || 0} successful, ${response.data?.failed || 0} failed`);
 
         if (response.data?.success > 0) {
           // Refresh fuel reports list
@@ -826,11 +829,11 @@ const FuelReports = () => {
           }, 3000);
         }
       } else {
-        message.error(response?.message || 'Failed to import fuel reports');
+        messageApi.error(response?.message || 'Failed to import fuel reports');
       }
     } catch (error: any) {
       console.error('Error importing CSV:', error);
-      message.error(error?.message || 'Failed to import fuel reports');
+      messageApi.error(error?.message || 'Failed to import fuel reports');
     } finally {
       setCsvImporting(false);
     }
@@ -859,7 +862,7 @@ const FuelReports = () => {
 
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
     if (!validTypes.includes(file.type)) {
-      message.error('Please upload a valid image file (JPEG, PNG, WebP) or PDF');
+      messageApi.error('Please upload a valid image file (JPEG, PNG, WebP) or PDF');
       e.target.value = '';
       return;
     }
@@ -872,14 +875,14 @@ const FuelReports = () => {
       const response = await extractFuelReceipt(file);
       if (response?.success && response?.data) {
         setOcrExtractedData(response.data);
-        message.success('Data extracted successfully! Please review and select a unit to create the fuel report.');
+        messageApi.success('Data extracted successfully! Please review and select a unit to create the fuel report.');
       } else {
-        message.error(response?.message || 'Failed to extract data from receipt. Please try again.');
+        messageApi.error(response?.message || 'Failed to extract data from receipt. Please try again.');
         setOcrFile(null);
       }
     } catch (error: any) {
       console.error('Error extracting receipt:', error);
-      message.error(error?.message || 'Failed to extract data from receipt');
+      messageApi.error(error?.message || 'Failed to extract data from receipt');
       setOcrFile(null);
     } finally {
       setOcrExtracting(false);
@@ -889,7 +892,7 @@ const FuelReports = () => {
 
   const handleCreateFromOcr = () => {
     if (!ocrExtractedData) {
-      message.warning('Please extract data from receipt first');
+      messageApi.warning('Please extract data from receipt first');
       return;
     }
 
@@ -984,22 +987,87 @@ const FuelReports = () => {
   }, [fuelReports, unitsMap]);
 
   // Filter by date range (client-side)
-  const filteredReports = useMemo(() => {
-    let list = fuelReports;
+  const applyDateFilter = useCallback((list: FuelReportType[]) => {
+    let filtered = list;
     if (startDateFilter) {
-      list = list.filter((r) => {
+      filtered = filtered.filter((r) => {
         const d = r.date ? new Date(r.date) : new Date(r.createdAt);
         return d >= new Date(startDateFilter);
       });
     }
     if (endDateFilter) {
-      list = list.filter((r) => {
+      filtered = filtered.filter((r) => {
         const d = r.date ? new Date(r.date) : new Date(r.createdAt);
         return d <= new Date(endDateFilter + "T23:59:59");
       });
     }
-    return list;
-  }, [fuelReports, startDateFilter, endDateFilter]);
+    return filtered;
+  }, [startDateFilter, endDateFilter]);
+
+  const filteredReports = useMemo(() => applyDateFilter(fuelReports), [applyDateFilter, fuelReports]);
+
+  // Downloads every report matching the current filters, not just the visible page
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const allReports: FuelReportType[] = [];
+      const limit = 500;
+      for (let page = 1; ; page++) {
+        const params: Parameters<typeof listFuelReport>[0] = { page, limit, sortBy: 'createdAt', sortOrder: 'desc' };
+        if (debouncedSearch) params.search = debouncedSearch;
+        if (statusFilter !== 'all') params.status = statusFilter;
+        const res = await listFuelReport(params);
+        if (!res?.success) {
+          messageApi.error(res?.message || 'Failed to download fuel reports');
+          return;
+        }
+        const data: FuelReportType[] = Array.isArray(res.data) ? res.data : [];
+        allReports.push(...data);
+        if (data.length < limit) break;
+      }
+
+      const rows = applyDateFilter(allReports);
+      if (rows.length === 0) {
+        messageApi.warning('No fuel reports match these filters');
+        return;
+      }
+
+      const unitLabel = (r: FuelReportType) => {
+        const details = getVehicleDetails(r.unit || r.vehicle ? ({ vehicle: r.unit || r.vehicle } as FuelReportType) : r);
+        return details.primary !== 'N/A' ? details.primary : (r.vehicle?.plateNumber || r.unit?.makeModel || '');
+      };
+      const fuelAmountOf = (r: FuelReportType) => {
+        if (r.fuelAmounts?.length) return r.fuelAmounts.reduce((sum, amount) => sum + amount, 0);
+        if (r.fuelAmount !== undefined && r.fuelAmount !== null) return r.fuelAmount;
+        const volume = parseFloat(r.volume || '');
+        return Number.isNaN(volume) ? '' : volume;
+      };
+      const columns: ExcelColumn<FuelReportType>[] = [
+        { header: 'Date', width: 13, value: (r) => new Date(r.date || r.createdAt).toLocaleDateString('en-CA') },
+        { header: 'Transaction #', width: 20, value: (r) => r.transactionNumber || r._id.slice(-8) },
+        { header: 'Unit', width: 16, value: unitLabel },
+        { header: 'Vendor', width: 20, value: (r) => r.fuelVendor || r.fuelVendors?.join(', ') },
+        { header: 'Product', width: 16, value: (r) => r.product || r.types?.[0] || r.type },
+        { header: 'City', width: 16, value: (r) => r.city || r.cityLocation },
+        { header: 'State', width: 10, value: (r) => r.state },
+        { header: 'Fuel Amount', width: 13, numFmt: '#,##0.00', value: fuelAmountOf },
+        { header: 'Units', width: 10, value: (r) => r.units?.join(', ') || r.measurementUnit },
+        { header: 'Amount', width: 13, numFmt: MONEY_FMT, value: (r) => r.transactionAmount ?? r.cost },
+        { header: 'Currency', width: 10, value: (r) => r.currency },
+        { header: 'Odometer', width: 12, value: (r) => r.currentOdometer || r.odometer },
+        { header: 'Payment Notes', width: 26, value: (r) => r.paymentNotes },
+        { header: 'Status', width: 12, value: (r) => r.status },
+      ];
+
+      await downloadExcel('Fuel_Reports', [{ name: 'Fuel Reports', columns, rows }]);
+      messageApi.success(`Downloaded ${rows.length} fuel report${rows.length === 1 ? '' : 's'}`);
+    } catch (error) {
+      console.error('Error downloading fuel reports:', error);
+      messageApi.error('Failed to download fuel reports');
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const StatCard = ({
     title,
@@ -1273,6 +1341,14 @@ const FuelReports = () => {
               >
                 <FileText className="w-4 h-4" />
                 Upload Receipt (OCR)
+              </button>
+              <button
+                onClick={handleDownload}
+                disabled={downloading || total === 0}
+                className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Download className="w-4 h-4" />
+                {downloading ? 'Downloading...' : 'Download Excel'}
               </button>
             </div>
           </div>
@@ -2653,9 +2729,22 @@ const FuelReports = () => {
           onClose={() => { setFuelCardModalOpen(false); fetchFuelReports(); }}
           onImported={fetchFuelReports}
           fleetUnits={units}
+          messageApi={messageApi}
         />
       )}
     </div>
+  );
+};
+
+// Message holder sits outside the page so messages survive its loading state.
+// antd's static message.* doesn't render on React 19.
+const FuelReports = () => {
+  const [messageApi, messageContextHolder] = message.useMessage();
+  return (
+    <>
+      {messageContextHolder}
+      <FuelReportsContent messageApi={messageApi} />
+    </>
   );
 };
 

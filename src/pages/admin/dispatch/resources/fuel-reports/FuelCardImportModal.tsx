@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Upload, X, CheckCircle, AlertCircle, XCircle, ChevronDown, ChevronUp, Loader2, FileText, Save } from 'lucide-react';
-import { message } from 'antd';
+import type { MessageInstance } from 'antd/es/message/interface';
 import { parseFuelCardPdf, confirmFuelCardImport } from '../../../../../axios/api/dispatcher.fuelreport';
 
 interface FleetUnitOption {
@@ -43,6 +43,7 @@ interface Props {
   onClose: () => void;
   onImported: () => void;
   fleetUnits: FleetUnitOption[];
+  messageApi: MessageInstance;
 }
 
 const STATUS_CONFIG = {
@@ -57,7 +58,7 @@ const fmtDate = (iso: string) => {
   catch { return iso; }
 };
 
-export default function FuelCardImportModal({ onClose, onImported, fleetUnits }: Props) {
+export default function FuelCardImportModal({ onClose, onImported, fleetUnits, messageApi }: Props) {
   const [step, setStep] = useState<Step>('upload');
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -72,7 +73,7 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits }:
 
   const handleFile = (f: File) => {
     if (!f.name.toLowerCase().endsWith('.pdf')) {
-      message.error('Please upload a PDF file');
+      messageApi.error('Please upload a PDF file');
       return;
     }
     setFile(f);
@@ -91,7 +92,7 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits }:
     try {
       const res = await parseFuelCardPdf(file);
       if (!res?.success) {
-        message.error(res?.message || 'Failed to parse PDF');
+        messageApi.error(res?.message || 'Failed to parse PDF');
         return;
       }
       setRows(res.data.rows);
@@ -103,7 +104,7 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits }:
       });
       setStep('review');
     } catch {
-      message.error('Failed to parse PDF');
+      messageApi.error('Failed to parse PDF');
     } finally {
       setParsing(false);
     }
@@ -129,14 +130,14 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits }:
   const acceptAllMatched = () => {
     // All matched rows are already accepted — just make unmatched/review rows skipped
     // Actually do nothing, just scroll user attention to review rows
-    message.info('All matched rows will be saved. Review or skip the remaining rows.');
+    messageApi.info('All matched rows will be saved. Review or skip the remaining rows.');
   };
 
   const skipAllUnmatched = () => {
     setRows(prev => prev.map(r =>
       (r.matchStatus === 'unmatched' && !r.vehicleId_db) ? { ...r, skip: true } : r
     ));
-    message.info('Unmatched rows have been marked as skip');
+    messageApi.info('Unmatched rows have been marked as skip');
   };
 
   const toggleExpand = (idx: number) => {
@@ -151,21 +152,21 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits }:
     const toSave = rows.filter(r => !r.skip);
     const unresolved = toSave.filter(r => !r.vehicleId_db);
     if (unresolved.length > 0) {
-      message.warning(`${unresolved.length} row(s) still have no vehicle assigned. Assign or skip them.`);
+      messageApi.warning(`${unresolved.length} row(s) still have no vehicle assigned. Assign or skip them.`);
       return;
     }
     setSaving(true);
     try {
       const res = await confirmFuelCardImport(toSave);
       if (!res?.success && !res?.data) {
-        message.error(res?.message || 'Failed to save');
+        messageApi.error(res?.message || 'Failed to save');
         return;
       }
       setSaveResult(res.data || { success: res.data?.success || 0, failed: 0, errors: [] });
       setStep('done');
       if ((res.data?.success || 0) > 0) onImported();
     } catch {
-      message.error('Failed to save fuel reports');
+      messageApi.error('Failed to save fuel reports');
     } finally {
       setSaving(false);
     }
