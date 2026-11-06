@@ -21,6 +21,7 @@ import {
   extractFuelReceipt,
 } from "../../../../../axios/api/dispatcher.fuelreport";
 import { listFleetUnits } from "../../../../../axios/api/fleet.units";
+import { autoMapFuelColumns } from "./csvAutoMap";
 import { FLEET_COLORS } from "../../../fleetMaintenance/colorUtils";
 import AddressSearch from "../../../../../components/common/AddressSearch";
 import { downloadExcel, MONEY_FMT, type ExcelColumn } from "../../../../../utils/excelExport";
@@ -180,7 +181,18 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
   const csvFileInputRef = useRef<HTMLInputElement>(null);
 
 
-  const unitsMap = useMemo(() => new Map(units.map((unit) => [unit.id, unit])), [units]);
+  // Fleet unit IDs come prefixed ("vehicle-<id>", "trailer-<id>") but fuel
+  // reports store the bare ID, so index both forms
+  const unitsMap = useMemo(
+    () =>
+      new Map(
+        units.flatMap((unit) => {
+          const bare = String(unit.id).replace(/^(vehicle|trailer|custom)-/, "");
+          return bare !== unit.id ? [[unit.id, unit], [bare, unit]] : [[unit.id, unit]];
+        }) as [string, FleetUnitOption][]
+      ),
+    [units]
+  );
   const focusRingStyle = useMemo(
     () =>
       ({
@@ -776,22 +788,8 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
       if (response?.success && response?.data) {
         setCsvHeaders(response.data.headers);
         setCsvSampleRows(response.data.sampleRows);
-        // Auto-map common column names
-        const autoMapping: Record<string, string> = {};
-        response.data.headers.forEach((header: string) => {
-          const lowerHeader = header.toLowerCase();
-          if (lowerHeader.includes('date')) autoMapping.date = header;
-          else if (lowerHeader.includes('amount') || lowerHeader.includes('price') || lowerHeader.includes('total') || lowerHeader.includes('cost')) autoMapping.transactionAmount = header;
-          else if (lowerHeader.includes('gallon') || lowerHeader.includes('liter') || lowerHeader.includes('volume') || lowerHeader.includes('quantity')) autoMapping.fuelAmount = header;
-          else if (lowerHeader.includes('transaction') || lowerHeader.includes('receipt') || lowerHeader.includes('invoice') || lowerHeader.includes('number')) autoMapping.transactionNumber = header;
-          else if (lowerHeader.includes('vendor') || lowerHeader.includes('station') || lowerHeader.includes('merchant')) autoMapping.fuelVendor = header;
-          else if (lowerHeader.includes('unit') || lowerHeader.includes('vehicle') || lowerHeader.includes('truck')) autoMapping.unit = header;
-          else if (lowerHeader.includes('city')) autoMapping.city = header;
-          else if (lowerHeader.includes('state') || lowerHeader.includes('province')) autoMapping.state = header;
-          else if (lowerHeader.includes('address') || lowerHeader.includes('location')) autoMapping.address = header;
-          else if (lowerHeader.includes('odometer') || lowerHeader.includes('mileage')) autoMapping.odometer = header;
-          else if (lowerHeader.includes('product') || lowerHeader.includes('type') || lowerHeader.includes('fuel')) autoMapping.product = header;
-        });
+        // Auto-map common column names (exact names first, each column used once)
+        const autoMapping = autoMapFuelColumns(response.data.headers);
         setCsvMapping(autoMapping);
       } else {
         messageApi.error(response?.message || 'Failed to read this file');
@@ -819,8 +817,8 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
       return;
     }
 
-    if (!defaultUnitForImport) {
-      messageApi.warning('Please select a default unit for import');
+    if (!defaultUnitForImport && !csvMapping.unit) {
+      messageApi.warning('Map the Unit column or select a Default Unit');
       return;
     }
 
@@ -2299,7 +2297,9 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                 {/* Default Values */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Default Unit <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-primary mb-1">
+                      Default Unit {!csvMapping.unit && <span className="text-red-500">*</span>}
+                    </label>
                     <select
                       value={defaultUnitForImport}
                       onChange={(e) => setDefaultUnitForImport(e.target.value)}
@@ -2313,6 +2313,9 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                         </option>
                       ))}
                     </select>
+                    <p className="mt-1 text-xs text-secondary">
+                      {csvMapping.unit ? 'Used only for rows with a blank Unit cell' : 'Used for every row'}
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1">Default Currency</label>
@@ -2325,6 +2328,9 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                       <option value="USA">USA (USD)</option>
                       <option value="CAD">CAD</option>
                     </select>
+                    <p className="mt-1 text-xs text-secondary">
+                      {csvMapping.currency ? 'Used only when a row has no currency' : 'Used for every row'}
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1">Default Product</label>
@@ -2410,7 +2416,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-primary mb-1">Unit</label>
+                        <label className="block text-xs font-medium text-primary mb-1">Unit (truck / trailer number or plate)</label>
                         <select
                           value={csvMapping.unit || ""}
                           onChange={(e) => setCsvMapping(prev => ({ ...prev, unit: e.target.value }))}
@@ -2487,6 +2493,32 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                           ))}
                         </select>
                       </div>
+                      <div>
+                        <label className="block text-xs font-medium text-primary mb-1">Currency (USD / CAD)</label>
+                        <select
+                          value={csvMapping.currency || ""}
+                          onChange={(e) => setCsvMapping(prev => ({ ...prev, currency: e.target.value }))}
+                          className="w-full px-2 py-1.5 border border-theme rounded-md text-xs"
+                        >
+                          <option value="">Select column...</option>
+                          {csvHeaders.map(header => (
+                            <option key={header} value={header}>{header}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-primary mb-1">Volume Unit (L / gal)</label>
+                        <select
+                          value={csvMapping.measurementUnit || ""}
+                          onChange={(e) => setCsvMapping(prev => ({ ...prev, measurementUnit: e.target.value }))}
+                          className="w-full px-2 py-1.5 border border-theme rounded-md text-xs"
+                        >
+                          <option value="">Select column...</option>
+                          {csvHeaders.map(header => (
+                            <option key={header} value={header}>{header}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2547,10 +2579,10 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                   >
                     {csvImportResult ? 'Close' : 'Cancel'}
                   </button>
-                  {!csvImportResult && (
+                  {(!csvImportResult || csvImportResult.success === 0) && (
                     <button
                       onClick={handleCsvImport}
-                      disabled={csvImporting || !csvMapping.date || !csvMapping.transactionAmount || !csvMapping.fuelAmount || !defaultUnitForImport}
+                      disabled={csvImporting || !csvMapping.date || !csvMapping.transactionAmount || !csvMapping.fuelAmount || (!defaultUnitForImport && !csvMapping.unit)}
                       className="px-4 py-2 rounded-lg !text-white disabled:opacity-60 disabled:cursor-not-allowed"
                       style={{ background: FLEET_COLORS.gradient }}
                     >
