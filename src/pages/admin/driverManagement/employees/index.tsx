@@ -1736,6 +1736,8 @@ const EmployeesPage = () => {
                         </label>
                         <input
                           type="email"
+                          name="employee-email"
+                          autoComplete="off"
                           placeholder="Email"
                           value={basicData.email}
                           onChange={(e) => { setBasicData({ ...basicData, email: e.target.value }); if (formErrors.email) setFormErrors({ ...formErrors, email: undefined }); }}
@@ -1754,6 +1756,7 @@ const EmployeesPage = () => {
                             <div className="relative">
                               <input
                                 type="password"
+                                autoComplete="new-password"
                                 value="••••••••"
                                 readOnly
                                 onFocus={() => {
@@ -1778,6 +1781,10 @@ const EmployeesPage = () => {
                             <div className="relative">
                               <input
                                 type={showPassword ? 'text' : 'password'}
+                                name="employee-new-password"
+                                autoComplete="new-password"
+                                data-lpignore="true"
+                                data-1p-ignore="true"
                                 placeholder="Enter new password"
                                 value={basicData.password}
                                 onChange={(e) => setBasicData({ ...basicData, password: e.target.value })}
