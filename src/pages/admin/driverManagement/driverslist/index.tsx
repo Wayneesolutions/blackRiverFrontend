@@ -1877,6 +1877,11 @@ const DriverManagement = () => {
       errors.dateOfBirth = 'Date of Birth is required';
     }
 
+    // A new driver with app access needs their own PIN to log in
+    if (!editingId && formData.mobileApp && !formData.pin?.trim()) {
+      errors.pin = 'PIN is required when Mobile App is on';
+    }
+
     if (!formData.primaryPhone || !formData.primaryPhone.trim()) {
       errors.primaryPhone = 'Primary Phone Number is required';
     } else {
@@ -1954,6 +1959,7 @@ const DriverManagement = () => {
       if (errors.lastName) errorFields.push('Last Name');
       if (errors.emailAddress) errorFields.push('Email Address');
       if (errors.dateOfBirth) errorFields.push('Date of Birth');
+      if (errors.pin) errorFields.push('PIN');
       if (errors.primaryPhone) errorFields.push('Primary Phone');
       if (errors.country) errorFields.push('Country');
       if (errors.stateProvince) errorFields.push('Province/State');
@@ -1974,7 +1980,7 @@ const DriverManagement = () => {
       addNotification('error', errorMessage);
 
       // Switch to the tab with the first error
-      if (errors.firstName || errors.lastName || errors.emailAddress || errors.dateOfBirth || errors.primaryPhone || errors.country || errors.stateProvince) {
+      if (errors.firstName || errors.lastName || errors.emailAddress || errors.dateOfBirth || errors.pin || errors.primaryPhone || errors.country || errors.stateProvince) {
         setActiveFormTab('basic');
       } else if (errors.status) {
         setActiveFormTab('personal');
@@ -4512,8 +4518,11 @@ const DriverManagement = () => {
                               type={showPin ? 'text' : 'password'}
                               placeholder="Enter new PIN"
                               value={formData.pin}
-                              onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
-                              className="w-full px-2 py-1 pr-7 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                              onChange={(e) => {
+                                setFormData({ ...formData, pin: e.target.value });
+                                if (validationErrors.pin) setValidationErrors({ ...validationErrors, pin: '' });
+                              }}
+                              className={`w-full px-2 py-1 pr-7 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.pin ? 'border-[var(--accent-red)]' : 'border-theme'}`}
                               autoFocus
                             />
                             <button
@@ -4525,6 +4534,9 @@ const DriverManagement = () => {
                               {showPin ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                             </button>
                           </div>
+                        )}
+                        {validationErrors.pin && (
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.pin}</p>
                         )}
                       </div>
                     </div>
@@ -8304,10 +8316,12 @@ const DriverManagement = () => {
                             <AlertTriangle className="w-4 h-4 text-[#00FFA3] mt-0.5 flex-shrink-0" />
                             <div className="flex-1">
                               <p className="text-xs font-medium text-[var(--accent-orange)] mb-1">
-                                Complete Required Tests First
+                                {editingId ? 'Complete Required Tests First' : 'Save This Driver First'}
                               </p>
                               <p className="text-xs text-[var(--accent-orange)]">
-                                Driver must complete and have HR approval for VEHICLE and HOS tests before enabling driver flags.
+                                {editingId
+                                  ? 'Driver must complete and have HR approval for VEHICLE and HOS tests before enabling driver flags.'
+                                  : 'These options aren\'t needed to create the driver. To give app access, turn on Mobile App and set a PIN on the Basic tab, then save. VEHICLE and HOS tests appear in the driver app automatically. You can enable these options after HR approves both tests.'}
                               </p>
                             </div>
                           </div>
