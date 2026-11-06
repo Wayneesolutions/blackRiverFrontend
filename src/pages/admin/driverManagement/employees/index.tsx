@@ -13,6 +13,7 @@ import ImportButton from '../../../../components/common/ImportButton';
 import { getDocumentsByEmployee, updateEmployeeDocument, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
 import { deleteDeductionAddition } from '../../../../axios/api/account.settlement';
 import AddressSearch from '../../../../components/common/AddressSearch';
+import { COUNTRIES, sortByDialCodeMatch, type Country } from '../../../../utils/countries';
 
 interface Employee {
   _id?: string;
@@ -70,16 +71,6 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
     </div>
   );
 };
-
-// Country selector data for the phone field, cached at module scope so navigating
-// away from and back to this page doesn't re-hit the public restcountries.com API.
-interface Country {
-  name: string;
-  code: string;
-  flag: string;
-  dialCode: string;
-}
-let cachedCountries: Country[] | null = null;
 
 const EmployeesPage = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -187,7 +178,7 @@ const EmployeesPage = () => {
   const [editingAdditionId, setEditingAdditionId] = useState<string | null>(null);
 
   // Country selector state for phone (Country type + fetch cache declared at module scope above)
-  const [countries, setCountries] = useState<Country[]>(cachedCountries || []);
+  const countries = COUNTRIES;
   const [phoneCountry, setPhoneCountry] = useState<string>('US');
   const [phoneCountryDropdownOpen, setPhoneCountryDropdownOpen] = useState(false);
   const [phoneCountrySearch, setPhoneCountrySearch] = useState('');
@@ -198,7 +189,7 @@ const EmployeesPage = () => {
     if (!phone) return { countryCode: 'US', phoneNumber: '' };
 
     const cleanPhone = phone.trim();
-    const sortedCountries = [...countriesList].sort((a, b) => b.dialCode.length - a.dialCode.length);
+    const sortedCountries = sortByDialCodeMatch(countriesList);
 
     for (const country of sortedCountries) {
       if (cleanPhone.startsWith(country.dialCode)) {
@@ -211,44 +202,6 @@ const EmployeesPage = () => {
 
     return { countryCode: 'US', phoneNumber: cleanPhone.replace(/^\+1/, '').trim() };
   };
-
-  // Fetch countries data (skip the network call entirely if we already cached it this session)
-  useEffect(() => {
-    if (cachedCountries) return;
-
-    fetch('https://restcountries.com/v3.1/all?fields=name,flag,idd,cca2')
-      .then(res => res.json())
-      .then(data => {
-        const sortedCountries = data
-          .filter((c: any) => c.idd && c.idd.root)
-          .map((c: any) => ({
-            name: c.name.common,
-            code: c.cca2,
-            flag: c.flag,
-            dialCode: c.idd.root + (c.idd.suffixes ? c.idd.suffixes[0] : ''),
-          }))
-          .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
-
-        cachedCountries = sortedCountries;
-        setCountries(sortedCountries);
-        const defaultCountry = sortedCountries.find((c: Country) => c.code === 'US');
-        if (defaultCountry) {
-          setPhoneCountry('US');
-        }
-      })
-      .catch(() => {
-        const fallback = [
-          { name: 'United States', code: 'US', flag: '🇺🇸', dialCode: '+1' },
-          { name: 'Canada', code: 'CA', flag: '🇨🇦', dialCode: '+1' },
-          { name: 'India', code: 'IN', flag: '🇮🇳', dialCode: '+91' },
-          { name: 'United Kingdom', code: 'GB', flag: '🇬🇧', dialCode: '+44' },
-          { name: 'Australia', code: 'AU', flag: '🇦🇺', dialCode: '+61' },
-        ];
-        cachedCountries = fallback;
-        setCountries(fallback);
-        setPhoneCountry('US');
-      });
-  }, []);
 
   // Close dropdown on outside click
   useEffect(() => {
