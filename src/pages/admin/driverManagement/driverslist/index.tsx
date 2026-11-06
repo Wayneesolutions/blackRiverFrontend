@@ -1881,6 +1881,11 @@ const DriverManagement = () => {
     if (!editingId && formData.mobileApp && !formData.pin?.trim()) {
       errors.pin = 'PIN is required when Mobile App is on';
     }
+    // Turning on app access for an existing driver also needs a fresh PIN,
+    // so an old default password can never become a working login
+    if (editingId && originalDriverData && formData.mobileApp && !originalDriverData.formData.mobileApp && !formData.pin?.trim()) {
+      errors.pin = 'Set a new PIN when turning on Mobile App';
+    }
 
     if (!formData.primaryPhone || !formData.primaryPhone.trim()) {
       errors.primaryPhone = 'Primary Phone Number is required';
@@ -2037,7 +2042,9 @@ const DriverManagement = () => {
 
       if (formData.country) driverFormData.append('country', formData.country);
       if (formData.driverId) driverFormData.append('internalId', formData.driverId);
-      driverFormData.append('password', formData.pin || 'TempPassword123!'); // Default password if not provided
+      // Only send a PIN the user typed. With no PIN the backend stores a random
+      // secret, so the driver can't sign in until HR sets a real PIN.
+      if (formData.pin?.trim()) driverFormData.append('password', formData.pin.trim());
       driverFormData.append('role', 'driver');
       // Use status from personalData if available, otherwise default to 'active'
       const statusValue = personalData.status ? personalData.status.toLowerCase() : 'active';
@@ -4433,6 +4440,8 @@ const DriverManagement = () => {
                         </label>
                         <input
                           type="email"
+                          name="driver-email"
+                          autoComplete="off"
                           placeholder="Email Address"
                           value={formData.emailAddress}
                           onChange={(e) => {
@@ -4492,6 +4501,7 @@ const DriverManagement = () => {
                           <div className="relative">
                             <input
                               type="password"
+                              autoComplete="new-password"
                               value="••••••••"
                               readOnly
                               onFocus={() => {
@@ -4516,6 +4526,10 @@ const DriverManagement = () => {
                           <div className="relative">
                             <input
                               type={showPin ? 'text' : 'password'}
+                              name="driver-new-pin"
+                              autoComplete="new-password"
+                              data-lpignore="true"
+                              data-1p-ignore="true"
                               placeholder="Enter new PIN"
                               value={formData.pin}
                               onChange={(e) => {

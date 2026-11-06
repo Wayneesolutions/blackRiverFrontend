@@ -57,6 +57,7 @@ const TrainingContentView: React.FC = () => {
   const userRole = getUserRole();
   const userId = getUserId() || '';
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [trainingContent, setTrainingContent] = useState<TrainingContent[]>([]);
   const [qaContent, setQAContent] = useState<QAItem[]>([]);
   const [testTypes, setTestTypes] = useState<TestType[]>([]);
@@ -124,6 +125,8 @@ const TrainingContentView: React.FC = () => {
 
   const fetchAllData = async () => {
     setLoading(true);
+    setLoadError(null);
+    const errors: string[] = [];
     try {
       console.log('=== Fetching Training Data ===');
       console.log('User role:', userRole);
@@ -146,6 +149,7 @@ const TrainingContentView: React.FC = () => {
       } else {
         console.warn('Training content response not successful or not array:', contentResponse);
         setTrainingContent([]);
+        errors.push(contentResponse?.message || 'Could not load training materials.');
       }
 
       // Fetch question banks assigned to the target role
@@ -164,6 +168,7 @@ const TrainingContentView: React.FC = () => {
       } else {
         console.warn('Question banks response not successful or not array:', qaResponse);
         setQAContent([]);
+        errors.push(qaResponse?.message || 'Could not load Q&A content.');
       }
 
       console.log('=== Fetch Complete ===');
@@ -178,8 +183,11 @@ const TrainingContentView: React.FC = () => {
       // This would be done via a separate API call if available
     } catch (error) {
       console.error('Error fetching data:', error);
-      alert('Failed to load training content. Please refresh the page.');
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      errors.push(err?.response?.data?.message || err?.message || 'Failed to load training content.');
     } finally {
+      // Show the real reason instead of an empty "no materials" screen
+      if (errors.length > 0) setLoadError([...new Set(errors)].join(' '));
       setLoading(false);
     }
   };
@@ -363,6 +371,25 @@ const TrainingContentView: React.FC = () => {
             Training materials and Q&A for {roleLabel}
           </p>
         </div>
+
+        {loadError && (
+          <div role="alert" className="mb-6 flex items-start justify-between gap-4 rounded-lg border border-[var(--accent-red)] bg-card p-4">
+            <div className="flex items-start gap-3">
+              <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent-red)]" />
+              <div>
+                <p className="font-medium text-headings">Training content could not be loaded</p>
+                <p className="mt-1 text-sm text-secondary">{loadError}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={fetchAllData}
+              className="shrink-0 rounded-md border border-theme px-3 py-1.5 text-sm text-primary hover:bg-[var(--accent-navyblue)]/10"
+            >
+              Try again
+            </button>
+          </div>
+        )}
 
         {/* Training Materials Section */}
         <div className="bg-card rounded-lg shadow-sm mb-6">
