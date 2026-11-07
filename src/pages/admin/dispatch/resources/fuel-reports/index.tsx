@@ -26,6 +26,7 @@ import { FLEET_COLORS } from "../../../fleetMaintenance/colorUtils";
 import AddressSearch from "../../../../../components/common/AddressSearch";
 import { downloadExcel, MONEY_FMT, type ExcelColumn } from "../../../../../utils/excelExport";
 import { xlsxToCsvFile } from "../../../../../utils/spreadsheetToCsv";
+import { formatReportDate, reportDateKey, reportYearMonth, detectDateOrder, hasSlashDates, todayLocalISO } from "../../../../../utils/fuelDate";
 
 interface FuelReportType {
   _id: string;
@@ -126,7 +127,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
     currentOdometer: "",
     measurementUnit: "",
     currency: "USA",
-    date: new Date().toISOString().split('T')[0],
+    date: todayLocalISO(),
     fuelVendor: "",
     fuelAmount: "",
     status: "pending",
@@ -174,10 +175,14 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
   const [csvMapping, setCsvMapping] = useState<Record<string, string>>({});
   const [csvParsing, setCsvParsing] = useState(false);
   const [csvImporting, setCsvImporting] = useState(false);
-  const [csvImportResult, setCsvImportResult] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
+  const [csvImportResult, setCsvImportResult] = useState<{ success: number; failed: number; errors: string[]; warnings?: string[] } | null>(null);
   const [defaultUnitForImport, setDefaultUnitForImport] = useState<string>("");
   const [defaultCurrencyForImport, setDefaultCurrencyForImport] = useState<string>("USA");
   const [defaultProductForImport, setDefaultProductForImport] = useState<string>("");
+  // How slash dates like 05/11/2026 are read: 'MDY' = May 11, 'DMY' = 5 November
+  const [csvDateFormat, setCsvDateFormat] = useState<"MDY" | "DMY">("MDY");
+  const [csvDateDetected, setCsvDateDetected] = useState<"MDY" | "DMY" | null>(null);
+  const [csvHasSlashDates, setCsvHasSlashDates] = useState(false);
   const csvFileInputRef = useRef<HTMLInputElement>(null);
 
 
@@ -635,7 +640,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
     // Format date
     const reportDate = report.date
       ? (typeof report.date === 'string' ? report.date.split('T')[0] : new Date(report.date).toISOString().split('T')[0])
-      : new Date().toISOString().split('T')[0];
+      : todayLocalISO();
 
     setEditForm({
       unit: report.unit?._id || report.vehicle?._id || "",
@@ -685,7 +690,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
       currentOdometer: "",
       measurementUnit: "",
       currency: "USA",
-      date: new Date().toISOString().split('T')[0],
+      date: todayLocalISO(),
       fuelVendor: "",
       fuelAmount: "",
       status: "pending",
@@ -791,6 +796,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
         // Auto-map common column names (exact names first, each column used once)
         const autoMapping = autoMapFuelColumns(response.data.headers);
         setCsvMapping(autoMapping);
+        updateDateDetection(autoMapping.date, response.data.sampleRows);
       } else {
         messageApi.error(response?.message || 'Failed to read this file');
         setCsvFile(null);
@@ -803,6 +809,15 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
       setCsvParsing(false);
       e.target.value = '';
     }
+  };
+
+  // Guess the date format from the sample rows of the mapped Date column
+  const updateDateDetection = (dateColumn: string | undefined, rows: any[]) => {
+    const values = dateColumn ? rows.map((r) => r?.[dateColumn]) : [];
+    const detected = detectDateOrder(values);
+    setCsvHasSlashDates(hasSlashDates(values));
+    setCsvDateDetected(detected);
+    if (detected) setCsvDateFormat(detected);
   };
 
   const handleCsvImport = async () => {
@@ -831,7 +846,8 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
         csvMapping,
         defaultUnitForImport,
         defaultCurrencyForImport,
-        defaultProductForImport
+        defaultProductForImport,
+        csvDateFormat
       );
 
       if (response?.success) {
@@ -852,6 +868,9 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
             setDefaultUnitForImport("");
             setDefaultCurrencyForImport("USA");
             setDefaultProductForImport("");
+            setCsvDateFormat("MDY");
+            setCsvDateDetected(null);
+            setCsvHasSlashDates(false);
           }, 3000);
         }
       } else {
@@ -876,6 +895,9 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
     setDefaultUnitForImport("");
     setDefaultCurrencyForImport("USA");
     setDefaultProductForImport("");
+    setCsvDateFormat("MDY");
+    setCsvDateDetected(null);
+    setCsvHasSlashDates(false);
     if (csvFileInputRef.current) {
       csvFileInputRef.current.value = '';
     }
@@ -942,7 +964,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
   // Analytics use every report from this year, not just the visible page
   const currentYear = new Date().getFullYear();
   const yearReports = useMemo(
-    () => analyticsReports.filter((r) => new Date(r.date || r.createdAt).getFullYear() === currentYear),
+    () => analyticsReports.filter((r) => reportYearMonth(r)?.year === currentYear),
     [analyticsReports, currentYear]
   );
   const ytdConsumption = useMemo(() => yearReports.reduce((acc, r) => {
@@ -955,7 +977,8 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
       spend: 0,
     }));
     yearReports.forEach((r) => {
-      months[new Date(r.date || r.createdAt).getMonth()].spend += r.transactionAmount ?? (Number(r.cost) || 0);
+      const ym = reportYearMonth(r);
+      if (ym) months[ym.month].spend += r.transactionAmount ?? (Number(r.cost) || 0);
     });
     return months;
   }, [yearReports, currentYear]);
@@ -999,17 +1022,12 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
   // Filter by date range (client-side)
   const applyDateFilter = useCallback((list: FuelReportType[]) => {
     let filtered = list;
+    // Compare calendar days ('YYYY-MM-DD'), the same day the table shows
     if (startDateFilter) {
-      filtered = filtered.filter((r) => {
-        const d = r.date ? new Date(r.date) : new Date(r.createdAt);
-        return d >= new Date(startDateFilter);
-      });
+      filtered = filtered.filter((r) => reportDateKey(r) >= startDateFilter);
     }
     if (endDateFilter) {
-      filtered = filtered.filter((r) => {
-        const d = r.date ? new Date(r.date) : new Date(r.createdAt);
-        return d <= new Date(endDateFilter + "T23:59:59");
-      });
+      filtered = filtered.filter((r) => reportDateKey(r) <= endDateFilter);
     }
     return filtered;
   }, [startDateFilter, endDateFilter]);
@@ -1041,7 +1059,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
         return Number.isNaN(volume) ? '' : volume;
       };
       const columns: ExcelColumn<FuelReportType>[] = [
-        { header: 'Date', width: 13, value: (r) => new Date(r.date || r.createdAt).toLocaleDateString('en-CA') },
+        { header: 'Date', width: 13, value: (r) => formatReportDate(r, 'en-CA') },
         { header: 'Transaction #', width: 20, value: (r) => r.transactionNumber || r._id.slice(-8) },
         { header: 'Unit', width: 16, value: unitLabel },
         { header: 'Vendor', width: 20, value: (r) => r.fuelVendor || r.fuelVendors?.join(', ') },
@@ -1426,7 +1444,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                     return (
                       <tr key={report._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                         <td className="px-6 py-2 text-xs text-primary font-medium">
-                          {report.date ? new Date(report.date).toLocaleDateString() : new Date(report.createdAt).toLocaleDateString()}
+                          {formatReportDate(report)}
                         </td>
                         <td className="px-6 py-2 text-xs font-semibold text-primary">
                           {transactionNumber}
@@ -2295,7 +2313,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                 </div>
 
                 {/* Default Values */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1">
                       Default Unit {!csvMapping.unit && <span className="text-red-500">*</span>}
@@ -2343,6 +2361,25 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                       style={focusRingStyle}
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Date Format</label>
+                    <select
+                      value={csvDateFormat}
+                      onChange={(e) => setCsvDateFormat(e.target.value as "MDY" | "DMY")}
+                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent text-sm"
+                      style={focusRingStyle}
+                    >
+                      <option value="MDY">MM/DD/YYYY (11/05/2026 = Nov 5)</option>
+                      <option value="DMY">DD/MM/YYYY (05/11/2026 = Nov 5)</option>
+                    </select>
+                    <p className="mt-1 text-xs text-secondary">
+                      {!csvHasSlashDates
+                        ? 'Only used for dates like 05/11/2026'
+                        : csvDateDetected
+                          ? `Detected from the file: ${csvDateDetected === 'DMY' ? 'DD/MM/YYYY' : 'MM/DD/YYYY'}`
+                          : 'Could not tell from the sample rows. Check one date in the file.'}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Column Mapping */}
@@ -2354,7 +2391,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                         <label className="block text-xs font-medium text-primary mb-1">Date <span className="text-red-500">*</span></label>
                         <select
                           value={csvMapping.date || ""}
-                          onChange={(e) => setCsvMapping(prev => ({ ...prev, date: e.target.value }))}
+                          onChange={(e) => { setCsvMapping(prev => ({ ...prev, date: e.target.value })); updateDateDetection(e.target.value, csvSampleRows); }}
                           className="w-full px-2 py-1.5 border border-theme rounded-md text-xs"
                         >
                           <option value="">Select column...</option>
@@ -2557,6 +2594,13 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                       Import Result: <span className="text-green-600">{csvImportResult.success} successful</span>
                       {csvImportResult.failed > 0 && <span className="text-[#A855F7]">, {csvImportResult.failed} failed</span>}
                     </p>
+                    {(csvImportResult.warnings?.length ?? 0) > 0 && (
+                      <ul className="text-xs text-yellow-500 list-disc list-inside mb-2">
+                        {csvImportResult.warnings!.map((w, idx) => (
+                          <li key={idx}>{w}</li>
+                        ))}
+                      </ul>
+                    )}
                     {csvImportResult.errors.length > 0 && (
                       <div className="max-h-32 overflow-y-auto">
                         <p className="text-xs font-medium text-primary mb-1">Errors:</p>

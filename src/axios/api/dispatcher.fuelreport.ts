@@ -146,7 +146,7 @@ export const parseCsvHeaders = async (file: File) => {
   }
 }
 
-export const importFuelReportsFromCsv = async (file: File, columnMapping: Record<string, string>, defaultUnit?: string, defaultCurrency?: string, defaultProduct?: string) => {
+export const importFuelReportsFromCsv = async (file: File, columnMapping: Record<string, string>, defaultUnit?: string, defaultCurrency?: string, defaultProduct?: string, dateFormat?: 'MDY' | 'DMY') => {
   try {
     const formData = new FormData();
     formData.append('csv', file);
@@ -154,6 +154,7 @@ export const importFuelReportsFromCsv = async (file: File, columnMapping: Record
     if (defaultUnit) formData.append('defaultUnit', defaultUnit);
     if (defaultCurrency) formData.append('defaultCurrency', defaultCurrency);
     if (defaultProduct) formData.append('defaultProduct', defaultProduct);
+    if (dateFormat) formData.append('dateFormat', dateFormat);
 
     const res: AxiosResponse = await apiClient.post(`dispatcher/fuel-report/import-csv`, formData, {
       headers: {

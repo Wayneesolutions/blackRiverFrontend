@@ -1,7 +1,8 @@
 // Guess which CSV column fills each fuel report field.
 // Exact header names win over partial matches, and each column is used once,
-// so "Fuel Amount" goes to Fuel Amount (not Transaction Amount) and
-// "Units" (L / gal) never takes the place of "Unit" (the truck).
+// so "Fuel Amount" goes to Fuel Amount (not Transaction Amount),
+// "Units" (L / gal) never takes the place of "Unit" (the truck), and price
+// columns ("Price Per Gallon") never fill Fuel Amount.
 
 type FieldRule = {
   field: string;
@@ -10,9 +11,13 @@ type FieldRule = {
   exclude?: string[];
 };
 
+// Price-per-volume columns ("Price Per Gallon", "Price/Litre", "PPU") must never
+// be read as the fuel quantity or the transaction total.
+const PRICE_WORDS = ["price", "ppu", "ppg", "ppl", "per unit", "per gallon", "per litre", "per liter", "/gal", "/l", "rate"];
+
 const RULES: FieldRule[] = [
-  { field: "fuelAmount", exact: ["fuel amount", "fuel qty", "fuel quantity", "quantity", "qty", "volume", "litres", "liters", "gallons", "fuel volume"], contains: ["gallon", "litre", "liter", "volume", "quantity", "qty"] },
-  { field: "transactionAmount", exact: ["amount", "amt", "total amt", "transaction amount", "total", "total amount", "net amount", "cost", "total cost", "price total"], contains: ["amount", "total", "cost"], exclude: ["fuel amount", "unit price", "ppu", "per unit"] },
+  { field: "fuelAmount", exact: ["fuel amount", "fuel qty", "fuel quantity", "quantity", "qty", "volume", "litres", "liters", "gallons", "fuel volume"], contains: ["gallon", "litre", "liter", "volume", "quantity", "qty"], exclude: PRICE_WORDS },
+  { field: "transactionAmount", exact: ["amount", "amt", "total amt", "transaction amount", "total", "total amount", "net amount", "cost", "total cost", "price total"], contains: ["amount", "total", "cost"], exclude: ["fuel amount", "unit cost", "cost per", ...PRICE_WORDS] },
   { field: "date", exact: ["date", "transaction date", "trans date", "purchase date", "fuel date"], contains: ["date"] },
   { field: "transactionNumber", exact: ["transaction #", "transaction number", "transaction no", "transaction id", "trx #", "receipt #", "receipt number", "invoice #", "invoice number"], contains: ["transaction", "receipt", "invoice", "trx"] },
   { field: "measurementUnit", exact: ["units", "uom", "unit of measure", "measure", "volume unit", "fuel unit"] },
