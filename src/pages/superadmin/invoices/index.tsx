@@ -17,9 +17,10 @@ import {
   Plus,
   ExternalLink,
   Receipt,
+  Mail,
 } from 'lucide-react';
 import { Modal, Button, message, Input, Select, Tag } from 'antd';
-import { getSuperAdminInvoices, getSuperAdminSettings, updateSuperAdminInvoice } from '../../../axios/api/superadmin';
+import { emailSuperAdminInvoice, getSuperAdminInvoices, getSuperAdminSettings, updateSuperAdminInvoice } from '../../../axios/api/superadmin';
 import RowActionMenu from '../../../components/common/RowActionMenu';
 import CreateInvoiceModal from './CreateInvoiceModal';
 import { invoiceCycleLabel, invoiceEndDate } from './billingCycle';
@@ -61,6 +62,8 @@ interface Invoice {
   source?: 'stripe' | 'manual';
   paidAt?: string;
   invoiceStatus: 'generated' | 'cancelled';
+  emailedAt?: string;
+  emailedTo?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;
@@ -80,6 +83,9 @@ const InvoicesPage = () => {
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('all');
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState<string>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [emailInvoice, setEmailInvoice] = useState<Invoice | null>(null);
+  const [emailTo, setEmailTo] = useState('');
+  const [emailSending, setEmailSending] = useState(false);
 
   useEffect(() => {
     fetchInvoices();
@@ -150,7 +156,7 @@ const InvoicesPage = () => {
     messageApi.success('Invoice number copied to clipboard');
   };
 
-  const handleExport = async (invoice: Invoice) => {
+  const buildInvoicePdf = async (invoice: Invoice) => {
     try {
       // Fetch superadmin settings for company information
       let companyInfo: any = null;
@@ -467,11 +473,54 @@ const InvoicesPage = () => {
 
       // Save PDF
       const fileName = `Invoice_${invoice.invoiceNumber}_${new Date().toISOString().split('T')[0]}.pdf`;
+      return { doc, fileName };
+    } catch (error) {
+      console.error('Error building invoice PDF:', error);
+      throw error;
+    }
+  };
+
+  const handleExport = async (invoice: Invoice) => {
+    try {
+      const { doc, fileName } = await buildInvoicePdf(invoice);
       doc.save(fileName);
       messageApi.success('Invoice exported successfully');
     } catch (error: any) {
       console.error('Error exporting invoice:', error);
       messageApi.error('Failed to export invoice. Please try again.');
+    }
+  };
+
+  const openEmailModal = (invoice: Invoice) => {
+    setEmailTo(invoice.emailedTo || invoice.admin?.email || '');
+    setEmailInvoice(invoice);
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailInvoice || emailSending) return;
+    const to = emailTo.trim();
+    if (!to) {
+      messageApi.error('Enter the email address to send this invoice to');
+      return;
+    }
+    setEmailSending(true);
+    try {
+      const { doc } = await buildInvoicePdf(emailInvoice);
+      const pdfBase64 = String(doc.output('datauristring')).split(',')[1];
+      const response = await emailSuperAdminInvoice(emailInvoice._id, { to, pdfBase64 });
+      if (response?.success) {
+        messageApi.success(response.message || `Invoice emailed to ${to}`);
+        setInvoices(prev => prev.map(i => (i._id === emailInvoice._id ? { ...i, emailedAt: response.data?.emailedAt, emailedTo: response.data?.emailedTo } : i)));
+        setSelectedInvoice(prev => (prev?._id === emailInvoice._id ? { ...prev, emailedAt: response.data?.emailedAt, emailedTo: response.data?.emailedTo } : prev));
+        setEmailInvoice(null);
+      } else {
+        messageApi.error(response?.message || 'The invoice could not be emailed');
+      }
+    } catch (error) {
+      console.error('Error emailing invoice:', error);
+      messageApi.error('The invoice could not be emailed. Please try again.');
+    } finally {
+      setEmailSending(false);
     }
   };
 
@@ -950,6 +999,12 @@ const InvoicesPage = () => {
                         <div className="text-xs text-secondary">
                           {new Date(invoice.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                         </div>
+                        {invoice.emailedAt && (
+                          <div className="text-xs text-secondary flex items-center gap-1 mt-0.5" title={`Sent to ${invoice.emailedTo || ''}`}>
+                            <Mail className="w-3 h-3" />
+                            Emailed {new Date(invoice.emailedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </div>
+                        )}
                       </td>
 
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -966,6 +1021,12 @@ const InvoicesPage = () => {
                               { label: 'Copy Invoice #', icon: <Copy className="w-4 h-4" />, onClick: () => handleCopyInvoiceNumber(invoice.invoiceNumber) },
                               { label: 'Copy Invoice ID', icon: <Copy className="w-4 h-4" />, onClick: () => handleCopyId(invoice._id) },
                               { label: 'Export Invoice', icon: <Download className="w-4 h-4" />, onClick: () => handleExport(invoice) },
+                              {
+                                label: 'Email Invoice',
+                                icon: <Mail className="w-4 h-4" />,
+                                hidden: invoice.invoiceStatus === 'cancelled',
+                                onClick: () => openEmailModal(invoice),
+                              },
                               {
                                 label: 'Mark as Paid',
                                 icon: <CheckCircle className="w-4 h-4" />,
@@ -1050,6 +1111,21 @@ const InvoicesPage = () => {
           >
             Close
           </Button>,
+          ...(selectedInvoice && selectedInvoice.invoiceStatus !== 'cancelled' ? [
+            <Button
+              key="email"
+              icon={<Mail style={{ width: '16px', height: '16px' }} />}
+              onClick={() => openEmailModal(selectedInvoice)}
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                color: '#e2e8f0',
+                borderRadius: '8px',
+              }}
+            >
+              Email
+            </Button>,
+          ] : []),
           <Button
             key="export"
             type="primary"
@@ -1318,6 +1394,42 @@ const InvoicesPage = () => {
             </div>
 
           </div>
+        )}
+      </Modal>
+
+      {/* Email invoice */}
+      <Modal
+        title={<span style={{ color: '#f1f5f9' }}>Email invoice {emailInvoice?.invoiceNumber}</span>}
+        open={!!emailInvoice}
+        onCancel={() => { if (!emailSending) setEmailInvoice(null); }}
+        onOk={handleSendEmail}
+        okText={emailSending ? 'Sending...' : 'Send email'}
+        okButtonProps={{ disabled: emailSending }}
+        cancelButtonProps={{ disabled: emailSending }}
+        destroyOnHidden
+        styles={{
+          content: { backgroundColor: '#0f1623', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px' },
+          header: { backgroundColor: '#0f1623' },
+        }}
+      >
+        <label htmlFor="invoice-email-to" className="block text-sm mb-1.5" style={{ color: '#94a3b8' }}>Send to</label>
+        <input
+          id="invoice-email-to"
+          type="email"
+          autoFocus
+          value={emailTo}
+          onChange={(e) => setEmailTo(e.target.value)}
+          placeholder="customer@example.com"
+          className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+          style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', color: '#f1f5f9' }}
+        />
+        <p className="text-xs mt-2" style={{ color: '#94a3b8' }}>
+          The customer gets the invoice as a PDF, the same file as Export Invoice.
+        </p>
+        {emailInvoice?.emailedAt && (
+          <p className="text-xs mt-1" style={{ color: '#fbbf24' }}>
+            Already sent to {emailInvoice.emailedTo} on {new Date(emailInvoice.emailedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.
+          </p>
         )}
       </Modal>
     </div>
