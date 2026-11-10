@@ -73,6 +73,7 @@ interface InsuranceClaim {
   location?: string;
   notes?: string;
   documents?: string[];
+  documentLinks?: Array<{ key: string; name: string; url: string }>;
   createdAt: string;
   updatedAt: string;
 }
@@ -182,6 +183,9 @@ const InsuranceClaims: React.FC = () => {
 
   const [notifications, setNotifications] = useState<Array<{ id: number; type: 'success' | 'error' | 'info'; message: string }>>([]);
   const [notificationId, setNotificationId] = useState(0);
+
+  const [newDocuments, setNewDocuments] = useState<File[]>([]);
+  const [removedDocuments, setRemovedDocuments] = useState<string[]>([]);
 
   const [claimForm, setClaimForm] = useState<ClaimForm>({
     claimNumber: '',
@@ -348,6 +352,9 @@ const InsuranceClaims: React.FC = () => {
   };
 
   const handleAdd = () => {
+    setSelectedClaim(null);
+    setNewDocuments([]);
+    setRemovedDocuments([]);
     setClaimForm({
       claimNumber: '',
       accidentNumber: '',
@@ -372,6 +379,8 @@ const InsuranceClaims: React.FC = () => {
 
   const handleEdit = (claim: InsuranceClaim) => {
     setSelectedClaim(claim);
+    setNewDocuments([]);
+    setRemovedDocuments([]);
     setClaimForm({
       claimNumber: claim.claimNumber || '',
       accidentNumber: claim.accidentNumber || '',
@@ -409,12 +418,17 @@ const InsuranceClaims: React.FC = () => {
     setLoading(true);
     try {
       const { createInsuranceClaim, updateInsuranceClaim } = await import('../../../../axios/api/insuranceClaim');
-      const claimData = {
+      // Sent as multipart so document files can go with the claim
+      const claimData = new FormData();
+      Object.entries({
         ...claimForm,
-        amount: parseFloat(claimForm.amount) || 0,
-        deductible: parseFloat(claimForm.deductible) || 0,
-        claimAmount: (parseFloat(claimForm.amount) || 0) - (parseFloat(claimForm.deductible) || 0)
-      };
+        amount: String(parseFloat(claimForm.amount) || 0),
+        deductible: String(parseFloat(claimForm.deductible) || 0),
+      }).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) claimData.append(key, String(value));
+      });
+      newDocuments.forEach((file) => claimData.append('documents', file));
+      if (removedDocuments.length > 0) claimData.append('removeDocuments', JSON.stringify(removedDocuments));
 
       if (selectedClaim) {
         const response = await updateInsuranceClaim(selectedClaim._id, claimData);
@@ -1258,6 +1272,58 @@ const InsuranceClaims: React.FC = () => {
                     placeholder="Additional notes..."
                   />
                 </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
+                    Documents (PDF / images)
+                  </label>
+                  {showEditModal && selectedClaim?.documentLinks && selectedClaim.documentLinks.filter((d) => !removedDocuments.includes(d.key)).length > 0 && (
+                    <div className="mb-2 space-y-1">
+                      {selectedClaim.documentLinks
+                        .filter((d) => !removedDocuments.includes(d.key))
+                        .map((d) => (
+                          <div key={d.key} className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg border border-theme">
+                            <a href={d.url} target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--accent-blue)] underline truncate">
+                              {d.name}
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => setRemovedDocuments((prev) => [...prev, d.key])}
+                              className="text-xs text-[var(--accent-red)] hover:underline"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    multiple
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      if (files.length) setNewDocuments((prev) => [...prev, ...files]);
+                      e.target.value = '';
+                    }}
+                    className="w-full px-4 py-2 border border-theme rounded-lg text-sm file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-[var(--accent-navyblue)] file:text-white"
+                  />
+                  {newDocuments.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {newDocuments.map((file, i) => (
+                        <div key={`${file.name}-${i}`} className="flex items-center justify-between text-sm px-3 py-1 rounded border border-theme">
+                          <span className="truncate text-primary">{file.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => setNewDocuments((prev) => prev.filter((_, idx) => idx !== i))}
+                            className="text-xs text-[var(--accent-red)] hover:underline"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex items-center justify-end gap-4 pt-4 border-t border-theme">
                 <button
@@ -1393,6 +1459,20 @@ const InsuranceClaims: React.FC = () => {
                     <p className="text-primary whitespace-pre-wrap">{selectedClaim.notes}</p>
                   </div>
                 )}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-secondary mb-1">Documents</label>
+                  {selectedClaim.documentLinks && selectedClaim.documentLinks.length > 0 ? (
+                    <div className="space-y-1">
+                      {selectedClaim.documentLinks.map((d) => (
+                        <a key={d.key} href={d.url} target="_blank" rel="noopener noreferrer" className="block text-sm text-[var(--accent-blue)] underline truncate">
+                          {d.name}
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-secondary">No documents attached.</p>
+                  )}
+                </div>
               </div>
               <div className="flex items-center justify-end gap-4 pt-4 border-t border-theme">
                 <button

@@ -254,14 +254,33 @@ export const saveCarrierProfileData = async (extractedData: any) => {
   }
 };
 
-export const getCarrierPerformance = async (params?: { year?: number; months?: number }) => {
+export const getCarrierPerformance = async (params?: { country?: 'canada' | 'usa' }) => {
   try {
     const queryParams = new URLSearchParams();
-    if (params?.year) queryParams.append('year', params.year.toString());
-    if (params?.months) queryParams.append('months', params.months.toString());
-    
+    if (params?.country) queryParams.append('country', params.country);
+
     const url = `admin/cvsa-inspections/carrier-performance${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const getCarrierProfileImports = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('admin/cvsa-inspections/carrier-profile-imports');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const deleteCarrierProfileImport = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`admin/cvsa-inspections/carrier-profile-imports/${id}`);
     return res.data;
   } catch (error) {
     console.log(error);
