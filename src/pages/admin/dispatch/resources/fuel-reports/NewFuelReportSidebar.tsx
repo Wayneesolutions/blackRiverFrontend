@@ -5,6 +5,7 @@ import { createFuelReport } from '../../../../../axios/api/dispatcher.places';
 import { getFuelTypes, createFuelType, getUnits, createUnit, getFuelVendors, createFuelVendor, extractFuelReceipt } from '../../../../../axios/api/dispatcher.fuelreport';
 import { FLEET_COLORS } from '../../../fleetMaintenance/colorUtils';
 import AddressSearch from '../../../../../components/common/AddressSearch';
+import { todayLocalISO } from '../../../../../utils/fuelDate';
 
 interface FleetUnitOption {
     id: string;
@@ -44,7 +45,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
         currentOdometer: '',
         measurementUnit: '',
         currency: 'USA',
-        date: new Date().toISOString().split('T')[0],
+        date: todayLocalISO(),
         fuelVendor: '',
         fuelAmount: '',
         status: 'pending',
@@ -57,7 +58,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                 ...prev,
                 transactionAmount: initialData.transactionAmount ? initialData.transactionAmount.toString() : prev.transactionAmount,
                 fuelAmount: initialData.fuelAmount ? initialData.fuelAmount.toString() : prev.fuelAmount,
-                date: initialData.date || prev.date || new Date().toISOString().split('T')[0],
+                date: initialData.date || prev.date || todayLocalISO(),
                 fuelVendor: initialData.fuelVendor || prev.fuelVendor,
                 transactionNumber: initialData.transactionNumber || prev.transactionNumber,
                 product: initialData.product || prev.product || prev.type,
@@ -188,7 +189,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                 currentOdometer: '',
                 measurementUnit: '',
                 currency: 'USA',
-                date: new Date().toISOString().split('T')[0],
+                date: todayLocalISO(),
                 fuelVendor: '',
                 fuelAmount: '',
                 status: 'pending',
@@ -335,7 +336,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                     ...prev,
                     transactionAmount: data.transactionAmount ? data.transactionAmount.toString() : prev.transactionAmount,
                     fuelAmount: data.fuelAmount ? data.fuelAmount.toString() : prev.fuelAmount,
-                    date: data.date || prev.date || new Date().toISOString().split('T')[0],
+                    date: data.date || prev.date || todayLocalISO(),
                     fuelVendor: data.fuelVendor || prev.fuelVendor,
                     transactionNumber: data.transactionNumber || prev.transactionNumber,
                     product: data.product || prev.product || prev.type,

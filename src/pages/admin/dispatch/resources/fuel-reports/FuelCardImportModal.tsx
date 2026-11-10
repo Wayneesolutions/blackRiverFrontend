@@ -54,7 +54,8 @@ const STATUS_CONFIG = {
 
 const fmt = (n?: number) => (n !== undefined && n !== null ? n.toFixed(2) : '—');
 const fmtDate = (iso: string) => {
-  try { return new Date(iso).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: '2-digit' }); }
+  // Statement dates are calendar days stored as UTC midnight: read them in UTC
+  try { return new Date(iso).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: '2-digit', timeZone: 'UTC' }); }
   catch { return iso; }
 };
 
