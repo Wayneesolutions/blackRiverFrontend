@@ -19,10 +19,13 @@ import {
   FaFlagUsa,
   FaTimes,
   FaChevronLeft,
-  FaChevronRight
+  FaChevronRight,
+  FaPaperclip,
+  FaFilePdf
 } from 'react-icons/fa';
 import {
   getCvsaInspections,
+  getCvsaInspectionById,
   getCvsaInspectionStats,
   createCvsaInspection,
   updateCvsaInspection,
@@ -595,6 +598,63 @@ const CvsaInspection: React.FC = () => {
     setShowViewModal(true);
   };
 
+  // Quick PDF / image attach for an existing inspection (table row or detail view)
+  const attachInputRef = useRef<HTMLInputElement>(null);
+  const [attachTarget, setAttachTarget] = useState<Inspection | null>(null);
+  const [attachingId, setAttachingId] = useState<string | null>(null);
+
+  const openAttachPicker = (inspection: Inspection) => {
+    setAttachTarget(inspection);
+    attachInputRef.current?.click();
+  };
+
+  const reloadInspection = async (id: string) => {
+    await refreshData(true, currentPage, pageSize);
+    const fresh = await getCvsaInspectionById(id);
+    if (fresh?.success && fresh.data) {
+      setSelectedInspection((prev) => (prev && prev._id === id ? fresh.data : prev));
+    }
+  };
+
+  const handleAttachFiles = async (files: File[]) => {
+    const target = attachTarget;
+    if (!target || files.length === 0) return;
+    const formData = new FormData();
+    files.forEach((file) => formData.append('documents', file));
+    setAttachingId(target._id);
+    try {
+      const res = await updateCvsaInspection(target._id, formData);
+      if (res?.success) {
+        addNotification('success', `${files.length} file${files.length === 1 ? '' : 's'} attached to ${target.inspectionId || 'inspection'}`);
+        await reloadInspection(target._id);
+      } else {
+        addNotification('error', res?.message || 'Failed to attach file');
+      }
+    } catch (error: any) {
+      addNotification('error', error?.message || 'Failed to attach file');
+    } finally {
+      setAttachingId(null);
+      setAttachTarget(null);
+    }
+  };
+
+  const handleRemoveDocument = async (inspection: Inspection, documentUrl: string) => {
+    const formData = new FormData();
+    formData.append('removeDocuments', JSON.stringify([documentUrl]));
+    setAttachingId(inspection._id);
+    try {
+      const res = await updateCvsaInspection(inspection._id, formData);
+      if (res?.success) {
+        addNotification('success', 'Document removed');
+        await reloadInspection(inspection._id);
+      } else {
+        addNotification('error', res?.message || 'Failed to remove document');
+      }
+    } finally {
+      setAttachingId(null);
+    }
+  };
+
   const resetForm = () => {
     setInspectionForm({
       country: 'canada',
@@ -995,6 +1055,19 @@ const CvsaInspection: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-10 bg-main" >
+      {/* Hidden picker used by the "Attach PDF" buttons */}
+      <input
+        ref={attachInputRef}
+        type="file"
+        accept=".pdf,.jpg,.jpeg,.png"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          const files = Array.from(e.target.files || []);
+          e.target.value = '';
+          handleAttachFiles(files);
+        }}
+      />
       {/* Toast Notifications Container - High z-index to be above modal */}
       <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
         {notifications.map(notification => (
@@ -1493,6 +1566,19 @@ const CvsaInspection: React.FC = () => {
                           <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-card z-10" onClick={(e) => e.stopPropagation()}>
                             <div className="flex gap-2">
                               <button
+                                onClick={() => openAttachPicker(inspection)}
+                                disabled={attachingId === inspection._id}
+                                className="relative text-[var(--accent-color)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors disabled:opacity-50"
+                                title={inspection.documents?.length ? `${inspection.documents.length} document(s) attached — click to attach more` : 'Attach PDF'}
+                              >
+                                <FaPaperclip size={16} className={inspection.documents?.length ? 'text-[var(--accent-blue)]' : 'text-headings'} />
+                                {!!inspection.documents?.length && (
+                                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[var(--accent-blue)] text-white text-[10px] leading-4 text-center">
+                                    {inspection.documents.length}
+                                  </span>
+                                )}
+                              </button>
+                              <button
                                 onClick={() => handleViewInspection(inspection)}
                                 className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
                                 title="View Details"
@@ -1763,25 +1849,43 @@ const CvsaInspection: React.FC = () => {
                 )}
 
                 {/* Documentation */}
-                {(selectedInspection.documentLink || (selectedInspection.documents && selectedInspection.documents.length > 0)) && (
+                {(
                   <div className="bg-[var(--accent-soft)] rounded-lg p-3">
-                    <h4 className="text-xs font-bold text-primary mb-2">Documentation</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-xs font-bold text-primary">Documentation</h4>
+                      <button
+                        type="button"
+                        onClick={() => openAttachPicker(selectedInspection)}
+                        disabled={attachingId === selectedInspection._id}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[var(--accent-navyblue)] !text-white text-xs hover:opacity-90 disabled:opacity-50"
+                      >
+                        <FaPaperclip size={11} /> {attachingId === selectedInspection._id ? 'Uploading…' : 'Upload PDF'}
+                      </button>
+                    </div>
                     {selectedInspection.documents && selectedInspection.documents.length > 0 ? (
                       <div className="space-y-2">
                         {selectedInspection.documents.map((doc: any, index: number) => {
                           const documentUrl = doc.signedUrl || doc.documentUrl;
-                          const fileName = doc.documentUrl?.split('/').pop() || `Document ${index + 1}`;
+                          const fileName = (doc.documentUrl?.split('/').pop() || `Document ${index + 1}`).replace(/^\d{10,}-/, '');
                           return (
-                            <div key={index}>
-                              <label className="block text-xs font-medium text-secondary mb-0.5">Document {index + 1}</label>
+                            <div key={index} className="flex items-center justify-between gap-2">
                               <a
                                 href={documentUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm font-semibold text-[var(--accent-color)] hover:text-[var(--accent-dark)] underline break-all cursor-pointer"
+                                className="flex items-center gap-2 text-sm font-semibold text-[var(--accent-color)] hover:text-[var(--accent-dark)] underline break-all cursor-pointer"
                               >
-                                {fileName}
+                                <FaFilePdf className="flex-shrink-0" /> {fileName}
                               </a>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveDocument(selectedInspection, doc.documentUrl)}
+                                disabled={attachingId === selectedInspection._id}
+                                className="p-1 rounded hover:bg-red-500/20"
+                                title="Remove document"
+                              >
+                                <FaTrash size={11} className="text-[var(--accent-red)]" />
+                              </button>
                             </div>
                           );
                         })}
@@ -1798,7 +1902,9 @@ const CvsaInspection: React.FC = () => {
                           {selectedInspection.documentLink}
                         </a>
                       </div>
-                    ) : null}
+                    ) : (
+                      <p className="text-xs text-secondary">No documents attached yet.</p>
+                    )}
                   </div>
                 )}
 

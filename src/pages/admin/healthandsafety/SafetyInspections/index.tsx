@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ExcelJS from 'exceljs';
+import AddressSearch from '../../../../components/common/AddressSearch';
 import {
   FaClipboardCheck, FaCheckCircle, FaPlus, FaEye,
   FaSearch, FaMapMarkerAlt, FaUser,
@@ -195,6 +196,243 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
     </div>
   );
 };
+
+// Defined outside the page component so it keeps its own state: when it was
+// declared inside the page, every page re-render (a toast appearing or
+// disappearing, a list refresh) created a new component and wiped what the user
+// had typed — including the location.
+interface NewInspectionModalProps {
+  editing?: Inspection | null;
+  onClose: () => void;
+  onCreate: (data: any) => Promise<void>;
+  onUpdate: (id: string, data: any) => Promise<void>;
+  onValidationError: (message: string) => void;
+}
+
+const NewInspectionModal = ({ editing, onClose, onCreate, onUpdate, onValidationError }: NewInspectionModalProps) => {
+  const [selectedType, setSelectedType] = useState(editing?.type || '');
+  const [selectedLocation, setSelectedLocation] = useState(editing?.location || '');
+  const [selectedInspector, setSelectedInspector] = useState(editing?.inspector || '');
+  const [scheduledDate, setScheduledDate] = useState(
+    editing?.scheduledDate || ''
+  );
+  const [dueDate, setDueDate] = useState(
+    editing?.dueDate || editing?.scheduledDate || ''
+  );
+  const [priority, setPriority] = useState(editing?.priority || 'medium');
+  const [notes, setNotes] = useState(editing?.notes || '');
+  const [saving, setSaving] = useState(false);
+
+  // Update form when editing changes
+  useEffect(() => {
+    if (editing) {
+      setSelectedType(editing.type || '');
+      setSelectedLocation(editing.location || '');
+      setSelectedInspector(editing.inspector || '');
+      setScheduledDate(editing.scheduledDate || '');
+      setDueDate(editing.dueDate || editing.scheduledDate || '');
+      setPriority(editing.priority || 'medium');
+      setNotes(editing.notes || '');
+    } else {
+      // Reset form when not editing
+      setSelectedType('');
+      setSelectedLocation('');
+      setSelectedInspector('');
+      setScheduledDate('');
+      setDueDate('');
+      setPriority('medium');
+      setNotes('');
+    }
+  }, [editing]);
+
+  return (
+    <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-card">
+          <h2 className="text-2xl font-bold text-primary">
+            {editing ? 'Edit Inspection' : 'Schedule New Inspection'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-secondary hover:text-primary"
+          >
+            <FaTimes size={24} />
+          </button>
+        </div>
+
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-primary">Inspection Type *</label>
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
+              >
+                <option className='form-option' value="">Select Type...</option>
+                {INSPECTION_TYPES.map(type => (
+                  <option className='form-option' key={type.value} value={type.value}>
+                    {type.icon} {type.value} - {type.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-primary">Location *</label>
+              <AddressSearch
+                label=""
+                placeholder="Search address, or type e.g. Warehouse A, Trailer #4587"
+                value={selectedLocation}
+                onAddressSelect={(addr) => setSelectedLocation(addr.fullAddress)}
+                onChange={(val) => setSelectedLocation(val)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-primary">Scheduled Date *</label>
+              <input
+                type="date"
+                value={scheduledDate}
+                onChange={(e) => setScheduledDate(e.target.value)}
+                className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-primary">Due Date *</label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-primary">Inspector *</label>
+              <input
+                type="text"
+                value={selectedInspector}
+                onChange={(e) => setSelectedInspector(e.target.value)}
+                placeholder="Enter inspector name"
+                className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-primary">Priority</label>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as any)}
+                className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
+              >
+                <option className='form-option' value="low">Low</option>
+                <option className='form-option' value="medium">Medium</option>
+                <option className='form-option' value="high">High</option>
+                <option className='form-option' value="critical">Critical</option>
+              </select>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold mb-2 text-primary">Notes</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                placeholder="Additional notes..."
+                className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          {selectedType && CHECKLIST_TEMPLATES[selectedType as ChecklistTemplateKey] && (
+            <div className="bg-card border border-blue-200 rounded-lg p-4 mb-6">
+              <h3 className="font-semibold text-blue-900 mb-3">📋 Standard Checklist Preview</h3>
+              <div className="space-y-2">
+                {CHECKLIST_TEMPLATES[selectedType as ChecklistTemplateKey].slice(0, 3).map((item: ChecklistTemplateItem, idx: number) => (
+                  <div key={idx} className="flex items-center gap-2 text-sm text-blue-800">
+                    <FaCheckCircle className="text-[#00D1FF]" />
+                    <span>{item.question}</span>
+                    {item.photoRequired && <FaCamera className="text-blue-400" size={12} />}
+                  </div>
+                ))}
+                <p className="text-xs text-[#00D1FF] mt-2">
+                  + {CHECKLIST_TEMPLATES[selectedType as ChecklistTemplateKey].length - 3} more items
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-4">
+            <button
+              onClick={async () => {
+                if (!selectedType || !selectedLocation || !selectedInspector || !scheduledDate) {
+                  onValidationError('Please fill in all required fields');
+                  return;
+                }
+
+                setSaving(true);
+                try {
+                  if (editing) {
+                    // Update existing inspection
+                    await onUpdate(editing._id, {
+                      type: selectedType,
+                      location: selectedLocation,
+                      inspector: selectedInspector,
+                      date: scheduledDate,
+                      scheduledDate: scheduledDate,
+                      notes: notes,
+                      status: editing.status
+                    });
+                  } else {
+                    // Create new inspection
+                    await onCreate({
+                      type: selectedType,
+                      location: selectedLocation,
+                      inspector: selectedInspector,
+                      date: scheduledDate,
+                      scheduledDate: scheduledDate,
+                      dueDate: dueDate || scheduledDate,
+                      priority: priority,
+                      notes: notes,
+                      status: 'scheduled'
+                    });
+                  }
+                } catch (error) {
+                  console.error('Error in save inspection:', error);
+                } finally {
+                  setSaving(false);
+                }
+              }}
+              disabled={saving || !selectedType || !selectedLocation || !selectedInspector || !scheduledDate}
+              className="bg-[var(--accent-navyblue)] flex-1 px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              
+            >
+              {saving ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  {editing ? 'Updating...' : 'Creating...'}
+                </>
+              ) : (
+                <>
+                  <FaPlus /> {editing ? 'Update Inspection' : 'Schedule Inspection'}
+                </>
+              )}
+            </button>
+            <button
+              onClick={onClose}
+              className="px-6 py-3 bg-gray-200 !text-black rounded-lg font-semibold hover:bg-gray-300 transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 const SafetyInspections: React.FC = () => {
   const [inspections, setInspections] = useState<Inspection[]>([]);
@@ -512,244 +750,6 @@ const SafetyInspections: React.FC = () => {
       addNotification('error', errorMsg);
       console.error('Delete inspection exception:', error);
     }
-  };
-
-  const NewInspectionModal = ({ editing }: { editing?: Inspection | null }) => {
-    const [selectedType, setSelectedType] = useState(editing?.type || '');
-    const [selectedLocation, setSelectedLocation] = useState(editing?.location || '');
-    const [selectedInspector, setSelectedInspector] = useState(editing?.inspector || '');
-    const [scheduledDate, setScheduledDate] = useState(
-      editing?.scheduledDate || ''
-    );
-    const [dueDate, setDueDate] = useState(
-      editing?.dueDate || editing?.scheduledDate || ''
-    );
-    const [priority, setPriority] = useState(editing?.priority || 'medium');
-    const [notes, setNotes] = useState(editing?.notes || '');
-    const [saving, setSaving] = useState(false);
-
-    // Update form when editing changes
-    useEffect(() => {
-      if (editing) {
-        setSelectedType(editing.type || '');
-        setSelectedLocation(editing.location || '');
-        setSelectedInspector(editing.inspector || '');
-        setScheduledDate(editing.scheduledDate || '');
-        setDueDate(editing.dueDate || editing.scheduledDate || '');
-        setPriority(editing.priority || 'medium');
-        setNotes(editing.notes || '');
-      } else {
-        // Reset form when not editing
-        setSelectedType('');
-        setSelectedLocation('');
-        setSelectedInspector('');
-        setScheduledDate('');
-        setDueDate('');
-        setPriority('medium');
-        setNotes('');
-      }
-    }, [editing]);
-
-    return (
-      <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-card">
-            <h2 className="text-2xl font-bold text-primary">
-              {editing ? 'Edit Inspection' : 'Schedule New Inspection'}
-            </h2>
-            <button
-              onClick={() => {
-                setShowNewInspectionModal(false);
-                setEditingInspection(null);
-              }}
-              className="text-secondary hover:text-primary"
-            >
-              <FaTimes size={24} />
-            </button>
-          </div>
-
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-primary">Inspection Type *</label>
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option className='form-option' value="">Select Type...</option>
-                  {INSPECTION_TYPES.map(type => (
-                    <option className='form-option' key={type.value} value={type.value}>
-                      {type.icon} {type.value} - {type.description}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-primary">Location *</label>
-                <input
-                  type="text"
-                  value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
-                  placeholder="e.g., Warehouse A, Trailer #4587"
-                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-primary">Scheduled Date *</label>
-                <input
-                  type="date"
-                  value={scheduledDate}
-                  onChange={(e) => setScheduledDate(e.target.value)}
-                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-primary">Due Date *</label>
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-primary">Inspector *</label>
-                <input
-                  type="text"
-                  value={selectedInspector}
-                  onChange={(e) => setSelectedInspector(e.target.value)}
-                  placeholder="Enter inspector name"
-                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-primary">Priority</label>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value as any)}
-                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option className='form-option' value="low">Low</option>
-                  <option className='form-option' value="medium">Medium</option>
-                  <option className='form-option' value="high">High</option>
-                  <option className='form-option' value="critical">Critical</option>
-                </select>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-semibold mb-2 text-primary">Notes</label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={3}
-                  placeholder="Additional notes..."
-                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-            </div>
-
-            {selectedType && CHECKLIST_TEMPLATES[selectedType as ChecklistTemplateKey] && (
-              <div className="bg-card border border-blue-200 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-blue-900 mb-3">📋 Standard Checklist Preview</h3>
-                <div className="space-y-2">
-                  {CHECKLIST_TEMPLATES[selectedType as ChecklistTemplateKey].slice(0, 3).map((item: ChecklistTemplateItem, idx: number) => (
-                    <div key={idx} className="flex items-center gap-2 text-sm text-blue-800">
-                      <FaCheckCircle className="text-[#00D1FF]" />
-                      <span>{item.question}</span>
-                      {item.photoRequired && <FaCamera className="text-blue-400" size={12} />}
-                    </div>
-                  ))}
-                  <p className="text-xs text-[#00D1FF] mt-2">
-                    + {CHECKLIST_TEMPLATES[selectedType as ChecklistTemplateKey].length - 3} more items
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <div className="flex gap-4">
-              <button
-                onClick={async () => {
-                  if (!selectedType || !selectedLocation || !selectedInspector || !scheduledDate) {
-                    addNotification('error', 'Please fill in all required fields');
-                    return;
-                  }
-
-                  setSaving(true);
-                  try {
-                    if (editing) {
-                      // Update existing inspection
-                      await handleUpdateInspection(editing._id, {
-                        type: selectedType,
-                        location: selectedLocation,
-                        inspector: selectedInspector,
-                        date: scheduledDate,
-                        scheduledDate: scheduledDate,
-                        notes: notes,
-                        status: editing.status
-                      });
-                    } else {
-                      // Create new inspection
-                      await handleCreateInspection({
-                        type: selectedType,
-                        location: selectedLocation,
-                        inspector: selectedInspector,
-                        date: scheduledDate,
-                        scheduledDate: scheduledDate,
-                        dueDate: dueDate || scheduledDate,
-                        priority: priority,
-                        notes: notes,
-                        status: 'scheduled'
-                      });
-                    }
-                  } catch (error) {
-                    console.error('Error in save inspection:', error);
-                  } finally {
-                    setSaving(false);
-                  }
-                }}
-                disabled={saving || !selectedType || !selectedLocation || !selectedInspector || !scheduledDate}
-                className="bg-[var(--accent-navyblue)] flex-1 px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                
-              >
-                {saving ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    {editing ? 'Updating...' : 'Creating...'}
-                  </>
-                ) : (
-                  <>
-                    <FaPlus /> {editing ? 'Update Inspection' : 'Schedule Inspection'}
-                  </>
-                )}
-              </button>
-              <button
-                onClick={() => {
-                  setShowNewInspectionModal(false);
-                  setEditingInspection(null);
-                  // Reset form
-                  setSelectedType('');
-                  setSelectedLocation('');
-                  setSelectedInspector('');
-                  setScheduledDate('');
-                  setDueDate('');
-                  setPriority('medium');
-                  setNotes('');
-                }}
-                className="px-6 py-3 bg-gray-200 !text-black rounded-lg font-semibold hover:bg-gray-300 transition"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   const InspectionDetailModal = () => {
@@ -1161,7 +1161,18 @@ const SafetyInspections: React.FC = () => {
       </div>
 
       {/* Modals */}
-      {showNewInspectionModal && <NewInspectionModal editing={editingInspection} />}
+      {showNewInspectionModal && (
+        <NewInspectionModal
+          editing={editingInspection}
+          onClose={() => {
+            setShowNewInspectionModal(false);
+            setEditingInspection(null);
+          }}
+          onCreate={handleCreateInspection}
+          onUpdate={handleUpdateInspection}
+          onValidationError={(message) => addNotification('error', message)}
+        />
+      )}
       {showDetailModal && <InspectionDetailModal />}
 
       {/* Delete Confirmation Modal */}
