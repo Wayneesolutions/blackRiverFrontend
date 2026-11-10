@@ -103,33 +103,38 @@ const ViewAllAccounts = () => {
     const [createWithPlan, setCreateWithPlan] = useState(true);
     const [assignSelectedRoles, setAssignSelectedRoles] = useState<string[]>(ASSIGNABLE_PLAN_ROLES);
     const [assignLoading, setAssignLoading] = useState(false);
+    const [createLoading, setCreateLoading] = useState(false);
+    // Shown in the modal footer, which stays visible when the plan fields are scrolled out of view
+    const [createError, setCreateError] = useState('');
 
     const selectedAssignPlan = plans.find(p => p._id === assignForm.planId) || null;
 
-    const subscriptionTypeOptions = (() => {
-        if (!selectedAssignPlan) return [];
-        if (selectedAssignPlan.planType === 'lifetime') {
+    const billingOptionsFor = (plan: typeof selectedAssignPlan) => {
+        if (!plan) return [];
+        if (plan.planType === 'lifetime') {
             const opts = [{ value: 'one-time', label: 'One-Time Payment' }];
-            if (selectedAssignPlan.lifetime?.installments?.threeMonths?.enabled) {
+            if (plan.lifetime?.installments?.threeMonths?.enabled) {
                 opts.push({ value: '3-months', label: '3-Month Installments' });
             }
-            if (selectedAssignPlan.lifetime?.installments?.sixMonths?.enabled) {
+            if (plan.lifetime?.installments?.sixMonths?.enabled) {
                 opts.push({ value: '6-months', label: '6-Month Installments' });
             }
             return opts;
         }
         // monthly
         const opts: { value: string; label: string }[] = [];
-        if (selectedAssignPlan.monthly?.fullApp?.enabled) {
+        if (plan.monthly?.fullApp?.enabled) {
             opts.push({ value: 'full-app', label: 'Full App (Monthly)' });
         }
-        if (selectedAssignPlan.monthly?.truckPricing?.tiers?.length) {
+        if (plan.monthly?.truckPricing?.tiers?.length) {
             opts.push({ value: '1-month', label: '1 Month (Truck-based)' });
             opts.push({ value: '6-months', label: '6 Months (Truck-based)' });
             opts.push({ value: '1-year', label: '1 Year (Truck-based)' });
         }
         return opts;
-    })();
+    };
+
+    const subscriptionTypeOptions = billingOptionsFor(selectedAssignPlan);
 
     const needsTruckCount = ['1-month', '6-months', '1-year'].includes(assignForm.subscriptionType);
 
@@ -156,8 +161,11 @@ const ViewAllAccounts = () => {
     };
 
     const handleSelectAssignPlan = (planId: string) => {
-        setAssignForm(prev => ({ ...emptyAssignForm, planId, paymentStatus: prev.paymentStatus }));
         const plan = plans.find(p => p._id === planId);
+        // The billing field sits below the fold, so don't make people pick the only choice
+        const billingOptions = billingOptionsFor(plan || null);
+        const subscriptionType = billingOptions.length === 1 ? billingOptions[0].value : '';
+        setAssignForm(prev => ({ ...emptyAssignForm, planId, subscriptionType, paymentStatus: prev.paymentStatus }));
         // Pre-fill the module checklist from the template plan's own restrictions (undefined = all allowed)
         setAssignSelectedRoles(plan?.allowedRoles?.length ? plan.allowedRoles : ASSIGNABLE_PLAN_ROLES);
     };
@@ -317,22 +325,31 @@ const ViewAllAccounts = () => {
             trialDays: ''
         });
         setSelectedAdmin(null);
+        setCreateError('');
     };
 
     const handleCreate = async () => {
+        if (createLoading) return;
+        const fail = (text: string) => {
+            setCreateError(text);
+            message.error(text);
+        };
+        setCreateError('');
         try {
             if (!formData.name || !formData.email || !formData.password) {
-                message.error('Name, email, and password are required');
+                fail('Name, email, and password are required');
                 return;
             }
 
             if (createWithPlan) {
                 const err = planFormError();
                 if (err) {
-                    message.error(`${err} — or switch off "Assign a plan now"`);
+                    fail(`${err}, or switch off "Assign a plan now"`);
                     return;
                 }
             }
+
+            setCreateLoading(true);
 
             const payload = {
                 ...formData,
@@ -347,11 +364,13 @@ const ViewAllAccounts = () => {
                 resetForm();
                 fetchAdmins();
             } else {
-                message.error(response?.message || 'Failed to create admin');
+                fail(response?.message || 'Failed to create admin');
             }
         } catch (error: any) {
             console.error('Error creating admin:', error);
-            message.error(error?.message || 'Failed to create admin');
+            fail(error?.message || 'Failed to create admin');
+        } finally {
+            setCreateLoading(false);
         }
     };
 
@@ -1089,17 +1108,22 @@ const ViewAllAccounts = () => {
                         </div>
                     </div>
                     {/* Footer */}
+                    {createError && (
+                        <div role="alert" className="mx-6 mt-3 px-3 py-2 rounded-lg text-sm flex-shrink-0" style={{ color: '#fca5a5', backgroundColor: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)' }}>
+                            {createError}
+                        </div>
+                    )}
                     <div className="px-6 pb-5 pt-4 flex justify-end gap-3 border-t flex-shrink-0" style={divider}>
                         <button onClick={() => { setShowCreateModal(false); resetForm(); }}
                             className="px-4 py-2 rounded-lg text-sm font-medium text-secondary border border-theme hover:text-primary transition-colors">
                             Cancel
                         </button>
-                        <button onClick={handleCreate}
-                            className="px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:-translate-y-0.5 transform"
+                        <button onClick={handleCreate} disabled={createLoading}
+                            className="px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:-translate-y-0.5 transform disabled:opacity-60 disabled:cursor-not-allowed"
                             style={{ backgroundColor: 'var(--accent-navyblue)' }}
                             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#0d6fc7'; }}
                             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--accent-navyblue)'; }}>
-                            {createWithPlan ? 'Create Admin & Assign Plan' : 'Create Admin'}
+                            {createLoading ? 'Creating...' : createWithPlan ? 'Create Admin & Assign Plan' : 'Create Admin'}
                         </button>
                     </div>
                     </div>
