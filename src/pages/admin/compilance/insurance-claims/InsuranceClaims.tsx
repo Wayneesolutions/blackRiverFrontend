@@ -18,9 +18,11 @@ import {
   FaTimes,
   FaChevronLeft,
   FaChevronRight,
-  FaDollarSign
+  FaDollarSign,
+  FaDownload
 } from 'react-icons/fa';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
+import { downloadExcel, MONEY_FMT, type ExcelColumn } from '../../../../utils/excelExport';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
 const ACCENT_DARK = FLEET_COLORS.dark;
@@ -154,6 +156,9 @@ const InsuranceClaims: React.FC = () => {
   const [claims, setClaims] = useState<InsuranceClaim[]>([]);
   const [filteredClaims, setFilteredClaims] = useState<InsuranceClaim[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [downloading, setDownloading] = useState<boolean>(false);
+  // Every claim matching the filters, in table order; filteredClaims holds only the visible page
+  const allMatchingClaims = useRef<InsuranceClaim[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
 
@@ -229,13 +234,21 @@ const InsuranceClaims: React.FC = () => {
     setLoading(true);
     try {
       const { getInsuranceClaims } = await import('../../../../axios/api/insuranceClaim');
-      const response = await getInsuranceClaims({
+      // The API returns 10 claims by default, but this page filters and pages on the client
+      const filters = {
         status: statusFilter !== 'all' ? statusFilter : undefined,
         claimType: typeFilter !== 'all' ? typeFilter : undefined,
-        search: searchQuery || undefined
-      });
+        search: searchQuery || undefined,
+        limit: 200
+      };
+      let response = await getInsuranceClaims({ ...filters, page: 1 });
       if (response?.success) {
-        setClaims(response.data || []);
+        const all: InsuranceClaim[] = [...(response.data || [])];
+        for (let page = 2; page <= (response.pagination?.pages || 1); page++) {
+          response = await getInsuranceClaims({ ...filters, page });
+          all.push(...(response?.data || []));
+        }
+        setClaims(all);
       }
     } catch (error) {
       console.error('Error fetching insurance claims:', error);
@@ -335,6 +348,7 @@ const InsuranceClaims: React.FC = () => {
     const endIndex = startIndex + pageSize;
     setTotal(filtered.length);
     setTotalPages(Math.ceil(filtered.length / pageSize));
+    allMatchingClaims.current = filtered;
     setFilteredClaims(filtered.slice(startIndex, endIndex));
   };
 
@@ -344,6 +358,47 @@ const InsuranceClaims: React.FC = () => {
     } else {
       setSortField(field);
       setSortDirection('desc');
+    }
+  };
+
+  const handleDownloadReport = async () => {
+    const rows = allMatchingClaims.current;
+    if (rows.length === 0) {
+      addNotification('info', 'No insurance claims match these filters');
+      return;
+    }
+    setDownloading(true);
+    try {
+      // Claim dates are saved as a calendar day at midnight UTC, so read the day directly
+      const day = (value?: string) => (value ? value.slice(0, 10) : '');
+      const label = (value: string) => value.charAt(0).toUpperCase() + value.slice(1).replace('-', ' ');
+      const columns: ExcelColumn<InsuranceClaim>[] = [
+        { header: 'Claim #', width: 18, value: (c) => c.claimNumber },
+        { header: 'Accident #', width: 18, value: (c) => c.accidentNumber },
+        { header: 'Incident Date', width: 13, value: (c) => day(c.incidentDate) },
+        { header: 'Claim Date', width: 13, value: (c) => day(c.claimDate) },
+        { header: 'Type', width: 12, value: (c) => label(c.claimType) },
+        { header: 'Status', width: 13, value: (c) => label(c.status) },
+        { header: 'Driver', width: 20, value: (c) => (typeof c.driver === 'object' ? c.driver?.name : '') },
+        { header: 'Vehicle', width: 16, value: (c) => (typeof c.vehicle === 'object' ? c.vehicle?.internalId || c.vehicle?.plateNumber : '') },
+        { header: 'Insurance Company', width: 24, value: (c) => c.insuranceCompany },
+        { header: 'Policy #', width: 18, value: (c) => c.policyNumber },
+        { header: 'Adjuster', width: 18, value: (c) => c.adjusterName },
+        { header: 'Adjuster Contact', width: 20, value: (c) => c.adjusterContact },
+        { header: 'Amount', width: 13, numFmt: MONEY_FMT, value: (c) => c.amount },
+        { header: 'Deductible', width: 13, numFmt: MONEY_FMT, value: (c) => c.deductible },
+        { header: 'Claim Amount', width: 14, numFmt: MONEY_FMT, value: (c) => c.claimAmount },
+        { header: 'Location', width: 24, value: (c) => c.location },
+        { header: 'Description', width: 40, value: (c) => c.description },
+        { header: 'Notes', width: 30, value: (c) => c.notes },
+      ];
+      await downloadExcel('Insurance_Claims_Report', [{ name: 'Insurance Claims', columns, rows }]);
+      addNotification('success', `Downloaded ${rows.length} insurance claim${rows.length === 1 ? '' : 's'}`);
+    } catch (error) {
+      console.error('Error downloading insurance claims report:', error);
+      addNotification('error', 'Failed to download the report. Please try again.');
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -550,13 +605,23 @@ const InsuranceClaims: React.FC = () => {
             </h1>
             <p className="text-secondary mt-2">Manage and track all insurance claims</p>
           </div>
-          <button
-            onClick={handleAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 transition-colors font-medium"
-          >
-            <FaPlus size={16} />
-            Add Claim
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleDownloadReport}
+              disabled={downloading || loading}
+              className="flex items-center gap-2 px-4 py-2 border border-theme text-primary rounded-lg hover:bg-[var(--accent-navyblue)]/10 transition-colors font-medium disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <FaDownload size={14} />
+              {downloading ? 'Downloading...' : 'Download Report'}
+            </button>
+            <button
+              onClick={handleAdd}
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 transition-colors font-medium"
+            >
+              <FaPlus size={16} />
+              Add Claim
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -786,10 +851,10 @@ const InsuranceClaims: React.FC = () => {
                         <td className="px-6 py-4">
                           <div className="flex flex-col h-[3.5rem] justify-center">
                             <div className="text-sm text-primary leading-5">
-                              {claim.incidentDate ? new Date(claim.incidentDate).toLocaleDateString() : 'N/A'}
+                              {claim.incidentDate ? new Date(claim.incidentDate).toLocaleDateString(undefined, { timeZone: 'UTC' }) : 'N/A'}
                             </div>
                             <div className="text-xs text-secondary leading-4">
-                              Claim: {claim.claimDate ? new Date(claim.claimDate).toLocaleDateString() : 'N/A'}
+                              Claim: {claim.claimDate ? new Date(claim.claimDate).toLocaleDateString(undefined, { timeZone: 'UTC' }) : 'N/A'}
                             </div>
                           </div>
                         </td>
@@ -1325,13 +1390,13 @@ const InsuranceClaims: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-secondary mb-1">Incident Date</label>
                   <p className="text-primary">
-                    {selectedClaim.incidentDate ? new Date(selectedClaim.incidentDate).toLocaleDateString() : 'N/A'}
+                    {selectedClaim.incidentDate ? new Date(selectedClaim.incidentDate).toLocaleDateString(undefined, { timeZone: 'UTC' }) : 'N/A'}
                   </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-secondary mb-1">Claim Date</label>
                   <p className="text-primary">
-                    {selectedClaim.claimDate ? new Date(selectedClaim.claimDate).toLocaleDateString() : 'N/A'}
+                    {selectedClaim.claimDate ? new Date(selectedClaim.claimDate).toLocaleDateString(undefined, { timeZone: 'UTC' }) : 'N/A'}
                   </p>
                 </div>
                 <div>
