@@ -259,6 +259,17 @@ export const updateSuperAdminInvoice = async (
   }
 };
 
+// ✅ Email an invoice to the customer with its PDF attached
+export const emailSuperAdminInvoice = async (id: string, data: { to: string; pdfBase64: string }) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`superadmin/invoices/${id}/email`, data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
 // ============ SYSTEM SETTINGS ============
 
 // ✅ Get Super Admin Settings
