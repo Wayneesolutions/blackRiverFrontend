@@ -22,6 +22,7 @@ import { listVehicleServices, type VehicleServiceResponse } from '../../../../ax
 import { listGeneralRepairs, type GeneralRepairDto } from '../../../../axios/api/generalRepairs';
 import { getCompany } from '../../../../axios/api/admin';
 import { getAllSpareParts } from '../../../../axios/api/fleet.spareparts';
+import { getAllVehicles } from '../../../../axios/api/vehicle';
 import {
   getFleetInvoices,
   getFleetInvoiceSummary,
@@ -88,7 +89,16 @@ interface LineItem {
   rate: number;
   amount: number;
   salesTax: string;
+  // Rosser-style invoices: several parts and several labour lines, each with its own description
+  itemType?: LineType;
+  productName?: string;
 }
+
+type LineType = 'part' | 'labour' | 'service';
+const LINE_TYPE_LABEL: Record<LineType, string> = { part: 'Part', labour: 'Labour', service: 'Service' };
+/** Line type for an older item saved before itemType existed */
+const lineTypeFromProduct = (ps?: string | null): LineType =>
+  ps?.startsWith('service:') || ps?.startsWith('repair:') ? 'service' : 'part';
 
 interface ProductOption {
   id: string; // unique key used in <select> value
@@ -97,6 +107,7 @@ interface ProductOption {
   defaultRate?: number;
   defaultQty?: number;
   defaultServiceDate?: string; // YYYY-MM-DD
+  productName?: string; // short name for the invoice's Product column
 }
 
 /** Invoice row for the table */
@@ -257,6 +268,33 @@ const FleetInvoicesPage = () => {
   const [labourHours, setLabourHours] = useState<number>(0);
   const [labourRate, setLabourRate] = useState<number>(0);
   const [labourTax, setLabourTax] = useState<string>('gst');
+  // Unit printed on the invoice (Rosser style: UNIT, MAKE/MODEL, VIN NO, CURRENT KM/HOURS)
+  const [unitNumber, setUnitNumber] = useState('');
+  const [unitMakeModel, setUnitMakeModel] = useState('');
+  const [unitVin, setUnitVin] = useState('');
+  const [unitOdometer, setUnitOdometer] = useState('');
+  const [fleetUnits, setFleetUnits] = useState<{ _id: string; unit: string; makeModel: string; vin: string }[]>([]);
+  useEffect(() => {
+    getAllVehicles(1, 500)
+      .then((res) => {
+        const list = Array.isArray(res?.data) ? res.data : Array.isArray(res?.data?.vehicles) ? res.data.vehicles : [];
+        setFleetUnits(list.map((v: { _id: string; unitNumber?: string; internalId?: string; plateNumber?: string; make?: string; model?: string; vinNumber?: string }) => ({
+          _id: v._id,
+          unit: v.unitNumber || v.internalId || v.plateNumber || '',
+          makeModel: [v.make, v.model].filter(Boolean).join(' '),
+          vin: v.vinNumber || ''
+        })).filter((u: { unit: string }) => u.unit));
+      })
+      .catch(() => setFleetUnits([]));
+  }, []);
+  // When a service / maintenance order on the invoice tells us the unit, fill the unit fields (unless typed already)
+  useEffect(() => {
+    const v = vehicleInfo[0];
+    if (!v) return;
+    setUnitNumber((prev) => prev || v.unitNumber || '');
+    setUnitMakeModel((prev) => prev || v.makeModel || '');
+    setUnitVin((prev) => prev || v.vinNumber || '');
+  }, [vehicleInfo]);
 
   const selectedCustomer = customers.find((c) => c._id === customerId);
 
@@ -345,6 +383,7 @@ const FleetInvoicesPage = () => {
           return {
             id: `service:${s._id}`,
             label,
+            productName: labelBase,
             defaultDescription: defaultDescriptionParts.join(' - '),
             defaultRate: s.amount ?? undefined,
             defaultQty: 1,
@@ -368,6 +407,7 @@ const FleetInvoicesPage = () => {
           return {
             id: `repair:${r._id}`,
             label,
+            productName: 'Maintenance',
             defaultDescription: defaultDescriptionParts.join(' - '),
             defaultRate: (r as any).completionTotalAmount ?? undefined,
             defaultQty: 1,
@@ -387,6 +427,7 @@ const FleetInvoicesPage = () => {
             const price = Number(p.sellingPrice) > 0 ? Number(p.sellingPrice) : Number(p.buyingPrice) || 0;
             return {
               id: `part:${p._id}`,
+            productName: p.partName,
               label: `Part: ${p.partName}${p.partNumber ? ` (#${p.partNumber})` : ''}${price ? ` — $${price.toFixed(2)}` : ''}`,
               defaultDescription: [p.partName, p.partNumber ? `Part # ${p.partNumber}` : ''].filter(Boolean).join(' - '),
               defaultRate: price || undefined,
@@ -552,6 +593,8 @@ const FleetInvoicesPage = () => {
           } else {
             const selectedOption = productOptions.find((opt) => opt.id === updates.productService);
             if (selectedOption) {
+              next.productName = selectedOption.productName || selectedOption.label;
+              if (next.itemType !== 'labour') next.itemType = lineTypeFromProduct(selectedOption.id);
               // Always update all fields when a product/service is selected
               if (selectedOption.defaultDescription) {
                 next.description = selectedOption.defaultDescription;
@@ -581,8 +624,20 @@ const FleetInvoicesPage = () => {
   const addLineItem = () => {
     setLineItems((prev) => [
       ...prev,
-      { id: String(Date.now()), serviceDate: '', productService: '', description: '', qty: 1, rate: 0, amount: 0, salesTax: 'gst' },
+      { id: String(Date.now()), serviceDate: '', productService: '', description: '', qty: 1, rate: 0, amount: 0, salesTax: 'gst', itemType: 'part' },
     ]);
+  };
+
+  // Labour as its own line (any number of them), e.g. "Changed the brake chamber and repaired the air leak"
+  const addLabourLine = () => {
+    setLineItems((prev) => {
+      const lastLabour = [...prev].reverse().find((i) => i.itemType === 'labour');
+      const rate = lastLabour?.rate || 0;
+      return [
+        ...prev,
+        { id: String(Date.now()), serviceDate: prev[0]?.serviceDate || '', productService: '', description: '', qty: 1, rate, amount: rate, salesTax: lastLabour?.salesTax || 'gst', itemType: 'labour', productName: 'Labour' },
+      ];
+    });
   };
 
   const removeLineItem = (id: string) => {
@@ -633,6 +688,8 @@ const FleetInvoicesPage = () => {
           serviceDate: item.serviceDate || null,
           productService: item.productService || null,
           description: item.description,
+          itemType: item.itemType || lineTypeFromProduct(item.productService),
+          productName: item.itemType === 'labour' ? (item.productName || 'Labour') : (item.productName || null),
           quantity: item.qty,
           unitPrice: item.rate,
           totalPrice: item.amount,
@@ -673,6 +730,7 @@ const FleetInvoicesPage = () => {
         customerId: customerId || undefined,
         terms: terms || null,
         items: invoiceItems,
+        // Labour is now entered as labour lines; the old single labour box is kept only for older invoices
         labourHours: labourHours || 0,
         labourRate: labourRate || 0,
         labourTaxId: labourTaxOption?.id || null,
@@ -681,6 +739,10 @@ const FleetInvoicesPage = () => {
         dueDate: dueDate || invoiceDate, // Use dueDate if set, otherwise invoiceDate
         messageOnInvoice: messageOnInvoice || null,
         notes: null,
+        unitNumber: unitNumber || null,
+        unitMakeModel: unitMakeModel || null,
+        unitVin: unitVin || null,
+        unitOdometer: unitOdometer || null,
         status: 'draft',
       };
 
@@ -885,12 +947,20 @@ const FleetInvoicesPage = () => {
               serviceDate: item.serviceDate || '',
               productService: item.productService || '',
               description: item.description || '',
-              qty: item.quantity || 1,
+              qty: item.quantity ?? 1,
               rate: item.unitPrice || 0,
               amount: item.totalPrice || 0,
               salesTax: taxId,
+              itemType: (item.itemType && item.itemType !== 'item' ? item.itemType : lineTypeFromProduct(item.productService)) as LineType,
+              productName: item.productName || '',
             };
           });
+          // Older invoices kept labour in a single box: show it as a labour line so it can be edited
+          if (Number(invoice.labourHours) > 0) {
+            const hrs = Number(invoice.labourHours) || 0;
+            const rate = Number(invoice.labourRate) || 0;
+            items.push({ id: String(items.length + 1), serviceDate: items[0]?.serviceDate || '', productService: '', description: 'Labour Charges', qty: hrs, rate, amount: hrs * rate, salesTax: invoice.labourTaxId || 'gst', itemType: 'labour', productName: 'Labour' });
+          }
           setLineItems(items);
 
           // Fetch vehicle info when items are loaded
@@ -898,13 +968,21 @@ const FleetInvoicesPage = () => {
             setVehicleInfo(vehicles);
           });
         } else {
-          setLineItems([{ id: '1', serviceDate: '', productService: '', description: '', qty: 1, rate: 0, amount: 0, salesTax: 'gst' }]);
+          const hrs = Number(invoice.labourHours) || 0;
+          const rate = Number(invoice.labourRate) || 0;
+          setLineItems(hrs > 0
+            ? [{ id: '1', serviceDate: '', productService: '', description: 'Labour Charges', qty: hrs, rate, amount: hrs * rate, salesTax: invoice.labourTaxId || 'gst', itemType: 'labour', productName: 'Labour' }]
+            : [{ id: '1', serviceDate: '', productService: '', description: '', qty: 1, rate: 0, amount: 0, salesTax: 'gst', itemType: 'part' }]);
           setVehicleInfo([]);
         }
 
-        // Load labour charges
-        setLabourHours(Number(invoice.labourHours) || 0);
-        setLabourRate(Number(invoice.labourRate) || 0);
+        // Old single labour box: already turned into a labour line above
+        setLabourHours(0);
+        setLabourRate(0);
+        setUnitNumber(invoice.unitNumber || '');
+        setUnitMakeModel(invoice.unitMakeModel || '');
+        setUnitVin(invoice.unitVin || '');
+        setUnitOdometer(invoice.unitOdometer || '');
         if (invoice.labourTaxId) {
           setLabourTax(invoice.labourTaxId);
         } else {
@@ -1199,7 +1277,14 @@ const FleetInvoicesPage = () => {
 
     // Build vehicle rows
     const vehRows: InfoRow[] = [];
-    if (vehicleInfoForPDF.length > 0) {
+    if (invoice.unitNumber || invoice.unitVin || invoice.unitMakeModel || invoice.unitOdometer) {
+      // Unit entered on the invoice (Rosser style)
+      if (invoice.unitNumber) vehRows.push(['Unit', invoice.unitNumber]);
+      if (invoice.unitMakeModel) vehRows.push(['Make/Model', invoice.unitMakeModel]);
+      const vin = invoice.unitVin || vehicleInfoForPDF[0]?.vinNumber;
+      if (vin) vehRows.push(['VIN', vin]);
+      if (invoice.unitOdometer) vehRows.push(['KM/Hours', invoice.unitOdometer]);
+    } else if (vehicleInfoForPDF.length > 0) {
       const v = vehicleInfoForPDF[0];
       if (v.makeModel) {
         const parts = v.makeModel.split(' ');
@@ -1236,7 +1321,7 @@ const FleetInvoicesPage = () => {
           doc.text(`${lbl}:`, midX, ry);
         }
         doc.setFont('helvetica', 'normal');
-        doc.text(val, midX + 15, ry);
+        doc.text(val, midX + 23, ry); // room for "Make/Model:" and "KM/Hours:"
       }
     }
     yPos = infoStartY + maxRows * rowH + 6;
@@ -1276,16 +1361,18 @@ const FleetInvoicesPage = () => {
     sectionHeader('ITEMS', yPos);
     yPos += 5;
 
-    // Column layout: Type | Description | Qty/Hrs | Rate | Amount
+    // Column layout (like the client's Rosser sample): Date | Product | Description | Qty/Hrs | Rate | Amount
     const tRight = pageWidth - margin;
-    const typeW = 20;
-    const qtyW = 18;
-    const rateW = 24;
-    const amtW = 24;
-    const descW = contentWidth - typeW - qtyW - rateW - amtW;
+    const dateW = 19;
+    const typeW = 36; // "Product" column
+    const qtyW = 16;
+    const rateW = 22;
+    const amtW = 22;
+    const descW = contentWidth - dateW - typeW - qtyW - rateW - amtW;
 
-    const xType = margin;
-    const xDesc = margin + typeW;
+    const xDate = margin;
+    const xType = margin + dateW;
+    const xDesc = xType + typeW;
     const xQty = xDesc + descW + qtyW / 2;
     const xRate = xDesc + descW + qtyW + rateW;
     const xAmt = tRight;
@@ -1296,7 +1383,8 @@ const FleetInvoicesPage = () => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
     doc.setTextColor(...blue);
-    doc.text('Type', xType + 1, yPos);
+    doc.text('Date', xDate + 1, yPos);
+    doc.text('Product', xType + 1, yPos);
     doc.text('Description', xDesc + 1, yPos);
     doc.text('Qty/Hrs', xQty, yPos, { align: 'center' });
     doc.text('Rate', xRate, yPos, { align: 'right' });
@@ -1311,9 +1399,17 @@ const FleetInvoicesPage = () => {
 
     let rowIdx = 0;
     for (const item of items) {
-      const desc = (item.description || '—').toString().trim();
+      const desc = (item.description || '').toString().trim(); // parts often have no description (blank, like the Rosser sample)
+      const ps = item.productService || '';
+      const lineType: string = item.itemType && item.itemType !== 'item' ? item.itemType : (ps.startsWith('service:') || ps.startsWith('repair:') ? 'service' : 'part');
+      const isLabour = lineType === 'labour';
+      const productText = (item.productName || item.partName || (isLabour ? 'Labour' : lineType === 'service' ? 'Service' : 'Part')).toString();
       const dLines: string[] = doc.splitTextToSize(desc, descW - 3);
-      const rh = Math.max(dLines.length * 5.5, 7);
+      const pLines: string[] = doc.splitTextToSize(productText, typeW - 3);
+      const lineH = 3.8; // matches 9pt text at lineHeightFactor 1.15
+      const hasTax = !!(item.taxName && Number(item.taxPercent) > 0);
+      const textLines = Math.max(dLines.length, pLines.length, 1);
+      const rh = textLines * lineH + (hasTax ? 3.5 : 0) + 1.5;
       checkPageBreak(rh + 3);
 
       // Alternating row background
@@ -1322,28 +1418,32 @@ const FleetInvoicesPage = () => {
         doc.rect(margin, yPos - 3.5, contentWidth, rh + 2, 'F');
       }
 
-      const qty = Number(item.quantity) || 1;
+      const qty = Number(item.quantity ?? 1);
       const rate = Number(item.unitPrice) || 0;
       const amt = Number(item.totalPrice) || rate * qty;
-      const ps = item.productService || '';
-      const itemType = ps.startsWith('service:') ? 'Labor' : ps.startsWith('repair:') ? 'Part' : 'Item';
+      const dateText = item.serviceDate ? String(item.serviceDate).slice(0, 10) : '';
 
       doc.setTextColor(...gray);
       doc.setFont('helvetica', 'normal');
-      doc.text(itemType, xType + 1, yPos);
+      doc.setFontSize(8);
+      if (dateText) doc.text(dateText, xDate + 1, yPos);
+      doc.setFontSize(9);
       doc.setTextColor(...dark);
-      doc.text(dLines, xDesc + 1, yPos);
-      doc.text(String(qty), xQty, yPos, { align: 'center' });
-      doc.text(`$${rate.toFixed(2)}`, xRate, yPos, { align: 'right' });
+      doc.setFont('helvetica', 'bold');
+      doc.text(pLines, xType + 1, yPos, { lineHeightFactor: 1.15 });
+      doc.setFont('helvetica', 'normal');
+      if (desc) doc.text(dLines, xDesc + 1, yPos, { lineHeightFactor: 1.15 });
+      doc.text(isLabour ? `${qty} hrs` : String(qty), xQty, yPos, { align: 'center' });
+      doc.text(isLabour ? `$${rate.toFixed(2)}/hr` : `$${rate.toFixed(2)}`, xRate, yPos, { align: 'right' });
       doc.text(`$${amt.toFixed(2)}`, xAmt, yPos, { align: 'right' });
 
       // Tax badge on second line if applicable
-      if (item.taxName && Number(item.taxPercent) > 0) {
+      if (hasTax) {
         doc.setFontSize(7);
         doc.setTextColor(...gray);
-        doc.text(`${item.taxName} ${item.taxPercent}%`, xDesc + 1, yPos + dLines.length * 5.5 - 1);
+        doc.text(`${item.taxName} ${item.taxPercent}%`, xDesc + 1, yPos + (desc ? dLines.length : 0) * lineH + 0.5);
         doc.setFontSize(9);
-        yPos += 4;
+        doc.setTextColor(...dark);
       }
 
       yPos += rh + 1;
@@ -1380,9 +1480,9 @@ const FleetInvoicesPage = () => {
     // ── SUMMARY ─────────────────────────────────────────────────
     checkPageBreak(32);
     const itemsSubtotal = items.reduce((sum: number, it: any) =>
-      sum + (Number(it.quantity) || 1) * (Number(it.unitPrice) || 0), 0);
+      sum + Number(it.quantity ?? 1) * (Number(it.unitPrice) || 0), 0);
     const itemsTax = items.reduce((sum: number, it: any) => {
-      const base = (Number(it.quantity) || 1) * (Number(it.unitPrice) || 0);
+      const base = Number(it.quantity ?? 1) * (Number(it.unitPrice) || 0);
       return sum + base * (Number(it.taxPercent) || 0) / 100;
     }, 0);
     const subtotal = Number(invoice.subtotal) || (itemsSubtotal + labourAmount);
@@ -1556,7 +1656,7 @@ const FleetInvoicesPage = () => {
     setInvoiceDate(new Date().toISOString().split('T')[0]);
     setDueDate('');
     setInvoiceNo('');
-    setLineItems([{ id: '1', serviceDate: '', productService: '', description: '', qty: 1, rate: 0, amount: 0, salesTax: 'gst' }]);
+    setLineItems([{ id: '1', serviceDate: '', productService: '', description: '', qty: 1, rate: 0, amount: 0, salesTax: 'gst', itemType: 'part' }]);
     setMessageOnInvoice('');
     setCustomTaxes([]);
     setAddingTaxForLineId(null);
@@ -1564,6 +1664,10 @@ const FleetInvoicesPage = () => {
     setLabourRate(0);
     setLabourTax('gst');
     setVehicleInfo([]);
+    setUnitNumber('');
+    setUnitMakeModel('');
+    setUnitVin('');
+    setUnitOdometer('');
     setExtractedVendorName('');
     setShowAddCustomer(false);
     setNewCustomerName('');
@@ -1930,42 +2034,48 @@ const FleetInvoicesPage = () => {
                   {notification.message}
                 </div>
               )}
-              {/* Vehicle Information */}
-              {vehicleInfo.length > 0 && (
-                <section>
-                  <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Vehicle Information</h3>
-                  <div className="space-y-3">
-                    {vehicleInfo.map((vehicle, idx) => (
-                      <div key={idx} className="rounded-lg  p-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                          <div>
-                            <p className="text-xs text-secondary mb-1">Unit Number</p>
-                            <p className="text-sm font-semibold text-headings">{vehicle.unitNumber || '—'}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-secondary mb-1">Unit Type</p>
-                            <p className="text-sm font-semibold text-headings">{vehicle.unitType || '—'}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-secondary mb-1">Make / Model</p>
-                            <p className="text-sm font-semibold text-headings">{vehicle.makeModel || '—'}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-secondary mb-1">Plate Number</p>
-                            <p className="text-sm font-semibold text-headings">{vehicle.plateNumber || '—'}</p>
-                          </div>
-                          {vehicle.vinNumber && (
-                            <div>
-                              <p className="text-xs text-secondary mb-1">VIN Number</p>
-                              <p className="text-sm font-semibold text-headings">{vehicle.vinNumber}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+              {/* Unit (printed on the invoice: UNIT, MAKE/MODEL, VIN NO, CURRENT KM/HOURS) */}
+              <section>
+                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Unit</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-headings mb-1">Unit #</label>
+                    <input
+                      list="invoice-fleet-units"
+                      value={unitNumber}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setUnitNumber(value);
+                        const match = fleetUnits.find((u) => u.unit.toLowerCase() === value.trim().toLowerCase());
+                        if (match) {
+                          setUnitMakeModel(match.makeModel);
+                          setUnitVin(match.vin);
+                        }
+                      }}
+                      placeholder="Pick or type a unit"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                    <datalist id="invoice-fleet-units">
+                      {fleetUnits.map((u) => <option key={u._id} value={u.unit}>{u.makeModel}</option>)}
+                    </datalist>
                   </div>
-                </section>
-              )}
+                  <div>
+                    <label className="block text-sm font-medium text-headings mb-1">Make / Model</label>
+                    <input value={unitMakeModel} onChange={(e) => setUnitMakeModel(e.target.value)} placeholder="e.g. Volvo VNL 2020"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-headings mb-1">VIN No.</label>
+                    <input value={unitVin} onChange={(e) => setUnitVin(e.target.value.toUpperCase())} placeholder="17 characters"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-headings mb-1">Current KM / Hours</label>
+                    <input value={unitOdometer} onChange={(e) => setUnitOdometer(e.target.value)} placeholder="e.g. 1,845,906 km"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" />
+                  </div>
+                </div>
+              </section>
 
               {/* Header Information */}
               <section>
@@ -2157,6 +2267,20 @@ const FleetInvoicesPage = () => {
                 <div className="space-y-4">
                   {lineItems.map((item) => (
                     <div key={item.id} className="rounded-lg border border-theme bg-card p-4 space-y-4">
+                      {/* Line type: Part / Labour / Service */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        {(['part', 'labour', 'service'] as LineType[]).map((t) => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => updateLineItem(item.id, { itemType: t, ...(t === 'labour' && !item.productName ? { productName: 'Labour' } : {}) })}
+                            className={`px-3 py-1 rounded-full text-xs font-semibold border ${(item.itemType || lineTypeFromProduct(item.productService)) === t ? 'border-blue-500 bg-blue-500/15 text-blue-400' : 'border-theme text-secondary'}`}
+                          >
+                            {LINE_TYPE_LABEL[t]}
+                          </button>
+                        ))}
+                        {item.itemType === 'labour' && <span className="text-xs text-secondary">Qty is hours; rate is per hour</span>}
+                      </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-headings mb-1">Service Date</label>
@@ -2241,6 +2365,13 @@ const FleetInvoicesPage = () => {
                           {productOptionsLoading && (
                             <p className="mt-1 text-xs text-secondary">Loading services and maintenance orders...</p>
                           )}
+                          <input
+                            type="text"
+                            value={item.productName || ''}
+                            onChange={(e) => updateLineItem(item.id, { productName: e.target.value })}
+                            placeholder={item.itemType === 'labour' ? 'Labour' : 'Name on invoice, e.g. Rotella engine oil'}
+                            className="mt-2 w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                          />
                         </div>
                       </div>
                       <div>
@@ -2250,17 +2381,18 @@ const FleetInvoicesPage = () => {
                           onChange={(e) => updateLineItem(item.id, { description: e.target.value })}
                           rows={2}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm resize-none"
-                          placeholder="e.g. Checked lights, brakes, steering..."
+                          placeholder={item.itemType === 'labour' ? 'e.g. Changed the brake chamber and repaired the air leak' : 'e.g. Checked lights, brakes, steering...'}
                         />
                       </div>
                       <div className="grid grid-cols-4 gap-4 items-end">
                         <div>
-                          <label className="block text-sm font-medium text-headings mb-1">QTY</label>
+                          <label className="block text-sm font-medium text-headings mb-1">{item.itemType === 'labour' ? 'Hours' : 'QTY'}</label>
                           <input
                             type="number"
-                            min={1}
+                            min={0}
+                            step={item.itemType === 'labour' ? 0.25 : 1}
                             value={item.qty}
-                            onChange={(e) => updateLineItem(item.id, { qty: Number(e.target.value) || 1 })}
+                            onChange={(e) => updateLineItem(item.id, { qty: Math.max(0, Number(e.target.value) || 0) })}
                             className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                           />
                         </div>
@@ -2305,9 +2437,14 @@ const FleetInvoicesPage = () => {
                       )}
                     </div>
                   ))}
-                  <button type="button" onClick={addLineItem} className="text-sm font-medium text-[#00D1FF] hover:text-blue-700">
-                    + Add line item
-                  </button>
+                  <div className="flex flex-wrap gap-4">
+                    <button type="button" onClick={addLineItem} className="text-sm font-medium text-[#00D1FF] hover:text-blue-700">
+                      + Add part / item
+                    </button>
+                    <button type="button" onClick={addLabourLine} className="text-sm font-medium text-[#00D1FF] hover:text-blue-700">
+                      + Add labour line
+                    </button>
+                  </div>
                 </div>
               </section>
 
@@ -2379,72 +2516,7 @@ const FleetInvoicesPage = () => {
                 )}
               </section>
 
-              {/* Labour Charges */}
-              <section>
-                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Labour Charges</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-headings mb-1">
-                      Hours <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.5"
-                      value={labourHours || ''}
-                      onChange={(e) => setLabourHours(Number(e.target.value) || 0)}
-                      className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="0.0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-headings mb-1">
-                      Hourly Rate ($) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={labourRate || ''}
-                      onChange={(e) => setLabourRate(Number(e.target.value) || 0)}
-                      className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-headings mb-1">Tax</label>
-                    <select
-                      value={labourTax}
-                      onChange={(e) => setLabourTax(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      {allTaxes.map((tax) => (
-                        <option className='form-option' key={tax.id} value={tax.id}>
-                          {tax.name} {tax.percent > 0 ? `(${tax.percent}%)` : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                {labourAmount > 0 && (
-                  <div className="mt-3 p-3 bg-card rounded-lg border border-blue-200">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-headings">Labour Amount:</span>
-                      <span className="text-lg font-semibold text-[#00D1FF]">
-                        ${labourAmount.toFixed(2)}
-                      </span>
-                    </div>
-                    {labourTaxAmount > 0 && (
-                      <div className="flex justify-between items-center mt-1">
-                        <span className="text-sm text-secondary">Labour Tax:</span>
-                        <span className="text-sm font-medium text-headings">
-                          ${labourTaxAmount.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </section>
+              {/* Labour is entered as labour lines above (several lines, each with its own description) */}
 
               {/* Message & Totals */}
               <section>
