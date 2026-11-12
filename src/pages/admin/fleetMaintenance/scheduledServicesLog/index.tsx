@@ -709,10 +709,12 @@ const ScheduledServicesLog: React.FC = () => {
       if (!service.serviceDate) return false;
       const serviceDate = new Date(service.serviceDate);
       serviceDate.setHours(0, 0, 0, 0);
-      return serviceDate >= thirtyDaysAgo;
+      // Last 30 days only — a completed service dated in the future isn't "recent activity"
+      return serviceDate >= thirtyDaysAgo && serviceDate <= today;
     });
 
     const recentActivity = recentServices.length;
+    const totalCompleted = services.filter((service) => service.status === 'completed').length;
 
     // Get most recent service date
     const mostRecentDate = recentServices.length > 0
@@ -737,6 +739,7 @@ const ScheduledServicesLog: React.FC = () => {
       incomingByStatus,
       unitsNeedingMaintenance,
       recentActivity,
+      totalCompleted,
       mostRecentDate,
       topServiceType: topServiceType ? `${topServiceType[0]} (${topServiceType[1]})` : null
     };
@@ -1118,7 +1121,7 @@ const ScheduledServicesLog: React.FC = () => {
                 )}
                 <div className="flex items-center justify-between text-sm pt-1.5 border-t border-theme">
                   <span className="text-secondary">Total Completed</span>
-                  <span className="font-semibold text-headings">{summaryStats.recentActivity}</span>
+                  <span className="font-semibold text-headings">{summaryStats.totalCompleted}</span>
                 </div>
               </div>
             </div>

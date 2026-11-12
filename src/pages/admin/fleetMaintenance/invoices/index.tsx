@@ -21,6 +21,7 @@ import { getFleetCustomers, createFleetCustomer, type FleetCustomer } from '../.
 import { listVehicleServices, type VehicleServiceResponse } from '../../../../axios/api/vehicleService';
 import { listGeneralRepairs, type GeneralRepairDto } from '../../../../axios/api/generalRepairs';
 import { getCompany } from '../../../../axios/api/admin';
+import { getAllSpareParts } from '../../../../axios/api/fleet.spareparts';
 import {
   getFleetInvoices,
   getFleetInvoiceSummary,
@@ -298,10 +299,12 @@ const FleetInvoicesPage = () => {
     const loadProductOptions = async () => {
       setProductOptionsLoading(true);
       try {
-        const [companyRes, servicesRes, repairsRes] = await Promise.all([
+        const [companyRes, servicesRes, repairsRes, partsRes] = await Promise.all([
           getCompany(),
           listVehicleServices({ status: 'completed' }),
           listGeneralRepairs(),
+          // Parts are optional here: if the parts list can't load, services/orders still work
+          getAllSpareParts().catch(() => null),
         ]);
 
         const companyCustomServices: CustomServiceDef[] =
@@ -372,7 +375,26 @@ const FleetInvoicesPage = () => {
           };
         });
 
-        setProductOptions([...serviceOptions, ...repairOptions]);
+        // Parts from the Parts module, priced at their selling price (falls back to buying price),
+        // so picking a part fills the rate and the amount becomes qty × rate.
+        const partsList: Array<{ _id: string; partName?: string; partNumber?: string; description?: string; sellingPrice?: number; buyingPrice?: number }> =
+          Array.isArray(partsRes?.data) ? partsRes.data
+            : Array.isArray(partsRes?.data?.spareParts) ? partsRes.data.spareParts
+              : Array.isArray(partsRes) ? partsRes : [];
+        const partOptions: ProductOption[] = partsList
+          .filter((p) => p && p._id && p.partName)
+          .map((p) => {
+            const price = Number(p.sellingPrice) > 0 ? Number(p.sellingPrice) : Number(p.buyingPrice) || 0;
+            return {
+              id: `part:${p._id}`,
+              label: `Part: ${p.partName}${p.partNumber ? ` (#${p.partNumber})` : ''}${price ? ` — $${price.toFixed(2)}` : ''}`,
+              defaultDescription: [p.partName, p.partNumber ? `Part # ${p.partNumber}` : ''].filter(Boolean).join(' - '),
+              defaultRate: price || undefined,
+              defaultQty: 1,
+            };
+          });
+
+        setProductOptions([...partOptions, ...serviceOptions, ...repairOptions]);
       } catch (err) {
         console.error('Failed to load invoice product/service options', err);
       } finally {
@@ -1081,8 +1103,23 @@ const FleetInvoicesPage = () => {
     if (companyData?.address) contactParts.push(companyData.address);
     if (companyData?.contactPhone) contactParts.push(companyData.contactPhone);
     if (companyData?.contactEmail) contactParts.push(companyData.contactEmail);
-    if (contactParts.length) doc.text(contactParts.join('  |  '), logoEndX, 21);
-    if (companyData?.taxNumber) doc.text(`GST/Tax No: ${companyData.taxNumber}`, logoEndX, 27);
+    // Keep the contact line clear of the "INVOICE" title on the right: wrap it to the space
+    // left of the title instead of letting a long address/email run underneath it.
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    const invoiceLabelWidth = doc.getTextWidth('INVOICE');
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    const contactMaxWidth = Math.max(40, pageWidth - margin - invoiceLabelWidth - 8 - logoEndX);
+    let contactY = 21;
+    if (contactParts.length) {
+      const contactLines: string[] = doc.splitTextToSize(contactParts.join('  |  '), contactMaxWidth);
+      contactLines.slice(0, 3).forEach((line) => {
+        doc.text(line, logoEndX, contactY);
+        contactY += 3.6;
+      });
+    }
+    if (companyData?.taxNumber) doc.text(`GST/Tax No: ${companyData.taxNumber}`, logoEndX, Math.max(27, contactY + 1.5));
 
     // "INVOICE" label right-aligned
     doc.setFont('helvetica', 'bold');

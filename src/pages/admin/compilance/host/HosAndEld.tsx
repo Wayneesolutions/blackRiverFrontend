@@ -16,6 +16,7 @@ import {
     downloadELog
 } from '../../../../axios/api/compliance.hosEld';
 import { getAllDrivers } from '../../../../axios/api/driver';
+import { downloadExcel } from '../../../../utils/excelExport';
 
 
 interface Driver {
@@ -61,10 +62,25 @@ interface AuditTableRow {
     incidentTypes: string[];
     priorCounseling: string;
     correctiveActionType: string;
+    correctiveActionComments: string;
+    eldMalfunction: boolean;
     violations: string[];
     notes: string;
     auditorName: string;
     documents: { name: string; size: number; url?: string; key?: string; mimeType?: string }[];
+}
+
+// Row shape returned by GET /hos-eld (auditLogs) — used by the HOS report export
+interface HosTrackerLog {
+    driver?: string;
+    date?: string;
+    driveUsed?: string;
+    dutyUsed?: string;
+    totalOffDutyHours?: number;
+    violation?: string;
+    status?: string;
+    auditViolations?: string[];
+    vehicle?: string;
 }
 
 const ELOG_DISPLAY_NAMES_KEY = 'compliance-elog-display-names';
@@ -112,13 +128,16 @@ const VehicleEldMonitor = () => {
         priorCounseling: '' as '' | 'yes' | 'no', // Prior Counseling Yes/No
         correctiveActionType: '',                 // Corrective Action Type
         correctiveActionCustomOptions: [] as string[], // User-added corrective action options
+        correctiveActionComments: '',             // "Comments" box next to the corrective action
+        eldMalfunction: false,                    // ELD malfunction: documented, not a driver violation
         notes: '',
         auditorName: ''
     });
 
     // Static options for Incident Type (user can add more)
-    const defaultIncidentTypeOptions = ['Performance', 'Attendance', 'Safety', 'Documentation', 'Other'];
-    const defaultCorrectiveActionOptions = ['Verbal Warning', 'Written Warning', 'Training', 'Suspension', 'Termination', 'Other'];
+    // Same options, in the same order, as the client's paper HOS Progressive Disciplinary Action Form
+    const defaultIncidentTypeOptions = DISCIPLINARY_INCIDENT_TYPES;
+    const defaultCorrectiveActionOptions = DISCIPLINARY_CORRECTIVE_ACTIONS;
 
     // HOS Audit Form table data from API
     const [auditTableData, setAuditTableData] = useState<AuditTableRow[]>([]);
@@ -230,6 +249,8 @@ const VehicleEldMonitor = () => {
                     incidentTypes: Array.isArray(row.incidentTypes) ? row.incidentTypes : [],
                     priorCounseling: row.priorCounseling ?? '—',
                     correctiveActionType: row.correctiveActionType ?? '—',
+                    correctiveActionComments: row.correctiveActionComments ?? '',
+                    eldMalfunction: !!row.eldMalfunction,
                     violations: Array.isArray(row.violations) ? row.violations : [],
                     notes: row.notes ?? '',
                     auditorName: row.auditorName ?? '',
@@ -300,6 +321,8 @@ const VehicleEldMonitor = () => {
 
             if (auditFormData.priorCounseling) formData.append('priorCounseling', auditFormData.priorCounseling);
             if (auditFormData.correctiveActionType) formData.append('correctiveActionType', auditFormData.correctiveActionType);
+            if (auditFormData.correctiveActionComments) formData.append('correctiveActionComments', auditFormData.correctiveActionComments);
+            formData.append('eldMalfunction', auditFormData.eldMalfunction ? 'true' : 'false');
             if (auditFormData.notes) formData.append('notes', auditFormData.notes);
             if (auditFormData.auditorName) formData.append('auditorName', auditFormData.auditorName);
 
@@ -330,6 +353,8 @@ const VehicleEldMonitor = () => {
                     priorCounseling: '',
                     correctiveActionType: '',
                     correctiveActionCustomOptions: auditFormData.correctiveActionCustomOptions,
+                    correctiveActionComments: '',
+                    eldMalfunction: false,
                     notes: '',
                     auditorName: ''
                 });
@@ -422,6 +447,10 @@ const VehicleEldMonitor = () => {
             fetchDrivers();
             fetchAuditForms();
         }
+        // The tracker's "Export HOS Report" includes the audit forms, so load them there too
+        if (activeTab === 'tracker') {
+            fetchAuditForms();
+        }
         if (activeTab === 'e-logs') {
             fetchELogs();
             fetchDrivers();
@@ -442,6 +471,61 @@ const VehicleEldMonitor = () => {
             // ignore
         }
     }, []);
+
+    // Export HOS Report: tracker logs + submitted audit forms in one Excel workbook
+    const [exportingHos, setExportingHos] = useState(false);
+    const handleExportHosReport = async () => {
+        if (auditLogs.length === 0 && auditTableData.length === 0) {
+            alert('There is no HOS data to export yet.');
+            return;
+        }
+        setExportingHos(true);
+        try {
+            await downloadExcel(`HOS-Report-${new Date().toISOString().split('T')[0]}`, [
+                {
+                    name: 'HOS Tracker',
+                    rows: auditLogs as HosTrackerLog[],
+                    columns: [
+                        { header: 'Driver', width: 24, value: (l: HosTrackerLog) => l.driver },
+                        { header: 'Log Date', width: 14, value: (l: HosTrackerLog) => l.date },
+                        { header: 'Driving Time', width: 14, value: (l: HosTrackerLog) => l.driveUsed },
+                        { header: 'On-Duty Time', width: 14, value: (l: HosTrackerLog) => l.dutyUsed },
+                        { header: 'Off-Duty Hours', width: 14, value: (l: HosTrackerLog) => Number(l.totalOffDutyHours || 0).toFixed(1) },
+                        { header: 'Violation Type', width: 20, value: (l: HosTrackerLog) => l.violation },
+                        { header: 'Status', width: 16, value: (l: HosTrackerLog) => (l.status === 'eld-malfunction' ? 'ELD Malfunction' : l.status) },
+                        { header: 'Audit Violations', width: 30, value: (l: HosTrackerLog) => (l.auditViolations || []).join(', ') },
+                        { header: 'Vehicle', width: 12, value: (l: HosTrackerLog) => l.vehicle }
+                    ]
+                },
+                {
+                    name: 'HOS Audit Forms',
+                    rows: auditTableData,
+                    columns: [
+                        { header: 'Driver', width: 24, value: (r: AuditTableRow) => r.driverName },
+                        { header: 'Driver ID', width: 14, value: (r: AuditTableRow) => r.driverId },
+                        { header: 'Reporting To', width: 18, value: (r: AuditTableRow) => r.reportingTo },
+                        { header: 'Audit Date', width: 14, value: (r: AuditTableRow) => (r.auditDate || '').split('T')[0] },
+                        { header: 'Incident Date', width: 14, value: (r: AuditTableRow) => (r.incidentDate || '').split('T')[0] },
+                        { header: 'Incident Time', width: 12, value: (r: AuditTableRow) => r.incidentTime },
+                        { header: 'Location', width: 18, value: (r: AuditTableRow) => r.incidentLocation },
+                        { header: 'Incident Type', width: 26, value: (r: AuditTableRow) => r.incidentTypes.join(', ') },
+                        { header: 'Counselled Before', width: 12, value: (r: AuditTableRow) => r.priorCounseling },
+                        { header: 'Corrective Action', width: 26, value: (r: AuditTableRow) => r.correctiveActionType },
+                        { header: 'Comments', width: 24, value: (r: AuditTableRow) => r.correctiveActionComments },
+                        { header: 'ELD Malfunction', width: 12, value: (r: AuditTableRow) => (r.eldMalfunction ? 'Yes' : 'No') },
+                        { header: 'Violations', width: 30, value: (r: AuditTableRow) => r.violations.join(', ') },
+                        { header: 'Incident Details', width: 40, value: (r: AuditTableRow) => r.notes },
+                        { header: 'Auditor', width: 18, value: (r: AuditTableRow) => r.auditorName }
+                    ]
+                }
+            ]);
+        } catch (err) {
+            console.error('HOS export failed:', err);
+            alert('Could not export the HOS report. Please try again.');
+        } finally {
+            setExportingHos(false);
+        }
+    };
 
     const violationOptions = [
         '11-Hour Driving Limit',
@@ -650,7 +734,7 @@ const VehicleEldMonitor = () => {
         });
         y += 5;
         doc.setFontSize(9);
-        doc.text(`Comments: ${row.correctiveActionType || '—'}`, margin, y); y += lineH + 2;
+        doc.text(`Comments: ${row.correctiveActionComments || (row.eldMalfunction ? 'ELD MALFUNCTION' : '') || '—'}`, margin, y); y += lineH + 2;
         drawHorizontalLine();
         y += sectionSpacing;
         const sigLineW = 70;
@@ -766,11 +850,14 @@ const VehicleEldMonitor = () => {
                                         {syncing ? 'Syncing...' : 'Sync from Samsara'}
                                     </button>
                                     <button
+                                        type="button"
+                                        onClick={handleExportHosReport}
+                                        disabled={exportingHos}
                                         style={{
                                             background: 'var(--accent-navyblue)',
                                         }}
-                                        className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:opacity-90">
-                                        <Download size={16} /> Export HOS Report
+                                        className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <Download size={16} /> {exportingHos ? 'Exporting...' : 'Export HOS Report'}
                                     </button>
                                 </div>
                             </div>
@@ -814,7 +901,7 @@ const VehicleEldMonitor = () => {
                                                 <td className="px-6 py-4 font-mono text-primary">{log.driveUsed}</td>
                                                 <td className="px-6 py-4 font-mono text-primary">{log.dutyUsed}</td>
                                                 <td className="px-6 py-4">
-                                                    <span className={`font-medium ${log.violation !== 'None' ? 'text-red-500' : 'text-secondary'}`}>
+                                                    <span className={`font-medium ${log.violation === 'ELD Malfunction' ? 'text-amber-600' : log.violation !== 'None' ? 'text-red-500' : 'text-secondary'}`}>
                                                         {log.violation}
                                                     </span>
                                                 </td>
@@ -822,7 +909,7 @@ const VehicleEldMonitor = () => {
                                                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${log.status === 'compliant' ? 'bg-green-100 text-green-700' :
                                                         log.status === 'violation' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
                                                         }`}>
-                                                        {log.status}
+                                                        {log.status === 'eld-malfunction' ? 'ELD Malfunction' : log.status}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4">
@@ -1219,6 +1306,42 @@ const VehicleEldMonitor = () => {
                                     </div>
                                 </div>
 
+                                {/* Corrective action comments (the "Comments" column on the paper form) */}
+                                <div>
+                                    <label className="block text-sm font-medium text-primary mb-2">Corrective Action Comments</label>
+                                    <input
+                                        type="text"
+                                        value={auditFormData.correctiveActionComments}
+                                        onChange={(e) => setAuditFormData({ ...auditFormData, correctiveActionComments: e.target.value })}
+                                        placeholder="e.g. ELD MALFUNCTION"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                                    />
+                                </div>
+
+                                {/* ELD malfunction: recorded on file, but not counted as a driver HOS violation */}
+                                <div className="rounded-lg border border-theme p-3">
+                                    <label className="flex items-start gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={auditFormData.eldMalfunction}
+                                            onChange={(e) => {
+                                                const checked = e.target.checked;
+                                                setAuditFormData({
+                                                    ...auditFormData,
+                                                    eldMalfunction: checked,
+                                                    // Fill the form the way the paper version records it
+                                                    correctiveActionType: checked && !auditFormData.correctiveActionType ? 'Other (including documentation)' : auditFormData.correctiveActionType,
+                                                    correctiveActionComments: checked && !auditFormData.correctiveActionComments ? 'ELD MALFUNCTION' : auditFormData.correctiveActionComments
+                                                });
+                                            }}
+                                            className="mt-0.5 w-4 h-4 text-[var(--accent-blue)] border-theme rounded focus:ring-[var(--accent-blue)]"
+                                        />
+                                        <span className="text-sm text-primary">
+                                            <span className="font-semibold">ELD malfunction</span> — the time was wrongly recorded under this driver (e.g. vehicle moved by a mechanic). Saved for the record and shown as &quot;ELD Malfunction&quot;, not as a driver violation.
+                                        </span>
+                                    </label>
+                                </div>
+
                                 {/* Violations */}
                                 <div>
                                     <label className="block text-sm font-medium text-primary mb-2">
@@ -1368,6 +1491,8 @@ const VehicleEldMonitor = () => {
                                                 priorCounseling: '',
                                                 correctiveActionType: '',
                                                 correctiveActionCustomOptions: auditFormData.correctiveActionCustomOptions,
+                    correctiveActionComments: '',
+                    eldMalfunction: false,
                                                 notes: '',
                                                 auditorName: ''
                                             });
@@ -1588,6 +1713,14 @@ const VehicleEldMonitor = () => {
                                                         <span className="text-xs font-medium text-secondary">Corrective Action Type</span>
                                                         <p className="text-primary">{selectedAuditDetail.correctiveActionType || '—'}</p>
                                                     </div>
+                                                    <div className="flex flex-col gap-1">
+                                                        <span className="text-xs font-medium text-secondary">Comments</span>
+                                                        <p className="text-primary">{selectedAuditDetail.correctiveActionComments || '—'}</p>
+                                                    </div>
+                                                    <div className="flex flex-col gap-1">
+                                                        <span className="text-xs font-medium text-secondary">ELD Malfunction</span>
+                                                        <p className="text-primary">{selectedAuditDetail.eldMalfunction ? 'Yes — not counted as a violation' : 'No'}</p>
+                                                    </div>
                                                 </div>
                                             </section>
 
@@ -1787,7 +1920,7 @@ const VehicleEldMonitor = () => {
                                                         );
                                                     })}
                                                 </div>
-                                                <p className="text-secondary"><span className="font-semibold">Comments:</span> {downloadFormRow.correctiveActionType || '—'}</p>
+                                                <p className="text-secondary"><span className="font-semibold">Comments:</span> {downloadFormRow.correctiveActionComments || (downloadFormRow.eldMalfunction ? 'ELD MALFUNCTION' : '') || '—'}</p>
                                             </div>
 
                                             {/* Manager's Signature (editable) */}

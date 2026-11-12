@@ -657,7 +657,8 @@ const CvsaInspection: React.FC = () => {
 
   const resetForm = () => {
     setInspectionForm({
-      country: 'canada',
+      // Default to the tab the user is on, so an inspection added from the USA tab is saved as USA
+      country: activeTab,
       date: '',
       location: '',
       status: 'pass',
@@ -1988,11 +1989,8 @@ const CvsaInspection: React.FC = () => {
                           onChange={(e) => setInspectionForm(prev => ({ ...prev, country: e.target.value as 'canada' | 'usa' }))}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         >
-                          {activeTab === 'canada' ? (
-                            <option className='form-option' value="canada">Canada</option>
-                          ) : (
-                            <option className='form-option' value="usa">USA</option>
-                          )}
+                          <option className='form-option' value="canada">Canada</option>
+                          <option className='form-option' value="usa">USA</option>
                         </select>
                       </div>
                       <div>
@@ -2305,11 +2303,8 @@ const CvsaInspection: React.FC = () => {
                           onChange={(e) => setInspectionForm(prev => ({ ...prev, country: e.target.value as 'canada' | 'usa' }))}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         >
-                          {(inspectionForm.country || selectedInspection?.country || activeTab) === 'canada' ? (
-                            <option value="canada">Canada</option>
-                          ) : (
-                            <option value="usa">USA</option>
-                          )}
+                          <option value="canada">Canada</option>
+                          <option value="usa">USA</option>
                         </select>
                       </div>
                       <div>
