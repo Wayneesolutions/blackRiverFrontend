@@ -177,3 +177,42 @@ export const deleteCarrierProfile = async (id: string): Promise<ApiResult<null>>
     return fail(error, null);
   }
 };
+
+// ─── CVSA inspection report reader ──────────────────────────────────────────
+export interface CvsaReportData {
+  country: 'canada' | 'usa' | null;
+  date: string | null;
+  timeOfInspection: string | null;
+  location: string | null;
+  jurisdiction: string | null;
+  reportNumber: string | null;
+  inspectionLevel: 'I' | 'II' | 'III' | 'IV' | 'V' | null;
+  result: 'pass' | 'fail' | 'warning' | 'out-of-service' | null;
+  inspectorName: string | null;
+  driverName: string | null;
+  driverLicenseNumber: string | null;
+  vehiclePlate: string | null;
+  vehicleUnitNumber: string | null;
+  carrierUSDOTNumber: string | null;
+  carrierMotorCarrierNumber: string | null;
+  outOfServiceIssued: boolean;
+  violations: { code: string; description: string; severity: 'minor' | 'major' | 'critical' }[];
+  notes: string | null;
+  matchedVehicleId: string | null;
+  matchedDriverId: string | null;
+}
+
+/** Reads one CVSA inspection report (PDF or photo) to pre-fill the Add Inspection form. Saves nothing. */
+export const extractCvsaReport = async (file: File): Promise<ApiResult<CvsaReportData | null>> => {
+  try {
+    const formData = new FormData();
+    formData.append('document', file);
+    const res: AxiosResponse = await apiClient.post('admin/cvsa-inspections/extract-report', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 150000
+    });
+    return res.data;
+  } catch (error) {
+    return fail(error, null);
+  }
+};

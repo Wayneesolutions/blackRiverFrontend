@@ -37,6 +37,7 @@ import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 import { FileDown } from 'lucide-react';
 import { downloadExcel, summarySheet, countBy, fmtDate, titleCase, monthKey, yesNo } from '../../../../utils/excelExport';
 import AddressSearch from '../../../../components/common/AddressSearch';
+import { extractCvsaReport } from '../../../../axios/api/carrierProfiles';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
 
@@ -683,7 +684,56 @@ const CvsaInspection: React.FC = () => {
     });
   };
 
+  // Read a CVSA inspection report (PDF/photo) and fill the Add Inspection form with it.
+  // Nothing is saved until the user checks the form and clicks Save.
+  const [readingReport, setReadingReport] = useState(false);
+  const [reportNote, setReportNote] = useState<string | null>(null);
+  const handleReadReport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setReadingReport(true);
+    setReportNote(null);
+    const res = await extractCvsaReport(file);
+    setReadingReport(false);
+    if (!res?.success || !res.data) {
+      addNotification('error', res?.message || 'Could not read the report. Please fill the form by hand.');
+      return;
+    }
+    const r = res.data;
+    setInspectionForm(prev => ({
+      ...prev,
+      country: r.country || prev.country,
+      date: r.date || prev.date,
+      timeOfInspection: r.timeOfInspection || prev.timeOfInspection,
+      location: r.location || prev.location,
+      jurisdiction: r.jurisdiction || prev.jurisdiction,
+      reportNumber: r.reportNumber || prev.reportNumber,
+      inspectionLevel: r.inspectionLevel || prev.inspectionLevel,
+      status: r.result || prev.status,
+      inspectorName: r.inspectorName || prev.inspectorName,
+      driverLicenseNumber: r.driverLicenseNumber || prev.driverLicenseNumber,
+      carrierUSDOTNumber: r.carrierUSDOTNumber || prev.carrierUSDOTNumber,
+      carrierMotorCarrierNumber: r.carrierMotorCarrierNumber || prev.carrierMotorCarrierNumber,
+      outOfServiceIssued: r.outOfServiceIssued || r.result === 'out-of-service' || prev.outOfServiceIssued,
+      notes: [prev.notes, r.notes].filter(Boolean).join('\n'),
+      vehicle: r.matchedVehicleId || prev.vehicle,
+      driver: r.matchedDriverId || prev.driver,
+      violations: r.violations.length
+        ? r.violations.map((v, i) => ({ _id: `new-${Date.now()}-${i}`, code: v.code || '', description: v.description || '', severity: v.severity || 'minor' }))
+        : prev.violations,
+      // Keep the report itself with the inspection
+      documents: [...(prev.documents || []), file]
+    }));
+    const missing: string[] = [];
+    if (!r.matchedVehicleId) missing.push(`truck${r.vehiclePlate || r.vehicleUnitNumber ? ` (report says ${r.vehiclePlate || r.vehicleUnitNumber})` : ''}`);
+    if (!r.matchedDriverId) missing.push(`driver${r.driverName ? ` (report says ${r.driverName})` : ''}`);
+    if (r.country && r.country !== activeTab) setActiveTab(r.country);
+    setReportNote(`Filled from ${file.name}. Check every field before saving.${missing.length ? ` Please pick the ${missing.join(' and ')} — no exact match in your records.` : ''}`);
+  };
+
   const handleAddInspection = () => {
+    setReportNote(null);
     resetForm();
     setShowAddModal(true);
   };
@@ -1981,6 +2031,20 @@ const CvsaInspection: React.FC = () => {
                 </div>
                 <div className="flex-1 overflow-y-auto p-6">
                   <div className="space-y-6">
+                    {/* Fill the form from a CVSA inspection report */}
+                    <div className="rounded-lg border border-dashed border-theme p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-semibold text-primary">Have the inspection report?</div>
+                        <div className="text-xs text-secondary">Upload the PDF or a photo and the form fills itself. You can also enter everything by hand.</div>
+                      </div>
+                      <label className={`px-4 py-2 rounded-lg text-sm font-semibold !text-white bg-[var(--accent-navyblue)] cursor-pointer whitespace-nowrap ${readingReport ? 'opacity-50 pointer-events-none' : ''}`}>
+                        {readingReport ? 'Reading report...' : 'Read from report (PDF/photo)'}
+                        <input type="file" accept="application/pdf,image/jpeg,image/png" className="hidden" onChange={handleReadReport} />
+                      </label>
+                    </div>
+                    {reportNote && (
+                      <div className="rounded-lg px-3 py-2 text-xs bg-amber-500/10 text-amber-600 border border-amber-500/30">{reportNote}</div>
+                    )}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">Country <span className="text-red-500">*</span></label>
