@@ -713,9 +713,10 @@ const SafetyInspections: React.FC = () => {
             documentUrl: undefined,
             // Uploaded inspection forms / photos
             photoEvidence: Array.isArray(inspection.documents)
-              ? inspection.documents.map((d: { _id?: string; url?: string; name?: string; uploadedAt?: string; uploadedBy?: string }) => ({
+              ? inspection.documents.map((d: { _id?: string; url?: string; viewUrl?: string; name?: string; uploadedAt?: string; uploadedBy?: string }) => ({
                   _id: d._id,
-                  fileUrl: d.url || '',
+                  // The bucket is private: open the signed link the backend adds, not the raw S3 URL
+                  fileUrl: d.viewUrl || d.url || '',
                   fileName: d.name || 'Document',
                   uploadedAt: d.uploadedAt || '',
                   uploadedBy: d.uploadedBy || ''
