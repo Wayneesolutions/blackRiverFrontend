@@ -90,8 +90,9 @@ const DEFAULT_NOTICE_TO_EMPLOYEE = `Notice to employee: You have been given this
 const DEFAULT_EMPLOYEE_COMMENTS = `By signing below, I acknowledge that I have received a copy of the above notice of discipline and that the job performance requirements have been explained to me.`;
 
 // Incident type options matching HOS Progressive Disciplinary Action form
-const DISCIPLINARY_INCIDENT_TYPES = ['Job Performance', 'Competence', 'Professionalism', 'Attendance/Reliability', 'Hours of Service Violation', 'Other'];
-const DISCIPLINARY_CORRECTIVE_ACTIONS = ['Verbal warning (documented)', 'Written warning (documented)', 'Suspension', 'Termination', 'Other (including documentation)'];
+// Client asked (12 Nov) for Speeding Violation as an incident type and Retraining as an action
+const DISCIPLINARY_INCIDENT_TYPES = ['Job Performance', 'Competence', 'Professionalism', 'Attendance/Reliability', 'Hours of Service Violation', 'Speeding Violation', 'Other'];
+const DISCIPLINARY_CORRECTIVE_ACTIONS = ['Verbal warning (documented)', 'Written warning (documented)', 'Suspension', 'Retraining', 'Termination', 'Other (including documentation)'];
 
 const VehicleEldMonitor = () => {
     const [activeTab, setActiveTab] = useState<'tracker' | 'audit-form' | 'e-logs'>('tracker');
