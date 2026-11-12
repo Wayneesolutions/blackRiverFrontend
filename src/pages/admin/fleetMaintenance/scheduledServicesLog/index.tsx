@@ -97,9 +97,14 @@ const getServiceTypeLabel = (value: string, customServices?: Array<{ name: strin
   const match = DEFAULT_SERVICE_TYPE_OPTIONS.find(option => option.value === value);
   if (match) return match.label;
 
-  // Fallback: format the value
-  return value.replace(/-/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+  // Fallback: format the value ("dpf-cleaning" → "DPF Cleaning")
+  return value
+    .replace(/-/g, ' ')
+    .replace(/\b\w+/g, (word) => (SERVICE_ACRONYMS.has(word.toUpperCase()) ? word.toUpperCase() : word.charAt(0).toUpperCase() + word.slice(1)));
 };
+
+// Trucking abbreviations that should stay upper case in typed service types
+const SERVICE_ACRONYMS = new Set(['DPF', 'DEF', 'EGR', 'ABS', 'PM', 'CVIP', 'DOT', 'MTO', 'AC', 'HVAC', 'APU', 'ECM', 'VIN', 'NSC', 'CVSA', 'PTO', 'SCR', 'DOC', 'TPMS', 'ELD', 'GPS', 'LED', 'OEM']);
 
 const formatDate = (dateString?: string) => {
   if (!dateString) return 'N/A';
@@ -869,11 +874,15 @@ const ScheduledServicesLog: React.FC = () => {
 
   useEffect(() => {
     setTypedServiceTypes((prev) => {
-      const next = new Set(prev);
+      // With "All Types" the list holds every service, so it is the full set of types in use
+      // (a type nobody uses any more drops out of the filter). With a type filter on, keep the
+      // other types we already know so the dropdown does not shrink to one entry.
+      const next = new Set(filterServiceType === 'all' ? [] : prev);
       services.forEach((sv) => { if (sv.serviceType) next.add(sv.serviceType); });
-      return next.size === prev.length ? prev : Array.from(next);
+      const arr = Array.from(next);
+      return arr.length === prev.length && arr.every((v) => prev.includes(v)) ? prev : arr;
     });
-  }, [services]);
+  }, [services, filterServiceType]);
 
   const filterTypeOptions = useMemo(() => {
     const known = new Set(serviceTypeOptions.map((o) => o.value));

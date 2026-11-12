@@ -15,6 +15,10 @@ type UserRole =
     | 'Maintenance Crew (Mechanics)'
     | 'Fleet Maintenance Manager'
     | 'Compliance Manager'
+    | 'accountant'
+    | 'safety officer'
+    | 'operator'
+    | 'salesperson'
     | 'all';
 
 type UserProfile = UserProfileDto & { role: UserRole | string };
@@ -571,6 +575,10 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                 <option value="Maintenance Crew (Mechanics)">Maintenance Crew</option>
                                 <option value="Fleet Maintenance Manager">Fleet Maintenance Manager</option>
                                 <option value="Compliance Manager">Compliance Manager</option>
+                                <option value="accountant">Accountant</option>
+                                <option value="safety officer">Safety Officer</option>
+                                <option value="operator">Operator</option>
+                                <option value="salesperson">Salesperson</option>
                             </select>
                         </div>
                     </div>

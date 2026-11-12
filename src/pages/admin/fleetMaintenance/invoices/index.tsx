@@ -35,6 +35,9 @@ import {
   uploadExtractFleetInvoice,
 } from '../../../../axios/api/fleet.invoices';
 
+// Money in cents precision, rounded half-up (matches the backend)
+const toCents = (n: number): number => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
 const TERMS_OPTIONS = [
   { value: 'Net 15', days: 15 },
   { value: 'Net 30', days: 30 },
@@ -508,10 +511,11 @@ const FleetInvoicesPage = () => {
     }
   };
 
-  // Auto-hide notification after 4 seconds
+  // Auto-hide notification (4 s, errors 10 s)
   useEffect(() => {
     if (notification) {
-      const timer = setTimeout(() => setNotification(null), 4000);
+      // Errors stay longer so they can be read and fixed
+      const timer = setTimeout(() => setNotification(null), notification.type === 'error' ? 10000 : 4000);
       return () => clearTimeout(timer);
     }
   }, [notification]);
@@ -614,7 +618,7 @@ const FleetInvoicesPage = () => {
 
         // Always recalculate amount when qty or rate changes (including auto-filled values)
         if ('qty' in updates || 'rate' in updates || updates.productService !== undefined) {
-          next.amount = (next.qty ?? 1) * (next.rate ?? 0);
+          next.amount = toCents((next.qty ?? 1) * (next.rate ?? 0));
         }
         return next;
       })
@@ -645,28 +649,29 @@ const FleetInvoicesPage = () => {
     setLineItems((prev) => prev.filter((i) => i.id !== id));
   };
 
-  // Calculate items subtotal and tax
-  const itemsSubtotal = useMemo(() => lineItems.reduce((sum, i) => sum + i.amount, 0), [lineItems]);
+  // Calculate items subtotal and tax. Every line amount and line tax is rounded to cents
+  // (half-up), the same way the backend stores it, so the form, PDF and list agree.
+  const itemsSubtotal = useMemo(() => toCents(lineItems.reduce((sum, i) => sum + toCents(i.amount), 0)), [lineItems]);
   const itemsTax = useMemo(() => {
-    return lineItems.reduce((sum, item) => {
+    return toCents(lineItems.reduce((sum, item) => {
       const tax = allTaxes.find((t) => t.id === item.salesTax);
       const rate = tax ? tax.percent / 100 : 0;
-      return sum + item.amount * rate;
-    }, 0);
+      return sum + toCents(toCents(item.amount) * rate);
+    }, 0));
   }, [lineItems, allTaxes]);
 
   // Calculate labour amount and tax
-  const labourAmount = useMemo(() => labourHours * labourRate, [labourHours, labourRate]);
+  const labourAmount = useMemo(() => toCents(labourHours * labourRate), [labourHours, labourRate]);
   const labourTaxAmount = useMemo(() => {
     const tax = allTaxes.find((t) => t.id === labourTax);
     const rate = tax ? tax.percent / 100 : 0;
-    return labourAmount * rate;
+    return toCents(labourAmount * rate);
   }, [labourAmount, labourTax, allTaxes]);
 
   // Final totals
-  const subtotal = itemsSubtotal + labourAmount; // Items + Labour
-  const totalTax = itemsTax + labourTaxAmount; // Items tax + Labour tax
-  const totalBalance = subtotal + totalTax;
+  const subtotal = toCents(itemsSubtotal + labourAmount); // Items + Labour
+  const totalTax = toCents(itemsTax + labourTaxAmount); // Items tax + Labour tax
+  const totalBalance = toCents(subtotal + totalTax);
 
   const handleSaveAndClose = async () => {
     // Validation
@@ -674,8 +679,20 @@ const FleetInvoicesPage = () => {
       setNotification({ type: 'error', message: 'Please select a customer or upload an invoice to extract vendor details' });
       return;
     }
-    if (lineItems.length === 0 || lineItems.some(item => !item.description || item.rate === 0)) {
-      setNotification({ type: 'error', message: 'Please add at least one valid line item with description and rate' });
+    // Parts may have no description (Rosser style) as long as the line has a name; every line needs a rate
+    if (lineItems.length === 0) {
+      setNotification({ type: 'error', message: 'Please add at least one line item' });
+      return;
+    }
+    const badLines = lineItems
+      .map((item, idx) => {
+        const hasName = !!(item.description?.trim() || item.productName?.trim() || item.productService);
+        const problems = [!hasName && 'a product or description', !item.rate && 'a rate'].filter(Boolean);
+        return problems.length ? `line ${idx + 1} needs ${problems.join(' and ')}` : null;
+      })
+      .filter(Boolean);
+    if (badLines.length) {
+      setNotification({ type: 'error', message: `Please fix the line items: ${badLines.join('; ')}.` });
       return;
     }
 
@@ -1772,7 +1789,7 @@ const FleetInvoicesPage = () => {
                   <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
                   <p className="mt-1 text-2xl font-bold text-[var(--accent-green)]">
-                    ${(summary?.paidAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    ${(summary?.paidAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 )}
                 {!summaryLoading && summary && (
@@ -1793,7 +1810,7 @@ const FleetInvoicesPage = () => {
                   <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
                   <p className="mt-1 text-2xl font-bold text-[var(--accent-orange)]">
-                    ${(summary?.unpaidAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    ${(summary?.unpaidAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 )}
                 {!summaryLoading && summary && (
@@ -1814,7 +1831,7 @@ const FleetInvoicesPage = () => {
                   <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
                   <p className="mt-1 text-2xl font-bold text-[var(--accent-orange)]">
-                    ${(summary?.overdueAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    ${(summary?.overdueAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 )}
                 {!summaryLoading && summary && (
@@ -1835,7 +1852,7 @@ const FleetInvoicesPage = () => {
                   <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
                   <p className="mt-1 text-2xl font-bold text-[var(--accent-blue)]">
-                    ${(summary?.totalAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    ${(summary?.totalAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 )}
                 {!summaryLoading && summary && (
@@ -2574,6 +2591,9 @@ const FleetInvoicesPage = () => {
               </section>
             </div>
             <div className="flex-shrink-0 px-8 py-4 border-t border-theme bg-card flex items-center justify-end gap-3">
+              {notification?.type === 'error' && (
+                <p role="alert" className="mr-auto text-sm text-red-400">{notification.message}</p>
+              )}
               <button
                 type="button"
                 onClick={() => {
