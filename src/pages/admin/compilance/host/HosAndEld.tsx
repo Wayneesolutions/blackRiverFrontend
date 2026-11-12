@@ -1314,33 +1314,9 @@ const VehicleEldMonitor = () => {
                                         type="text"
                                         value={auditFormData.correctiveActionComments}
                                         onChange={(e) => setAuditFormData({ ...auditFormData, correctiveActionComments: e.target.value })}
-                                        placeholder="e.g. ELD MALFUNCTION"
+                                        placeholder="Write what happened, e.g. ELD malfunction or HOS violation"
                                         className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                     />
-                                </div>
-
-                                {/* ELD malfunction: recorded on file, but not counted as a driver HOS violation */}
-                                <div className="rounded-lg border border-theme p-3">
-                                    <label className="flex items-start gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={auditFormData.eldMalfunction}
-                                            onChange={(e) => {
-                                                const checked = e.target.checked;
-                                                setAuditFormData({
-                                                    ...auditFormData,
-                                                    eldMalfunction: checked,
-                                                    // Fill the form the way the paper version records it
-                                                    correctiveActionType: checked && !auditFormData.correctiveActionType ? 'Other (including documentation)' : auditFormData.correctiveActionType,
-                                                    correctiveActionComments: checked && !auditFormData.correctiveActionComments ? 'ELD MALFUNCTION' : auditFormData.correctiveActionComments
-                                                });
-                                            }}
-                                            className="mt-0.5 w-4 h-4 text-[var(--accent-blue)] border-theme rounded focus:ring-[var(--accent-blue)]"
-                                        />
-                                        <span className="text-sm text-primary">
-                                            <span className="font-semibold">ELD malfunction</span> — the time was wrongly recorded under this driver (e.g. vehicle moved by a mechanic). Saved for the record and shown as &quot;ELD Malfunction&quot;, not as a driver violation.
-                                        </span>
-                                    </label>
                                 </div>
 
                                 {/* Violations */}

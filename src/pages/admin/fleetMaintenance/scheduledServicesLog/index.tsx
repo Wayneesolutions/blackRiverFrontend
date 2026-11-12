@@ -146,6 +146,10 @@ const ScheduledServicesLog: React.FC = () => {
   const [showServiceDetails, setShowServiceDetails] = useState(false);
   const [customServices, setCustomServices] = useState<Array<{ name: string }>>([]);
   const [serviceTypeOptions, setServiceTypeOptions] = useState<Array<{ label: string; value: string }>>([]);
+  // What the user typed in the Service Type box (the saved value is its kebab-case form)
+  const [serviceTypeText, setServiceTypeText] = useState('');
+  // Service types typed freely on past services, so they can be filtered too (kept as the list is filtered)
+  const [typedServiceTypes, setTypedServiceTypes] = useState<string[]>([]);
   const [mechanics, setMechanics] = useState<Array<{ _id: string; name: string }>>([]);
 
   // Refs for scrollbar synchronization
@@ -845,7 +849,7 @@ const ScheduledServicesLog: React.FC = () => {
     setFormData({
       serviceDate: new Date().toISOString().split('T')[0],
       unitNo: '',
-      serviceType: (serviceTypeOptions[0]?.value || '') as VehicleServiceType,
+      serviceType: '' as VehicleServiceType,
       odometer: '',
       invoiceNo: '',
       notes: '',
@@ -859,8 +863,26 @@ const ScheduledServicesLog: React.FC = () => {
       externalMechanicPhone: '',
       externalMechanicEmail: '',
     });
+    setServiceTypeText('');
     setShowAddModal(true);
   };
+
+  useEffect(() => {
+    setTypedServiceTypes((prev) => {
+      const next = new Set(prev);
+      services.forEach((sv) => { if (sv.serviceType) next.add(sv.serviceType); });
+      return next.size === prev.length ? prev : Array.from(next);
+    });
+  }, [services]);
+
+  const filterTypeOptions = useMemo(() => {
+    const known = new Set(serviceTypeOptions.map((o) => o.value));
+    const extra = typedServiceTypes
+      .filter((v) => !known.has(v))
+      .map((v) => ({ label: getServiceTypeLabel(v, customServices), value: v }))
+      .sort((x, y) => x.label.localeCompare(y.label));
+    return [...serviceTypeOptions, ...extra];
+  }, [serviceTypeOptions, typedServiceTypes, customServices]);
 
   const handleEditService = (service: ScheduledService) => {
     setNotification(null);
@@ -884,6 +906,7 @@ const ScheduledServicesLog: React.FC = () => {
       }
     }
 
+    setServiceTypeText(getServiceTypeLabel(service.serviceType, customServices));
     setFormData({
       serviceDate: service.serviceDate ? service.serviceDate.split('T')[0] : new Date().toISOString().split('T')[0],
       unitNo: service.unitNo,
@@ -1171,13 +1194,9 @@ const ScheduledServicesLog: React.FC = () => {
                   onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                 >
                   <option className='form-option' value="all">All Types</option>
-                  {serviceTypeOptions.length > 0 ? (
-                    serviceTypeOptions.map(type => (
-                      <option className='form-option' key={type.value} value={type.value}>{type.label}</option>
-                    ))
-                  ) : (
-                    <option className='form-option' value="" disabled>No services configured</option>
-                  )}
+                  {filterTypeOptions.map(type => (
+                    <option className='form-option' key={type.value} value={type.value}>{type.label}</option>
+                  ))}
                 </select>
 
                 {/* Mechanic Type Filter */}
@@ -1723,36 +1742,29 @@ const ScheduledServicesLog: React.FC = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-headings mb-2">Service Type *</label>
-                        {serviceTypeOptions.length === 0 ? (
-                          <div className="w-full px-4 py-2 border border-yellow-300 bg-card rounded-lg">
-                            <p className="text-sm text-yellow-800">
-                              No services configured. Please add services in{' '}
-                              <a
-                                href="/admin/company"
-                                target="_blank"
-                                className="underline font-semibold hover:text-yellow-900"
-                              >
-                                Company Settings
-                              </a>
-                              {' '}first.
-                            </p>
-                          </div>
-                        ) : (
-                          <select
-                            value={formData.serviceType}
-                            onChange={(e) => setFormData({ ...formData, serviceType: e.target.value as VehicleServiceType })}
-                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
-                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                            onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                            onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                            required
-                          >
-                            <option className='form-option' value="">Select Service Type</option>
-                            {serviceTypeOptions.map(type => (
-                              <option className='form-option' key={type.value} value={type.value}>{type.label}</option>
-                            ))}
-                          </select>
-                        )}
+                        {/* Client (12 Nov): service type is typed freely ("Service B truck inspection", "DOT", ...).
+                            Saved service types from Maintenance Settings are offered as suggestions. */}
+                        <input
+                          list="scheduled-service-type-options"
+                          value={serviceTypeText}
+                          onChange={(e) => {
+                            const text = e.target.value;
+                            setServiceTypeText(text);
+                            const known = serviceTypeOptions.find((o) => o.label.toLowerCase() === text.trim().toLowerCase());
+                            setFormData({ ...formData, serviceType: (known ? known.value : nameToServiceType(text)) as VehicleServiceType });
+                          }}
+                          placeholder="Type a service, e.g. Service B truck inspection"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                          onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                          onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                          required
+                        />
+                        <datalist id="scheduled-service-type-options">
+                          {serviceTypeOptions.map(type => (
+                            <option key={type.value} value={type.label} />
+                          ))}
+                        </datalist>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-headings mb-2">Odometer/Hour</label>
