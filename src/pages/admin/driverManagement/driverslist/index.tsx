@@ -372,7 +372,8 @@ const DriverManagement = () => {
     // SIN Number (mandatory)
     sinNumber: '',
     // Canadian Worker Status
-    canadianWorkerStatus: 'PERMANENT RESIDENT' as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
+    // No default: preselecting PERMANENT RESIDENT made new drivers fail on a hidden PR-card error
+    canadianWorkerStatus: '' as '' | 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
     // Permanent Residence Expiry
     permanentResidenceExpiry: '',
     // Work Permit Expiry
@@ -1150,7 +1151,7 @@ const DriverManagement = () => {
             })(),
             fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
             sinNumber: driver.sinNo || driver.details?.sinNo || driver.socialInsuranceNumber || '',
-            canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
+            canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || '') as '' | 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
             permanentResidenceExpiry: (() => {
               const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
               return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
@@ -1559,7 +1560,7 @@ const DriverManagement = () => {
                 })(),
                 fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
                 sinNumber: driver.sinNo || driver.details?.sinNo || driver.socialInsuranceNumber || '',
-                canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
+                canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || '') as '' | 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
                 permanentResidenceExpiry: (() => {
                   const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
                   return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
@@ -1675,7 +1676,7 @@ const DriverManagement = () => {
         fastCardExpiry: '',
         fastCardValid: false,
         sinNumber: '',
-        canadianWorkerStatus: 'PERMANENT RESIDENT',
+        canadianWorkerStatus: '',
         permanentResidenceExpiry: '',
         workPermitExpiry: '',
         wcbNumber: '',
@@ -1931,6 +1932,11 @@ const DriverManagement = () => {
       errors.sinNumber = 'SIN Number is required';
     }
 
+    // Canadian Worker Status must be picked (there is no default any more)
+    if (!travelData.canadianWorkerStatus) {
+      errors.canadianWorkerStatus = 'Canadian Worker Status is required';
+    }
+
     // Document Validation based on Canadian Worker Status
     if (travelData.canadianWorkerStatus === 'WORK PERMIT') {
       if (!travelData.workPermitDocument && !travelData.existingWorkPermitUrl) {
@@ -1973,6 +1979,14 @@ const DriverManagement = () => {
       if (errors.driversLicenseExpiry) errorFields.push('Drivers License Expiry Date');
       if (errors.passportNumber) errorFields.push('Passport Number');
       if (errors.passportExpiry) errorFields.push('Passport Expiry Date');
+      // These were validated but never named, so the message ended with an empty list
+      if (errors.sinNumber) errorFields.push('SIN Number');
+      if (errors.canadianWorkerStatus) errorFields.push('Canadian Worker Status');
+      if (errors.prCardDocument) errorFields.push('PR Card Document');
+      if (errors.workPermitDocument) errorFields.push('Work Permit Document');
+      if (Object.keys(errors).some(k => k.startsWith('violationType_'))) errorFields.push('Violation Type');
+      // Anything else still gets counted rather than producing an empty message
+      if (errorFields.length === 0) errorFields.push(...Object.values(errors));
 
       // Create detailed error message
       let errorMessage = `Please complete the following required field${errorCount > 1 ? 's' : ''}: ${errorFields.join(', ')}`;
@@ -1989,8 +2003,11 @@ const DriverManagement = () => {
         setActiveFormTab('basic');
       } else if (errors.status) {
         setActiveFormTab('personal');
-      } else if (errors.driversLicenseNumber || errors.driversLicenseExpiry || errors.passportNumber || errors.passportExpiry) {
+      } else if (errors.driversLicenseNumber || errors.driversLicenseExpiry || errors.passportNumber || errors.passportExpiry ||
+        errors.sinNumber || errors.canadianWorkerStatus || errors.prCardDocument || errors.workPermitDocument) {
         setActiveFormTab('travel');
+      } else if (Object.keys(errors).some(k => k.startsWith('violationType_'))) {
+        setActiveFormTab('violations');
       }
 
       return false;
@@ -2498,7 +2515,7 @@ const DriverManagement = () => {
           fastCardExpiry: '',
           fastCardValid: false,
           sinNumber: '',
-          canadianWorkerStatus: 'PERMANENT RESIDENT',
+          canadianWorkerStatus: '',
           permanentResidenceExpiry: '',
           workPermitExpiry: '',
           wcbNumber: '',
@@ -2666,7 +2683,7 @@ const DriverManagement = () => {
       fastCardExpiry: '',
       fastCardValid: false,
       sinNumber: '',
-      canadianWorkerStatus: 'PERMANENT RESIDENT',
+      canadianWorkerStatus: '',
       permanentResidenceExpiry: '',
       workPermitExpiry: '',
       wcbNumber: '',
@@ -3465,7 +3482,7 @@ const DriverManagement = () => {
                 })(),
                 fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
                 sinNumber: driver.details?.sinNumber || travelData.sinNumber || '',
-                canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
+                canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || '') as '' | 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
                 permanentResidenceExpiry: (() => {
                   const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
                   return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
@@ -6149,6 +6166,10 @@ const DriverManagement = () => {
                         </button>
                       </div>
                     </div>
+
+                    {validationErrors.canadianWorkerStatus && !travelData.canadianWorkerStatus && (
+                      <p className="text-xs text-red-500 mt-2">{validationErrors.canadianWorkerStatus}</p>
+                    )}
 
                     {/* Permanent Residence Expiry */}
                     {travelData.canadianWorkerStatus === 'PERMANENT RESIDENT' && (

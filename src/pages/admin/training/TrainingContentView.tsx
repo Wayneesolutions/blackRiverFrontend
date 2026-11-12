@@ -108,13 +108,18 @@ const TrainingContentView: React.FC = () => {
   // Redirect to dashboard on the first login of each session.
   // Login.tsx sets 'showDashboardFirst' in sessionStorage to ensure the user
   // always sees their dashboard before accessing training content.
+  // Only when Training was opened directly (bookmark / refresh, location.key === 'default'):
+  // a click from the menu means the user has already seen their dashboard, and bouncing them
+  // back made the first click on Training Content look broken.
   useEffect(() => {
     const shouldShowDashboardFirst = sessionStorage.getItem('showDashboardFirst') === 'true';
     if (shouldShowDashboardFirst) {
       sessionStorage.removeItem('showDashboardFirst');
-      navigate(dashboardRoute, { replace: true });
+      if (location.key === 'default') {
+        navigate(dashboardRoute, { replace: true });
+      }
     }
-  }, [dashboardRoute, navigate]);
+  }, [dashboardRoute, navigate, location.key]);
 
   console.log('TrainingContentView - Path:', location.pathname);
   console.log('TrainingContentView - User role:', userRole, 'Target role:', targetRole);
