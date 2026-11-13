@@ -73,6 +73,8 @@ interface InsuranceClaim {
   adjusterContact?: string;
   description: string;
   location?: string;
+  country?: 'canada' | 'usa';
+  countryIsGuess?: boolean; // older claims: worked out from the linked accident / location
   notes?: string;
   documents?: string[];
   documentLinks?: Array<{ key: string; name: string; url: string }>;
@@ -114,6 +116,7 @@ interface ClaimForm {
   adjusterContact: string;
   description: string;
   location: string;
+  country: string;
   notes: string;
 }
 
@@ -169,6 +172,8 @@ const InsuranceClaims: React.FC = () => {
 
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  // Canada / USA tabs (client: all claims showed in one place)
+  const [countryFilter, setCountryFilter] = useState<'all' | 'canada' | 'usa'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortField, setSortField] = useState<string>('claimDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -209,6 +214,7 @@ const InsuranceClaims: React.FC = () => {
     adjusterContact: '',
     description: '',
     location: '',
+    country: '',
     notes: ''
   });
 
@@ -222,7 +228,7 @@ const InsuranceClaims: React.FC = () => {
   // Apply filters and search
   useEffect(() => {
     applyFilters();
-  }, [claims, statusFilter, typeFilter, searchQuery, sortField, sortDirection]);
+  }, [claims, statusFilter, typeFilter, searchQuery, sortField, sortDirection, countryFilter]);
 
   const addNotification = (type: 'success' | 'error' | 'info', message: string) => {
     const id = notificationId + 1;
@@ -297,6 +303,11 @@ const InsuranceClaims: React.FC = () => {
     // Type filter
     if (typeFilter !== 'all') {
       filtered = filtered.filter(claim => claim.claimType === typeFilter);
+    }
+
+    // Country tab
+    if (countryFilter !== 'all') {
+      filtered = filtered.filter(claim => claim.country === countryFilter);
     }
 
     // Search filter
@@ -385,6 +396,7 @@ const InsuranceClaims: React.FC = () => {
         { header: 'Status', width: 13, value: (c) => label(c.status) },
         { header: 'Driver', width: 20, value: (c) => (typeof c.driver === 'object' ? c.driver?.name : '') },
         { header: 'Vehicle', width: 16, value: (c) => (typeof c.vehicle === 'object' ? c.vehicle?.internalId || c.vehicle?.plateNumber : '') },
+        { header: 'Country', width: 10, value: (c) => (c.country === 'canada' ? 'Canada' : c.country === 'usa' ? 'USA' : '') },
         { header: 'Insurance Company', width: 24, value: (c) => c.insuranceCompany },
         { header: 'Policy #', width: 18, value: (c) => c.policyNumber },
         { header: 'Adjuster', width: 18, value: (c) => c.adjusterName },
@@ -427,6 +439,7 @@ const InsuranceClaims: React.FC = () => {
       adjusterContact: '',
       description: '',
       location: '',
+      country: countryFilter !== 'all' ? countryFilter : '',
       notes: ''
     });
     setShowAddModal(true);
@@ -453,6 +466,7 @@ const InsuranceClaims: React.FC = () => {
       adjusterContact: claim.adjusterContact || '',
       description: claim.description || '',
       location: claim.location || '',
+      country: claim.country || '',
       notes: claim.notes || ''
     });
     setShowEditModal(true);
@@ -470,6 +484,10 @@ const InsuranceClaims: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!claimForm.country) {
+      addNotification('error', 'Please choose the country (Canada or USA)');
+      return;
+    }
     setLoading(true);
     try {
       const { createInsuranceClaim, updateInsuranceClaim } = await import('../../../../axios/api/insuranceClaim');
@@ -682,6 +700,30 @@ const InsuranceClaims: React.FC = () => {
               <FaDollarSign className="text-[var(--accent-purple)]" size={24} />
             </div>
           </div>
+        </div>
+
+        {/* Country tabs */}
+        <div className="bg-card rounded-lg shadow-sm border border-theme p-4 mb-4 flex flex-wrap gap-2">
+          {([
+            { key: 'all', label: 'All', count: claims.length },
+            { key: 'canada', label: 'Canada', count: claims.filter(c => c.country === 'canada').length },
+            { key: 'usa', label: 'USA', count: claims.filter(c => c.country === 'usa').length },
+          ] as const).map(t => (
+            <button
+              key={t.key}
+              onClick={() => setCountryFilter(t.key)}
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${countryFilter === t.key
+                ? 'bg-[var(--accent-navyblue)] text-white'
+                : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}
+            >
+              {t.label} ({t.count})
+            </button>
+          ))}
+          {claims.some(c => !c.country) && (
+            <span className="text-xs text-secondary self-center ml-2">
+              {claims.filter(c => !c.country).length} claim(s) have no country yet. They show under All; edit them to choose Canada or USA.
+            </span>
+          )}
         </div>
 
         {/* Filters */}
@@ -903,6 +945,7 @@ const InsuranceClaims: React.FC = () => {
                         <td className="px-6 py-4">
                           <div className="flex flex-col h-[3.5rem] justify-center">
                             <div className="text-sm text-primary leading-5">{claim.insuranceCompany || 'N/A'}</div>
+                            <div className="text-xs text-secondary">{claim.country === 'canada' ? 'Canada' : claim.country === 'usa' ? 'USA' : 'Country not set'}{claim.countryIsGuess ? ' (check)' : ''}</div>
                             <div className="text-xs text-secondary leading-4">
                               {claim.adjusterName ? `Adjuster: ${claim.adjusterName}` : '\u00A0'}
                             </div>
@@ -1300,6 +1343,21 @@ const InsuranceClaims: React.FC = () => {
                     placeholder="Phone or email"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-headings mb-2">
+                    Country *
+                  </label>
+                  <select
+                    value={claimForm.country}
+                    onChange={(e) => setClaimForm({ ...claimForm, country: e.target.value })}
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                    required
+                  >
+                    <option className="form-option" value="">Select country</option>
+                    <option className="form-option" value="canada">Canada</option>
+                    <option className="form-option" value="usa">USA</option>
+                  </select>
+                </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-headings mb-2">
                     Location
@@ -1508,6 +1566,10 @@ const InsuranceClaims: React.FC = () => {
                     )}
                   </div>
                 )}
+                <div>
+                  <label className="block text-sm font-medium text-secondary mb-1">Country</label>
+                  <p className="text-primary">{selectedClaim.country === 'canada' ? 'Canada' : selectedClaim.country === 'usa' ? 'USA' : 'Not set'}</p>
+                </div>
                 {selectedClaim.location && (
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-secondary mb-1">Location</label>

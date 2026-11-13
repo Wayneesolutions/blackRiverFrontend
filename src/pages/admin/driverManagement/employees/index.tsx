@@ -6,7 +6,6 @@ import { useAutoSaveDraft } from '../../../../customHooks/useAutoSaveDraft';
 import { toDraftSafe } from '../../../../utils/draftSnapshot';
 import DraftRestoreBanner from '../../../../components/common/DraftRestoreBanner';
 import AutoSaveIndicator from '../../../../components/common/AutoSaveIndicator';
-import ExcelJS from 'exceljs';
 import { FaTimes, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import * as employeeApi from '../../../../axios/api/employee';
 import { importEmployeesFromFile } from '../../../../axios/api/employee';
@@ -15,6 +14,8 @@ import { getDocumentsByEmployee, updateEmployeeDocument, deleteEmployeeDocument 
 import { deleteDeductionAddition } from '../../../../axios/api/account.settlement';
 import AddressSearch from '../../../../components/common/AddressSearch';
 import DateOfBirthField from '../../../../components/common/DateOfBirthField';
+import AdvancedPermissionsPanel from '../../../../components/hr/AdvancedPermissionsPanel';
+import { exportFullRecords, formatExportDate } from '../../../../utils/fullRecordExport';
 
 interface Employee {
   _id?: string;
@@ -874,58 +875,35 @@ const EmployeesPage = () => {
   };
 
   const handleExportEmployees = async () => {
-    const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Logistiq Innovation';
-    workbook.created = new Date();
-    const sheet = workbook.addWorksheet('Employees', { views: [{ state: 'frozen', ySplit: 1 }] });
-
-    sheet.columns = [
-      { header: 'First Name', key: 'firstName', width: 18 },
-      { header: 'Last Name', key: 'lastName', width: 18 },
-      { header: 'Email', key: 'email', width: 30 },
-      { header: 'Phone', key: 'phone', width: 18 },
-      { header: 'Role', key: 'role', width: 22 },
-      { header: 'Department', key: 'department', width: 20 },
-      { header: 'Status', key: 'status', width: 12 },
-      { header: 'Created At', key: 'createdAt', width: 18 },
-    ];
-
-    const headerRow = sheet.getRow(1);
-    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
-    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF42AEEC' } };
-    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-    headerRow.height = 22;
-
-    filteredEmployees.forEach((emp: any) => {
-      const nameParts = (emp.name || '').split(' ');
-      const row = sheet.addRow({
-        firstName: emp.firstName || nameParts[0] || '',
-        lastName: emp.lastName || nameParts.slice(1).join(' ') || '',
-        email: emp.email || '',
-        phone: emp.phone || '',
-        role: emp.role || '',
-        department: emp.department || '',
-        status: emp.status || '',
-        createdAt: emp.createdAt ? new Date(emp.createdAt).toLocaleDateString() : '',
-      });
-      row.alignment = { vertical: 'middle' };
+    // Every field on the record (hire date, address, pay, etc.), important ones first
+    const d = (e: any) => e.details || {};
+    await exportFullRecords({
+      records: filteredEmployees as any[],
+      sheetName: 'Employees',
+      fileName: `Employees-${new Date().toISOString().split('T')[0]}.xlsx`,
+      preferred: [
+        { header: 'Employee ID', get: (e) => d(e).employeeCode || e.employeeId || e.internalId },
+        { header: 'First Name', get: (e) => e.firstName || (e.name || '').split(' ')[0] },
+        { header: 'Last Name', get: (e) => e.lastName || (e.name || '').split(' ').slice(1).join(' ') },
+        { header: 'Email', get: (e) => e.email, width: 30 },
+        { header: 'Phone', get: (e) => e.phone || e.phoneNumber },
+        { header: 'Role', get: (e) => e.role, width: 22 },
+        { header: 'Department', get: (e) => d(e).department || e.department },
+        { header: 'Job Title', get: (e) => d(e).title || e.jobTitle },
+        { header: 'Status', get: (e) => e.status },
+        { header: 'Hire Date', get: (e) => formatExportDate(d(e).hireDate || e.hireDate || e.joinDate) },
+        { header: 'Termination Date', get: (e) => formatExportDate(d(e).termDate) },
+        { header: 'Date of Birth', get: (e) => formatExportDate(d(e).dateOfBirth || e.dob || e.dateOfBirth) },
+        { header: 'Address', get: (e) => e.address || d(e).address, width: 30 },
+        { header: 'City', get: (e) => e.city || d(e).city },
+        { header: 'Province / State', get: (e) => e.province || e.state || d(e).province },
+        { header: 'Postal Code', get: (e) => d(e).postalCode || e.postalCode },
+        { header: 'Country', get: (e) => e.country || d(e).country },
+        { header: 'Pay Type', get: (e) => d(e).payType || e.payType },
+        { header: 'Pay Rate', get: (e) => d(e).payRate ?? d(e).hourlyRate ?? e.payRate },
+        { header: 'Created At', get: (e) => formatExportDate(e.createdAt) },
+      ],
     });
-
-    sheet.eachRow((row, i) => {
-      if (i > 1) row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: i % 2 === 0 ? 'FFF0F9FF' : 'FFFFFFFF' } };
-      row.eachCell(cell => { cell.border = { bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } } }; });
-    });
-
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Employees-${new Date().toISOString().split('T')[0]}.xlsx`;
-    document.body.appendChild(a);
-    a.click();
-    URL.revokeObjectURL(url);
-    document.body.removeChild(a);
   };
 
   const resetForm = () => {
@@ -1354,7 +1332,10 @@ const EmployeesPage = () => {
           </div>
         </div>
 
-        {/* Employees Table */}
+        {/* Employees Table (Advanced Permissions tab shows the portal access editor instead) */}
+        {activeTab === 'advanced' ? (
+          <AdvancedPermissionsPanel employees={employees as any} loading={loading} />
+        ) : (
         <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -1528,8 +1509,9 @@ const EmployeesPage = () => {
             </table>
           </div>
         </div>
+        )}
 
-        {/* Non Signin Employees and Advanced Permissions use the same table */}
+        {/* Non Signin Employees use the same table */}
       </div>
 
       {/* Delete Confirmation Modal */}
