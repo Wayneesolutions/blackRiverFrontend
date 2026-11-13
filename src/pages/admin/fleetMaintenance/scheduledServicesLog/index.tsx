@@ -72,6 +72,7 @@ interface ScheduledService {
   externalMechanicCompany?: string;
   externalMechanicPhone?: string;
   externalMechanicEmail?: string;
+  maintenanceOrderId?: string | null;
 }
 
 interface UnitOption {
@@ -294,6 +295,7 @@ const ScheduledServicesLog: React.FC = () => {
       externalMechanicCompany: (service as any).externalMechanicCompany || undefined,
       externalMechanicPhone: (service as any).externalMechanicPhone || undefined,
       externalMechanicEmail: (service as any).externalMechanicEmail || undefined,
+      maintenanceOrderId: service.maintenanceOrderId || null,
     };
   }, []);
 
@@ -572,6 +574,9 @@ const ScheduledServicesLog: React.FC = () => {
     const allServices = [...services, ...samsaraServices];
 
     const filtered = allServices.filter((service) => {
+      // Completed tasks move to the Maintenance Orders Log once they are logged there
+      if (service.status === 'completed' && service.maintenanceOrderId) return false;
+
       const matchesSearch =
         !searchTerm ||
         service.unitNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
