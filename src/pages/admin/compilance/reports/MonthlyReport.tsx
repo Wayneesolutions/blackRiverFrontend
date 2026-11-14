@@ -1922,6 +1922,13 @@ const MonthlyReport: React.FC = () => {
                         <p className="text-[10px] text-secondary">{carrierPerformance.summary?.totalInspections ?? 0} inspections</p>
                       </div>
                     </div>
+                    {/* Client (14 Nov): the figures did not seem to match the inspection list. Say how they are worked out. */}
+                    <p className="text-[11px] text-secondary mt-3">
+                      Rates count dated inspections only. "Recent" is the last 3 months, "Previous" the 3 months before; "—" means no inspections in that period.
+                      {carrierPerformance.undatedInspections > 0 && (
+                        <span className="text-yellow-400"> {carrierPerformance.undatedInspections} inspection{carrierPerformance.undatedInspections === 1 ? ' has' : 's have'} no date and {carrierPerformance.undatedInspections === 1 ? 'is' : 'are'} not counted. Add a date on the CVSA Inspection page to include {carrierPerformance.undatedInspections === 1 ? 'it' : 'them'}.</span>
+                      )}
+                    </p>
                   </div>
                 )}
 
