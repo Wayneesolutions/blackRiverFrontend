@@ -115,12 +115,15 @@ const RevenueDashboard = () => {
     const trialRevenuePotential = typeof metrics.trialRevenuePotential === 'number'
         ? metrics.trialRevenuePotential
         : (metrics.trialRevenuePotential != null ? parseFloat(String(metrics.trialRevenuePotential)) : 0);
-    const revenueGrowth = typeof metrics.revenueGrowth === 'number'
-        ? metrics.revenueGrowth
-        : (metrics.revenueGrowth != null ? parseFloat(String(metrics.revenueGrowth)) : 0);
-    const monthlyRecurringGrowth = typeof metrics.monthlyRecurringGrowth === 'number'
-        ? metrics.monthlyRecurringGrowth
-        : (metrics.monthlyRecurringGrowth != null ? parseFloat(String(metrics.monthlyRecurringGrowth)) : 0);
+    // null means "nothing to compare against" — hide the badge instead of showing a fake %
+    const revenueGrowth: number | null = metrics.revenueGrowth == null || isNaN(Number(metrics.revenueGrowth))
+        ? null
+        : Number(metrics.revenueGrowth);
+    const monthlyRecurringGrowth: number | null = metrics.monthlyRecurringGrowth == null || isNaN(Number(metrics.monthlyRecurringGrowth))
+        ? null
+        : Number(metrics.monthlyRecurringGrowth);
+    const cycleLabel = (entry: any) =>
+        entry?.billingCycleLabel || (entry?.recurring ? 'Monthly' : 'One-time');
 
     console.log('Metrics object:', metrics);
     console.log('Total Revenue:', totalRevenue, typeof totalRevenue, 'Raw:', metrics.totalRevenue);
@@ -132,6 +135,8 @@ const RevenueDashboard = () => {
             case 'Overdue': return 'bg-red-100 text-red-800';
             case 'Trial': return 'bg-blue-100 text-blue-800';
             case 'Pending': return 'bg-yellow-100 text-yellow-800';
+            case 'Cancelled': return 'bg-gray-200 text-gray-700';
+            case 'Failed': return 'bg-red-100 text-red-800';
             default: return 'bg-card text-primary';
         }
     };
@@ -190,12 +195,16 @@ const RevenueDashboard = () => {
                                 <p className="text-2xl font-bold text-primary">
                                     ${typeof totalRevenue === 'number' && !isNaN(totalRevenue) ? totalRevenue.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
                                 </p>
-                                <div className="flex items-center mt-2">
-                                    <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                                    <span className="text-sm text-green-600">
-                                        {revenueGrowth >= 0 ? '+' : ''}{revenueGrowth}% from last month
-                                    </span>
-                                </div>
+                                {revenueGrowth !== null ? (
+                                    <div className="flex items-center mt-2">
+                                        <TrendingUp className={`w-4 h-4 mr-1 ${revenueGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`} />
+                                        <span className={`text-sm ${revenueGrowth >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                            {revenueGrowth >= 0 ? '+' : ''}{revenueGrowth}% vs last month
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-secondary mt-2">Paid invoices, all time</p>
+                                )}
                             </div>
                             <div className="bg-green-100 p-3 rounded-lg">
                                 <DollarSign className="w-6 h-6 text-green-600" />
@@ -211,12 +220,16 @@ const RevenueDashboard = () => {
                                 <p className="text-2xl font-bold text-primary">
                                     ${typeof monthlyRecurring === 'number' && !isNaN(monthlyRecurring) ? monthlyRecurring.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
                                 </p>
-                                <div className="flex items-center mt-2">
-                                    <TrendingUp className="w-4 h-4 text-blue-500 mr-1" />
-                                    <span className="text-sm text-[#00D1FF]">
-                                        {monthlyRecurringGrowth >= 0 ? '+' : ''}{monthlyRecurringGrowth}% growth
-                                    </span>
-                                </div>
+                                {monthlyRecurringGrowth !== null ? (
+                                    <div className="flex items-center mt-2">
+                                        <TrendingUp className="w-4 h-4 text-blue-500 mr-1" />
+                                        <span className="text-sm text-[#00D1FF]">
+                                            {monthlyRecurringGrowth >= 0 ? '+' : ''}{monthlyRecurringGrowth}% growth
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-secondary mt-2">6-month and yearly plans counted per month</p>
+                                )}
                             </div>
                             <div className="bg-blue-100 p-3 rounded-lg">
                                 <Calendar className="w-6 h-6 text-[#00D1FF]" />
@@ -360,7 +373,7 @@ const RevenueDashboard = () => {
                                                 ${typeof revenue.amount === 'number' && !isNaN(revenue.amount) ? revenue.amount.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0'}
                                             </div>
                                             <div className="text-xs text-secondary">
-                                                {revenue.recurring ? 'Monthly' : 'One-time'}
+                                                {cycleLabel(revenue)}
                                             </div>
                                         </td>
 
@@ -375,6 +388,9 @@ const RevenueDashboard = () => {
                                                     {revenue.status}
                                                 </span>
                                             </div>
+                                            {revenue.statusReason && (
+                                                <div className="text-xs text-secondary mt-1">{revenue.statusReason}</div>
+                                            )}
                                         </td>
 
                                         <td className="px-6 py-4 whitespace-nowrap w-32">
@@ -554,7 +570,7 @@ const RevenueDashboard = () => {
                                 <div>
                                     <p className="text-xs text-slate-400 mb-1">Payment Type</p>
                                     <p className="text-sm font-medium text-slate-200">
-                                        {selectedRevenue.recurring ? 'Monthly Recurring' : 'One-time'}
+                                        {selectedRevenue.recurring ? `${cycleLabel(selectedRevenue)} (recurring)` : cycleLabel(selectedRevenue)}
                                     </p>
                                 </div>
 
@@ -584,14 +600,14 @@ const RevenueDashboard = () => {
                                     <div className="flex items-center gap-2">
                                         {getStatusIcon(selectedRevenue.status)}
                                         <span
-                                            className={`px-2 py-1 rounded text-xs font-medium ${selectedRevenue.status === "active"
-                                                    ? "bg-green-900 text-green-400"
-                                                    : "bg-slate-700 text-slate-300"
-                                                }`}
+                                            className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(selectedRevenue.status)}`}
                                         >
                                             {selectedRevenue.status}
                                         </span>
                                     </div>
+                                    {selectedRevenue.statusReason && (
+                                        <p className="text-xs text-slate-400 mt-1">{selectedRevenue.statusReason}</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -614,7 +630,7 @@ const RevenueDashboard = () => {
                                 <div>
                                     <p className="text-xs text-slate-400 mb-1">Plan Type</p>
                                     <p className="text-sm font-medium text-slate-200">
-                                        {selectedRevenue.recurring ? 'Monthly' : 'Lifetime'}
+                                        {cycleLabel(selectedRevenue)}
                                     </p>
                                 </div>
                             </div>
