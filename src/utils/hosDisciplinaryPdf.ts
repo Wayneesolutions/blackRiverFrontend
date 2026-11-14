@@ -25,6 +25,7 @@ export type HosFormRow = {
   correctiveActionType?: string;
   correctiveActionComments?: string;
   eldMalfunction?: boolean;
+  eldMalfunctionType?: string;
   violations?: string[];
   auditorName?: string;
 };
@@ -290,7 +291,7 @@ export async function buildHosDisciplinaryPdf(
   doc.setTextColor(...GRAY);
   doc.text('Comments', M, y);
   y += 5;
-  writeBox(row.correctiveActionComments || (row.eldMalfunction ? 'ELD MALFUNCTION' : ''), 2);
+  writeBox(row.correctiveActionComments || (row.eldMalfunction ? `ELD MALFUNCTION${row.eldMalfunctionType ? ` (${row.eldMalfunctionType})` : ''}` : ''), 2);
   signature('Manager', extras.managerSignature || row.auditorName || '', extras.managerDate);
 
   // ── Notice and employee comments ─────────────────────────────
