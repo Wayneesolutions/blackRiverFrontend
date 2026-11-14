@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import jsPDF from 'jspdf';
-import DocLogo from '../../../../assets/doclogo.png';
 import {
   FaFileInvoice,
   FaPlus,
@@ -1146,7 +1145,9 @@ const FleetInvoicesPage = () => {
     doc.setFillColor(...blue);
     doc.rect(0, 0, pageWidth, 36, 'F');
 
-    // Logo
+    // Logo: the company's own logo only. Before, companies without a logo got the Logistiq logo,
+    // dark blue on the blue bar and partly under the company name; uploaded logos were also
+    // stretched to 24x14 mm. Now: own logo on a white tile, aspect ratio kept; otherwise name only.
     let logoEndX = margin;
     if (companyData?.logoUrl) {
       try {
@@ -1157,34 +1158,21 @@ const FleetInvoicesPage = () => {
           reader.onloadend = () => resolve(reader.result as string);
           reader.readAsDataURL(blob);
         });
-        doc.addImage(base64, 'PNG', margin, 5, 24, 14);
-        logoEndX = margin + 28;
-      } catch { /* skip */ }
-    } else {
-      try {
-        const img = new Image();
-        img.src = DocLogo;
-        await new Promise<void>((resolve) => {
-          img.onload = () => {
-            try {
-              const canvas = document.createElement('canvas');
-              canvas.width = img.width;
-              canvas.height = img.height;
-              const ctx = canvas.getContext('2d');
-              if (ctx) {
-                ctx.drawImage(img, 0, 0);
-                const imgData = canvas.toDataURL('image/png');
-                const logoWidth = 24;
-                const logoHeight = (img.height / img.width) * logoWidth;
-                doc.addImage(imgData, 'PNG', margin, 5, logoWidth, logoHeight);
-                logoEndX = margin + logoWidth + 4;
-              }
-            } catch { /* skip */ }
-            resolve();
-          };
-          img.onerror = () => resolve();
+        const dims = await new Promise<{ w: number; h: number }>((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve({ w: img.width || 1, h: img.height || 1 });
+          img.onerror = () => resolve({ w: 24, h: 14 });
+          img.src = base64;
         });
-      } catch { /* skip */ }
+        const boxW = 26, boxH = 26;
+        const scale = Math.min((boxW - 4) / dims.w, (boxH - 4) / dims.h);
+        const w = dims.w * scale, h = dims.h * scale;
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(margin, 5, boxW, boxH, 2, 2, 'F');
+        const fmt = base64.startsWith('data:image/jpeg') || base64.startsWith('data:image/jpg') ? 'JPEG' : 'PNG';
+        doc.addImage(base64, fmt, margin + (boxW - w) / 2, 5 + (boxH - h) / 2, w, h);
+        logoEndX = margin + boxW + 5;
+      } catch { /* name only */ }
     }
 
     // Company name + contact in header
@@ -1345,33 +1333,9 @@ const FleetInvoicesPage = () => {
     hRule(yPos - 3);
     yPos += 4;
 
-    // ── JOB DETAILS ─────────────────────────────────────────────
-    checkPageBreak(22);
-    sectionHeader('JOB DETAILS', yPos);
-    yPos += 6;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(...dark);
-    doc.text('Job ID:', margin, yPos);
-    doc.setFont('helvetica', 'normal');
-    doc.text(invoice.invoiceNumber || '—', margin + 17, yPos);
-    yPos += 6;
-
-    // First item description as the main job description
+    // (The old JOB DETAILS block only repeated the invoice number as "Job ID" and the line
+    // descriptions, which are already in the items table; the client asked for it to go.)
     const items = Array.isArray(invoice.items) ? invoice.items : [];
-    const allDescriptions = items.map((it: any) => it.description).filter(Boolean);
-    if (allDescriptions.length > 0) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('Description:', margin, yPos);
-      doc.setFont('helvetica', 'normal');
-      const dLines: string[] = doc.splitTextToSize(allDescriptions.join('; '), contentWidth - 26);
-      doc.text(dLines, margin + 26, yPos);
-      yPos += dLines.length * 5 + 3;
-    }
-    yPos += 2;
-    hRule(yPos - 2);
-    yPos += 5;
 
     // ── ITEMS TABLE ─────────────────────────────────────────────
     checkPageBreak(22);

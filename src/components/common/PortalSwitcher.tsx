@@ -43,7 +43,7 @@ const getAccessiblePortals = (): string[] => {
     const info = getUserInfo();
     const portals: string[] = info?.userData?.portals || [];
     const role = getUserRole();
-    const all = new Set(portals);
+    const all = new Set(portals.filter((p) => p !== 'manifest'));
     if (role && ROLE_PORTAL_MAP[role]) all.add(ROLE_PORTAL_MAP[role]);
     return Array.from(all);
   } catch {
@@ -74,7 +74,7 @@ export default function PortalSwitcher() {
         } catch (_) {}
 
         const role = getUserRole();
-        const all = new Set(freshPortals);
+        const all = new Set(freshPortals.filter((p) => p !== 'manifest'));
         if (role && ROLE_PORTAL_MAP[role]) all.add(ROLE_PORTAL_MAP[role]);
         setPortals(Array.from(all));
       }
@@ -116,14 +116,6 @@ export default function PortalSwitcher() {
               {PORTAL_LABELS[key] || key}
             </button>
           ))}
-          <div className="border-t border-theme mt-1 pt-1">
-            <button
-              onClick={() => { setOpen(false); navigate('/portal-select'); }}
-              className="w-full text-left px-4 py-2.5 text-sm text-[var(--accent-blue)] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
-            >
-              View all portals
-            </button>
-          </div>
         </div>
       )}
     </div>

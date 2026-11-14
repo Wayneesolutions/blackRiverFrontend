@@ -227,6 +227,8 @@ const Incidents: React.FC = () => {
   const [locationFilter, setLocationFilter] = useState<string>('all');
   const [driverFilter, setDriverFilter] = useState<string>('all');
   const [countryFilter, setCountryFilter] = useState<'all' | 'canada' | 'usa'>('all');
+  // Tab counts from the server (independent of which tab is open)
+  const [countryCounts, setCountryCounts] = useState<{ all: number; canada: number; usa: number } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [total, setTotal] = useState(0);
@@ -478,6 +480,7 @@ const Incidents: React.FC = () => {
       const res = await getIncidents(params);
       if (res && res.success && res.data) {
         setIncidents(res.data);
+        setCountryCounts(res.countryCounts || null);
         if (res.pagination) {
           setTotal(res.pagination.total);
           setTotalPages(res.pagination.totalPages);
@@ -1189,7 +1192,7 @@ const Incidents: React.FC = () => {
                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
             >
-              All ({incidents.length})
+              All ({countryCounts ? countryCounts.all : incidents.length})
             </button>
             <button
               onClick={() => setCountryFilter('canada')}
@@ -1199,7 +1202,7 @@ const Incidents: React.FC = () => {
                 }`}
             >
               <FaFlag className="text-[#A855F7]" size={14} />
-              Canada ({incidents.filter(i => i.location?.country === 'canada').length})
+              Canada ({countryCounts ? countryCounts.canada : incidents.filter(i => i.location?.country === 'canada').length})
             </button>
             <button
               onClick={() => setCountryFilter('usa')}
@@ -1209,7 +1212,7 @@ const Incidents: React.FC = () => {
                 }`}
             >
               <FaFlagUsa className="text-[#00D1FF]" size={14} />
-              USA ({incidents.filter(i => i.location?.country === 'usa').length})
+              USA ({countryCounts ? countryCounts.usa : incidents.filter(i => i.location?.country === 'usa').length})
             </button>
           </div>
         </div>

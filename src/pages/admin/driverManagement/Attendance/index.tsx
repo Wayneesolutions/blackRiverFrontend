@@ -149,11 +149,8 @@ const AttendanceTracking = () => {
   const onLeaveIds = new Set(todayRecords.filter(r => r.status === 'leave').map(employeeIdOf).filter(Boolean));
   const presentToday = presentIds.size;
   const totalEmployees = employees.length;
-  // Absent: marked absent today, or simply not present / on leave today
-  const absentToday = Math.max(
-    todayRecords.filter(r => r.status === 'absent').length,
-    totalEmployees - presentToday - onLeaveIds.size
-  );
+  // Absent: employees with no present/leave record today and no open work session
+  const absentToday = employees.filter(e => !presentIds.has(e._id) && !onLeaveIds.has(e._id)).length;
 
   const calculateHours = (checkIn: string, checkOut: string): number => {
     if (!checkIn || !checkOut || checkIn === '--' || checkOut === '--') return 0;

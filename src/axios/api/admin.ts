@@ -404,7 +404,7 @@ export const deleteComplianceInvoice = async (id: string, type: string) => {
 };
 
 // Incident API Functions
-export const getIncidents = async (params?: { status?: string; type?: string; location?: string; driver?: string; search?: string; page?: number; limit?: number }) => {
+export const getIncidents = async (params?: { status?: string; type?: string; location?: string; driver?: string; search?: string; country?: string; page?: number; limit?: number }) => {
   try {
     const queryParams = new URLSearchParams();
     if (params?.status) queryParams.append('status', params.status);
@@ -412,6 +412,8 @@ export const getIncidents = async (params?: { status?: string; type?: string; lo
     if (params?.location) queryParams.append('location', params.location);
     if (params?.driver) queryParams.append('driver', params.driver);
     if (params?.search) queryParams.append('search', params.search);
+    // Canada / USA tab (was never sent, so both tabs listed every accident)
+    if (params?.country) queryParams.append('country', params.country);
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     

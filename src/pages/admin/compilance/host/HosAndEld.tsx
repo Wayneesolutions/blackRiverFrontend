@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import {
     RefreshCw, ShieldCheck,
-    Download, Upload, FileText, X, FileCheck, Plus, Eye, Pencil, Check
+    Download, Upload, FileText, X, FileCheck, Plus, Eye, Pencil, Check, Printer
 } from 'lucide-react';
-import jsPDF from 'jspdf';
+import { buildHosDisciplinaryPdf, hosFormFileName } from '../../../../utils/hosDisciplinaryPdf';
 import {
     getHOSEldData,
     syncHOSFromSamsara,
@@ -230,7 +230,7 @@ const VehicleEldMonitor = () => {
     };
 
     // Fetch HOS Audit Form list from API
-    const fetchAuditForms = async () => {
+    const fetchAuditForms = async (): Promise<AuditTableRow[]> => {
         setAuditTableLoading(true);
         try {
             const response = await getHosAuditForms({ page: 1, limit: 100 });
@@ -264,6 +264,7 @@ const VehicleEldMonitor = () => {
                     })) : []
                 }));
                 setAuditTableData(rows);
+                return rows;
             } else {
                 setAuditTableData([]);
             }
@@ -273,6 +274,7 @@ const VehicleEldMonitor = () => {
         } finally {
             setAuditTableLoading(false);
         }
+        return [];
     };
 
     // Sync HOS data from Samsara
@@ -335,7 +337,7 @@ const VehicleEldMonitor = () => {
             const response = await createHosAuditForm(formData);
 
             if (response?.success) {
-                alert('HOS Audit submitted successfully!');
+                const newId = response?.data?._id || response?.data?.id;
                 setAuditFormDocuments([]);
                 setAuditFormData({
                     driverId: '',
@@ -359,8 +361,12 @@ const VehicleEldMonitor = () => {
                     notes: '',
                     auditorName: ''
                 });
-                await fetchAuditForms();
+                const rows = await fetchAuditForms();
                 await fetchHOSData();
+                // Open the printable form straight away so it can be printed and signed by the driver
+                const saved = rows.find(r => r.id === String(newId)) || null;
+                if (saved) openDownloadForm(saved);
+                else alert('HOS Audit submitted. Use "Download form" in the HOS Audit Tracker to print it.');
             } else {
                 alert(response?.message || 'Failed to submit audit');
             }
@@ -596,187 +602,39 @@ const VehicleEldMonitor = () => {
         setDownloadFormRow(null);
     };
 
-    const saveEditableFormState = () => {
-        setEditableFormState(prev => ({ ...prev })); // trigger re-render if needed; state is already editable
-        // Optional: could call API here to persist editable fields if backend supports it
+
+    // Branded PDF (same look as invoices/payroll), with blank lines for the manager's and
+    // driver's pen signatures. Download saves it; Print opens the print dialog.
+    const [pdfBusy, setPdfBusy] = useState<'download' | 'print' | null>(null);
+    const makeHosFormPdf = async () => {
+        if (!downloadFormRow) return null;
+        return buildHosDisciplinaryPdf(downloadFormRow, editableFormState, DISCIPLINARY_INCIDENT_TYPES, DISCIPLINARY_CORRECTIVE_ACTIONS);
     };
-
-    const downloadHosFormPdf = () => {
-        if (!downloadFormRow || !hosFormPrintRef.current) return;
-        const row = downloadFormRow;
-        const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-        const pageW = doc.internal.pageSize.getWidth();
-        const margin = 14;
-        let y = margin;
-        const lineH = 6;
-        const lineWd = 0.3;
-
-        const addText = (text: string, x: number, fontSize: number = 10, font: 'normal' | 'bold' = 'normal') => {
-            doc.setFontSize(fontSize);
-            doc.setFont('helvetica', font);
-            const lines = doc.splitTextToSize(text, pageW - 2 * margin);
-            lines.forEach((line: string) => {
-                if (y > 270) { doc.addPage(); y = margin; }
-                doc.text(line, x, y);
-                y += lineH * (fontSize / 10);
-            });
-        };
-        const drawCheckbox = (x: number, yPos: number, checked: boolean, size: number = 3) => {
-            doc.rect(x, yPos - size, size, size);
-            if (checked) {
-                doc.setLineWidth(0.35);
-                doc.setDrawColor(0, 0, 0);
-                const pad = 0.25;
-                const x1 = x + pad;
-                const y1 = yPos - size * 0.55;
-                const x2 = x + size * 0.45;
-                const y2 = yPos - size * 0.15;
-                const x3 = x + size - pad;
-                const y3 = yPos - size * 0.9;
-                doc.line(x1, y1, x2, y2);
-                doc.line(x2, y2, x3, y3);
-                doc.setLineWidth(0.1);
-            }
-        };
-        const sectionSpacing = 6; // adjust this value to increase/decrease top padding
-        const drawHorizontalLine = () => {
-            doc.setLineWidth(lineWd);
-            doc.setDrawColor(0, 0, 0);
-            doc.line(margin, y, pageW - margin, y);
-            y += 3;
-        };
-
-        const drawTableRow = (label: string, value: string, labelColW: number, tableW: number) => {
-            const rowY = y + lineH - 2;
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'normal');
-            doc.text(label, margin + 2, rowY);
-            doc.text(value || '—', margin + labelColW + 2, rowY);
-            doc.setLineWidth(0.1);
-            doc.setDrawColor(0, 0, 0);
-            doc.line(margin, y, margin, y + lineH);
-            doc.line(margin + labelColW, y, margin + labelColW, y + lineH);
-            doc.line(margin + tableW, y, margin + tableW, y + lineH);
-            doc.line(margin, y + lineH, margin + tableW, y + lineH);
-            y += lineH;
-        };
-
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('HOS PROGRESSIVE DISCIPLINARY ACTION FORM', pageW / 2, y, { align: 'center' });
-        y += lineH + 4;
-
-        const labelColW = 42;
-        const tableW = pageW - 2 * margin;
-        doc.setLineWidth(0.1);
-        doc.setDrawColor(0, 0, 0);
-        doc.line(margin, y, margin + tableW, y);
-        drawTableRow('Employee Name:', row.driverName || '', labelColW, tableW);
-        drawTableRow('Driver ID:', row.driverId || '', labelColW, tableW);
-        drawTableRow('Reporting to:', row.reportingTo || '', labelColW, tableW);
-        drawTableRow('Date:', row.auditDate ? new Date(row.auditDate).toLocaleDateString() : '', labelColW, tableW);
-        drawHorizontalLine();
-
-        y += sectionSpacing;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.text('Incident Information', margin, y); y += lineH;
-        doc.setLineWidth(0.1);
-        doc.line(margin, y, margin + tableW, y);
-        drawTableRow('Date:', row.incidentDate && row.incidentDate !== '—' ? new Date(row.incidentDate).toLocaleDateString() : '', labelColW, tableW);
-        drawTableRow('Time:', row.incidentTime || '', labelColW, tableW);
-        drawTableRow('Location:', row.incidentLocation || '', labelColW, tableW);
-        y += 2;
-        y += sectionSpacing;
-        doc.setFont('helvetica', 'normal');
-        doc.text('Incident type:', margin + 2, y); y += lineH;
-        let cx = margin;
-        DISCIPLINARY_INCIDENT_TYPES.forEach((opt) => {
-            const checked = (row.incidentTypes || []).some((t: string) =>
-                opt.toLowerCase().includes(t.toLowerCase()) || t.toLowerCase().includes(opt.toLowerCase().split(' ')[0])
-            );
-            if (cx + 45 > pageW - margin) { cx = margin; y += 5; }
-            drawCheckbox(cx, y, checked);
-            doc.setFontSize(8);
-            doc.text(opt, cx + 4, y);
-            doc.setFontSize(9);
-            cx += 45;
-        });
-        y += 5;
-        drawHorizontalLine();
-        y += sectionSpacing;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.text('Incident details (has the employee been counselled before on this or a similar HOS occurrence?)', margin, y); y += lineH;
-        doc.setFont('helvetica', 'normal');
-        const priorYes = (row.priorCounseling || '').toString().toLowerCase() === 'yes';
-        const priorNo = (row.priorCounseling || '').toString().toLowerCase() === 'no' || !row.priorCounseling || row.priorCounseling === '—';
-        doc.text('Yes', margin + 4, y);
-        drawCheckbox(margin, y, priorYes);
-        doc.text('No', margin + 18, y);
-        drawCheckbox(margin + 14, y, priorNo);
-        y += lineH;
-        addText(row.notes || '—', margin + 2); y += 2;
-        drawHorizontalLine();
-        y += sectionSpacing;
-        doc.setFont('helvetica', 'bold');
-        doc.text('Corrective action taken', margin, y); y += lineH;
-        doc.setFont('helvetica', 'normal');
-        let ax = margin;
-        DISCIPLINARY_CORRECTIVE_ACTIONS.forEach((opt) => {
-            const key = opt.split(' ')[0].toLowerCase();
-            const checked = row.correctiveActionType && row.correctiveActionType.toLowerCase().includes(key);
-            if (ax + 52 > pageW - margin) { ax = margin; y += 5; }
-            drawCheckbox(ax, y, !!checked);
-            doc.setFontSize(7);
-            doc.text(opt, ax + 4, y);
-            doc.setFontSize(9);
-            ax += 52;
-        });
-        y += 5;
-        doc.setFontSize(9);
-        doc.text(`Comments: ${row.correctiveActionComments || (row.eldMalfunction ? 'ELD MALFUNCTION' : '') || '—'}`, margin, y); y += lineH + 2;
-        drawHorizontalLine();
-        y += sectionSpacing;
-        const sigLineW = 70;
-        const dateX = pageW - margin - 35;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.text("Manager's Signature:", margin, y); y += lineH;
-        doc.setFont('helvetica', 'normal');
-        doc.setLineWidth(0.2);
-        y += sectionSpacing;
-        doc.line(margin, y, margin + sigLineW, y);
-        doc.setLineWidth(0.1);
-        doc.text(editableFormState.managerSignature || '', margin, y - 1);
-        doc.text(`Date: ${editableFormState.managerDate || ''}`, dateX, y); y += lineH + 3;
-        drawHorizontalLine();
-        y += sectionSpacing;
-        doc.setFont('helvetica', 'bold');
-        doc.text('Notice to employee:', margin, y); y += lineH;
-        doc.setFont('helvetica', 'normal');
-        addText(editableFormState.noticeToEmployee, margin, 9); y += 4;
-        drawHorizontalLine();
-        y += sectionSpacing;
-        doc.setFont('helvetica', 'bold');
-        doc.text("Employee's comments:", margin, y); y += lineH;
-        doc.setFont('helvetica', 'normal');
-        addText(editableFormState.employeeComments, margin, 9); y += 4;
-        drawHorizontalLine();
-        y += sectionSpacing;
-        doc.setFont('helvetica', 'bold');
-        doc.text("Employee's Signature:", margin, y); y += lineH;
-        doc.setFont('helvetica', 'normal');
-        y += sectionSpacing;
-        doc.setLineWidth(0.2);
-        doc.line(margin, y, margin + sigLineW, y);
-
-        doc.setLineWidth(0.1);
-        doc.text(editableFormState.employeeSignature || '', margin, y - 1);
-        doc.text(`Date: ${editableFormState.employeeDate || ''}`, dateX, y);
-
-        const fileName = `HOS-Disciplinary-Form-${(row.driverName || 'Driver').replace(/\s+/g, '-')}-${row.auditDate ? new Date(row.auditDate).toISOString().split('T')[0] : 'export'}.pdf`;
-        doc.save(fileName);
+    const downloadHosFormPdf = async () => {
+        if (!downloadFormRow) return;
+        setPdfBusy('download');
+        try {
+            const doc = await makeHosFormPdf();
+            doc?.save(hosFormFileName(downloadFormRow));
+        } finally {
+            setPdfBusy(null);
+        }
+    };
+    const printHosFormPdf = async () => {
+        if (!downloadFormRow) return;
+        // Open the window first (inside the click) so pop-up blockers allow it
+        const win = window.open('', '_blank');
+        setPdfBusy('print');
+        try {
+            const doc = await makeHosFormPdf();
+            if (!doc) return;
+            doc.autoPrint();
+            const url = doc.output('bloburl') as unknown as string;
+            if (win) win.location.href = url;
+            else window.open(url, '_blank');
+        } finally {
+            setPdfBusy(null);
+        }
     };
 
     return (
@@ -1797,22 +1655,26 @@ const VehicleEldMonitor = () => {
                                         <div className="top-0 z-10 flex items-center justify-between border-b border-theme px-6 py-4 bg-card rounded-t-xl">
                                             <h3 className="text-lg font-bold text-primary">HOS Progressive Disciplinary Action Form</h3>
                                             <div className="flex items-center gap-2">
+                                                {/* (The old "Save" button here saved nothing; the fields are used directly in the PDF.) */}
                                                 <button
                                                     type="button"
-                                                    onClick={saveEditableFormState}
-                                                    className="px-4 py-2 text-sm font-medium text-primary bg-card hover:bg-gray-200 rounded-lg"
+                                                    onClick={printHosFormPdf}
+                                                    disabled={!!pdfBusy}
+                                                    className="px-4 py-2 text-sm font-semibold text-primary border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.05)] disabled:opacity-50"
+                                                    title="Print the form so the driver can sign it"
                                                 >
-                                                    Save
+                                                    <Printer size={16} className="inline-block mr-1 align-middle" /> {pdfBusy === 'print' ? 'Preparing…' : 'Print'}
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={downloadHosFormPdf}
+                                                    disabled={!!pdfBusy}
                                                     style={{
                                                         background: 'var(--accent-navyblue)'
                                                     }}
-                                                    className="px-4 py-2 text-sm font-semibold !text-white rounded-lg hover:opacity-90"
+                                                    className="px-4 py-2 text-sm font-semibold !text-white rounded-lg hover:opacity-90 disabled:opacity-50"
                                                 >
-                                                    <Download size={16} className="inline-block mr-1 align-middle" /> Download PDF
+                                                    <Download size={16} className="inline-block mr-1 align-middle" /> {pdfBusy === 'download' ? 'Preparing…' : 'Download PDF'}
                                                 </button>
                                                 <button
                                                     type="button"

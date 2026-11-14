@@ -40,6 +40,11 @@ const UserProfilesPortfolio: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
     const [timePeriod, setTimePeriod] = useState<TimePeriod>('1month');
+    // Custom period: any start and end date (client asked for more than 1 week / 2 weeks / 1 month)
+    const [customMode, setCustomMode] = useState(false);
+    const [customStart, setCustomStart] = useState('');
+    const [customEnd, setCustomEnd] = useState('');
+    const customReady = customMode && !!customStart && !!customEnd && customStart <= customEnd;
     const [selectedRole, setSelectedRole] = useState<UserRole>('all');
     const [profiles, setProfiles] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(false);
@@ -77,7 +82,7 @@ const UserProfilesPortfolio: React.FC = () => {
                 const response = await fetchUserProfiles({
                     search: debouncedSearchTerm || undefined,
                     role: selectedRole !== 'all' ? selectedRole : undefined,
-                    timeRange: timePeriod,
+                    ...(customReady ? { startDate: customStart, endDate: customEnd } : { timeRange: timePeriod }),
                     page: 1,
                     limit: PAGE_SIZE
                 });
@@ -120,7 +125,7 @@ const UserProfilesPortfolio: React.FC = () => {
         return () => {
             isMounted = false;
         };
-    }, [debouncedSearchTerm, selectedRole, timePeriod]);
+    }, [debouncedSearchTerm, selectedRole, timePeriod, customReady, customStart, customEnd]);
 
     useEffect(() => {
         if (!selectedProfile) return;
@@ -356,7 +361,7 @@ const UserProfilesPortfolio: React.FC = () => {
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `Employee_Portfolio_${timePeriod}_${selectedRole === 'all' ? 'AllRoles' : selectedRole}_${new Date().toISOString().split('T')[0]}.xlsx`;
+            link.download = `Employee_Portfolio_${customReady ? `${customStart}_to_${customEnd}` : timePeriod}_${selectedRole === 'all' ? 'AllRoles' : selectedRole}_${new Date().toISOString().split('T')[0]}.xlsx`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -537,10 +542,10 @@ focus:border-[var(--accent-blue)] focus:border-transparent"
                                     return (
                                         <button
                                             key={period}
-                                            onClick={() => setTimePeriod(period)}
+                                            onClick={() => { setCustomMode(false); setTimePeriod(period); }}
                                             className={`
           px-5 py-2 rounded-l text-sm font-medium transition-all duration-200
-          ${isActive
+          ${isActive && !customMode
                                                     ? 'bg-[var(--accent-navyblue)] text-white shadow-lg'
                                                     : 'bg-[#0f2a3a] text-white/70 border border-white/10 hover:bg-[#14394d]'
                                                 }
@@ -554,7 +559,37 @@ focus:border-[var(--accent-blue)] focus:border-transparent"
                                         </button>
                                     );
                                 })}
+                                <button
+                                    onClick={() => setCustomMode(true)}
+                                    className={`px-5 py-2 rounded-l text-sm font-medium transition-all duration-200 ${customMode
+                                        ? 'bg-[var(--accent-navyblue)] text-white shadow-lg'
+                                        : 'bg-[#0f2a3a] text-white/70 border border-white/10 hover:bg-[#14394d]'}`}
+                                >
+                                    Custom
+                                </button>
                             </div>
+                            {customMode && (
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="date"
+                                        aria-label="From date"
+                                        value={customStart}
+                                        max={customEnd || undefined}
+                                        onChange={(e) => setCustomStart(e.target.value)}
+                                        className="px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg text-sm [color-scheme:dark]"
+                                    />
+                                    <span className="text-secondary text-sm">to</span>
+                                    <input
+                                        type="date"
+                                        aria-label="To date"
+                                        value={customEnd}
+                                        min={customStart || undefined}
+                                        onChange={(e) => setCustomEnd(e.target.value)}
+                                        className="px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg text-sm [color-scheme:dark]"
+                                    />
+                                    {!customReady && <span className="text-xs text-secondary">Pick both dates</span>}
+                                </div>
+                            )}
                         </div>
 
                         {/* Role Filter */}

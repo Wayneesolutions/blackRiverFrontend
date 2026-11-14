@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText, MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check, ClipboardCheck, Ticket, FlaskConical, Lock, Eye, EyeOff, FileDown } from 'lucide-react';
 import { COUNTRIES, sortByDialCodeMatch, type Country } from '../../../../utils/countries';
-import ExcelJS from 'exceljs';
+import { exportFullRecords, formatExportDate } from '../../../../utils/fullRecordExport';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import * as driverApi from '../../../../axios/api/driver';
 import { getTestResults, approveTestResult, rejectTestResult, getDriverTicketSignedUrl, verifyDrugTestPassword } from '../../../../axios/api/driver';
@@ -891,6 +891,9 @@ const DriverManagement = () => {
   };
 
   // Fetch drivers from API
+  // Full API records (the table keeps only a few fields); used by the Excel report
+  const rawDriversRef = useRef<any[]>([]);
+
   const fetchDrivers = async () => {
     try {
       setLoading(true);
@@ -920,6 +923,7 @@ const DriverManagement = () => {
           });
         }
 
+        rawDriversRef.current = Array.isArray(response.data) ? response.data : [];
         // Transform backend data to match Driver interface
         const transformedDrivers: Driver[] = response.data.map((driver: any) => {
           // Handle name field (could be name string or firstName/lastName)
@@ -2545,63 +2549,36 @@ const DriverManagement = () => {
   };
 
   const handleExportDrivers = async () => {
-    const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Logistiq Innovation';
-    workbook.created = new Date();
-    const sheet = workbook.addWorksheet('Drivers', { views: [{ state: 'frozen', ySplit: 1 }] });
-
-    sheet.columns = [
-      { header: 'Driver ID', key: 'driverId', width: 18 },
-      { header: 'First Name', key: 'firstName', width: 16 },
-      { header: 'Last Name', key: 'lastName', width: 16 },
-      { header: 'Email', key: 'email', width: 28 },
-      { header: 'Phone', key: 'phone', width: 18 },
-      { header: 'Date of Birth', key: 'dateOfBirth', width: 16 },
-      { header: "Driver's Licence", key: 'driversLicence', width: 22 },
-      { header: 'Passport', key: 'passport', width: 18 },
-      { header: 'Status', key: 'status', width: 12 },
-      { header: 'Compliance', key: 'compliance', width: 18 },
-      { header: 'Notes', key: 'notes', width: 30 },
-    ];
-
-    const headerRow = sheet.getRow(1);
-    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
-    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF42AEEC' } };
-    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-    headerRow.height = 22;
-
-    drivers.forEach((d: any) => {
-      const row = sheet.addRow({
-        driverId: d.driverId || '',
-        firstName: d.firstName || '',
-        lastName: d.lastName || '',
-        email: d.email || '',
-        phone: d.phone || '',
-        dateOfBirth: d.dateOfBirth || '',
-        driversLicence: d.driversLicence || '',
-        passport: d.passport || '',
-        status: d.status || '',
-        compliance: d.compliance || '',
-        notes: d.notes || '',
-      });
-      row.alignment = { vertical: 'middle' };
+    // Same drivers as the table, with every field on their record (hire date, licence, address...)
+    const byId = new Map(rawDriversRef.current.map((r: any) => [String(r._id), r]));
+    const records = drivers.map((t: any) => ({ ...(byId.get(String(t._id)) || {}), _table: t }));
+    const d = (r: any) => r.details || {};
+    await exportFullRecords({
+      records,
+      sheetName: 'Drivers',
+      fileName: `Drivers-${new Date().toISOString().split('T')[0]}.xlsx`,
+      preferred: [
+        { header: 'Driver ID', get: (r) => r._table.driverId },
+        { header: 'First Name', get: (r) => r._table.firstName },
+        { header: 'Last Name', get: (r) => r._table.lastName },
+        { header: 'Email', get: (r) => r._table.email || r.email, width: 28 },
+        { header: 'Phone', get: (r) => r._table.phone || r.phone },
+        { header: 'Status', get: (r) => r._table.status || r.status },
+        { header: 'Hire Date', get: (r) => formatExportDate(d(r).hireDate || r.hireDate || r.joinDate) },
+        { header: 'Termination Date', get: (r) => formatExportDate(d(r).termDate) },
+        { header: 'Date of Birth', get: (r) => r._table.dateOfBirth || formatExportDate(d(r).dateOfBirth || r.dob) },
+        { header: "Driver's Licence", get: (r) => r._table.driversLicence, width: 20 },
+        { header: 'Licence Expiry', get: (r) => formatExportDate(d(r).licenceExpiry || d(r).licenseExpiry || r.licenseExpiry) },
+        { header: 'Passport', get: (r) => r._table.passport },
+        { header: 'Address', get: (r) => r.address || d(r).address, width: 30 },
+        { header: 'City', get: (r) => r.city || d(r).city },
+        { header: 'Province / State', get: (r) => r.province || r.state || d(r).province },
+        { header: 'Postal Code', get: (r) => d(r).postalCode || r.postalCode },
+        { header: 'Country', get: (r) => r.country || d(r).country },
+        { header: 'Compliance', get: (r) => r._table.compliance },
+        { header: 'Notes', get: (r) => r._table.notes, width: 30 },
+      ],
     });
-
-    sheet.eachRow((row, i) => {
-      if (i > 1) row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: i % 2 === 0 ? 'FFF0F9FF' : 'FFFFFFFF' } };
-      row.eachCell(cell => { cell.border = { bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } } }; });
-    });
-
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Drivers-${new Date().toISOString().split('T')[0]}.xlsx`;
-    document.body.appendChild(a);
-    a.click();
-    URL.revokeObjectURL(url);
-    document.body.removeChild(a);
   };
 
   // Helper function to reset all form state
