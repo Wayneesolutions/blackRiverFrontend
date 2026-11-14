@@ -441,6 +441,11 @@ const Tickets: React.FC = () => {
         getTicketStats()
       ]);
 
+      if (!ticketsRes?.success) {
+        // Don't silently show an empty list when the request failed
+        addNotification('error', ticketsRes?.message || 'Failed to load tickets. Please refresh the page.');
+      }
+
       if (ticketsRes?.success) {
         setTickets(ticketsRes.data || []);
 
