@@ -64,6 +64,7 @@ interface AuditTableRow {
     correctiveActionType: string;
     correctiveActionComments: string;
     eldMalfunction: boolean;
+    eldMalfunctionType: string;
     violations: string[];
     notes: string;
     auditorName: string;
@@ -92,6 +93,17 @@ const DEFAULT_EMPLOYEE_COMMENTS = `By signing below, I acknowledge that I have r
 // Incident type options matching HOS Progressive Disciplinary Action form
 // Client asked (12 Nov) for Speeding Violation as an incident type and Retraining as an action
 const DISCIPLINARY_INCIDENT_TYPES = ['Job Performance', 'Competence', 'Professionalism', 'Attendance/Reliability', 'Hours of Service Violation', 'Speeding Violation', 'Other'];
+// ELD malfunction types (the malfunction codes in the ELD rules: P, E, T, L, R, S, O).
+// Client (14 Nov): an ELD malfunction must be recorded as its type, not as an ELD/HOS violation.
+const ELD_MALFUNCTION_TYPES = [
+    'Power compliance',
+    'Engine synchronization',
+    'Timing compliance',
+    'Positioning compliance',
+    'Data recording compliance',
+    'Data transfer compliance',
+    'Other ELD-detected malfunction'
+];
 const DISCIPLINARY_CORRECTIVE_ACTIONS = ['Verbal warning (documented)', 'Written warning (documented)', 'Suspension', 'Retraining', 'Termination', 'Other (including documentation)'];
 
 const VehicleEldMonitor = () => {
@@ -131,6 +143,7 @@ const VehicleEldMonitor = () => {
         correctiveActionCustomOptions: [] as string[], // User-added corrective action options
         correctiveActionComments: '',             // "Comments" box next to the corrective action
         eldMalfunction: false,                    // ELD malfunction: documented, not a driver violation
+        eldMalfunctionType: '',                   // which malfunction (see ELD_MALFUNCTION_TYPES)
         notes: '',
         auditorName: ''
     });
@@ -252,6 +265,7 @@ const VehicleEldMonitor = () => {
                     correctiveActionType: row.correctiveActionType ?? '—',
                     correctiveActionComments: row.correctiveActionComments ?? '',
                     eldMalfunction: !!row.eldMalfunction,
+                    eldMalfunctionType: row.eldMalfunctionType ?? '',
                     violations: Array.isArray(row.violations) ? row.violations : [],
                     notes: row.notes ?? '',
                     auditorName: row.auditorName ?? '',
@@ -319,13 +333,14 @@ const VehicleEldMonitor = () => {
             if (auditFormData.incidentLocation) formData.append('incidentLocation', auditFormData.incidentLocation);
 
             // Append arrays
-            auditFormData.violations.forEach(v => formData.append('violations[]', v));
+            if (!auditFormData.eldMalfunction) auditFormData.violations.forEach(v => formData.append('violations[]', v));
             auditFormData.incidentTypes.forEach(t => formData.append('incidentTypes[]', t));
 
             if (auditFormData.priorCounseling) formData.append('priorCounseling', auditFormData.priorCounseling);
             if (auditFormData.correctiveActionType) formData.append('correctiveActionType', auditFormData.correctiveActionType);
             if (auditFormData.correctiveActionComments) formData.append('correctiveActionComments', auditFormData.correctiveActionComments);
             formData.append('eldMalfunction', auditFormData.eldMalfunction ? 'true' : 'false');
+            if (auditFormData.eldMalfunction && auditFormData.eldMalfunctionType) formData.append('eldMalfunctionType', auditFormData.eldMalfunctionType);
             if (auditFormData.notes) formData.append('notes', auditFormData.notes);
             if (auditFormData.auditorName) formData.append('auditorName', auditFormData.auditorName);
 
@@ -358,6 +373,7 @@ const VehicleEldMonitor = () => {
                     correctiveActionCustomOptions: auditFormData.correctiveActionCustomOptions,
                     correctiveActionComments: '',
                     eldMalfunction: false,
+                    eldMalfunctionType: '',
                     notes: '',
                     auditorName: ''
                 });
@@ -519,7 +535,7 @@ const VehicleEldMonitor = () => {
                         { header: 'Counselled Before', width: 12, value: (r: AuditTableRow) => r.priorCounseling },
                         { header: 'Corrective Action', width: 26, value: (r: AuditTableRow) => r.correctiveActionType },
                         { header: 'Comments', width: 24, value: (r: AuditTableRow) => r.correctiveActionComments },
-                        { header: 'ELD Malfunction', width: 12, value: (r: AuditTableRow) => (r.eldMalfunction ? 'Yes' : 'No') },
+                        { header: 'ELD Malfunction', width: 22, value: (r: AuditTableRow) => (r.eldMalfunction ? (r.eldMalfunctionType || 'Yes') : 'No') },
                         { header: 'Violations', width: 30, value: (r: AuditTableRow) => r.violations.join(', ') },
                         { header: 'Incident Details', width: 40, value: (r: AuditTableRow) => r.notes },
                         { header: 'Auditor', width: 18, value: (r: AuditTableRow) => r.auditorName }
@@ -760,7 +776,7 @@ const VehicleEldMonitor = () => {
                                                 <td className="px-6 py-4 font-mono text-primary">{log.driveUsed}</td>
                                                 <td className="px-6 py-4 font-mono text-primary">{log.dutyUsed}</td>
                                                 <td className="px-6 py-4">
-                                                    <span className={`font-medium ${log.violation === 'ELD Malfunction' ? 'text-amber-600' : log.violation !== 'None' ? 'text-red-500' : 'text-secondary'}`}>
+                                                    <span className={`font-medium ${(log.violation || '').startsWith('ELD Malfunction') ? 'text-amber-600' : log.violation !== 'None' ? 'text-red-500' : 'text-secondary'}`}>
                                                         {log.violation}
                                                     </span>
                                                 </td>
@@ -838,8 +854,8 @@ const VehicleEldMonitor = () => {
                                                 <p className="font-mono font-semibold text-primary">{selectedHosLog.dutyUsed}</p>
                                             </div>
                                             <div>
-                                                <p className="text-xs text-secondary font-medium uppercase">Violation</p>
-                                                <p className={`font-medium ${selectedHosLog.violation !== 'None' ? 'text-red-500' : 'text-secondary'}`}>
+                                                <p className="text-xs text-secondary font-medium uppercase">{(selectedHosLog.violation || '').startsWith('ELD Malfunction') ? 'ELD Malfunction' : 'Violation'}</p>
+                                                <p className={`font-medium ${(selectedHosLog.violation || '').startsWith('ELD Malfunction') ? 'text-amber-600' : selectedHosLog.violation !== 'None' ? 'text-red-500' : 'text-secondary'}`}>
                                                     {selectedHosLog.violation}
                                                 </p>
                                             </div>
@@ -1177,7 +1193,43 @@ const VehicleEldMonitor = () => {
                                     />
                                 </div>
 
-                                {/* Violations */}
+                                {/* ELD malfunction: recorded by type, never as a violation (client, 14 Nov) */}
+                                <div>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={auditFormData.eldMalfunction}
+                                            onChange={(e) => setAuditFormData({
+                                                ...auditFormData,
+                                                eldMalfunction: e.target.checked,
+                                                eldMalfunctionType: e.target.checked ? auditFormData.eldMalfunctionType : '',
+                                                violations: e.target.checked ? [] : auditFormData.violations
+                                            })}
+                                            className="w-4 h-4 text-[var(--accent-blue)] border-theme rounded focus:ring-[var(--accent-blue)]"
+                                        />
+                                        <span className="text-sm font-medium text-primary">ELD malfunction (not a driver violation)</span>
+                                    </label>
+                                    {auditFormData.eldMalfunction && (
+                                        <div className="mt-3 ml-6 space-y-2">
+                                            <p className="text-xs text-secondary">Malfunction type</p>
+                                            {ELD_MALFUNCTION_TYPES.map((type) => (
+                                                <label key={type} className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="radio"
+                                                        name="eldMalfunctionType"
+                                                        checked={auditFormData.eldMalfunctionType === type}
+                                                        onChange={() => setAuditFormData({ ...auditFormData, eldMalfunctionType: type })}
+                                                        className="w-4 h-4 text-[var(--accent-blue)] border-theme focus:ring-[var(--accent-blue)]"
+                                                    />
+                                                    <span className="text-sm text-primary">{type}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Violations (hidden for an ELD malfunction: it is not a violation) */}
+                                {!auditFormData.eldMalfunction && (
                                 <div>
                                     <label className="block text-sm font-medium text-primary mb-2">
                                         Violations (if any)
@@ -1208,6 +1260,7 @@ const VehicleEldMonitor = () => {
                                         ))}
                                     </div>
                                 </div>
+                                )}
 
                                 {/* Auditor Name */}
                                 <div>
@@ -1328,6 +1381,7 @@ const VehicleEldMonitor = () => {
                                                 correctiveActionCustomOptions: auditFormData.correctiveActionCustomOptions,
                     correctiveActionComments: '',
                     eldMalfunction: false,
+                                                eldMalfunctionType: '',
                                                 notes: '',
                                                 auditorName: ''
                                             });
@@ -1554,7 +1608,7 @@ const VehicleEldMonitor = () => {
                                                     </div>
                                                     <div className="flex flex-col gap-1">
                                                         <span className="text-xs font-medium text-secondary">ELD Malfunction</span>
-                                                        <p className="text-primary">{selectedAuditDetail.eldMalfunction ? 'Yes — not counted as a violation' : 'No'}</p>
+                                                        <p className="text-primary">{selectedAuditDetail.eldMalfunction ? `${selectedAuditDetail.eldMalfunctionType || 'Yes'} — not counted as a violation` : 'No'}</p>
                                                     </div>
                                                 </div>
                                             </section>
@@ -1759,7 +1813,7 @@ const VehicleEldMonitor = () => {
                                                         );
                                                     })}
                                                 </div>
-                                                <p className="text-secondary"><span className="font-semibold">Comments:</span> {downloadFormRow.correctiveActionComments || (downloadFormRow.eldMalfunction ? 'ELD MALFUNCTION' : '') || '—'}</p>
+                                                <p className="text-secondary"><span className="font-semibold">Comments:</span> {downloadFormRow.correctiveActionComments || (downloadFormRow.eldMalfunction ? `ELD MALFUNCTION${downloadFormRow.eldMalfunctionType ? ` (${downloadFormRow.eldMalfunctionType})` : ''}` : '') || '—'}</p>
                                             </div>
 
                                             {/* Manager's Signature (editable) */}
