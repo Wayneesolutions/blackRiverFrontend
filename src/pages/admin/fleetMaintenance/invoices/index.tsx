@@ -22,6 +22,7 @@ import { listGeneralRepairs, type GeneralRepairDto } from '../../../../axios/api
 import { getCompany } from '../../../../axios/api/admin';
 import { getAllSpareParts } from '../../../../axios/api/fleet.spareparts';
 import { getAllVehicles } from '../../../../axios/api/vehicle';
+import { getUserRole } from '../../../../utils/auth';
 import {
   getFleetInvoices,
   getFleetInvoiceSummary,
@@ -156,6 +157,7 @@ function formatDisplayDate(isoDate: string): string {
 }
 
 const FleetInvoicesPage = () => {
+  const isMechanic = getUserRole() === 'Maintenance Crew (Mechanics)';
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
@@ -1961,7 +1963,8 @@ const FleetInvoicesPage = () => {
                                 : <FaEnvelope size={14} />}
                             </button>
 
-                            {/* Delete */}
+                            {/* Delete (not available to mechanics) */}
+                            {!isMechanic && (
                             <button
                               type="button"
                               onClick={() => handleDeleteInvoice(row._id)}
@@ -1971,6 +1974,7 @@ const FleetInvoicesPage = () => {
                             >
                               <FaTrash size={14} />
                             </button>
+                            )}
 
                             {/* PDF */}
                             <button

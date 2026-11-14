@@ -98,6 +98,7 @@ const SEGMENT_TITLES: Record<string, string> = {
     'orders': 'Maintenance Orders',
     'completed-orders': 'Completed Orders',
     'services': 'Services',
+    'assign-tasks': 'Assign Tasks',
 
     // Role dashboard pages (shown for all roles except admin home)
     'dashboard': 'Dashboard',
