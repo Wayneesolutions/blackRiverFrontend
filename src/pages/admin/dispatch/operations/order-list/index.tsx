@@ -3,7 +3,8 @@ import { Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle, File, 
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import NewOrderSidebar from "./NewOrderSidebar";
-import { listOrder, deleteOrder, getOrderById, updateOrder, approveOrderDocuments } from "../../../../../axios/api/distapcher";
+import { downloadExcel, summarySheet, countBy, MONEY_FMT } from "../../../../../utils/excelExport";
+import { listOrder, deleteOrder, getOrderById, updateOrder, approveOrderDocuments, getOrderAttachmentSignedUrl, uploadOrderDocumentByDispatch } from "../../../../../axios/api/distapcher";
 import { listPlace } from "../../../../../axios/api/dispatcher.places";
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 import OrderChat from "../../../../../components/chat/OrderChat";
@@ -282,6 +283,36 @@ const OrderList = () => {
   const [userInfo, setUserInfo] = useState<any>(null);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; orderId: string | null }>({ show: false, orderId: null });
+  // Order documents: fresh signed links to open/print or download, and dispatch uploads (BOL etc.)
+  const [docUploadType, setDocUploadType] = useState('bol');
+  const [docUploading, setDocUploading] = useState(false);
+  const openOrderDocument = async (orderId: string, attachment: any, disposition: 'inline' | 'attachment') => {
+    try {
+      const res = await getOrderAttachmentSignedUrl(orderId, String(attachment.id ?? attachment._id), disposition);
+      const url = res?.data?.signedUrl || res?.data?.url || res?.signedUrl || res?.url;
+      if (!url) throw new Error(res?.message || 'Document link not available');
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (err: any) {
+      // Older documents without an id: fall back to the link that came with the order
+      if (attachment.url) window.open(attachment.url, '_blank', 'noopener,noreferrer');
+      else addNotification('error', err?.message || 'Could not open the document');
+    }
+  };
+  const uploadOrderDocument = async (orderId: string, file: File) => {
+    setDocUploading(true);
+    try {
+      const res = await uploadOrderDocumentByDispatch(orderId, file, docUploadType);
+      if (!res?.success) {
+        addNotification('error', res?.message || 'Upload failed');
+        return;
+      }
+      addNotification('success', 'Document uploaded');
+      const updated = await getOrderById(orderId);
+      if (updated?.success) setSelectedOrderForDocuments(updated.data);
+    } finally {
+      setDocUploading(false);
+    }
+  };
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
@@ -1132,10 +1163,70 @@ const OrderList = () => {
   };
 
 
+  // Report of the orders/trips currently shown (filters applied), with their documents
+  const handleDownloadOrdersReport = async () => {
+    const rows = filteredOrders;
+    if (!rows.length) {
+      addNotification('error', 'No orders to download for the current filters');
+      return;
+    }
+    const docTypes = (o: Order, ...types: string[]) =>
+      (o.attachments || []).some((a) => types.includes(String(a.type || '').toLowerCase())) ? 'Yes' : 'No';
+    const amount = (o: Order) => {
+      const n = parseFloat(String(o.totalAmount ?? '').replace(/[^0-9.\-]/g, ''));
+      return Number.isFinite(n) ? n : null;
+    };
+    await downloadExcel(`Orders-Trips-${new Date().toISOString().slice(0, 10)}`, [
+      {
+        name: 'Orders & Trips',
+        rows,
+        columns: [
+          { header: 'Order #', value: (o: Order) => o.orderNo },
+          { header: 'Customer Order #', value: (o: Order) => o.custOrderNo },
+          { header: 'Trip #', value: (o: Order) => o.tripNo },
+          { header: 'Order Date', value: (o: Order) => o.orderDate },
+          { header: 'Status', value: (o: Order) => o.status },
+          { header: 'Customer', value: (o: Order) => o.customerName || o.companyName, width: 26 },
+          { header: 'Pickup Date', value: (o: Order) => o.pickupDate },
+          { header: 'Pickup Location', value: (o: Order) => o.pickupLocation, width: 32 },
+          { header: 'Pickup Ref #', value: (o: Order) => o.pickupRefNo },
+          { header: 'Delivery Date', value: (o: Order) => o.deliveryDate },
+          { header: 'Delivery Location', value: (o: Order) => o.deliveryLocation, width: 32 },
+          { header: 'Delivery Ref #', value: (o: Order) => o.deliveryRefNo },
+          { header: 'Driver', value: (o: Order) => o.driver },
+          { header: 'Co-Driver', value: (o: Order) => o.coDriver },
+          { header: 'Truck', value: (o: Order) => o.truckNo },
+          { header: 'Trailer', value: (o: Order) => o.trailerNo },
+          { header: 'Amount', value: (o: Order) => amount(o), numFmt: MONEY_FMT },
+          { header: 'Currency', value: (o: Order) => o.currency },
+          { header: 'Accounting Status', value: (o: Order) => o.accountingStatus },
+          { header: 'BOL', value: (o: Order) => docTypes(o, 'bol') },
+          { header: 'POD', value: (o: Order) => docTypes(o, 'pod', 'proof_of_delivery') },
+          { header: 'Manifest', value: (o: Order) => docTypes(o, 'manifest', 'border_manifest', 'stamped_manifest') },
+          { header: 'Documents Approved', value: (o: Order) => (o.documentsApproved ? 'Yes' : 'No') },
+        ],
+      },
+      summarySheet([
+        ['Orders', rows.length],
+        ['Downloaded', new Date().toLocaleString()],
+        ...countBy(rows, (o) => o.status, 'Status: '),
+      ]),
+    ]);
+  };
+
   return (
     <div className="p-6 bg-main min-h-screen">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-[var(--accent-navyblue)]">Order List</h1>
+        <div className="flex items-center gap-2">
+        <button
+          onClick={handleDownloadOrdersReport}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-theme text-primary hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+          title="Download the orders shown (filters applied) as Excel"
+        >
+          <Download className="w-5 h-5" />
+          Download Report
+        </button>
         <button
           onClick={handleCreateOrder}
           style={{ background: PRIMARY_GRADIENT }}
@@ -1144,6 +1235,7 @@ const OrderList = () => {
           <Plus className="w-5 h-5" />
           Create Order
         </button>
+        </div>
       </div>
 
       {/* Load Board Style Filters */}
@@ -1908,7 +2000,39 @@ const OrderList = () => {
 
               {/* Documents List */}
               <div>
-                <div className="text-sm font-semibold text-primary mb-3">Uploaded Documents:</div>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <div className="text-sm font-semibold text-primary">Uploaded Documents:</div>
+                  {/* Dispatch upload: BOL, POD, rate confirmation, manifest, other */}
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={docUploadType}
+                      onChange={(e) => setDocUploadType(e.target.value)}
+                      className="px-2 py-1.5 text-xs border border-theme rounded bg-card text-primary"
+                      aria-label="Document type"
+                    >
+                      <option className="form-option" value="bol">BOL</option>
+                      <option className="form-option" value="pod">POD</option>
+                      <option className="form-option" value="rate_confirmation">Rate Confirmation</option>
+                      <option className="form-option" value="manifest">Manifest</option>
+                      <option className="form-option" value="customs">Customs</option>
+                      <option className="form-option" value="other">Other</option>
+                    </select>
+                    <label className={`px-3 py-1.5 text-xs font-medium rounded border border-blue-200 text-[#00D1FF] cursor-pointer hover:bg-blue-50 ${docUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                      {docUploading ? 'Uploading...' : 'Upload document'}
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.doc,.docx"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          const od = selectedOrderForDocuments as any;
+                          if (f && od) uploadOrderDocument(od._id || od.id, f);
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
                 {(() => {
                   const orderData = selectedOrderForDocuments as any;
                   const attachments = orderData?.attachments || [];
@@ -1935,6 +2059,12 @@ const OrderList = () => {
                           } else if (docType === 'border_manifest' || docType === 'manifest' || docType === 'stamped_manifest') {
                             displayName = 'Border Manifest';
                             typeLabel = 'Manifest';
+                          } else if (docType === 'bol') {
+                            displayName = 'Bill of Lading (BOL)';
+                            typeLabel = 'BOL';
+                          } else if (docType === 'rate_confirmation') {
+                            displayName = 'Rate Confirmation';
+                            typeLabel = 'Rate Conf.';
                           }
 
                           return (
@@ -1955,22 +2085,31 @@ const OrderList = () => {
                                     )}
                                   </div>
                                 </div>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (docUrl) {
-                                      console.log('🔗 Opening document with pre-signed URL');
-                                      window.open(docUrl, '_blank', 'noopener,noreferrer');
-                                    } else {
-                                      alert('Document URL not available');
-                                    }
-                                  }}
-                                  className="px-3 py-1.5 text-xs font-medium text-[#00D1FF] hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 flex-shrink-0"
-                                  title="View Document in New Tab"
-                                >
-                                  <Download className="w-3 h-3" />
-                                  View
-                                </button>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (!docUrl && !(attachment.id || attachment._id)) { addNotification('error', 'Document link not available'); return; }
+                                      openOrderDocument(orderData._id || orderData.id, attachment, 'inline');
+                                    }}
+                                    className="px-3 py-1.5 text-xs font-medium text-[#00D1FF] hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1"
+                                    title="Open in a new tab to view or print"
+                                  >
+                                    <File className="w-3 h-3" />
+                                    Open / Print
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openOrderDocument(orderData._id || orderData.id, attachment, 'attachment');
+                                    }}
+                                    className="px-3 py-1.5 text-xs font-medium text-[#00D1FF] hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1"
+                                    title="Download"
+                                  >
+                                    <Download className="w-3 h-3" />
+                                    Download
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           );
@@ -2333,6 +2472,17 @@ const OrderList = () => {
                     className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
                   >
                     Close
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // The delete confirmation existed but nothing opened it, so orders could not be deleted
+                      setDeleteConfirm({ show: true, orderId: selectedOrder.id });
+                      setShowOrderDetails(false);
+                    }}
+                    className="px-6 py-2.5 border border-red-500/50 text-red-400 font-medium rounded-lg hover:bg-red-500/10 transition-all"
+                  >
+                    Delete Order
                   </button>
                   <button
                     onClick={(e) => {

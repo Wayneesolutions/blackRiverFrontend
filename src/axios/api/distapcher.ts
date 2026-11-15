@@ -1140,3 +1140,16 @@ export const importTrailersFromFile = async (file: File, fieldMap: Record<string
     return error?.response?.data || { success: false, message: error?.message };
   }
 };
+
+// Dispatch uploads a document (BOL, POD, rate confirmation, manifest, other) to an order
+export const uploadOrderDocumentByDispatch = async (orderId: string, file: File, documentType: string) => {
+  try {
+    const formData = new FormData();
+    formData.append('document', file);
+    formData.append('documentType', documentType);
+    const res: AxiosResponse = await apiClient.post(`dispatcher/order/${orderId}/documents`, formData);
+    return res.data;
+  } catch (error: any) {
+    return error?.response?.data || { success: false, message: 'Upload failed' };
+  }
+};
