@@ -1149,7 +1149,7 @@ export const uploadOrderDocumentByDispatch = async (orderId: string, file: File,
     formData.append('documentType', documentType);
     const res: AxiosResponse = await apiClient.post(`dispatcher/order/${orderId}/documents`, formData);
     return res.data;
-  } catch (error: any) {
-    return error?.response?.data || { success: false, message: 'Upload failed' };
+  } catch (error) {
+    return (error as { response?: { data?: unknown } })?.response?.data || { success: false, message: 'Upload failed' };
   }
 };

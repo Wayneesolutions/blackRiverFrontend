@@ -286,16 +286,16 @@ const OrderList = () => {
   // Order documents: fresh signed links to open/print or download, and dispatch uploads (BOL etc.)
   const [docUploadType, setDocUploadType] = useState('bol');
   const [docUploading, setDocUploading] = useState(false);
-  const openOrderDocument = async (orderId: string, attachment: any, disposition: 'inline' | 'attachment') => {
+  const openOrderDocument = async (orderId: string, attachment: { id?: string | number; _id?: string; url?: string }, disposition: 'inline' | 'attachment') => {
     try {
       const res = await getOrderAttachmentSignedUrl(orderId, String(attachment.id ?? attachment._id), disposition);
       const url = res?.data?.signedUrl || res?.data?.url || res?.signedUrl || res?.url;
       if (!url) throw new Error(res?.message || 'Document link not available');
       window.open(url, '_blank', 'noopener,noreferrer');
-    } catch (err: any) {
+    } catch (err) {
       // Older documents without an id: fall back to the link that came with the order
       if (attachment.url) window.open(attachment.url, '_blank', 'noopener,noreferrer');
-      else addNotification('error', err?.message || 'Could not open the document');
+      else addNotification('error', (err as Error)?.message || 'Could not open the document');
     }
   };
   const uploadOrderDocument = async (orderId: string, file: File) => {
@@ -1173,7 +1173,7 @@ const OrderList = () => {
     const docTypes = (o: Order, ...types: string[]) =>
       (o.attachments || []).some((a) => types.includes(String(a.type || '').toLowerCase())) ? 'Yes' : 'No';
     const amount = (o: Order) => {
-      const n = parseFloat(String(o.totalAmount ?? '').replace(/[^0-9.\-]/g, ''));
+      const n = parseFloat(String(o.totalAmount ?? '').replace(/[^0-9.-]/g, ''));
       return Number.isFinite(n) ? n : null;
     };
     await downloadExcel(`Orders-Trips-${new Date().toISOString().slice(0, 10)}`, [
@@ -2025,8 +2025,9 @@ const OrderList = () => {
                         className="hidden"
                         onChange={(e) => {
                           const f = e.target.files?.[0];
-                          const od = selectedOrderForDocuments as any;
-                          if (f && od) uploadOrderDocument(od._id || od.id, f);
+                          const od = selectedOrderForDocuments as { _id?: string; id?: string } | null;
+                          const odId = od?._id || od?.id;
+                          if (f && odId) uploadOrderDocument(odId, f);
                           e.target.value = '';
                         }}
                       />

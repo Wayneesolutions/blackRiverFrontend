@@ -324,40 +324,46 @@ const EnhancedComplianceRecords: React.FC = () => {
 
   // Report of the records shown (filters applied); fields differ per record type, so read them loosely
   const downloadComplianceReport = async () => {
-    const pick = (r: any, ...keys: string[]) => {
-      for (const k of keys) if (r?.[k] !== undefined && r?.[k] !== null && r?.[k] !== '') return r[k];
+    type Row = ComplianceRecord;
+    const pick = (r: Row, ...keys: string[]): string | number => {
+      const rec = r as unknown as Record<string, unknown>;
+      for (const k of keys) {
+        const v = rec[k];
+        if (v !== undefined && v !== null && v !== '') return typeof v === 'number' ? v : String(v);
+      }
       return '';
     };
-    const date = (r: any, ...keys: string[]) => fmtDate(pick(r, ...keys) || null);
+    const date = (r: Row, ...keys: string[]) => fmtDate(String(pick(r, ...keys)) || null);
+    const field = (r: Row, k: string) => (r as unknown as Record<string, unknown>)[k] as string | undefined;
     await downloadExcel(`Compliance-Records-${new Date().toISOString().slice(0, 10)}`, [
       {
         name: 'Compliance Records',
         rows: filteredRecords,
         columns: [
-          { header: 'Record ID', value: (r: any) => pick(r, 'recordId', '_id') },
-          { header: 'Title', value: (r: any) => pick(r, 'title', 'specificPolicyName'), width: 34 },
-          { header: 'Type', value: (r: any) => getRecordType(r) },
-          { header: 'Sub-type', value: (r: any) => pick(r, 'policyType', 'trainingType', 'incidentType', 'hazardType', 'inspectionType') },
-          { header: 'Category', value: (r: any) => pick(r, 'category'), width: 22 },
-          { header: 'Status', value: (r: any) => pick(r, 'status') },
-          { header: 'Compliance', value: (r: any) => pick(r, 'complianceLevel') },
-          { header: 'Issue / Event Date', value: (r: any) => date(r, 'issueDate', 'incidentDate', 'inspectionDate', 'identifiedDate', 'reportedDate') },
-          { header: 'Expiry Date', value: (r: any) => date(r, 'expiryDate') },
-          { header: 'Next Review', value: (r: any) => date(r, 'nextReviewDate') },
-          { header: 'Responsible / Employee', value: (r: any) => pick(r, 'responsiblePerson', 'employeeName', 'reportedBy', 'inspector'), width: 24 },
-          { header: 'Department', value: (r: any) => pick(r, 'department') },
-          { header: 'Location', value: (r: any) => pick(r, 'location'), width: 26 },
-          { header: 'Severity / Risk', value: (r: any) => pick(r, 'severity', 'riskRating', 'riskLevel') },
-          { header: 'Certificate #', value: (r: any) => pick(r, 'certificateNumber') },
-          { header: 'Acknowledgments', value: (r: any) => (Array.isArray(r?.acknowledgments) ? r.acknowledgments.length : '') },
+          { header: 'Record ID', value: (r: Row) => pick(r, 'recordId', '_id') },
+          { header: 'Title', value: (r: Row) => pick(r, 'title', 'specificPolicyName'), width: 34 },
+          { header: 'Type', value: (r: Row) => getRecordType(r) },
+          { header: 'Sub-type', value: (r: Row) => pick(r, 'policyType', 'trainingType', 'incidentType', 'hazardType', 'inspectionType') },
+          { header: 'Category', value: (r: Row) => pick(r, 'category'), width: 22 },
+          { header: 'Status', value: (r: Row) => pick(r, 'status') },
+          { header: 'Compliance', value: (r: Row) => pick(r, 'complianceLevel') },
+          { header: 'Issue / Event Date', value: (r: Row) => date(r, 'issueDate', 'incidentDate', 'inspectionDate', 'identifiedDate', 'reportedDate') },
+          { header: 'Expiry Date', value: (r: Row) => date(r, 'expiryDate') },
+          { header: 'Next Review', value: (r: Row) => date(r, 'nextReviewDate') },
+          { header: 'Responsible / Employee', value: (r: Row) => pick(r, 'responsiblePerson', 'employeeName', 'reportedBy', 'inspector'), width: 24 },
+          { header: 'Department', value: (r: Row) => pick(r, 'department') },
+          { header: 'Location', value: (r: Row) => pick(r, 'location'), width: 26 },
+          { header: 'Severity / Risk', value: (r: Row) => pick(r, 'severity', 'riskRating', 'riskLevel') },
+          { header: 'Certificate #', value: (r: Row) => pick(r, 'certificateNumber') },
+          { header: 'Acknowledgments', value: (r: Row) => (Array.isArray((r as unknown as Record<string, unknown>).acknowledgments) ? ((r as unknown as Record<string, unknown>).acknowledgments as unknown[]).length : '') },
         ],
       },
       summarySheet([
         ['Records', filteredRecords.length],
         ['Downloaded', new Date().toLocaleString()],
-        ...countBy(filteredRecords, (r: any) => getRecordType(r), 'Type: '),
-        ...countBy(filteredRecords, (r: any) => r?.status, 'Status: '),
-        ...countBy(filteredRecords, (r: any) => r?.complianceLevel, 'Compliance: '),
+        ...countBy(filteredRecords, (r: Row) => getRecordType(r), 'Type: '),
+        ...countBy(filteredRecords, (r: Row) => field(r, 'status'), 'Status: '),
+        ...countBy(filteredRecords, (r: Row) => field(r, 'complianceLevel'), 'Compliance: '),
       ]),
     ]);
   };
