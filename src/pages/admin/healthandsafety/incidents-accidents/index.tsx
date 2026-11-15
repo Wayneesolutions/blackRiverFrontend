@@ -391,9 +391,12 @@ const IncidentManagement: React.FC = () => {
 
 
   // Handle incident creation
+  // Blocks a second save while one is running (a fast double-click created two incidents)
+  const creatingIncidentRef = useRef(false);
   const handleCreateIncident = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!incidentFormType) return;
+    if (!incidentFormType || creatingIncidentRef.current) return;
+    creatingIncidentRef.current = true;
 
     const userInfo = getLocalUserInfo();
     const userName = userInfo?.userData?.name || userInfo?.name || 'Unknown User';
@@ -461,6 +464,7 @@ const IncidentManagement: React.FC = () => {
       showNotification('error', fullErrorMsg);
     } finally {
       setUploadingFiles(false);
+      creatingIncidentRef.current = false;
     }
   };
 
