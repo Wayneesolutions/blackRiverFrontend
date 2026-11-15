@@ -181,3 +181,41 @@ export const downloadInvoicePacket = async (
         return { ok: false, message };
     }
 };
+
+// Email the invoice with the POD and border manifest attached (one PDF)
+export const emailInvoicePacket = async (
+    invoiceId: string,
+    invoicePdf: Blob,
+    to?: string
+): Promise<{ success: boolean; message: string; notes?: string[] }> => {
+    try {
+        const formData = new FormData();
+        formData.append('invoicePdf', new File([invoicePdf], 'invoice.pdf', { type: 'application/pdf' }));
+        if (to) formData.append('to', to);
+        const res: AxiosResponse = await apiClient.post(`hr/invoice/${invoiceId}/email-packet`, formData, { timeout: 120000 });
+        return res.data;
+    } catch (error: unknown) {
+        const data = (error as { response?: { data?: { message?: string } } })?.response?.data;
+        return { success: false, message: data?.message || 'Email could not be sent' };
+    }
+};
+
+// Default notes printed on every invoice without its own notes (e.g. factoring Notice of Assignment)
+export const getInvoiceSettings = async (): Promise<{ invoiceNotes: string }> => {
+    try {
+        const res: AxiosResponse = await apiClient.get('hr/invoice-settings');
+        return { invoiceNotes: res.data?.data?.invoiceNotes || '' };
+    } catch {
+        return { invoiceNotes: '' };
+    }
+};
+
+export const updateInvoiceSettings = async (invoiceNotes: string): Promise<{ success: boolean; message: string }> => {
+    try {
+        const res: AxiosResponse = await apiClient.put('hr/invoice-settings', { invoiceNotes });
+        return res.data;
+    } catch (error: unknown) {
+        const data = (error as { response?: { data?: { message?: string } } })?.response?.data;
+        return { success: false, message: data?.message || 'Could not save' };
+    }
+};

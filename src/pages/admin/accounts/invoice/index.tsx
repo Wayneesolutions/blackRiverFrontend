@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import {
     FileText, Plus, Eye, Edit, Filter, Calendar, DollarSign, Users, TrendingUp,
     Trash2, X, CheckCircle, AlertCircle, Building2, Download,
-    Paperclip,
+    Paperclip, Mail,
 } from 'lucide-react';
-import { createInvoice, listInvoices, updateInvoice, deleteInvoice, listTrips, downloadInvoicePacket } from "../../../../axios/api/account.invoices";
+import { createInvoice, listInvoices, updateInvoice, deleteInvoice, listTrips, downloadInvoicePacket, emailInvoicePacket, getInvoiceSettings, updateInvoiceSettings } from "../../../../axios/api/account.invoices";
 import jsPDF from 'jspdf';
 import DocLogo from '../../../../assets/doclogo.png';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
@@ -18,6 +18,7 @@ interface CompanyInfo {
     contactPhone?: string;
     taxNumber?: string;
     logoUrl?: string;
+    invoiceNotes?: string;
 }
 
 interface ServiceBreakdownItem {
@@ -487,7 +488,9 @@ const InvoiceManagement: React.FC = () => {
         y = ty + cRow + 8;
 
         // ── Notes (e.g. factoring Notice of Assignment) ──
-        const notesText = [invoice.notes, order.invoiceNotes].map((n) => (n || '').trim()).filter(Boolean).join('\n\n');
+        // The invoice's own notes; when it has none, the company's default (e.g. factoring notice)
+        const ownNotes = [invoice.notes, order.invoiceNotes].map((n) => (n || '').trim()).filter(Boolean).join('\n\n');
+        const notesText = ownNotes || (company?.invoiceNotes || defaultInvoiceNotes || '').trim();
         const noteLines = notesText ? doc.splitTextToSize(notesText, CW / 2 - 6) : [];
         const notesH = Math.max(30, noteLines.length * 4.2 + 12);
         if (y + notesH > H - M) { doc.addPage(); y = M; }
@@ -509,6 +512,54 @@ const InvoiceManagement: React.FC = () => {
         } catch (err) {
             console.error(err);
             showNotification('error', 'Could not create the invoice PDF');
+        }
+    };
+
+    // Company default invoice notes (factoring Notice of Assignment etc.)
+    const [defaultInvoiceNotes, setDefaultInvoiceNotes] = useState('');
+    const [notesEditorOpen, setNotesEditorOpen] = useState(false);
+    const [notesDraft, setNotesDraft] = useState('');
+    const [notesSaving, setNotesSaving] = useState(false);
+    useEffect(() => {
+        getInvoiceSettings().then((r) => setDefaultInvoiceNotes(r.invoiceNotes));
+    }, []);
+    const saveDefaultNotes = async () => {
+        setNotesSaving(true);
+        const res = await updateInvoiceSettings(notesDraft);
+        setNotesSaving(false);
+        if (res.success) {
+            setDefaultInvoiceNotes(notesDraft);
+            setNotesEditorOpen(false);
+            showNotification('success', 'Default invoice notes saved');
+        } else {
+            showNotification('error', res.message || 'Could not save');
+        }
+    };
+
+    // Email the invoice + POD & Manifest packet to the customer
+    const [emailBusyId, setEmailBusyId] = useState<string | null>(null);
+    const handleEmailPacket = async (invoice: Invoice) => {
+        const to = window.prompt('Send the invoice with POD & Manifest to:', invoice.clientEmail || '');
+        if (to === null) return;
+        if (!to.trim()) {
+            showNotification('error', 'Enter an email address');
+            return;
+        }
+        setEmailBusyId(invoice._id);
+        try {
+            const { doc } = await buildInvoicePdf(invoice);
+            const res = await emailInvoicePacket(invoice._id, doc.output('blob'), to.trim());
+            if (!res.success) {
+                showNotification('error', res.message || 'Email could not be sent');
+                return;
+            }
+            const notes = (res.notes || []).join(' ');
+            showNotification(notes ? 'error' : 'success', notes ? `Sent, but: ${notes}` : res.message);
+        } catch (err) {
+            console.error(err);
+            showNotification('error', 'Email could not be sent');
+        } finally {
+            setEmailBusyId(null);
         }
     };
 
@@ -997,6 +1048,17 @@ const InvoiceManagement: React.FC = () => {
                                                     <Paperclip className="h-4 w-4" />
                                                 </button>
                                                 <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEmailPacket(invoice);
+                                                    }}
+                                                    disabled={emailBusyId === invoice._id}
+                                                    className="p-2 text-primary hover:text-[#00D1FF] hover:bg-[rgba(0,209,255,0.08)] rounded-lg transition-all disabled:opacity-50"
+                                                    title="Email invoice with POD & Manifest"
+                                                >
+                                                    <Mail className="h-4 w-4" />
+                                                </button>
+                                                <button
                                                     onClick={() => {
                                                         setSelectedInvoice(invoice);
                                                         setActiveTab('edit');
@@ -1073,6 +1135,15 @@ const InvoiceManagement: React.FC = () => {
                             >
                                 <Paperclip className="h-4 w-4" />
                                 {packetBusyId === selectedInvoice._id ? 'Preparing...' : 'Invoice + POD & Manifest'}
+                            </button>
+                            <button
+                                onClick={() => handleEmailPacket(selectedInvoice)}
+                                disabled={emailBusyId === selectedInvoice._id}
+                                className="px-5 py-2.5 border border-theme text-primary rounded-md hover:bg-[rgba(0,209,255,0.08)] transition-all flex items-center gap-2 font-medium disabled:opacity-50"
+                                title="Email the invoice with the POD and border manifest attached"
+                            >
+                                <Mail className="h-4 w-4" />
+                                {emailBusyId === selectedInvoice._id ? 'Sending...' : 'Email with POD & Manifest'}
                             </button>
                             <button
                                 onClick={() => setActiveTab('list')}
@@ -2455,7 +2526,15 @@ const InvoiceManagement: React.FC = () => {
                             <p className="mt-2 text-secondary">Manage invoices, track payments, and monitor revenue</p>
                         </div>
                         {activeTab === 'list' && (
-                            <div className="mt-4 sm:mt-0">
+                            <div className="mt-4 sm:mt-0 flex items-center gap-2">
+                                <button
+                                    onClick={() => { setNotesDraft(defaultInvoiceNotes); setNotesEditorOpen(true); }}
+                                    className="px-4 py-2 rounded-lg border border-theme text-primary hover:bg-[rgba(0,209,255,0.08)] transition-all flex items-center gap-2"
+                                    title="Notes printed on every invoice that has no notes of its own"
+                                >
+                                    <FileText className="h-4 w-4" />
+                                    Default Invoice Notes
+                                </button>
                                 <button
                                     onClick={() => setActiveTab('create')}
                                     className="px-4 py-2 rounded-lg transition-all flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white"
@@ -2472,6 +2551,31 @@ const InvoiceManagement: React.FC = () => {
                 </div>
 
                 {renderContent()}
+
+                {notesEditorOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setNotesEditorOpen(false)}>
+                        <div className="w-full max-w-lg rounded-xl bg-card border border-theme p-6" onClick={(e) => e.stopPropagation()}>
+                            <h3 className="text-lg font-semibold text-primary mb-1">Default Invoice Notes</h3>
+                            <p className="text-sm text-secondary mb-3">
+                                Printed in the Notes box of every invoice that has no notes of its own, for example the factoring company's Notice of Assignment.
+                            </p>
+                            <textarea
+                                value={notesDraft}
+                                onChange={(e) => setNotesDraft(e.target.value)}
+                                rows={10}
+                                maxLength={2000}
+                                className="w-full border border-theme rounded-lg p-3 text-sm bg-card text-primary"
+                                placeholder={'Notice of Assignment\nThis invoice has been assigned to\nand must be paid directly to\n...'}
+                            />
+                            <div className="mt-4 flex justify-end gap-2">
+                                <button onClick={() => setNotesEditorOpen(false)} className="px-4 py-2 rounded-lg border border-theme text-primary">Cancel</button>
+                                <button onClick={saveDefaultNotes} disabled={notesSaving} className="px-4 py-2 rounded-lg !text-white disabled:opacity-50" style={{ background: 'var(--accent-navyblue)' }}>
+                                    {notesSaving ? 'Saving...' : 'Save'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div >
     );
