@@ -678,7 +678,8 @@ const DriverManagement = () => {
     if (Array.isArray(draft.additions)) setAdditions(draft.additions);
     if (typeof draft.handlesHazardousLoads === 'boolean') setHandlesHazardousLoads(draft.handlesHazardousLoads);
     if (typeof draft.winterTestRequired === 'boolean') setWinterTestRequired(draft.winterTestRequired);
-    if (draft.activeFormTab) setActiveFormTab(draft.activeFormTab);
+    // The Drug Test tab needs the password again after a reload, so a draft left there reopens on Basic
+    if (draft.activeFormTab) setActiveFormTab(draft.activeFormTab === 'drugtest' ? 'basic' : draft.activeFormTab);
   };
 
   // Fetch test results for a driver
@@ -776,6 +777,17 @@ const DriverManagement = () => {
     setShowApprovalModal(false);
     setSelectedTest(null);
     setRejectionReason('');
+  };
+
+  // Every way of opening a form tab (sidebar, Previous / Next buttons) goes through here, so the
+  // Drug Test tab always asks for the password first. Opening it directly showed an empty panel,
+  // because its content only renders once the password is verified.
+  const goToFormTab = (tabId: string) => {
+    if (tabId === 'drugtest' && !drugTestPasswordVerified) {
+      setShowDrugTestPasswordModal(true);
+      return;
+    }
+    setActiveFormTab(tabId as any);
   };
 
   // Handle drug test password verification
@@ -4299,11 +4311,7 @@ const DriverManagement = () => {
                       <button
                         key={tab.id}
                         onClick={() => {
-                          if (tab.id === 'drugtest' && !drugTestPasswordVerified) {
-                            setShowDrugTestPasswordModal(true);
-                          } else {
-                            setActiveFormTab(tab.id as any);
-                          }
+                          goToFormTab(tab.id);
                         }}
                         className={`w-full flex items-center gap-1.5 px-2 py-1.5 transition-colors text-left ${isActive
                           ? 'bg-[var(--accent-navyblue)]/15 !text-white shadow-md'
@@ -8981,7 +8989,7 @@ const DriverManagement = () => {
                     {prevTab ? (
                       <button
                         type="button"
-                        onClick={() => setActiveFormTab(prevTab.id as any)}
+                        onClick={() => goToFormTab(prevTab.id)}
                         className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg shadow-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                       >
                         <span aria-hidden>←</span> {prevTab.label}
@@ -8990,7 +8998,7 @@ const DriverManagement = () => {
                     {nextTab ? (
                       <button
                         type="button"
-                        onClick={() => setActiveFormTab(nextTab.id as any)}
+                        onClick={() => goToFormTab(nextTab.id)}
                         className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg shadow-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                       >
                         {nextTab.label} <span aria-hidden>→</span>
