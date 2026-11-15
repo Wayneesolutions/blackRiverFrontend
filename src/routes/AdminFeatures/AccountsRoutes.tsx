@@ -16,6 +16,7 @@ const Paystubs = lazy(() => import("../../pages/admin/accounts/paystubs/index"))
 const AccountingConfig = lazy(() => import("../../pages/admin/accounts/config/index"));
 const Settlements = lazy(() => import("../../pages/admin/accounts/settlements/index"));
 const FleetMaintenance = lazy(() => import("../../pages/admin/accounts/fleet-maintenance/index"));
+const AccountsPayable = lazy(() => import("../../pages/admin/accounts/payables/index"));
 const ReceiptsNotes = lazy(() => import("../../pages/admin/accounts/receipts-notes/index"));
 const TaxSetup = lazy(() => import("../../pages/admin/accounts/tax-setup/index"));
 const CashFlowInsights = lazy(() => import("../../pages/admin/accounts/cash-flow-insights/index"));
@@ -45,6 +46,7 @@ function AccountsRoutes() {
                     <Route path="/config" element={<AccountingConfig />} />
                     <Route path="/settlements" element={<Settlements />} />
                     <Route path="/fleet-maintenance" element={<FleetMaintenance />} />
+                    <Route path="/payables" element={<AccountsPayable />} />
                     <Route path="/tax-setup" element={<TaxSetup />} />
                     <Route path="/receipts-notes" element={<ReceiptsNotes />} />
                     <Route path="/cash-flow-insights" element={<CashFlowInsights />} />
