@@ -9,6 +9,7 @@ import {
   FaArrowRight, FaTimes
 } from 'react-icons/fa';
 import { getComplianceRecords } from '../../../../axios/api/healthSafety';
+import { downloadExcel, summarySheet, countBy, fmtDate } from '../../../../utils/excelExport';
 
 const CUSTOM_COLORS = {
   background: '#EDF8FF',
@@ -321,6 +322,46 @@ const EnhancedComplianceRecords: React.FC = () => {
     return iconMap[type] || <FaFileAlt className="text-secondary" />;
   };
 
+  // Report of the records shown (filters applied); fields differ per record type, so read them loosely
+  const downloadComplianceReport = async () => {
+    const pick = (r: any, ...keys: string[]) => {
+      for (const k of keys) if (r?.[k] !== undefined && r?.[k] !== null && r?.[k] !== '') return r[k];
+      return '';
+    };
+    const date = (r: any, ...keys: string[]) => fmtDate(pick(r, ...keys) || null);
+    await downloadExcel(`Compliance-Records-${new Date().toISOString().slice(0, 10)}`, [
+      {
+        name: 'Compliance Records',
+        rows: filteredRecords,
+        columns: [
+          { header: 'Record ID', value: (r: any) => pick(r, 'recordId', '_id') },
+          { header: 'Title', value: (r: any) => pick(r, 'title', 'specificPolicyName'), width: 34 },
+          { header: 'Type', value: (r: any) => getRecordType(r) },
+          { header: 'Sub-type', value: (r: any) => pick(r, 'policyType', 'trainingType', 'incidentType', 'hazardType', 'inspectionType') },
+          { header: 'Category', value: (r: any) => pick(r, 'category'), width: 22 },
+          { header: 'Status', value: (r: any) => pick(r, 'status') },
+          { header: 'Compliance', value: (r: any) => pick(r, 'complianceLevel') },
+          { header: 'Issue / Event Date', value: (r: any) => date(r, 'issueDate', 'incidentDate', 'inspectionDate', 'identifiedDate', 'reportedDate') },
+          { header: 'Expiry Date', value: (r: any) => date(r, 'expiryDate') },
+          { header: 'Next Review', value: (r: any) => date(r, 'nextReviewDate') },
+          { header: 'Responsible / Employee', value: (r: any) => pick(r, 'responsiblePerson', 'employeeName', 'reportedBy', 'inspector'), width: 24 },
+          { header: 'Department', value: (r: any) => pick(r, 'department') },
+          { header: 'Location', value: (r: any) => pick(r, 'location'), width: 26 },
+          { header: 'Severity / Risk', value: (r: any) => pick(r, 'severity', 'riskRating', 'riskLevel') },
+          { header: 'Certificate #', value: (r: any) => pick(r, 'certificateNumber') },
+          { header: 'Acknowledgments', value: (r: any) => (Array.isArray(r?.acknowledgments) ? r.acknowledgments.length : '') },
+        ],
+      },
+      summarySheet([
+        ['Records', filteredRecords.length],
+        ['Downloaded', new Date().toLocaleString()],
+        ...countBy(filteredRecords, (r: any) => getRecordType(r), 'Type: '),
+        ...countBy(filteredRecords, (r: any) => r?.status, 'Status: '),
+        ...countBy(filteredRecords, (r: any) => r?.complianceLevel, 'Compliance: '),
+      ]),
+    ]);
+  };
+
   const filteredRecords = records.filter(record => {
     const recordTitle = record.title.toLowerCase();
     const recordId = record.recordId.toLowerCase();
@@ -366,6 +407,16 @@ const EnhancedComplianceRecords: React.FC = () => {
                 Comprehensive view of all compliance records aggregated from Health & Safety modules.
               </p>
             </div>
+            <div className="flex items-center gap-3">
+            <button
+              onClick={() => downloadComplianceReport()}
+              disabled={filteredRecords.length === 0}
+              className="px-6 py-3 rounded-xl border border-theme text-primary font-semibold hover:bg-[rgba(255,255,255,0.05)] transition-all flex items-center space-x-2 disabled:opacity-50"
+              title="Download the records shown (filters applied) as Excel"
+            >
+              <FaDownload size={16} />
+              <span>Download Report</span>
+            </button>
             <button
               onClick={() => handleNavigation('../Dashboard')}
               className=" bg-[var(--accent-navyblue)] px-6 py-3 rounded-xl !text-white font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center space-x-2 "
@@ -374,6 +425,7 @@ const EnhancedComplianceRecords: React.FC = () => {
               <FaChartLine size={18} className="text-primary" />
               <span>View Dashboard</span>
             </button>
+            </div>
           </div>
         </div>
 
