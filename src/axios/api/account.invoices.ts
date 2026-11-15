@@ -157,3 +157,27 @@ export const testStripeConnection = async () => {
         return (error as Error).response?.data;
     }
 }
+// Invoice + POD + border manifest in one PDF. The invoice PDF is drawn in the browser and the
+// server appends the trip's documents (it can read them from S3; the browser can't).
+export const downloadInvoicePacket = async (
+    invoiceId: string,
+    invoicePdf: Blob
+): Promise<{ ok: true; blob: Blob; missing: string } | { ok: false; message: string }> => {
+    try {
+        const formData = new FormData();
+        formData.append('invoicePdf', new File([invoicePdf], 'invoice.pdf', { type: 'application/pdf' }));
+        const res: AxiosResponse<Blob> = await apiClient.post(`hr/invoice/${invoiceId}/packet`, formData, {
+            responseType: 'blob',
+            timeout: 120000,
+        });
+        const missing = decodeURIComponent(String(res.headers['x-packet-missing'] || ''));
+        return { ok: true, blob: res.data, missing };
+    } catch (error: unknown) {
+        const data = (error as { response?: { data?: Blob } })?.response?.data;
+        let message = 'Could not build the invoice packet';
+        if (data instanceof Blob) {
+            try { message = JSON.parse(await data.text())?.message || message; } catch { /* keep default */ }
+        }
+        return { ok: false, message };
+    }
+};
