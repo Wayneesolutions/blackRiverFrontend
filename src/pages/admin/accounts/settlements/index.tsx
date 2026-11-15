@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Download, Filter, DollarSign, TrendingDown, TrendingUp, MapPin, FileText, Users, X, AlertCircle, CheckCircle } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Download, Filter, DollarSign, TrendingDown, TrendingUp, MapPin, FileText, Users, X, AlertCircle, CheckCircle, Truck, Printer } from 'lucide-react';
+import TruckSettlementModal from '../../../../components/accounts/TruckSettlementModal';
+import { outputPayStatement, settlementToStatement } from '../../../../utils/payStatementPdf';
+import { getCompany } from '../../../../axios/api/admin';
 import {
   getSettlements,
   getSettlementStats,
@@ -20,6 +23,15 @@ import { getAllDrivers } from '../../../../axios/api/driver';
 interface Settlement {
   _id: string;
   settlementId: string;
+  settlementType?: 'driver' | 'truck';
+  truck?: { _id: string; internalId?: string; unitNumber?: string; plateNumber?: string } | null;
+  truckNumber?: string;
+  payeeName?: string;
+  lineItems?: unknown[];
+  additionItems?: unknown[];
+  deductionItems?: unknown[];
+  billNumber?: string;
+  chequeNumber?: string;
   driver: {
     _id: string;
     name: string;
@@ -99,6 +111,8 @@ export default function SettlementSystem() {
 
   // Modal states
   const [showSettlementModal, setShowSettlementModal] = useState(false);
+  const [showTruckSettlement, setShowTruckSettlement] = useState(false);
+  const [allTrucks, setAllTrucks] = useState<Record<string, unknown>[]>([]);
   const [showDeductionModal, setShowDeductionModal] = useState(false);
   const [showMilesModal, setShowMilesModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -207,6 +221,7 @@ export default function SettlementSystem() {
         );
         console.log('✅ Fetched vehicles:', activeVehicles.length, 'out of', response.data.length, activeVehicles);
         setVehicles(activeVehicles);
+        setAllTrucks(response.data);
       } else {
         console.warn('⚠️ No vehicles found or invalid response:', response);
         setVehicles([]);
@@ -217,6 +232,18 @@ export default function SettlementSystem() {
     }
   };
 
+
+  // Print / download an owner-operator pay statement for a settlement
+  const handleSettlementStatement = async (settlement: Settlement, mode: 'download' | 'print') => {
+    try {
+      const companyRes = await getCompany();
+      const company = companyRes?.data || companyRes?.company || {};
+      await outputPayStatement(settlementToStatement(settlement, company), mode);
+    } catch (error) {
+      console.error('Error generating settlement statement:', error);
+      showNotification('error', 'Could not generate the settlement statement');
+    }
+  };
 
   // Fetch settlements
   const fetchSettlements = async () => {
@@ -508,7 +535,9 @@ export default function SettlementSystem() {
   // Filter data based on search
   const filteredSettlements = settlements.filter(s =>
     s.settlementId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.driver?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    s.driver?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (s.payeeName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (s.truckNumber || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredDeductions = deductions.filter(d =>
@@ -574,6 +603,16 @@ export default function SettlementSystem() {
                 >
                   <Plus className="w-4 h-4" />
                   New Settlement Generation
+                </button>
+              )}
+              {activeTab === 'driver-settlements' && (
+                <button
+                  onClick={() => setShowTruckSettlement(true)}
+                  className="ml-2 px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all flex items-center gap-2 bg-[var(--accent-navyblue)]"
+                  title="Owner-operator settlement for all work done by a truck"
+                >
+                  <Truck className="w-4 h-4" />
+                  Settle by Truck (O/O)
                 </button>
               )}
             </div>
@@ -759,7 +798,14 @@ export default function SettlementSystem() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                           {formatPayPeriod(settlement.payPeriod.startDate, settlement.payPeriod.endDate)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">{settlement.driver?.name || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                          {settlement.payeeName || settlement.driver?.name || 'Unknown'}
+                          {(settlement.truckNumber || settlement.truck) && (
+                            <span className="ml-2 px-2 py-0.5 text-[10px] rounded-full bg-[var(--accent-blue)]/15 text-[var(--accent-blue)]">
+                              Truck #{settlement.truckNumber || settlement.truck?.internalId || settlement.truck?.unitNumber}
+                            </span>
+                          )}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${settlement.status === 'Paid' ? 'bg-green-100 text-green-800' :
                             settlement.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -774,12 +820,26 @@ export default function SettlementSystem() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-secondary">${settlement.netPay.toLocaleString()}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleSettlementStatement(settlement, 'print')}
+                              className="p-1 rounded hover:bg-[var(--accent-blue)]/10"
+                              title="Print Pay Statement"
+                            >
+                              <Printer className="w-4 h-4 text-[var(--accent-blue)]" />
+                            </button>
+                            <button
+                              onClick={() => handleSettlementStatement(settlement, 'download')}
+                              className="p-1 rounded hover:bg-[var(--accent-blue)]/10"
+                              title="Download Pay Statement (PDF)"
+                            >
+                              <Download className="w-4 h-4 text-[var(--accent-blue)]" />
+                            </button>
 
                             <button
                               onClick={() => {
                                 setEditingItem(settlement);
                                 setSettlementForm({
-                                  driver: settlement.driver._id,
+                                  driver: settlement.driver?._id || '',
                                   payPeriod: {
                                     startDate: settlement.payPeriod.startDate.split('T')[0],
                                     endDate: settlement.payPeriod.endDate.split('T')[0]
@@ -1746,7 +1806,13 @@ export default function SettlementSystem() {
                 </button>
               </div>
             </div>
-          </div>
+            <TruckSettlementModal
+        open={showTruckSettlement}
+        trucks={allTrucks}
+        onClose={() => setShowTruckSettlement(false)}
+        onCreated={(msg) => { showNotification('success', msg); fetchSettlements(); }}
+      />
+    </div>
         )
       }
     </div >

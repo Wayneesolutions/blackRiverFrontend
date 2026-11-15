@@ -6,6 +6,7 @@ import { listTrucks } from "../../../../../axios/api/truckTracking";
 import { listTrailers } from "../../../../../axios/api/trailerTracking";
 import { getAllDrivers, getDriverOnboardingStatus, getDrugTests } from "../../../../../axios/api/driver";
 import { getAllEmployees } from "../../../../../axios/api/employee";
+import { listCarriers, createCarrier } from "../../../../../axios/api/account.payables";
 import { getUserInfo } from "../../../../../utils/auth";
 import AddressSearch from "../../../../../components/common/AddressSearch";
 import { useAutoSaveDraft } from "../../../../../customHooks/useAutoSaveDraft";
@@ -407,7 +408,33 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [selectedCarrier, setSelectedCarrier] = useState<any>(null);
     const [carrierSearch, setCarrierSearch] = useState("");
     const [carrierDropdownOpen, setCarrierDropdownOpen] = useState(false);
-    const [carriers] = useState<any[]>([]);
+    // Other trucking companies we sell (book) loads to. Was a constant empty list, so
+    // "No carriers found" every time and nothing was saved.
+    const [carriers, setCarriers] = useState<any[]>([]);
+    const [carrierRate, setCarrierRate] = useState<string>('');
+    const [carrierCurrency, setCarrierCurrency] = useState<string>('CAD');
+    const [addingCarrier, setAddingCarrier] = useState(false);
+    useEffect(() => {
+        if (assignmentType !== "CARRIER" || carriers.length > 0) return;
+        listCarriers().then(res => { if (res?.success) setCarriers(res.data || []); });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [assignmentType]);
+    const addCarrierByName = async (name: string) => {
+        const clean = name.trim();
+        if (!clean) return;
+        setAddingCarrier(true);
+        try {
+            const res = await createCarrier({ name: clean });
+            if (res?.success && res.data) {
+                setCarriers(prev => (prev.some(c => c._id === res.data._id) ? prev : [...prev, res.data].sort((a, b) => (a.name || '').localeCompare(b.name || ''))));
+                setSelectedCarrier(res.data);
+                setCarrierSearch(res.data.name);
+                setCarrierDropdownOpen(false);
+            }
+        } finally {
+            setAddingCarrier(false);
+        }
+    };
 
     // Pay section states
     const [selectedPayDriver, setSelectedPayDriver] = useState<any>(null);
@@ -1095,6 +1122,17 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setDispatcherEmail(order.dispatcherEmail || '');
             setBookedForCarrier(order.bookedForCarrier || false);
             setSendToFactor(order.sendToFactor || false);
+            // Load sold to another carrier
+            if (order.carrier || order.carrierName) {
+                setAssignmentType("CARRIER");
+                const carrierObj = typeof order.carrier === 'object' && order.carrier
+                    ? order.carrier
+                    : { _id: order.carrier || '', name: order.carrierName || '' };
+                setSelectedCarrier({ ...carrierObj, name: carrierObj.name || order.carrierName || '' });
+                setCarrierSearch(order.carrierName || carrierObj.name || '');
+            }
+            setCarrierRate(order.carrierRate ? String(order.carrierRate) : '');
+            setCarrierCurrency(order.carrierCurrency || order.rateCurrency || 'CAD');
 
             // Tax Configuration
             const loadedTaxCode = order.taxCode || 'No Tax';
@@ -1349,6 +1387,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setDispatcherEmail('');
             setBookedForCarrier(false);
             setSendToFactor(false);
+            setCarrierRate('');
+            setCarrierCurrency('CAD');
             setTaxCode('No Tax');
             setTaxAmount('');
             setPars('');
@@ -2206,7 +2246,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 rateCurrency: rateCurrency,
                 dispatcher: dispatcher,
                 dispatcherEmail: dispatcherEmail,
-                bookedForCarrier: bookedForCarrier,
+                bookedForCarrier: assignmentType === "CARRIER" ? true : bookedForCarrier,
+                carrier: assignmentType === "CARRIER" ? (selectedCarrier?._id || '') : '',
+                carrierName: assignmentType === "CARRIER" ? (selectedCarrier?.name || selectedCarrier?.companyName || carrierSearch || '') : '',
+                carrierRate: assignmentType === "CARRIER" ? (parseFloat(carrierRate) || 0) : 0,
+                carrierCurrency: carrierCurrency || rateCurrency,
                 sendToFactor: sendToFactor,
 
                 // Tax Configuration
@@ -2239,11 +2283,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 // Stop Information
                 stops: stops,
 
-                // Assignment Information
-                truck: selectedTruck?._id || selectedTruck?.id || null,
-                trailer: selectedTrailer?._id || selectedTrailer?.id || null,
-                driver: selectedDriver?._id || selectedDriver?.id || null,
-                coDriver: selectedCoDriver?._id || selectedCoDriver?.id || null
+                // Assignment Information (a load sold to another carrier has no truck / driver of ours,
+                // so it never shows up in our driver payroll or truck settlements)
+                truck: assignmentType === "CARRIER" ? null : (selectedTruck?._id || selectedTruck?.id || null),
+                trailer: assignmentType === "CARRIER" ? null : (selectedTrailer?._id || selectedTrailer?.id || null),
+                driver: assignmentType === "CARRIER" ? null : (selectedDriver?._id || selectedDriver?.id || null),
+                coDriver: assignmentType === "CARRIER" ? null : (selectedCoDriver?._id || selectedCoDriver?.id || null)
             };
 
             // Append all order data fields to FormData
@@ -5366,8 +5411,16 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         {carrier.name || carrier.companyName || 'N/A'}
                                                                                     </div>
                                                                                 ))}
-                                                                            {carriers.length === 0 && (
-                                                                                <div className="p-2 text-sm text-secondary">No carriers found</div>
+                                                                            {carrierSearch.trim() && !carriers.some(c => (c.name || '').toLowerCase() === carrierSearch.trim().toLowerCase()) && (
+                                                                                <div
+                                                                                    onClick={() => addCarrierByName(carrierSearch)}
+                                                                                    className="p-2 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm text-[var(--accent-blue)] border-t border-theme"
+                                                                                >
+                                                                                    {addingCarrier ? 'Adding...' : `+ Add "${carrierSearch.trim()}" as a new carrier`}
+                                                                                </div>
+                                                                            )}
+                                                                            {carriers.length === 0 && !carrierSearch.trim() && (
+                                                                                <div className="p-2 text-sm text-secondary">No carriers yet - type a name to add one</div>
                                                                             )}
                                                                         </div>
                                                                     </div>
@@ -5383,8 +5436,36 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 >
                                                                     Clear
                                                                 </button>
-                                                                <span>Clear All</span>
                                                             </div>
+                                                            <div className="mt-3 grid grid-cols-2 gap-2">
+                                                                <div>
+                                                                    <label className="block text-xs font-medium text-primary mb-1">Carrier rate (we pay)</label>
+                                                                    <input
+                                                                        type="number"
+                                                                        min="0"
+                                                                        step="0.01"
+                                                                        value={carrierRate}
+                                                                        onChange={(e) => setCarrierRate(e.target.value)}
+                                                                        placeholder="0.00"
+                                                                        className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-xs font-medium text-primary mb-1">Currency</label>
+                                                                    <select
+                                                                        value={carrierCurrency}
+                                                                        onChange={(e) => setCarrierCurrency(e.target.value)}
+                                                                        className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm bg-card"
+                                                                    >
+                                                                        <option value="CAD">CAD</option>
+                                                                        <option value="USD">USD</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <p className="mt-2 text-xs text-secondary">
+                                                                The customer is still invoiced at the order rate. The carrier rate goes to Accounts &gt; Accounts Payable as a bill.
+                                                                {rate && parseFloat(carrierRate) > 0 ? ` Margin: ${(parseFloat(rate) - parseFloat(carrierRate)).toFixed(2)} ${rateCurrency}.` : ''}
+                                                            </p>
                                                         </div>
                                                     )}
 

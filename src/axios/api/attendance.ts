@@ -1,7 +1,9 @@
 import apiClient from "../apiClient";
 
-export const listAttendance = async (params?: { month?: number; year?: number; date?: string; employee?: string; includeActiveSessions?: boolean }) => {
+export const listAttendance = async (params?: { month?: number; year?: number; date?: string; startDate?: string; endDate?: string; employee?: string; includeActiveSessions?: boolean }) => {
   const q = new URLSearchParams();
+  if (params?.startDate) q.set("startDate", params.startDate);
+  if (params?.endDate) q.set("endDate", params.endDate);
   if (params?.month) q.set("month", String(params.month));
   if (params?.year) q.set("year", String(params.year));
   if (params?.date) q.set("date", params.date);

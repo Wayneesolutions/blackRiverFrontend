@@ -54,6 +54,12 @@ export const AccountSidebarlinks: AccountSidebarlinks[] = [
     },
 
     {
+        key: "/admin/accounts/payables",
+        icon: <FaReceipt />,
+        label: "Accounts Payable",
+    },
+
+    {
         key: "/admin/accounts/payroll",
         icon: <FaUsers />,
         label: "Employees Payroll",

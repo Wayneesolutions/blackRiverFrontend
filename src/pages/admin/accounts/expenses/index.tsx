@@ -24,6 +24,9 @@ interface Expense {
   description?: string;
   date?: string | Date;
   receiptUrl?: string;
+  documentType?: 'Invoice' | 'Receipt' | 'Bill' | 'Other';
+  vendorName?: string;
+  invoiceNumber?: string;
   truckId?: string;
   trailerId?: string;
   vehicle?: any; // Vehicle object from API (for backward compatibility)
@@ -109,6 +112,7 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 const ExpensesPage = () => {
   const [activeTab, setActiveTab] = useState('list');
   const [filterType, setFilterType] = useState('all');
+  const [filterDocType, setFilterDocType] = useState('all');
   const [selectedCategoryTab, setSelectedCategoryTab] = useState<string>('all');
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -149,6 +153,9 @@ const ExpensesPage = () => {
     receiptFile: File | null;
     truckId: string;
     trailerId: string;
+    documentType?: string;
+    vendorName?: string;
+    invoiceNumber?: string;
   }>({
     userId: '',
     categoryId: '',
@@ -159,7 +166,10 @@ const ExpensesPage = () => {
     date: new Date().toISOString().split('T')[0],
     receiptFile: null,
     truckId: '',
-    trailerId: ''
+    trailerId: '',
+    documentType: 'Receipt',
+    vendorName: '',
+    invoiceNumber: ''
   });
 
   const [trucks, setTrucks] = useState<FleetUnit[]>([]);
@@ -603,6 +613,8 @@ const ExpensesPage = () => {
           description: extracted.description || extracted.notes || prev.description,
           type: extracted.type || prev.type,
           date: extracted.date || prev.date,
+          vendorName: extracted.vendor || prev.vendorName,
+          invoiceNumber: extracted.receiptNumber || prev.invoiceNumber,
           receiptFile: file // Keep the file
         }));
 
@@ -643,8 +655,13 @@ const ExpensesPage = () => {
         formDataToSend.append('trailerId', formData.trailerId);
       }
 
+      formDataToSend.append('documentType', formData.documentType || 'Receipt');
+      formDataToSend.append('vendorName', formData.vendorName || '');
+      formDataToSend.append('invoiceNumber', formData.invoiceNumber || '');
+
       if (formData.receiptFile) {
         formDataToSend.append('receipt', formData.receiptFile);
+        formDataToSend.append('receiptFileName', formData.receiptFile.name);
       }
 
       if (editingExpense) {
@@ -663,7 +680,10 @@ const ExpensesPage = () => {
             date: new Date().toISOString().split('T')[0],
             receiptFile: null,
             truckId: '',
-            trailerId: ''
+            trailerId: '',
+            documentType: 'Receipt',
+            vendorName: '',
+            invoiceNumber: ''
           });
           setActiveTab('list');
           fetchExpenses();
@@ -685,7 +705,10 @@ const ExpensesPage = () => {
             date: new Date().toISOString().split('T')[0],
             receiptFile: null,
             truckId: '',
-            trailerId: ''
+            trailerId: '',
+            documentType: 'Receipt',
+            vendorName: '',
+            invoiceNumber: ''
           });
           setActiveTab('list');
           fetchExpenses();
@@ -720,6 +743,9 @@ const ExpensesPage = () => {
       typeId: typeId,
       amount: expense.amount.toString(),
       description: expense.description || '',
+      documentType: expense.documentType || 'Receipt',
+      vendorName: expense.vendorName || '',
+      invoiceNumber: expense.invoiceNumber || '',
       date: expense.date ? new Date(expense.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       receiptFile: null,
       truckId: (() => {
@@ -816,7 +842,10 @@ const ExpensesPage = () => {
       date: new Date().toISOString().split('T')[0],
       receiptFile: null,
       truckId: '',
-      trailerId: ''
+      trailerId: '',
+      documentType: 'Receipt',
+      vendorName: '',
+      invoiceNumber: ''
     });
     setExpenseTypes([]);
     setActiveTab('list');
@@ -892,6 +921,7 @@ const ExpensesPage = () => {
   };
 
   const filteredExpenses = expenses.filter(expense => {
+    if (filterDocType !== 'all' && (expense.documentType || 'Receipt') !== filterDocType) return false;
     // Category matching - handle both string and object categoryId
     if (selectedCategoryTab !== 'all') {
       const selectedCategoryIdStr = String(selectedCategoryTab);
@@ -1024,7 +1054,10 @@ const ExpensesPage = () => {
                   date: new Date().toISOString().split('T')[0],
                   receiptFile: null,
                   truckId: '',
-                  trailerId: ''
+                  trailerId: '',
+                  documentType: 'Receipt',
+                  vendorName: '',
+                  invoiceNumber: ''
                 });
                 if (selectedCategoryTab !== 'all') {
                   fetchExpenseTypes(selectedCategoryTab);
@@ -1271,6 +1304,17 @@ const ExpensesPage = () => {
                           <option key={type} value={type}>{type}</option>
                         ))}
                       </select>
+                      <select
+                        value={filterDocType}
+                        onChange={(e) => setFilterDocType(e.target.value)}
+                        className="border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        title="Invoices vs receipts"
+                      >
+                        <option value="all">Invoices & Receipts</option>
+                        <option value="Invoice">Invoices only</option>
+                        <option value="Receipt">Receipts only</option>
+                        <option value="Bill">Bills only</option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -1293,6 +1337,9 @@ const ExpensesPage = () => {
                             <div className="text-2xl">{getTypeIcon(getTypeName(expense))}</div>
                             <div>
                               <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${expense.documentType === 'Invoice' || expense.documentType === 'Bill' ? 'bg-orange-100 text-orange-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                                  {expense.documentType || 'Receipt'}
+                                </span>
                                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                                   {getCategoryName(expense)}
                                 </span>
@@ -1316,8 +1363,11 @@ const ExpensesPage = () => {
                                 {expense.receiptUrl && (
                                   <span className="flex items-center gap-1">
                                     <Receipt size={12} />
-                                    Receipt Available
+                                    {(expense.documentType || 'Receipt')} attached
                                   </span>
+                                )}
+                                {expense.vendorName && (
+                                  <span className="flex items-center gap-1">{expense.vendorName}{expense.invoiceNumber ? ` #${expense.invoiceNumber}` : ''}</span>
                                 )}
                                 {expense.vehicle && typeof expense.vehicle === 'object' && (
                                   <span className="flex items-center gap-1">
@@ -1494,6 +1544,41 @@ const ExpensesPage = () => {
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Document</label>
+                      <select
+                        value={formData.documentType || 'Receipt'}
+                        onChange={(e) => setFormData(prev => ({ ...prev, documentType: e.target.value }))}
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option className='form-option' value="Receipt">Receipt (paid)</option>
+                        <option className='form-option' value="Invoice">Invoice (supplier invoice)</option>
+                        <option className='form-option' value="Bill">Bill</option>
+                        <option className='form-option' value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Vendor / Supplier</label>
+                      <input
+                        type="text"
+                        value={formData.vendorName || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, vendorName: e.target.value }))}
+                        placeholder="e.g. Petro-Canada, Kal Tire"
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Invoice / Receipt #</label>
+                      <input
+                        type="text"
+                        value={formData.invoiceNumber || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, invoiceNumber: e.target.value }))}
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-primary mb-2">
                       Description
@@ -1554,7 +1639,7 @@ const ExpensesPage = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-primary mb-2">
-                      Receipt Upload
+                      Upload Invoice / Receipt (PDF or image)
                     </label>
                     <div className="border-2 border-dashed border-theme rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
                       <Receipt className="mx-auto mb-2 text-secondary" size={32} />
@@ -1562,7 +1647,7 @@ const ExpensesPage = () => {
                         type="file"
                         name="receiptFile"
                         onChange={handleInputChange}
-                        accept="image/*"
+                        accept="image/*,application/pdf"
                         className="hidden"
                         id="receipt-upload"
                       />
@@ -1570,7 +1655,7 @@ const ExpensesPage = () => {
                         <span className="text-[#00D1FF] hover:text-blue-700">Click to upload</span>
                         <span className="text-secondary"> or drag and drop</span>
                       </label>
-                      <p className="text-xs text-secondary mt-1">PNG, JPG up to 10MB</p>
+                      <p className="text-xs text-secondary mt-1">PDF, PNG, JPG up to 10MB (supplier invoice, bill or receipt)</p>
                       {formData.receiptFile && (
                         <div className="mt-3 space-y-2">
                           <p className="text-sm text-green-600">
@@ -1769,7 +1854,7 @@ const ExpensesPage = () => {
                         <>
                           <div className="flex items-center gap-4">
                             <div className="flex-1">
-                              <p className="text-sm text-secondary mb-1">Receipt Available</p>
+                              <p className="text-sm text-secondary mb-1">{viewingExpense.documentType || 'Receipt'} attached</p>
                               <a
                                 href={receiptSignedUrl}
                                 target="_blank"
