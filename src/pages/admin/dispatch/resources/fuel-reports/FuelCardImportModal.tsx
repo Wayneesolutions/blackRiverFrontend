@@ -33,6 +33,9 @@ interface DraftRow {
   invoiceAmount?: number;
   currency: string;
   odometer?: string;
+  cardDescription?: string;
+  time?: string;
+  alreadyImported?: boolean;
   skip: boolean;
 }
 
@@ -67,14 +70,18 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits, m
   const [rows, setRows] = useState<DraftRow[]>([]);
   const [parseStats, setParseStats] = useState({ total: 0, matched: 0, review: 0, unmatched: 0 });
   const [saving, setSaving] = useState(false);
-  const [saveResult, setSaveResult] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
+  const [saveResult, setSaveResult] = useState<{ success: number; failed: number; skipped?: number; errors: string[] } | null>(null);
+  const [parseTotals, setParseTotals] = useState<{ invoiceAmount: number; byCurrency: Record<string, number>; alreadyImported: number } | null>(null);
   const [rowFilter, setRowFilter] = useState<RowFilter>('all');
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (f: File) => {
-    if (!f.name.toLowerCase().endsWith('.pdf')) {
-      messageApi.error('Please upload a PDF file');
+    const n = f.name.toLowerCase();
+    if (!n.endsWith('.pdf') && !n.endsWith('.xlsx')) {
+      messageApi.error(n.endsWith('.xls') || n.endsWith('.csv')
+        ? 'Please upload the report as .xlsx (Excel) or PDF'
+        : 'Please upload a PDF or Excel (.xlsx) file');
       return;
     }
     setFile(f);
@@ -93,10 +100,14 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits, m
     try {
       const res = await parseFuelCardPdf(file);
       if (!res?.success) {
-        messageApi.error(res?.message || 'Failed to parse PDF');
+        messageApi.error(res?.message || 'Failed to read the report');
         return;
       }
       setRows(res.data.rows);
+      setParseTotals(res.data.totals ? { ...res.data.totals, alreadyImported: res.data.alreadyImported || 0 } : null);
+      if (res.data.alreadyImported) {
+        messageApi.info(`${res.data.alreadyImported} transaction(s) were already imported and are skipped`);
+      }
       setParseStats({
         total: res.data.totalRows,
         matched: res.data.matched,
@@ -105,7 +116,7 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits, m
       });
       setStep('review');
     } catch {
-      messageApi.error('Failed to parse PDF');
+      messageApi.error('Failed to read the report');
     } finally {
       setParsing(false);
     }
@@ -193,7 +204,7 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits, m
 
           <div className="flex items-center gap-2 mb-5">
             <FileText size={20} style={{ color: 'var(--accent-blue)' }} />
-            <h2 className="text-lg font-semibold text-headings">Import EFS / Comdata Fuel Card</h2>
+            <h2 className="text-lg font-semibold text-headings">Import Fuel Card Report</h2>
           </div>
 
           {/* Drop zone */}
@@ -216,11 +227,11 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits, m
               </div>
             ) : (
               <div className="text-center">
-                <p className="font-medium text-primary">Drop your PDF here or click to browse</p>
-                <p className="text-xs text-secondary mt-1">EFS / Comdata fuel card report (.pdf)</p>
+                <p className="font-medium text-primary">Drop your report here or click to browse</p>
+                <p className="text-xs text-secondary mt-1">Pilot Flying J transaction report (Excel or PDF), or EFS / Comdata report (PDF). Every transaction is read from the file; already imported ones are skipped.</p>
               </div>
             )}
-            <input ref={fileInputRef} type="file" accept=".pdf" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+            <input ref={fileInputRef} type="file" accept=".pdf,.xlsx" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
           </div>
 
           <div className="flex gap-3 mt-5">
@@ -233,7 +244,7 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits, m
               className="flex-1 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               style={{ backgroundColor: 'var(--accent-blue)', color: '#000' }}
             >
-              {parsing ? <><Loader2 size={14} className="animate-spin" /> Parsing…</> : 'Parse PDF'}
+              {parsing ? <><Loader2 size={14} className="animate-spin" /> Parsing…</> : 'Read report'}
             </button>
           </div>
         </div>
@@ -253,6 +264,7 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits, m
               <div className="space-y-1 text-sm text-secondary mb-4">
                 <p><span className="font-semibold" style={{ color: '#00FFA3' }}>{saveResult.success}</span> fuel reports saved</p>
                 {saveResult.failed > 0 && <p><span className="font-semibold text-red-400">{saveResult.failed}</span> failed</p>}
+                {!!saveResult.skipped && <p><span className="font-semibold">{saveResult.skipped}</span> already imported (not saved again)</p>}
               </div>
             )}
             {saveResult?.errors?.length ? (
@@ -279,7 +291,13 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits, m
             <FileText size={18} style={{ color: 'var(--accent-blue)' }} />
             <div>
               <h2 className="text-base font-semibold text-headings">Review Imported Transactions</h2>
-              <p className="text-xs text-secondary">{file?.name}</p>
+              <p className="text-xs text-secondary">
+                {file?.name}
+                {parseTotals && (
+                  <> · {rows.length} transactions · Invoice total {Object.entries(parseTotals.byCurrency).map(([c, v]) => `${c === 'CAD' ? 'CAD' : 'USD'} ${v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`).join(' + ')}
+                    {parseTotals.alreadyImported ? ` · ${parseTotals.alreadyImported} already imported` : ''}</>
+                )}
+              </p>
             </div>
           </div>
 
@@ -368,7 +386,7 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits, m
                       <td className="px-3 py-2">
                         <div className="flex items-center gap-1 px-2 py-1 rounded-full w-fit" style={{ backgroundColor: cfg.bg }}>
                           <cfg.icon size={10} style={{ color: cfg.color }} />
-                          <span style={{ color: cfg.color, fontSize: 10 }}>{cfg.label}</span>
+                          <span style={{ color: cfg.color, fontSize: 10 }}>{row.alreadyImported ? 'Already imported' : cfg.label}</span>
                         </div>
                       </td>
                       <td className="px-3 py-2 text-primary whitespace-nowrap">{fmtDate(row.date)}</td>

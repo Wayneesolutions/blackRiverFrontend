@@ -1342,7 +1342,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                 style={{ backgroundColor: 'rgba(0,209,255,0.1)', border: '1px solid rgba(0,209,255,0.25)', color: 'var(--accent-blue)' }}
               >
                 <CreditCard className="w-4 h-4" />
-                Import Fuel Card
+                Import Fuel Card Report (Pilot Flying J / EFS)
               </button>
               <button
                 onClick={() => setImportModalOpen(true)}
