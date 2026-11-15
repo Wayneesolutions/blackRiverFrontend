@@ -396,6 +396,19 @@ const IncidentManagement: React.FC = () => {
   const handleCreateIncident = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!incidentFormType || creatingIncidentRef.current) return;
+
+    // The location box is an address search, which the browser doesn't check as required;
+    // an empty one only came back from the server as "Missing required fields."
+    const missing = [
+      !incidentFormData.date && 'Date',
+      !incidentFormData.time && 'Time',
+      !String(incidentFormData.location || '').trim() && 'Location (type it or pick an address)',
+      !String(incidentFormData.description || '').trim() && 'Description',
+    ].filter(Boolean);
+    if (missing.length) {
+      showNotification('error', `Please fill in: ${missing.join(', ')}`);
+      return;
+    }
     creatingIncidentRef.current = true;
 
     const userInfo = getLocalUserInfo();
