@@ -1344,20 +1344,23 @@ const FleetInvoicesPage = () => {
     sectionHeader('ITEMS', yPos);
     yPos += 5;
 
-    // Column layout (like the client's Rosser sample): Date | Product | Description | Qty/Hrs | Rate | Amount
+    // Column layout: Date | Product | Description | Qty/Hrs | Rate | GST (tax) | Amount
+    // The client asked for the tax right after Rate instead of a note under the description.
     const tRight = pageWidth - margin;
     const dateW = 19;
-    const typeW = 36; // "Product" column
-    const qtyW = 16;
-    const rateW = 22;
+    const typeW = 34; // "Product" column
+    const qtyW = 15;
+    const rateW = 21;
+    const taxW = 24;
     const amtW = 22;
-    const descW = contentWidth - dateW - typeW - qtyW - rateW - amtW;
+    const descW = contentWidth - dateW - typeW - qtyW - rateW - taxW - amtW;
 
     const xDate = margin;
     const xType = margin + dateW;
     const xDesc = xType + typeW;
     const xQty = xDesc + descW + qtyW / 2;
     const xRate = xDesc + descW + qtyW + rateW;
+    const xTax = xRate + taxW;
     const xAmt = tRight;
 
     // Table header row
@@ -1371,6 +1374,7 @@ const FleetInvoicesPage = () => {
     doc.text('Description', xDesc + 1, yPos);
     doc.text('Qty/Hrs', xQty, yPos, { align: 'center' });
     doc.text('Rate', xRate, yPos, { align: 'right' });
+    doc.text('GST/Tax', xTax, yPos, { align: 'right' });
     doc.text('Amount', xAmt, yPos, { align: 'right' });
     yPos += 2;
     hRule(yPos, blue, 0.4);
@@ -1392,7 +1396,7 @@ const FleetInvoicesPage = () => {
       const lineH = 3.8; // matches 9pt text at lineHeightFactor 1.15
       const hasTax = !!(item.taxName && Number(item.taxPercent) > 0);
       const textLines = Math.max(dLines.length, pLines.length, 1);
-      const rh = textLines * lineH + (hasTax ? 3.5 : 0) + 1.5;
+      const rh = Math.max(textLines, hasTax ? 2 : 1) * lineH + 1.5;
       checkPageBreak(rh + 3);
 
       // Alternating row background
@@ -1418,16 +1422,21 @@ const FleetInvoicesPage = () => {
       if (desc) doc.text(dLines, xDesc + 1, yPos, { lineHeightFactor: 1.15 });
       doc.text(isLabour ? `${qty} hrs` : String(qty), xQty, yPos, { align: 'center' });
       doc.text(isLabour ? `$${rate.toFixed(2)}/hr` : `$${rate.toFixed(2)}`, xRate, yPos, { align: 'right' });
-      doc.text(`$${amt.toFixed(2)}`, xAmt, yPos, { align: 'right' });
-
-      // Tax badge on second line if applicable
+      // Tax column: name and % on the first line, tax amount under it
       if (hasTax) {
-        doc.setFontSize(7);
+        const lineTax = (rate * qty * Number(item.taxPercent)) / 100;
+        doc.setFontSize(8);
+        doc.text(`${item.taxName} ${item.taxPercent}%`, xTax, yPos, { align: 'right' });
         doc.setTextColor(...gray);
-        doc.text(`${item.taxName} ${item.taxPercent}%`, xDesc + 1, yPos + (desc ? dLines.length : 0) * lineH + 0.5);
+        doc.text(`$${lineTax.toFixed(2)}`, xTax, yPos + lineH, { align: 'right' });
         doc.setFontSize(9);
         doc.setTextColor(...dark);
+      } else {
+        doc.setTextColor(...gray);
+        doc.text('-', xTax, yPos, { align: 'right' });
+        doc.setTextColor(...dark);
       }
+      doc.text(`$${amt.toFixed(2)}`, xAmt, yPos, { align: 'right' });
 
       yPos += rh + 1;
       rowIdx++;
@@ -1452,6 +1461,9 @@ const FleetInvoicesPage = () => {
       doc.text('Labour Charges', xDesc + 1, yPos);
       doc.text(`${labourHrs.toFixed(1)} hrs`, xQty, yPos, { align: 'center' });
       doc.text(`$${labourRate.toFixed(2)}/hr`, xRate, yPos, { align: 'right' });
+      doc.setFontSize(8);
+      doc.text(labourTaxPct > 0 ? `${invoice.labourTaxName || 'Tax'} ${labourTaxPct}%` : '-', xTax, yPos, { align: 'right' });
+      doc.setFontSize(9);
       doc.text(`$${labourAmount.toFixed(2)}`, xAmt, yPos, { align: 'right' });
       yPos += 8;
     }
@@ -1595,6 +1607,21 @@ const FleetInvoicesPage = () => {
       }
       // Map line items
       if (Array.isArray(d.items) && d.items.length > 0) {
+        // Tax from the invoice: match by name AND rate. A rate that differs from ours
+        // (e.g. HST 15%, or PST 8%) becomes a custom tax instead of silently using our default %.
+        const taxName = String(d.taxName || '').trim();
+        const taxRate = Number(d.taxRate);
+        let extractedTaxId = 'none';
+        if (taxName || taxRate > 0) {
+          const byName = DEFAULT_TAXES.find((t) => t.id !== 'none' && taxName.toLowerCase().includes(t.id));
+          if (byName && (!(taxRate > 0) || Math.abs(byName.percent - taxRate) < 0.01)) {
+            extractedTaxId = byName.id;
+          } else if (taxRate > 0) {
+            extractedTaxId = `custom-extracted-${Date.now()}`;
+            const label = taxName || 'Tax';
+            setCustomTaxes((prev) => [...prev, { id: extractedTaxId, name: label, percent: taxRate }]);
+          }
+        }
         const mapped: LineItem[] = d.items.map((item: any, i: number) => ({
           id: String(i + 1),
           serviceDate: item.serviceDate || '',
@@ -1603,10 +1630,7 @@ const FleetInvoicesPage = () => {
           qty: Number(item.quantity) || 1,
           rate: Number(item.unitPrice) || 0,
           amount: Number(item.totalPrice) || (Number(item.quantity) || 1) * (Number(item.unitPrice) || 0),
-          salesTax: d.taxName?.toLowerCase().includes('gst') ? 'gst'
-            : d.taxName?.toLowerCase().includes('hst') ? 'hst'
-              : d.taxName?.toLowerCase().includes('pst') ? 'pst'
-                : 'none',
+          salesTax: extractedTaxId,
         }));
         setLineItems(mapped);
       }
@@ -2394,10 +2418,6 @@ const FleetInvoicesPage = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-headings mb-1">Amount</label>
-                          <div className="px-3 py-2 bg-card border border-theme rounded-lg text-sm font-medium text-headings">${item.amount.toFixed(2)}</div>
-                        </div>
-                        <div>
                           <label className="block text-sm font-medium text-headings mb-1">Tax</label>
                           <select
                             value={item.salesTax}
@@ -2413,6 +2433,10 @@ const FleetInvoicesPage = () => {
                             ))}
                             <option className='form-option' value="__add__">+ Add custom tax...</option>
                           </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-headings mb-1">Amount</label>
+                          <div className="px-3 py-2 bg-card border border-theme rounded-lg text-sm font-medium text-headings">${item.amount.toFixed(2)}</div>
                         </div>
                       </div>
                       {lineItems.length > 1 && (
