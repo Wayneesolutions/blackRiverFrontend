@@ -251,8 +251,8 @@ export default function AccountsPayable() {
                                     <td className="px-4 py-3 text-right">{money((b.amount || 0) + (b.taxAmount || 0), b.currency)}</td>
                                     <td className="px-4 py-3 text-right font-semibold">{money(b.balance || 0, b.currency)}</td>
                                     <td className="px-4 py-3">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${b.status === 'paid' ? 'bg-green-500/15 text-green-500' : b.status === 'partial' ? 'bg-blue-500/15 text-blue-400' : b.status === 'void' ? 'bg-gray-500/15 text-secondary' : isOverdue(b) ? 'bg-red-500/15 text-red-500' : 'bg-yellow-500/15 text-yellow-500'}`}>
-                                            {isOverdue(b) ? 'Overdue' : b.status === 'partial' ? 'Part paid' : b.status.charAt(0).toUpperCase() + b.status.slice(1)}
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${b.status === 'paid' ? 'bg-green-500/15 text-green-500' : b.status === 'partial' ? (isOverdue(b) ? 'bg-red-500/15 text-red-500' : 'bg-blue-500/15 text-blue-400') : b.status === 'void' ? 'bg-gray-500/15 text-secondary' : isOverdue(b) ? 'bg-red-500/15 text-red-500' : 'bg-yellow-500/15 text-yellow-500'}`}>
+                                            {b.status === 'partial' ? (isOverdue(b) ? 'Part paid · Overdue' : 'Part paid') : isOverdue(b) ? 'Overdue' : b.status.charAt(0).toUpperCase() + b.status.slice(1)}
                                         </span>
                                     </td>
                                     <td className="px-4 py-3" onClick={e => e.stopPropagation()}>

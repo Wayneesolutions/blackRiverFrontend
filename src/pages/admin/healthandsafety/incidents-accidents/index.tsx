@@ -197,7 +197,7 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
   }, [notification.id, onClose]);
 
   return (
-    <div className={`fixed top-4 right-4 flex items-start gap-3 p-3 rounded-lg border shadow-lg z-[10000] ${bgColors[notification.type]} min-w-[300px] max-w-[400px]`}>
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-3 rounded-lg border shadow-lg z-[10050] ${bgColors[notification.type]} min-w-[300px] max-w-[400px]`}>
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
@@ -403,8 +403,12 @@ const IncidentManagement: React.FC = () => {
       !incidentFormData.date && 'Date',
       !incidentFormData.time && 'Time',
       !String(incidentFormData.location || '').trim() && 'Location (type it or pick an address)',
+      !incidentFormData.locationType && 'Location Type',
+      !incidentFormData.severity && 'Severity',
+      !String(incidentFormData.reportedBy || '').trim() && 'Reported By',
       !String(incidentFormData.description || '').trim() && 'Description',
     ].filter(Boolean);
+    // The form has noValidate, so this list is the only check: the browser used to stop at the first empty field
     if (missing.length) {
       showNotification('error', `Please fill in: ${missing.join(', ')}`);
       return;
@@ -2183,7 +2187,7 @@ const IncidentManagement: React.FC = () => {
                   <FaTimes />
                 </button>
               </div>
-              <form onSubmit={handleCreateIncident} className="space-y-4">
+              <form onSubmit={handleCreateIncident} noValidate className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1">Date *</label>

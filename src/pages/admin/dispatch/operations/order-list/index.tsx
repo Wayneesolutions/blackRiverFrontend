@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle, File, Download, ChevronDown } from "lucide-react";
+import { Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle, File, Download, ChevronDown, Trash2 } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import NewOrderSidebar from "./NewOrderSidebar";
@@ -1530,19 +1530,22 @@ const OrderList = () => {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Documents
                 </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-card">
               {loading ? (
                 <tr>
-                  <td colSpan={26} className="px-6 py-12 text-center text-secondary">
+                  <td colSpan={29} className="px-6 py-12 text-center text-secondary">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: PRIMARY_COLOR }}></div>
                     <p className="mt-2">Loading orders...</p>
                   </td>
                 </tr>
               ) : paginatedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={26} className="px-6 py-12 text-center text-secondary">
+                  <td colSpan={29} className="px-6 py-12 text-center text-secondary">
                     <p className="text-lg font-medium">No orders found</p>
                     <p className="text-sm">Create a new order to get started</p>
                   </td>
@@ -1611,7 +1614,13 @@ const OrderList = () => {
                   const dispatcherName = (order as any).dispatcher || fullOrder.dispatcher || fullOrder.dispatcherName || '-';
 
                   // Carrier (could be from driver assignment or separate field)
-                  const carrierName = (order as any).carrier || fullOrder.carrier || fullOrder.carrierName || '-';
+                  // New orders store `carrier` as a Vendor ID and the name in `carrierName`; never show the raw ID
+                  const rawCarrier = fullOrder.carrier ?? (order as any).carrier;
+                  const isObjectId = (v: unknown) => typeof v === 'string' && /^[a-f0-9]{24}$/i.test(v);
+                  const carrierName = fullOrder.carrierName
+                    || (rawCarrier && typeof rawCarrier === 'object' ? (rawCarrier.name || rawCarrier.vendorName || rawCarrier.companyName) : '')
+                    || (rawCarrier && !isObjectId(rawCarrier) ? String(rawCarrier) : '')
+                    || '-';
 
                   // Truck, Trailer, Driver, Co-Driver
                   const truckDisplay = order.truckNo || '-';
@@ -1876,6 +1885,20 @@ const OrderList = () => {
                           );
                         })()}
                       </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {/* The only Delete button lived in an Order Details popup that nothing opened */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteConfirm({ show: true, orderId: order.id });
+                          }}
+                          className="flex items-center gap-1 px-3 py-2 border border-red-500/50 text-red-400 rounded hover:bg-red-500/10 transition-colors text-sm"
+                          title="Delete order"
+                        >
+                          <Trash2 size={16} />
+                          Delete
+                        </button>
+                      </td>
                     </tr>
                   );
                 })
@@ -1929,7 +1952,7 @@ const OrderList = () => {
             <div className="flex-shrink-0 bg-card border-b px-6 py-4 flex items-center justify-between rounded-t-xl">
               <div>
                 <h3 className="text-xl font-bold text-primary">Order Documents</h3>
-                <p className="text-sm text-secondary mt-1">Order: {selectedOrderForDocuments.orderNo || selectedOrderForDocuments.custOrderNo || 'N/A'}</p>
+                <p className="text-sm text-secondary mt-1">Order: {(() => { const o = selectedOrderForDocuments as unknown as Record<string, string | undefined>; return o.orderNo || o.orderNumber || o.custOrderNo || o.customerOrderNo || 'N/A'; })()}</p>
               </div>
               <button
                 onClick={() => {

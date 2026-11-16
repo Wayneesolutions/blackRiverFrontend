@@ -516,6 +516,12 @@ const DriverPayrollManagement = () => {
           };
         });
         setDrivers(driverList);
+        // The page opens on Owner Operator; if every driver is a company driver (or the other way round)
+        // the Create Payroll dropdown was empty with no hint why, so open the tab that has drivers
+        const hasCompany = driverList.some((d: { companyFlag: boolean }) => d.companyFlag);
+        const hasOwnerOp = driverList.some((d: { companyFlag: boolean }) => !d.companyFlag);
+        if (hasCompany && !hasOwnerOp) setDriverTypeTab('companyDriver');
+        if (hasOwnerOp && !hasCompany) setDriverTypeTab('ownerOperator');
       } else if (response?.message) {
         showNotification('error', response.message);
       }
@@ -1886,7 +1892,7 @@ const DriverPayrollManagement = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-[var(--accent-navyblue)]">Active Drivers</p>
-                <p className="text-2xl font-bold text-[var(--accent-navyblue)] mt-1">{filteredPayrolls.length}</p>
+                <p className="text-2xl font-bold text-[var(--accent-navyblue)] mt-1">{filteredDriversByType.length}</p>
               </div>
               <div className="p-3 rounded-full bg-card">
                 <Users className="text-[var(--accent-navyblue)]" size={24} />
@@ -2218,6 +2224,16 @@ const DriverPayrollManagement = () => {
                             </option>
                           ))}
                         </select>
+                        {filteredDriversByType.length === 0 && (
+                          <p className="mt-2 text-sm text-[#F59E0B]">
+                            {drivers.length === 0
+                              ? 'No drivers found. Add drivers in Settings > Drivers first.'
+                              : <>No {driverTypeTab === 'companyDriver' ? 'company' : 'owner-operator'} drivers. {drivers.length} driver{drivers.length !== 1 ? 's are' : ' is'} under the other tab.{' '}
+                                <button type="button" className="underline font-medium" onClick={() => setDriverTypeTab(driverTypeTab === 'companyDriver' ? 'ownerOperator' : 'companyDriver')}>
+                                  Switch to {driverTypeTab === 'companyDriver' ? 'Owner Operator' : 'Company Driver'}
+                                </button></>}
+                          </p>
+                        )}
                       </div>
 
                       <div className="bg-[var(--accent-green)]/10 p-4 rounded-lg border border-[var(--accent-green)]/30">

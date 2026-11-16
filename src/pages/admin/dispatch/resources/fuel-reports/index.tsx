@@ -2802,7 +2802,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
 
       {fuelCardModalOpen && (
         <FuelCardImportModal
-          onClose={() => { setFuelCardModalOpen(false); fetchFuelReports(); }}
+          onClose={() => setFuelCardModalOpen(false)} // onImported already refreshes; reloading on Cancel blanked the page behind the spinner
           onImported={fetchFuelReports}
           fleetUnits={units}
           messageApi={messageApi}

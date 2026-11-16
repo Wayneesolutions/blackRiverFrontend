@@ -1806,15 +1806,17 @@ export default function SettlementSystem() {
                 </button>
               </div>
             </div>
-            <TruckSettlementModal
+          </div>
+        )
+      }
+
+      {/* Settle by Truck (O/O). Must sit outside the Detail View Modal, or it only exists while that modal is open */}
+      <TruckSettlementModal
         open={showTruckSettlement}
         trucks={allTrucks}
         onClose={() => setShowTruckSettlement(false)}
         onCreated={(msg) => { showNotification('success', msg); fetchSettlements(); }}
       />
-    </div>
-        )
-      }
     </div >
   );
 }
