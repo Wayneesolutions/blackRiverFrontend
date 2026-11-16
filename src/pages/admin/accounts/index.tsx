@@ -161,13 +161,15 @@ const Dashboard = () => {
             <button
               key={c.id}
               onClick={() => navigate(c.path)}
-              className="text-left bg-card border border-theme rounded-xl p-5 hover:shadow-lg transition-shadow"
+              className="text-left bg-card border border-theme rounded-xl p-5 hover:shadow-lg transition-shadow cursor-pointer"
             >
               <div className="flex items-center justify-between">
                 <p className="text-sm text-secondary">{c.title}</p>
                 <Icon size={22} className={c.color} />
               </div>
-              <p className={`text-3xl font-bold mt-3 ${loading ? 'opacity-40' : ''} text-[var(--text-primary)]`}>{c.value}</p>
+              <p className="text-3xl font-bold mt-3 text-[var(--text-primary)]">
+                {loading ? <span className="inline-block h-8 w-28 rounded bg-[rgba(128,128,128,0.2)] animate-pulse align-middle" /> : c.value}
+              </p>
               <p className="text-xs text-secondary mt-2">{c.sub}</p>
             </button>
           );
@@ -180,7 +182,7 @@ const Dashboard = () => {
           {links.map(l => {
             const Icon = l.icon;
             return (
-              <button key={l.title} onClick={() => navigate(l.path)} className="px-3 py-2 text-sm border border-theme rounded-lg bg-card hover:shadow flex items-center gap-2">
+              <button key={l.title} onClick={() => navigate(l.path)} className="px-3 py-2 text-sm border border-theme rounded-lg bg-card hover:shadow flex items-center gap-2 cursor-pointer">
                 <Icon size={16} className="text-[var(--accent-blue)]" /> {l.title}
               </button>
             );
