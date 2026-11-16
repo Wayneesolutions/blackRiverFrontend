@@ -348,6 +348,8 @@ const PayrollManagement = () => {
     const [manualAdditions, setManualAdditions] = useState<PayLine[]>([]);
     const [manualDeductions, setManualDeductions] = useState<PayLine[]>([]);
     const [statementBusy, setStatementBusy] = useState<string | null>(null);
+    const attendanceRequestRef = useRef(0);
+    const autoBaseSalaryRef = useRef<string>('');
     const [employeeDeductions, setEmployeeDeductions] = useState<any[]>([]);
     const [loadingAdditionsDeductions, setLoadingAdditionsDeductions] = useState<boolean>(false);
     // Track edited amounts for additions and deductions
@@ -682,12 +684,16 @@ const PayrollManagement = () => {
     // Attendance for the exact pay period (it can span months). Manual days and login/logout
     // days both count; a present day with no tracked hours counts as 8 hours (same as payroll).
     const fetchAttendance = async (employeeId: string, startDate: string, endDate: string) => {
+        // Only the latest request may update the summary: when the dates change quickly, an
+        // older (slower) response used to overwrite the new range's numbers.
+        const requestId = ++attendanceRequestRef.current;
         if (!employeeId || !startDate || !endDate) {
             setAttendanceSummary(null);
             return;
         }
 
         setLoadingAttendance(true);
+        setAttendanceSummary(null);
         try {
             const response = await listAttendance({
                 employee: employeeId,
@@ -696,6 +702,7 @@ const PayrollManagement = () => {
                 includeActiveSessions: false
             });
 
+            if (requestId !== attendanceRequestRef.current) return; // a newer range was asked for
             if (response?.success && Array.isArray(response.data)) {
                 const summary = { presentDays: 0, absentDays: 0, leaveDays: 0, totalHours: 0, regularHours: 0 };
                 response.data.forEach((record: any) => {
@@ -718,16 +725,22 @@ const PayrollManagement = () => {
                 const rate = Number(emp?.details?.hourlyRate) || Number(emp?.details?.payRate) || 0;
                 if (rate > 0 && summary.totalHours > 0) {
                     const suggested = (summary.totalHours * rate).toFixed(2);
-                    setFormData(prev => (prev.userId === employeeId && (!prev.baseSalary || prev.baseSalary === '0') ? { ...prev, baseSalary: suggested } : prev));
+                    // Fill when empty, and refresh it when the dates change, unless the user typed their own amount
+                    setFormData(prev => {
+                        const untouched = !prev.baseSalary || prev.baseSalary === '0' || prev.baseSalary === autoBaseSalaryRef.current;
+                        if (prev.userId !== employeeId || !untouched) return prev;
+                        autoBaseSalaryRef.current = suggested;
+                        return { ...prev, baseSalary: suggested };
+                    });
                 }
             } else {
                 setAttendanceSummary(null);
             }
         } catch (error) {
             console.error('Error fetching attendance:', error);
-            setAttendanceSummary(null);
+            if (requestId === attendanceRequestRef.current) setAttendanceSummary(null);
         } finally {
-            setLoadingAttendance(false);
+            if (requestId === attendanceRequestRef.current) setLoadingAttendance(false);
         }
     };
 
