@@ -1063,6 +1063,8 @@ const ExpensesPage = () => {
                   fetchExpenseTypes(selectedCategoryTab);
                 }
                 setActiveTab('create');
+                // The form opens below the summary cards; bring it into view so the click visibly does something
+                setTimeout(() => document.getElementById('expense-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
               }}
               className="!text-white px-4 py-2 rounded-lg hover:shadow-lg flex items-center gap-2 transition-all transform hover:scale-105"
               style={{ background: 'var(--accent-navyblue)' }}
@@ -1256,7 +1258,7 @@ const ExpensesPage = () => {
         </div>
 
         {/* Tabs */}
-        <div className="bg-card rounded-xl border border-theme shadow-sm">
+        <div id="expense-tabs" className="bg-card rounded-xl border border-theme shadow-sm">
           <div className="border-b border-theme">
             <div className="flex">
               <button

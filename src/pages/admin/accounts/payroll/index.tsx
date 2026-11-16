@@ -2723,7 +2723,7 @@ const PayrollManagement = () => {
                                                             )}
                                                             {totalAdditions > 0 && (
                                                                 <div className="flex justify-between">
-                                                                    <span>Additions ({employeeAdditions.length}):</span>
+                                                                    <span>Additions ({employeeAdditions.length + manualAdditions.length}):</span>
                                                                     <span>+${totalAdditions.toFixed(2)}</span>
                                                                 </div>
                                                             )}
@@ -2736,7 +2736,7 @@ const PayrollManagement = () => {
                                                     {totalDeductions > 0 && (
                                                         <div className="pl-4 text-xs text-red-200">
                                                             <div className="flex justify-between">
-                                                                <span>Deductions ({employeeDeductions.length}):</span>
+                                                                <span>Deductions ({employeeDeductions.length + manualDeductions.length}):</span>
                                                                 <span>-${totalDeductions.toFixed(2)}</span>
                                                             </div>
                                                         </div>

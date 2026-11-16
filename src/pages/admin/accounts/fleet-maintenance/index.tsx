@@ -610,10 +610,15 @@ export default function FleetMaintenanceFinance() {
 
 
   // Summary Cards Data
+  // fetchStats() and the expense summary load in parallel; if the stats API answers last it
+  // overwrote the calculated total with 0. Read the total straight from the summary rows instead.
+  const summaryTotalCost = expenseSummary.length > 0
+    ? Math.round(expenseSummary.reduce((sum, exp) => sum + (exp.totalExpense || 0), 0) * 100) / 100
+    : stats.totalMaintenanceCost;
   const summaryCards = [
     {
       title: 'Total Maintenance Cost',
-      value: `$${stats.totalMaintenanceCost.toLocaleString()}`,
+      value: `$${summaryTotalCost.toLocaleString()}`,
       change: stats.percentChange !== 0
         ? `${stats.percentChange > 0 ? '+' : ''}${stats.percentChange.toFixed(1)}% vs last month`
         : 'No previous data',
