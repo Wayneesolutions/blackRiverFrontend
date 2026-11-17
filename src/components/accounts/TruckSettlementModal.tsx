@@ -56,13 +56,14 @@ export default function TruckSettlementModal({ open, trucks, onClose, onCreated 
     const [status, setStatus] = useState<'Pending' | 'Processing' | 'Paid'>('Pending');
     const [notes, setNotes] = useState('');
     const [loaded, setLoaded] = useState(false);
+    const [rateSource, setRateSource] = useState<string>('');
 
     useEffect(() => {
         if (!open) return;
         setTruckId(''); setStartDate(''); setEndDate(''); setRatePerMile('');
         setLines([]); setPayee(null); setPayeeName(''); setAdditions([]); setDeductions([]);
         setBillNumber(''); setChequeNumber(''); setGstNumber(''); setStatus('Pending'); setNotes('');
-        setError(null); setLoaded(false);
+        setError(null); setLoaded(false); setRateSource('');
     }, [open]);
 
     // Owner-operator trucks first
@@ -93,6 +94,7 @@ export default function TruckSettlementModal({ open, trucks, onClose, onCreated 
             setPayee(d.payee);
             setPayeeName(d.payee?.name || '');
             if (!ratePerMile && d.rates?.ratePerMile) setRatePerMile(String(d.rates.ratePerMile));
+            setRateSource(d.rates?.source || '');
             // Our own drivers on this truck -> suggested deductions (editable)
             setDeductions(prev => [
                 ...prev.filter(p => p.source !== 'suggested'),
@@ -118,6 +120,7 @@ export default function TruckSettlementModal({ open, trucks, onClose, onCreated 
     const save = async () => {
         if (!truckId || !startDate || !endDate) return setError('Select a truck and the pay period');
         if (selected.length === 0) return setError('Tick at least one load');
+        if (gross <= 0) return setError('Gross is $0. Enter the rate per mile for this owner-operator first.');
         if (!payee?._id && !payeeName.trim()) return setError('Enter who is being paid (owner-operator / company name)');
         const linesErr = payLinesError(additions, deductions);
         if (linesErr) return setError(linesErr);
@@ -209,7 +212,10 @@ export default function TruckSettlementModal({ open, trucks, onClose, onCreated 
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-headings mb-1">Rate per mile</label>
-                                    <input type="number" step="0.01" min="0" value={ratePerMile} onChange={e => applyRate(e.target.value)} className="w-full px-3 py-2 border border-theme rounded-lg bg-[var(--bg-card)] text-sm" />
+                                    <input type="number" step="0.01" min="0" value={ratePerMile} onChange={e => applyRate(e.target.value)} placeholder="Enter rate"
+                                        className={`w-full px-3 py-2 border rounded-lg bg-[var(--bg-card)] text-sm ${parseFloat(ratePerMile) > 0 ? 'border-theme' : 'border-red-500'}`} />
+                                    {!(parseFloat(ratePerMile) > 0) && <p className="text-xs text-red-500 mt-1">No rate on this owner-operator's profile. Enter it to work out the gross.</p>}
+                                    {parseFloat(ratePerMile) > 0 && rateSource === 'lastSettlement' && <p className="text-xs text-secondary mt-1">From this truck's last settlement.</p>}
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-headings mb-1">GST No.</label>

@@ -1,3 +1,4 @@
+import { todayLocalISO } from '../../../../utils/fuelDate';
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, Building2, Sparkles, Clock, CalendarCheck, FileText, Download, Printer } from 'lucide-react';
 import { getEmployees, createPayroll, listPayrolls, updatePayroll, deletePayroll, deleteAllPayrolls, generateAutomatedPayroll, bulkAIGenerateAllPayrolls, getPaystubByPayrollId, updatePayrollPaymentStatus } from "../../../../axios/api/account.payroll";
@@ -295,7 +296,7 @@ const PayrollManagement = () => {
     const [bulkAIDateRange, setBulkAIDateRange] = useState({
         startDate: '',
         endDate: '',
-        payDate: new Date().toISOString().split('T')[0]
+        payDate: todayLocalISO()
     });
     const [selectedPayroll, setSelectedPayroll] = useState<Payroll | null>(null);
     const [employees, setEmployees] = useState<Employee[]>([]);
@@ -1233,7 +1234,7 @@ const PayrollManagement = () => {
                     ...prev,
                     baseSalary: response.data.payroll.baseSalary.toString(),
                     bonus: response.data.payroll.bonus.toString(),
-                    payDate: new Date().toISOString().split('T')[0]
+                    payDate: todayLocalISO()
                 }));
                 showNotification('success', 'AI-generated payroll recommendations ready! Review and create.');
             } else {
@@ -1334,7 +1335,7 @@ const PayrollManagement = () => {
             const response = await bulkAIGenerateAllPayrolls({
                 startDate: startDate,
                 endDate: endDate.toISOString(),
-                payDate: bulkAIDateRange.payDate || new Date().toISOString().split('T')[0]
+                payDate: bulkAIDateRange.payDate || todayLocalISO()
             });
 
             if (response?.success) {
@@ -1464,7 +1465,7 @@ const PayrollManagement = () => {
             setBulkAIDateRange({
                 startDate: '',
                 endDate: '',
-                payDate: new Date().toISOString().split('T')[0]
+                payDate: todayLocalISO()
             });
             fetchPayrolls();
         } catch (error: any) {
@@ -3820,7 +3821,7 @@ const PayrollManagement = () => {
                                             setBulkAIDateRange({
                                                 startDate: '',
                                                 endDate: '',
-                                                payDate: new Date().toISOString().split('T')[0]
+                                                payDate: todayLocalISO()
                                             });
                                         }}
                                         className="text-secondary hover:text-secondary p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
@@ -4132,7 +4133,7 @@ const PayrollManagement = () => {
     setBulkAIDateRange({
       startDate: '',
       endDate: '',
-      payDate: new Date().toISOString().split('T')[0]
+      payDate: todayLocalISO()
     });
   }}
 className="flex-1 px-4 py-2 bg-card hover:bg-gray-200 text-headings border border-gray-300 dark:border-gray-600 rounded-lg transition-colors font-medium"

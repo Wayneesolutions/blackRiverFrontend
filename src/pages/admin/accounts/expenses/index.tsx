@@ -1,3 +1,4 @@
+import { todayLocalISO } from '../../../../utils/fuelDate';
 import { useState, useEffect } from 'react';
 import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Edit, Trash2, Eye, Building2, Users, Settings, X, Truck, Package } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
@@ -163,7 +164,7 @@ const ExpensesPage = () => {
     typeId: '',
     amount: '',
     description: '',
-    date: new Date().toISOString().split('T')[0],
+    date: todayLocalISO(),
     receiptFile: null,
     truckId: '',
     trailerId: '',
@@ -677,7 +678,7 @@ const ExpensesPage = () => {
             typeId: '',
             amount: '',
             description: '',
-            date: new Date().toISOString().split('T')[0],
+            date: todayLocalISO(),
             receiptFile: null,
             truckId: '',
             trailerId: '',
@@ -686,7 +687,10 @@ const ExpensesPage = () => {
             invoiceNumber: ''
           });
           setActiveTab('list');
+          // Show the change straight away; the full list reload can take a few seconds
+          if (response.data?._id) setExpenses(prev => prev.map(x => (x._id === response.data._id ? response.data : x)));
           fetchExpenses();
+          fetchDashboardData();
         } else {
           addNotification('error', response?.message || 'Failed to update expense. Please try again.');
         }
@@ -702,7 +706,7 @@ const ExpensesPage = () => {
             typeId: '',
             amount: '',
             description: '',
-            date: new Date().toISOString().split('T')[0],
+            date: todayLocalISO(),
             receiptFile: null,
             truckId: '',
             trailerId: '',
@@ -711,7 +715,11 @@ const ExpensesPage = () => {
             invoiceNumber: ''
           });
           setActiveTab('list');
+          // Put the new expense at the top straight away (it used to appear only after a reload)
+          if (response.data?._id) setExpenses(prev => [response.data, ...prev.filter(x => x._id !== response.data._id)]);
+          setEmptyStateMessage(null);
           fetchExpenses();
+          fetchDashboardData();
         } else {
           addNotification('error', response?.message || 'Failed to create expense. Please try again.');
         }
@@ -746,7 +754,7 @@ const ExpensesPage = () => {
       documentType: expense.documentType || 'Receipt',
       vendorName: expense.vendorName || '',
       invoiceNumber: expense.invoiceNumber || '',
-      date: expense.date ? new Date(expense.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      date: expense.date ? new Date(expense.date).toISOString().split('T')[0] : todayLocalISO(),
       receiptFile: null,
       truckId: (() => {
         // Try truckId first
@@ -839,7 +847,7 @@ const ExpensesPage = () => {
       typeId: '',
       amount: '',
       description: '',
-      date: new Date().toISOString().split('T')[0],
+      date: todayLocalISO(),
       receiptFile: null,
       truckId: '',
       trailerId: '',
@@ -1051,7 +1059,7 @@ const ExpensesPage = () => {
                   typeId: '',
                   amount: '',
                   description: '',
-                  date: new Date().toISOString().split('T')[0],
+                  date: todayLocalISO(),
                   receiptFile: null,
                   truckId: '',
                   trailerId: '',
