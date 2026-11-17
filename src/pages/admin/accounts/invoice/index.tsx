@@ -1,3 +1,4 @@
+import { todayLocalISO } from '../../../../utils/fuelDate';
 import React, { useState, useEffect } from 'react';
 import {
     FileText, Plus, Eye, Edit, Filter, Calendar, DollarSign, Users, TrendingUp,
@@ -1005,6 +1006,9 @@ const InvoiceManagement: React.FC = () => {
                                         </td>
                                         <td className="py-4 px-6">
                                             <span className="font-medium text-secondary">{formatCurrency(Number(invoice.amount))}</span>
+                                            {!(Number(invoice.amount) > 0) && (
+                                                <span className="block text-[10px] text-yellow-500" title="The order has no rate. Set the rate on the order (the invoice updates) or edit this invoice.">No rate on order</span>
+                                            )}
                                         </td>
                                         <td className="py-4 px-6 text-sm text-secondary">
                                             {formatDate(invoice.dueDate)}
@@ -2453,7 +2457,7 @@ const InvoiceManagement: React.FC = () => {
                                     onChange={(e) => handleInputChange('dueDate', e.target.value)}
                                     onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
                                     className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
-                                    min={new Date().toISOString().split('T')[0]}
+                                    min={todayLocalISO()}
                                     style={{ colorScheme: 'light', color: 'var(--text-primary, #e2e8f0)', backgroundColor: 'var(--bg-input, #1e293b)' }}
                                     required
                                 />

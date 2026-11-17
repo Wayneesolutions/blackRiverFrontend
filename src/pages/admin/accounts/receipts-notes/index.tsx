@@ -1,3 +1,4 @@
+import { todayLocalISO } from '../../../../utils/fuelDate';
 import { useState, useEffect } from 'react';
 import { Search, Plus, Edit, Trash2, Download, Upload, Filter, Receipt, FileText, Eye, Calendar, DollarSign, User, Tag, Paperclip, Image as ImageIcon, X } from 'lucide-react';
 import {
@@ -91,7 +92,7 @@ export default function ReceiptsFinancialNotes() {
 
   // Form data
   const [receiptFormData, setReceiptFormData] = useState({
-    date: new Date().toISOString().split('T')[0],
+    date: todayLocalISO(),
     amount: '',
     payeeVendor: '',
     expenseType: 'Other' as 'Fuel' | 'Repair' | 'Permit Fees' | 'Scales' | 'Other',
@@ -390,7 +391,7 @@ export default function ReceiptsFinancialNotes() {
   const handleCreateReceipt = () => {
     setEditingReceipt(null);
     setReceiptFormData({
-      date: new Date().toISOString().split('T')[0],
+      date: todayLocalISO(),
       amount: '',
       payeeVendor: '',
       expenseType: 'Other',

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- API payloads (paystubs, settlements, bills) are untyped JSON */
+import { todayLocalISO } from '../../../../utils/fuelDate';
 import { useEffect, useMemo, useState } from 'react';
 import { Plus, Search, X, AlertCircle, CheckCircle, DollarSign, FileText, Trash2, Edit2, Truck, Clock, Paperclip } from 'lucide-react';
 import {
@@ -21,7 +22,7 @@ const TABS: { id: Tab; label: string }[] = [
 
 const money = (n: number, cur = 'CAD') => `${cur === 'USD' ? 'US$' : '$'}${(Number(n) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const day = (d?: string) => (d ? new Date(d).toLocaleDateString('en-CA') : '—');
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => todayLocalISO();
 const plusDays = (n: number) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
 
 const emptyForm = {

@@ -1,3 +1,4 @@
+import { todayLocalISO } from '../../../../utils/fuelDate';
 import { useEffect, useState } from 'react';
 import { Search, Users, IdCard, Download } from 'lucide-react';
 import { getAllEmployees } from '../../../../axios/api/employee';
@@ -135,7 +136,7 @@ const StaffList = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `staff-list-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `staff-list-${todayLocalISO()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };

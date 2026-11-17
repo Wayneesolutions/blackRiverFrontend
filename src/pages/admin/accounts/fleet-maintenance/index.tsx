@@ -1,3 +1,4 @@
+import { todayLocalISO } from '../../../../utils/fuelDate';
 import { useState, useEffect } from 'react';
 import { Search, Plus, Edit, Trash2, Download, Filter, Wrench, DollarSign, Package, TrendingUp, Calendar, FileText, AlertCircle, X } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
@@ -150,7 +151,7 @@ export default function FleetMaintenanceFinance() {
     description: '',
     unitCost: '',
     quantity: '',
-    dateOfUse: new Date().toISOString().split('T')[0],
+    dateOfUse: todayLocalISO(),
     vehicle: '',
     vehicleId: ''
   });
@@ -422,7 +423,7 @@ export default function FleetMaintenanceFinance() {
       description: '',
       unitCost: '',
       quantity: '',
-      dateOfUse: new Date().toISOString().split('T')[0],
+      dateOfUse: todayLocalISO(),
       vehicle: '',
       vehicleId: ''
     });

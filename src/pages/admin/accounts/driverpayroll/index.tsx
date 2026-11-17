@@ -1,3 +1,4 @@
+import { todayLocalISO } from '../../../../utils/fuelDate';
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, MapPin, Package, Truck, FileText, Download, Printer } from 'lucide-react';
 import { createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedOrders, generateAIDriverPayroll, bulkAnalyzeAIDriverPayrolls, bulkCreateDriverPayrolls, getPaystubByPayrollId, updatePayrollPaymentStatus } from '../../../../axios/api/account.payroll';
@@ -410,7 +411,7 @@ const DriverPayrollManagement = () => {
   }>({
     startDate: '',
     endDate: '',
-    payDate: new Date().toISOString().split('T')[0]
+    payDate: todayLocalISO()
   });
   const [aiAnalysis, setAiAnalysis] = useState<{
     recommendedBonus: number;
@@ -1121,7 +1122,7 @@ const DriverPayrollManagement = () => {
       const response = await bulkAnalyzeAIDriverPayrolls({
         startDate: bulkDateRange.startDate,
         endDate: bulkDateRange.endDate,
-        payDate: bulkDateRange.payDate || new Date().toISOString().split('T')[0],
+        payDate: bulkDateRange.payDate || todayLocalISO(),
         companyFlag: companyFlag
       });
 
@@ -1168,7 +1169,7 @@ const DriverPayrollManagement = () => {
         payrolls: bulkPayrollSuggestions,
         startDate: bulkDateRange.startDate,
         endDate: bulkDateRange.endDate,
-        payDate: bulkDateRange.payDate || new Date().toISOString().split('T')[0]
+        payDate: bulkDateRange.payDate || todayLocalISO()
       });
 
       if (response?.success) {
@@ -1381,16 +1382,9 @@ const DriverPayrollManagement = () => {
           trips: trips
         });
 
-        // Update form fields with AI recommendations (bonus and deductions only, NOT taxes)
-        // User will manually enter tax information
-        setFormData(prev => ({
-          ...prev,
-          bonus: (analysis.recommendedBonus || 0).toString(),
-          deductions: (analysis.recommendedDeductions || 0).toString()
-          // Note: Taxes are NOT auto-populated - user must enter them manually
-        }));
-
-        showNotification('success', 'AI payroll analysis completed successfully! You can now review and enter tax information.');
+        // The AI bonus / deductions are suggestions only (client). Nothing is filled in
+        // until the accountant presses "Use suggestion" on the analysis card.
+        showNotification('success', 'AI analysis ready. Its bonus and deductions are suggestions; press "Use suggestion" to apply one.');
       } else {
         showNotification('error', response?.message || 'Failed to generate AI analysis');
       }
@@ -2721,12 +2715,30 @@ const DriverPayrollManagement = () => {
 
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         <div className="bg-card rounded-lg p-4 border border-[var(--accent-green)]/30">
-                          <div className="text-sm text-secondary mb-1">Recommended Bonus</div>
+                          <div className="text-sm text-secondary mb-1">Suggested Bonus</div>
                           <div className="text-2xl font-bold text-[var(--accent-green)]">${aiAnalysis.recommendedBonus.toFixed(2)}</div>
+                          {aiAnalysis.recommendedBonus > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setFormData(prev => ({ ...prev, bonus: aiAnalysis.recommendedBonus.toFixed(2) }))}
+                              className="mt-2 text-xs font-medium text-[var(--accent-green)] underline"
+                            >
+                              {parseFloat(formData.bonus || '0') === Number(aiAnalysis.recommendedBonus.toFixed(2)) ? 'Applied' : 'Use suggestion'}
+                            </button>
+                          )}
                         </div>
                         <div className="bg-card rounded-lg p-4 border border-red-500/30">
-                          <div className="text-sm text-secondary mb-1">Recommended Deductions</div>
+                          <div className="text-sm text-secondary mb-1">Suggested Deductions</div>
                           <div className="text-2xl font-bold text-[var(--accent-purple)]">${aiAnalysis.recommendedDeductions.toFixed(2)}</div>
+                          {aiAnalysis.recommendedDeductions > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setFormData(prev => ({ ...prev, deductions: aiAnalysis.recommendedDeductions.toFixed(2) }))}
+                              className="mt-2 text-xs font-medium text-[var(--accent-purple)] underline"
+                            >
+                              {parseFloat(formData.deductions || '0') === Number(aiAnalysis.recommendedDeductions.toFixed(2)) ? 'Applied' : 'Use suggestion'}
+                            </button>
+                          )}
                         </div>
                       </div>
 
@@ -4418,6 +4430,16 @@ const DriverPayrollManagement = () => {
                             step="0.01"
                             className="w-full px-2 py-1 text-sm border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                           />
+                          {Number(suggestion.recommendedBonus) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => updateBulkSuggestion(index, 'bonus', String(suggestion.recommendedBonus))}
+                              className="mt-1 text-[11px] text-[var(--accent-green)] underline"
+                              title="The AI only suggests a bonus; it is not added unless you apply it"
+                            >
+                              AI suggests ${Number(suggestion.recommendedBonus).toFixed(2)} · Use
+                            </button>
+                          )}
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-primary mb-1">Deductions ($)</label>
