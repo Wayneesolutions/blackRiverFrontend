@@ -742,8 +742,12 @@ const ExpensesPage = () => {
     const categoryIdStr = typeof categoryId === 'string'
       ? categoryId
       : (categoryId as any)?._id || String(categoryId);
-    // Get typeId if available (from typeId field or from type object)
-    const typeId = (expense as any).typeId || (typeof (expense as any).type === 'object' && (expense as any).type?._id) || '';
+    // typeId may come back as a populated object {_id, name} — normalize to a plain string
+    // so the <select> value comparison works correctly.
+    const rawTypeId = (expense as any).typeId;
+    const typeId = rawTypeId
+      ? (typeof rawTypeId === 'object' ? String((rawTypeId as any)._id || rawTypeId) : String(rawTypeId))
+      : (typeof (expense as any).type === 'object' ? String((expense as any).type?._id || '') : '');
     setFormData({
       userId: userIdValue,
       categoryId: categoryIdStr,

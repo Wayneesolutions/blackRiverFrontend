@@ -794,8 +794,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         if (order) {
             // Customer
             if (order.customer) {
-                const customerId = typeof order.customer === 'string' ? order.customer : order.customer._id;
-                const foundCustomer = customers.find(c => c._id === customerId);
+                const customerId = String(typeof order.customer === 'string' ? order.customer : (order.customer as any)._id || order.customer);
+                const foundCustomer = customers.find(c => String(c._id) === customerId);
                 if (foundCustomer) {
                     setSelectedCustomer(foundCustomer);
                     setCustomerSearch(foundCustomer.name || '');
