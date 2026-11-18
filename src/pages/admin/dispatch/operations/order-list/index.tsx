@@ -293,39 +293,50 @@ const OrderList = () => {
   // Order documents: fresh signed links to open/print or download, and dispatch uploads (BOL etc.)
   const [docUploadType, setDocUploadType] = useState('bol');
   const [docUploading, setDocUploading] = useState(false);
-  // Open/print or download an order document. The tab is opened synchronously inside the click,
-  // then pointed at the signed link once it arrives — opening it only after the `await` (as before)
-  // was treated as a popup and silently blocked by Chrome, so Open/Print and Download did nothing.
-  const openOrderDocument = async (orderId: string, attachment: { id?: string | number; _id?: string; url?: string }, disposition: 'inline' | 'attachment') => {
-    const tab = window.open('about:blank', '_blank');
-    const go = (url: string) => {
-      if (tab && !tab.closed) {
-        try { tab.opener = null; } catch { /* ignore */ }
-        tab.location.href = url;
-      } else {
-        // Popup still blocked: navigate a temporary link instead
-        const a = document.createElement('a');
-        a.href = url;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        if (disposition === 'attachment') a.download = '';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      }
-    };
+  // Open/print or download an order document (client retest 18 Nov: still couldn't print/download).
+  // Nothing here opens a popup any more, so no browser can block it:
+  //  - Open / Print shows the file inside the page (preview overlay). The overlay's
+  //    "Open in new tab / Print" is a real link the user clicks, which browsers always allow.
+  //  - Download navigates this tab to a signed link sent with "Content-Disposition: attachment":
+  //    the browser saves the file and the page stays where it is.
+  const [docPreview, setDocPreview] = useState<{
+    url: string;
+    name: string;
+    orderId: string;
+    attachment: { id?: string | number; _id?: string; url?: string; name?: string };
+  } | null>(null);
+  const [docOpening, setDocOpening] = useState<string | null>(null);
+  const openOrderDocument = async (
+    orderId: string,
+    attachment: { id?: string | number; _id?: string; url?: string; name?: string },
+    disposition: 'inline' | 'attachment'
+  ) => {
+    const attachmentId = attachment.id ?? attachment._id;
+    const busyKey = `${orderId}:${attachmentId}:${disposition}`;
+    setDocOpening(busyKey);
+    let url = '';
+    let signed = false;
     try {
-      const res = await getOrderAttachmentSignedUrl(orderId, String(attachment.id ?? attachment._id), disposition);
-      const url = res?.data?.signedUrl || res?.data?.url || res?.signedUrl || res?.url;
-      if (!url) throw new Error(res?.message || 'Document link not available');
-      go(url);
-    } catch (err) {
-      // Older documents without an id: fall back to the link that came with the order
-      if (attachment.url) go(attachment.url);
-      else {
-        if (tab && !tab.closed) tab.close();
-        addNotification('error', (err as Error)?.message || 'Could not open the document');
+      if (attachmentId !== undefined && attachmentId !== null && attachmentId !== '') {
+        const res = await getOrderAttachmentSignedUrl(orderId, String(attachmentId), disposition);
+        url = res?.data?.signedUrl || res?.data?.url || res?.signedUrl || res?.url || '';
+        signed = !!url;
+        if (!url && !attachment.url) throw new Error(res?.message || 'Document link not available');
       }
+      // Older documents without an id: fall back to the link that came with the order
+      if (!url) url = attachment.url || '';
+      if (!url) throw new Error('Document link not available');
+
+      if (disposition === 'attachment' && signed) {
+        window.location.assign(url);
+      } else {
+        // Inline view (and downloads of old unsigned links, which would otherwise navigate away)
+        setDocPreview({ url, name: attachment.name || 'Document', orderId, attachment });
+      }
+    } catch (err) {
+      addNotification('error', (err as Error)?.message || 'Could not open the document');
+    } finally {
+      setDocOpening(null);
     }
   };
   const uploadOrderDocument = async (orderId: string, file: File) => {
@@ -2146,22 +2157,24 @@ const OrderList = () => {
                                       if (!docUrl && !(attachment.id || attachment._id)) { addNotification('error', 'Document link not available'); return; }
                                       openOrderDocument(orderData._id || orderData.id, attachment, 'inline');
                                     }}
-                                    className="px-3 py-1.5 text-xs font-medium text-[#00D1FF] hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1"
-                                    title="Open in a new tab to view or print"
+                                    disabled={docOpening === `${orderData._id || orderData.id}:${attachment.id ?? attachment._id}:inline`}
+                                    className="px-3 py-1.5 text-xs font-medium text-[#00D1FF] hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 disabled:opacity-60"
+                                    title="View or print the document"
                                   >
                                     <File className="w-3 h-3" />
-                                    Open / Print
+                                    {docOpening === `${orderData._id || orderData.id}:${attachment.id ?? attachment._id}:inline` ? 'Opening…' : 'Open / Print'}
                                   </button>
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       openOrderDocument(orderData._id || orderData.id, attachment, 'attachment');
                                     }}
-                                    className="px-3 py-1.5 text-xs font-medium text-[#00D1FF] hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1"
+                                    disabled={docOpening === `${orderData._id || orderData.id}:${attachment.id ?? attachment._id}:attachment`}
+                                    className="px-3 py-1.5 text-xs font-medium text-[#00D1FF] hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 disabled:opacity-60"
                                     title="Download"
                                   >
                                     <Download className="w-3 h-3" />
-                                    Download
+                                    {docOpening === `${orderData._id || orderData.id}:${attachment.id ?? attachment._id}:attachment` ? 'Preparing…' : 'Download'}
                                   </button>
                                 </div>
                               </div>
@@ -2555,6 +2568,62 @@ const OrderList = () => {
           </div>
         </>
       )}
+
+      {/* Document preview (Open / Print) — shown in the page so no popup blocker is involved */}
+      {docPreview &&
+        createPortal(
+          <div
+            className="fixed inset-0 bg-black/70 flex items-center justify-center p-4"
+            style={{ zIndex: 100002 }}
+            onClick={() => setDocPreview(null)}
+          >
+            <div
+              className="bg-card rounded-lg shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-label={`Preview of ${docPreview.name}`}
+            >
+              <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-theme">
+                <span className="text-sm font-medium text-primary truncate">{docPreview.name}</span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <a
+                    href={docPreview.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 text-xs font-medium text-[#00D1FF] rounded border border-blue-200 hover:bg-blue-50"
+                    title="Opens the file in a new tab, where you can print it (Ctrl+P)"
+                  >
+                    Open in new tab / Print
+                  </a>
+                  <button
+                    onClick={() => openOrderDocument(docPreview.orderId, docPreview.attachment, 'attachment')}
+                    className="px-3 py-1.5 text-xs font-medium text-[#00D1FF] rounded border border-blue-200 hover:bg-blue-50"
+                  >
+                    Download
+                  </button>
+                  <button
+                    onClick={() => setDocPreview(null)}
+                    className="p-1.5 rounded hover:bg-[rgba(255,255,255,0.08)]"
+                    aria-label="Close preview"
+                  >
+                    <FaTimes className="w-4 h-4 text-secondary" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1 bg-white">
+                {/\.(png|jpe?g|gif|webp|bmp)(\?|$)/i.test(docPreview.name) || /\.(png|jpe?g|gif|webp|bmp)(\?|$)/i.test(docPreview.url.split('?')[0]) ? (
+                  <div className="w-full h-full overflow-auto flex items-start justify-center">
+                    <img src={docPreview.url} alt={docPreview.name} className="max-w-full h-auto" />
+                  </div>
+                ) : (
+                  <iframe src={docPreview.url} title={docPreview.name} className="w-full h-full border-0" />
+                )}
+              </div>
+            </div>
+          </div>,
+          document.body
+        )
+      }
 
       {sidebarOpen &&
         createPortal(
