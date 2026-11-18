@@ -66,6 +66,14 @@ export default function TruckSettlementModal({ open, trucks, onClose, onCreated 
         setError(null); setLoaded(false); setRateSource('');
     }, [open]);
 
+    // Auto-load work when all three required fields are set
+    useEffect(() => {
+        if (truckId && startDate && endDate && !loaded && !loading) {
+            loadWork();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [truckId, startDate, endDate]);
+
     // Owner-operator trucks first
     const sortedTrucks = useMemo(() => [...trucks].sort((a, b) => {
         const ao = a.ownership === 'OWNER OPERATOR' ? 0 : 1;

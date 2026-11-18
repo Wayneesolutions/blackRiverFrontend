@@ -1693,7 +1693,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
     // Helper functions for stops table
     const addStop = () => {
-        if (!validatePickupDetails()) return;
         const newStop = {
             stop: stops.length + 1,
             shipper: shipperName || '',
@@ -5029,6 +5028,46 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </div>
                                         );
                                     })}
+
+                                    {/* BOL upload in Review so it's accessible at the end of order creation */}
+                                    <div className="bg-card rounded-lg border border-theme p-4">
+                                        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-theme">
+                                            <div className="w-3 h-3 rounded-full bg-green-600"></div>
+                                            <h4 className="text-sm font-semibold text-primary">BOL (Bill of Lading)</h4>
+                                        </div>
+                                        <label className="flex items-center justify-between gap-2 w-full p-2 border border-dashed border-theme rounded text-sm cursor-pointer hover:border-[var(--accent-blue)]">
+                                            <span className={bolFile ? 'text-primary truncate' : 'text-secondary'}>
+                                                {bolFile ? bolFile.name : 'Upload BOL (PDF or image)'}
+                                            </span>
+                                            {bolFile ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.preventDefault(); setBolFile(null); }}
+                                                    className="text-xs text-red-500 hover:underline flex-shrink-0"
+                                                >
+                                                    Remove
+                                                </button>
+                                            ) : (
+                                                <span className="text-xs text-[var(--accent-blue)] flex-shrink-0">Browse</span>
+                                            )}
+                                            <input
+                                                type="file"
+                                                accept=".pdf,image/*"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    const f = e.target.files?.[0];
+                                                    if (f) {
+                                                        setBolFile(f);
+                                                        addAuditTrailEntry(`BOL Added: ${f.name}`);
+                                                    }
+                                                    e.target.value = '';
+                                                }}
+                                            />
+                                        </label>
+                                        {order?.documents?.bol && !bolFile && (
+                                            <p className="text-xs text-green-500 mt-1">BOL already uploaded — choose a file to replace it</p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )
