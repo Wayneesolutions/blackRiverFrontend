@@ -28,7 +28,11 @@ export const xlsxToCsvFile = async (file: File): Promise<File> => {
   sheet.eachRow({ includeEmpty: false }, (row) => {
     const cells: string[] = [];
     for (let col = 1; col <= sheet.columnCount; col++) {
-      cells.push(cleanCell(cellText(row.getCell(col).value)));
+      const cell = row.getCell(col);
+      // A merged title ("Pilot Flying J - Customer Portal" across every column) would otherwise
+      // repeat in each column and be taken as every header. Keep it in its first cell only.
+      const isMergedCopy = cell.isMerged && cell.master && cell.master.address !== cell.address;
+      cells.push(isMergedCopy ? '' : cleanCell(cellText(cell.value)));
     }
     if (cells.some(Boolean)) lines.push(cells.join(','));
   });

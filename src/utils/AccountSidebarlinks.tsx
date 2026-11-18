@@ -84,6 +84,12 @@ export const AccountSidebarlinks: AccountSidebarlinks[] = [
     },
 
     {
+        key: "/admin/accounts/trips",
+        icon: <FaHandshake />,
+        label: "Trips to Complete",
+    },
+
+    {
         key: "/admin/accounts/fuel-reports",
         icon: <RiOilLine />,
         label: "Fuel Reports",

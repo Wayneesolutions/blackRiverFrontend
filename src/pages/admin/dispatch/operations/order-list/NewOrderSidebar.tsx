@@ -158,7 +158,16 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [customerOrderNo, setCustomerOrderNo] = useState("");
     const [loadType, setLoadType] = useState("FTL");
     const [freightOn, setFreightOn] = useState("Order");
-    const [selectedSalesman, setSelectedSalesman] = useState("");
+    // Salesman = the logged-in user who creates the order (client request, Nov 2026).
+    // Only admins/superadmins can change it to someone else.
+    const currentUserInfo = getUserInfo();
+    const currentUserId: string = currentUserInfo?.userData?._id || currentUserInfo?.userData?.id || "";
+    const currentUserName: string = currentUserInfo?.userData?.name
+        || `${currentUserInfo?.userData?.firstName || ''} ${currentUserInfo?.userData?.lastName || ''}`.trim()
+        || currentUserInfo?.userData?.email || 'Me';
+    const currentUserRole: string = currentUserInfo?.userData?.role || '';
+    const canChangeSalesman = currentUserRole === 'admin' || currentUserRole === 'superadmin';
+    const [selectedSalesman, setSelectedSalesman] = useState(currentUserId);
     const [salespersons, setSalespersons] = useState<Array<{ _id: string; name: string }>>([]);
     const [loadingSalespersons, setLoadingSalespersons] = useState(false);
     const [orderNotes, setOrderNotes] = useState("");
@@ -320,6 +329,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         endDate: string;
         appointment: string;
         pickUpNumber: string;
+        notes?: string;
         contact: string;
         skids: string;
         cases: string;
@@ -361,6 +371,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         endDate: string;
         appointment: string;
         dropOffNumber: string;
+        notes?: string;
         contact: string;
         skids: string;
         cases: string;
@@ -779,7 +790,13 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                         _id: emp._id,
                         name: emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Unnamed'
                     }));
+                // Always include the logged-in user so the auto-filled salesman resolves to a name
+                if (currentUserId && !salespersonList.some((s: { _id: string }) => s._id === currentUserId)) {
+                    salespersonList.unshift({ _id: currentUserId, name: currentUserName });
+                }
                 setSalespersons(salespersonList);
+            } else if (currentUserId) {
+                setSalespersons([{ _id: currentUserId, name: currentUserName }]);
             }
         } catch (error) {
             console.error('Error fetching salespersons:', error);
@@ -1281,7 +1298,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setCustomerOrderNo('');
             setLoadType('FTL');
             setFreightOn('Order');
-            setSelectedSalesman('');
+            setSelectedSalesman(currentUserId);
             setOrderNotes('');
             setCommodity('');
             setValueOfGoods('');
@@ -1676,6 +1693,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
     // Helper functions for stops table
     const addStop = () => {
+        if (!validatePickupDetails()) return;
         const newStop = {
             stop: stops.length + 1,
             shipper: shipperName || '',
@@ -1683,6 +1701,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             endDate: 'N/A',
             appointment: pickupAppointmentType || 'EXACT',
             pickUpNumber: pickUpNumber || '',
+            notes: pickUpNotes || '',
             contact: shipperContact || '',
             skids: pickupSkids || '',
             cases: pickupCases || '',
@@ -1706,6 +1725,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
     // Helper functions for receiver stops table
     const addReceiverStop = () => {
+        if (!validateDropOffDetails()) return;
         const newStop = {
             stop: receiverStops.length + 1,
             receiver: receiverName || '',
@@ -1713,6 +1733,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             endDate: deliveryAppointmentType === "WINDOW" && deliveryEndDate ? deliveryEndDate : 'N/A',
             appointment: deliveryAppointmentType || 'EXACT',
             dropOffNumber: dropOffNumber || '',
+            notes: dropOffNotes || '',
             contact: receiverContact || '',
             skids: deliverySkids || '',
             cases: deliveryCases || '',
@@ -1951,6 +1972,23 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         }
     };
 
+    // Pick Up Number / Pick Up Notes / Drop Off Number / Drop Off Notes are mandatory (client request, Nov 2026)
+    const isBlank = (v: unknown) => !String(v ?? '').trim();
+    const validatePickupDetails = (): boolean => {
+        if (isBlank(pickUpNumber)) { addNotification('error', "Pick Up Number is required"); return false; }
+        if (isBlank(pickUpNotes)) { addNotification('error', "Pick Up Notes are required"); return false; }
+        const badStop = stops.find((s: any) => isBlank(s.pickUpNumber));
+        if (badStop) { addNotification('error', `Pick Up Number is required for stop ${badStop.stop}`); return false; }
+        return true;
+    };
+    const validateDropOffDetails = (): boolean => {
+        if (isBlank(dropOffNumber)) { addNotification('error', "Drop Off Number is required"); return false; }
+        if (isBlank(dropOffNotes)) { addNotification('error', "Drop Off Notes are required"); return false; }
+        const badStop = receiverStops.find((s: any) => isBlank(s.dropOffNumber));
+        if (badStop) { addNotification('error', `Drop Off Number is required for receiver stop ${badStop.stop}`); return false; }
+        return true;
+    };
+
     // Validation for each step
     const validateStep = (step: number): boolean => {
         if (step === 1) {
@@ -1985,11 +2023,13 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 addNotification('error', "Please select a shipper customer to set pickup location");
                 return false;
             }
+            if (!validatePickupDetails()) return false;
         } else if (step === 3) {
             if (!receiverName) {
                 addNotification('error', "Please enter receiver name");
                 return false;
             }
+            if (!validateDropOffDetails()) return false;
             // Receiver phone is now optional - not all customers have phone numbers
             // if (!receiverPhone) {
             //     addNotification('error', "Please enter receiver phone");
@@ -2040,6 +2080,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             return;
         }
         // Receiver phone is also optional
+        if (!validatePickupDetails() || !validateDropOffDetails()) return;
 
 
         setLoading(true);
@@ -3449,7 +3490,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     <select
                                                         value={selectedSalesman}
                                                         onChange={(e) => setSelectedSalesman(e.target.value)}
-                                                        disabled={loadingSalespersons}
+                                                        disabled={loadingSalespersons || !canChangeSalesman}
+                                                        title={canChangeSalesman ? undefined : 'Set automatically to the user creating the order'}
                                                         className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm disabled:bg-card disabled:cursor-not-allowed"
                                                     >
                                                         <option value="">Select</option>
@@ -4139,7 +4181,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-primary mb-1">Pick Up Notes</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Pick Up Notes <span className="text-red-500">*</span></label>
                                                         <textarea
                                                             rows={4}
                                                             value={pickUpNotes}
@@ -4148,13 +4190,48 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-primary mb-1">Pick Up Number</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Pick Up Number <span className="text-red-500">*</span></label>
                                                         <input
                                                             type="text"
                                                             value={pickUpNumber}
                                                             onChange={(e) => setPickUpNumber(e.target.value)}
                                                             className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                         />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-primary mb-1">BOL (Bill of Lading)</label>
+                                                        <label className="flex items-center justify-between gap-2 w-full p-2 border border-dashed border-theme rounded text-sm cursor-pointer hover:border-[var(--accent-blue)]">
+                                                            <span className={bolFile ? 'text-primary truncate' : 'text-secondary'}>
+                                                                {bolFile ? bolFile.name : 'Upload BOL (PDF or image)'}
+                                                            </span>
+                                                            {bolFile ? (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => { e.preventDefault(); setBolFile(null); }}
+                                                                    className="text-xs text-red-500 hover:underline flex-shrink-0"
+                                                                >
+                                                                    Remove
+                                                                </button>
+                                                            ) : (
+                                                                <span className="text-xs text-[var(--accent-blue)] flex-shrink-0">Browse</span>
+                                                            )}
+                                                            <input
+                                                                type="file"
+                                                                accept=".pdf,image/*"
+                                                                className="hidden"
+                                                                onChange={(e) => {
+                                                                    const f = e.target.files?.[0];
+                                                                    if (f) {
+                                                                        setBolFile(f);
+                                                                        addAuditTrailEntry(`BOL Added: ${f.name}`);
+                                                                    }
+                                                                    e.target.value = '';
+                                                                }}
+                                                            />
+                                                        </label>
+                                                        {order?.documents?.bol && !bolFile && (
+                                                            <p className="text-xs text-green-500 mt-1">BOL already uploaded — choose a file to replace it</p>
+                                                        )}
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div>
@@ -4652,7 +4729,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-primary mb-1">Drop Off Notes</label>
+                                                <label className="block text-xs font-medium text-primary mb-1">Drop Off Notes <span className="text-red-500">*</span></label>
                                                 <textarea
                                                     rows={4}
                                                     value={dropOffNotes}
@@ -4662,7 +4739,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-xs font-medium text-primary mb-1">Drop Off Number</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">Drop Off Number <span className="text-red-500">*</span></label>
                                                     <input
                                                         type="text"
                                                         value={dropOffNumber}

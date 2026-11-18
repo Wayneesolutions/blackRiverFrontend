@@ -4,13 +4,15 @@ import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck } from "react-icon
 import { useNavigate, useLocation } from "react-router-dom";
 import NewOrderSidebar from "./NewOrderSidebar";
 import { downloadExcel, summarySheet, countBy, MONEY_FMT } from "../../../../../utils/excelExport";
-import { listOrder, deleteOrder, getOrderById, updateOrder, approveOrderDocuments, getOrderAttachmentSignedUrl, uploadOrderDocumentByDispatch } from "../../../../../axios/api/distapcher";
+import { listOrder, deleteOrder, getOrderById, updateOrder, approveOrderDocuments, getOrderAttachmentSignedUrl, uploadOrderDocumentByDispatch, updateOrderStatus } from "../../../../../axios/api/distapcher";
 import { listPlace } from "../../../../../axios/api/dispatcher.places";
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 import OrderChat from "../../../../../components/chat/OrderChat";
 import { getOrderUnreadMessageCount } from "../../../../../axios/api/chat";
 import { createPortal } from "react-dom";
 import { socketService } from "../../../../../services/socketService";
+import { canAccessPortal } from "../../../../../utils/portalAccess";
+import { getUserRole } from "../../../../../utils/auth";
 
 // Color constants
 const PRIMARY_GRADIENT = 'linear-gradient(90deg, #0ea5c0 0%, #1e3a8a 100%)';
@@ -278,6 +280,11 @@ interface Order {
 }
 
 const OrderList = () => {
+  // Dispatch marks Delivered, Accounts marks Completed (client request, Nov 2026). Backend enforces too.
+  const myRole = getUserRole();
+  const isOwnerRole = myRole === 'admin' || myRole === 'superadmin';
+  const canMarkDelivered = isOwnerRole || canAccessPortal('dispatch_load');
+  const canMarkCompleted = isOwnerRole || canAccessPortal('accounts');
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -286,16 +293,39 @@ const OrderList = () => {
   // Order documents: fresh signed links to open/print or download, and dispatch uploads (BOL etc.)
   const [docUploadType, setDocUploadType] = useState('bol');
   const [docUploading, setDocUploading] = useState(false);
+  // Open/print or download an order document. The tab is opened synchronously inside the click,
+  // then pointed at the signed link once it arrives — opening it only after the `await` (as before)
+  // was treated as a popup and silently blocked by Chrome, so Open/Print and Download did nothing.
   const openOrderDocument = async (orderId: string, attachment: { id?: string | number; _id?: string; url?: string }, disposition: 'inline' | 'attachment') => {
+    const tab = window.open('about:blank', '_blank');
+    const go = (url: string) => {
+      if (tab && !tab.closed) {
+        try { tab.opener = null; } catch { /* ignore */ }
+        tab.location.href = url;
+      } else {
+        // Popup still blocked: navigate a temporary link instead
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        if (disposition === 'attachment') a.download = '';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+    };
     try {
       const res = await getOrderAttachmentSignedUrl(orderId, String(attachment.id ?? attachment._id), disposition);
       const url = res?.data?.signedUrl || res?.data?.url || res?.signedUrl || res?.url;
       if (!url) throw new Error(res?.message || 'Document link not available');
-      window.open(url, '_blank', 'noopener,noreferrer');
+      go(url);
     } catch (err) {
       // Older documents without an id: fall back to the link that came with the order
-      if (attachment.url) window.open(attachment.url, '_blank', 'noopener,noreferrer');
-      else addNotification('error', (err as Error)?.message || 'Could not open the document');
+      if (attachment.url) go(attachment.url);
+      else {
+        if (tab && !tab.closed) tab.close();
+        addNotification('error', (err as Error)?.message || 'Could not open the document');
+      }
     }
   };
   const uploadOrderDocument = async (orderId: string, file: File) => {
@@ -1679,7 +1709,7 @@ const OrderList = () => {
                               const newStatus = e.target.value;
                               const previousStatus = order.status || 'quoted';
                               try {
-                                const res = await updateOrder(order.id, { status: newStatus });
+                                const res = await updateOrderStatus(order.id, newStatus);
                                 if (res?.success) {
                                   addNotification('success', 'Order status updated');
                                   fetchOrders();
@@ -1710,10 +1740,10 @@ const OrderList = () => {
                             <option value="planned" className="bg-card text-primary">Planned</option>
                             <option value="quoted" className="bg-card text-primary">Quoted</option>
                             <option value="in-delivery" className="bg-card text-primary">In Delivery</option>
-                            <option value="delivered" className="bg-card text-primary">Delivered</option>
+                            <option value="delivered" className="bg-card text-primary" disabled={!canMarkDelivered && order.status !== 'delivered'}>Delivered{!canMarkDelivered ? ' (Dispatch only)' : ''}</option>
                             <option value="pending_review" className="bg-card text-primary">Pending Review</option>
                             <option value="verification_pending" className="bg-card text-primary">Verification Pending</option>
-                            <option value="completed" className="bg-card text-primary">Completed</option>
+                            <option value="completed" className="bg-card text-primary" disabled={!canMarkCompleted && order.status !== 'completed'}>Completed{!canMarkCompleted ? ' (Accounts only)' : ''}</option>
                             <option value="canceled" className="bg-card text-red-400">Canceled</option>
                           </select>
                           <ChevronDown className={`pointer-events-none absolute right-2 w-3 h-3 opacity-60

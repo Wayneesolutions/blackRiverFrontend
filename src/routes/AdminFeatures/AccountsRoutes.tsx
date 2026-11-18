@@ -24,6 +24,8 @@ const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"));
 const FinanceReport = lazy(() => import("../../pages/admin/accounts/finance-report/index"));
 const TrainingContent = lazy(() => import("../../pages/admin/training/TrainingContentView"));
 const FuelReports = lazy(() => import("../../pages/admin/dispatch/resources/fuel-reports/index"));
+// Accounts completes trips that Dispatch has marked Delivered (client request, Nov 2026)
+const Trips = lazy(() => import("../../pages/admin/dispatch/operations/order-list/index"));
 
 function AccountsRoutes() {
     return (
@@ -53,6 +55,7 @@ function AccountsRoutes() {
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/finance-report" element={<FinanceReport />} />
                     <Route path="/fuel-reports" element={<FuelReports />} />
+                    <Route path="/trips" element={<Trips />} />
                     <Route path="/training" element={<TrainingContent />} />
                 </Route>
             </Routes>

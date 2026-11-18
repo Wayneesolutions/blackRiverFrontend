@@ -807,6 +807,17 @@ export const approveOrderDocuments = async (id: string, approveWithoutDocuments:
   }
 };
 
+// Status-only change (Dispatch -> Delivered, Accounts -> Completed). Accounts can use this
+// without full order edit rights.
+export const updateOrderStatus = async (id: string, status: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.patch(`dispatcher/order/${id}/status`, { status });
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+};
+
 export const updateOrder = async (id: string, data: FormData | any) => {
   try {
     const res: AxiosResponse = await apiClient.put(`dispatcher/order/${id}`, data, {

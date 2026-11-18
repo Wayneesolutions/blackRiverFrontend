@@ -163,6 +163,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [ocrModalOpen, setOcrModalOpen] = useState(false);
   const [fuelCardModalOpen, setFuelCardModalOpen] = useState(false);
+  const [fuelCardInitialFile, setFuelCardInitialFile] = useState<File | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [analyticsReports, setAnalyticsReports] = useState<FuelReportType[]>([]);
   const [ocrFile, setOcrFile] = useState<File | null>(null);
@@ -788,6 +789,21 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
 
     try {
       const file = isExcel ? await xlsxToCsvFile(selected) : selected;
+      // Pilot Flying J portal reports have title rows, US + Canada sheets, gallons/litres and
+      // USD/CAD mixed — the generic column mapper can't read them. Hand them to the Fuel Card
+      // import, which is built for that format.
+      if (isExcel) {
+        const head = (await file.text()).split('\n').slice(0, 15).join('\n').toLowerCase();
+        const isPfj = head.includes('pilot flying j') || (head.includes('trx date') && head.includes('invoice amount'));
+        if (isPfj) {
+          setCsvFile(null);
+          closeImportModal();
+          setFuelCardInitialFile(selected);
+          setFuelCardModalOpen(true);
+          messageApi.info('This is a Pilot Flying J report — opened it in Fuel Card Import, which reads this format.');
+          return;
+        }
+      }
       setCsvFile(file);
       const response = await parseCsvHeaders(file);
       if (response?.success && response?.data) {
@@ -2802,7 +2818,8 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
 
       {fuelCardModalOpen && (
         <FuelCardImportModal
-          onClose={() => setFuelCardModalOpen(false)} // onImported already refreshes; reloading on Cancel blanked the page behind the spinner
+          initialFile={fuelCardInitialFile}
+          onClose={() => { setFuelCardModalOpen(false); setFuelCardInitialFile(null); }} // onImported already refreshes; reloading on Cancel blanked the page behind the spinner
           onImported={fetchFuelReports}
           fleetUnits={units}
           messageApi={messageApi}

@@ -47,6 +47,8 @@ interface Props {
   onImported: () => void;
   fleetUnits: FleetUnitOption[];
   messageApi: MessageInstance;
+  /** File picked in the generic CSV import that turned out to be a Pilot Flying J report */
+  initialFile?: File | null;
 }
 
 const STATUS_CONFIG = {
@@ -62,10 +64,10 @@ const fmtDate = (iso: string) => {
   catch { return iso; }
 };
 
-export default function FuelCardImportModal({ onClose, onImported, fleetUnits, messageApi }: Props) {
+export default function FuelCardImportModal({ onClose, onImported, fleetUnits, messageApi, initialFile }: Props) {
   const [step, setStep] = useState<Step>('upload');
   const [dragging, setDragging] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(initialFile ?? null);
   const [parsing, setParsing] = useState(false);
   const [rows, setRows] = useState<DraftRow[]>([]);
   const [parseStats, setParseStats] = useState({ total: 0, matched: 0, review: 0, unmatched: 0 });
