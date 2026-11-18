@@ -1978,14 +1978,14 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         if (isBlank(pickUpNumber)) { addNotification('error', "Pick Up Number is required"); return false; }
         if (isBlank(pickUpNotes)) { addNotification('error', "Pick Up Notes are required"); return false; }
         const badStop = stops.find((s: any) => isBlank(s.pickUpNumber));
-        if (badStop) { addNotification('error', `Pick Up Number is required for stop ${badStop.stop}`); return false; }
+        if (badStop) { addNotification('error', `Pick Up Number is required for stop ${badStop.stop} (fill it in the Stop Information table)`); return false; }
         return true;
     };
     const validateDropOffDetails = (): boolean => {
         if (isBlank(dropOffNumber)) { addNotification('error', "Drop Off Number is required"); return false; }
         if (isBlank(dropOffNotes)) { addNotification('error', "Drop Off Notes are required"); return false; }
         const badStop = receiverStops.find((s: any) => isBlank(s.dropOffNumber));
-        if (badStop) { addNotification('error', `Drop Off Number is required for receiver stop ${badStop.stop}`); return false; }
+        if (badStop) { addNotification('error', `Drop Off Number is required for receiver stop ${badStop.stop} (fill it in the Stop Information table)`); return false; }
         return true;
     };
 
@@ -3843,7 +3843,20 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 <td className="p-2 border-r border-theme">{stop.date || '-'}</td>
                                                                 <td className="p-2 border-r border-theme">{stop.endDate || 'N/A'}</td>
                                                                 <td className="p-2 border-r border-theme">{stop.appointment || '-'}</td>
-                                                                <td className="p-2 border-r border-theme">{stop.pickUpNumber || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">
+                                                                    {/* Editable so stops saved before Pick Up # became required (Nov 2026) can be filled in */}
+                                                                    <input
+                                                                        type="text"
+                                                                        value={stop.pickUpNumber || ''}
+                                                                        onChange={(e) => {
+                                                                            const value = e.target.value;
+                                                                            setStops((prev) => prev.map((s, i) => (i === index ? { ...s, pickUpNumber: value } : s)));
+                                                                        }}
+                                                                        placeholder="Required"
+                                                                        aria-label={`Pick Up Number for stop ${stop.stop}`}
+                                                                        className={`w-24 p-1 border rounded text-xs bg-card ${String(stop.pickUpNumber || '').trim() ? 'border-theme' : 'border-red-500'}`}
+                                                                    />
+                                                                </td>
                                                                 <td className="p-2 border-r border-theme">{stop.contact || '-'}</td>
                                                                 <td className="p-2 border-r border-theme">{stop.skids || '-'}</td>
                                                                 <td className="p-2 border-r border-theme">{stop.cases || '-'}</td>
@@ -4499,7 +4512,20 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 <td className="p-2 border-r border-theme">{stop.date || '-'}</td>
                                                                 <td className="p-2 border-r border-theme">{stop.endDate || 'N/A'}</td>
                                                                 <td className="p-2 border-r border-theme">{stop.appointment || '-'}</td>
-                                                                <td className="p-2 border-r border-theme">{stop.dropOffNumber || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">
+                                                                    {/* Editable so stops saved before Drop Off # became required (Nov 2026) can be filled in */}
+                                                                    <input
+                                                                        type="text"
+                                                                        value={stop.dropOffNumber || ''}
+                                                                        onChange={(e) => {
+                                                                            const value = e.target.value;
+                                                                            setReceiverStops((prev) => prev.map((s, i) => (i === index ? { ...s, dropOffNumber: value } : s)));
+                                                                        }}
+                                                                        placeholder="Required"
+                                                                        aria-label={`Drop Off Number for receiver stop ${stop.stop}`}
+                                                                        className={`w-24 p-1 border rounded text-xs bg-card ${String(stop.dropOffNumber || '').trim() ? 'border-theme' : 'border-red-500'}`}
+                                                                    />
+                                                                </td>
                                                                 <td className="p-2 border-r border-theme">{stop.contact || '-'}</td>
                                                                 <td className="p-2 border-r border-theme">{stop.skids || '-'}</td>
                                                                 <td className="p-2 border-r border-theme">{stop.cases || '-'}</td>
