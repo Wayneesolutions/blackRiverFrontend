@@ -383,7 +383,8 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
     const allReports: FuelReportType[] = [];
     const limit = 500;
     for (let page = 1; ; page++) {
-      const res = await listFuelReport({ ...filters, page, limit, sortBy: 'createdAt', sortOrder: 'desc' });
+      // Analytics and the Excel export don't show trips; skipping them keeps this call fast
+      const res = await listFuelReport({ ...filters, page, limit, sortBy: 'createdAt', sortOrder: 'desc', includeTrip: false });
       if (!res?.success) throw new Error(res?.message || 'Failed to load fuel reports');
       const data: FuelReportType[] = Array.isArray(res.data) ? res.data : [];
       allReports.push(...data);
