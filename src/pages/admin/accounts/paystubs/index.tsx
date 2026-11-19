@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Search, Download, Calendar, FileText, Users, X, Eye, Printer } from 'lucide-react';
 import { getPaystubs, getPaystubById } from '../../../../axios/api/account.payroll';
-import { outputPayStatement, paystubToStatement } from '../../../../utils/payStatementPdf';
+import { outputPayStatement, paystubToStatement, settlementToStatement } from '../../../../utils/payStatementPdf';
+import { getSettlementById } from '../../../../axios/api/account.settlement';
+import { getCompany } from '../../../../axios/api/admin';
 
 interface Paystub {
   _id: string;
@@ -22,6 +24,10 @@ interface Paystub {
   employeeEmail?: string;
   employeeRole?: string;
   workType?: 'Employee' | 'Driver' | 'Owner-Operator';
+  // Owner-operator settlements are listed here too (backend sets source: 'settlement')
+  source?: 'settlement';
+  settlementId?: string;
+  truckNumber?: string;
   payPeriod: {
     startDate: string;
     endDate: string;
@@ -146,6 +152,11 @@ const PaystubsList = () => {
   const handleViewPaystub = async (paystub: Paystub) => {
     setModalLoading(true);
     setShowPaystubModal(true);
+    if (paystub.source === 'settlement') {
+      setSelectedPaystub(paystub);
+      setModalLoading(false);
+      return;
+    }
     try {
       const response = await getPaystubById(paystub._id);
       const fullPaystub = response?.success && response.data ? response.data : paystub;
@@ -173,6 +184,14 @@ const PaystubsList = () => {
   // Pay statement in the company's layout - same generator as Payroll and Driver Payroll
   const handleDownloadPDF = async (paystub: Paystub, mode: 'download' | 'print' = 'download') => {
     try {
+      // Owner-operator settlement: same statement as Accounts > Settlements prints
+      if (paystub.source === 'settlement') {
+        const [stRes, companyRes] = await Promise.all([getSettlementById(paystub._id), getCompany()]);
+        if (!stRes?.success || !stRes.data) throw new Error(stRes?.message || 'Settlement not found');
+        const company = companyRes?.data || companyRes?.company || {};
+        await outputPayStatement(settlementToStatement(stRes.data, company), mode);
+        return;
+      }
       // Full paystub (trip lines, memos, signed logo)
       const response = await getPaystubById(paystub._id);
       const fullPaystub = response?.success && response.data ? response.data : paystub;

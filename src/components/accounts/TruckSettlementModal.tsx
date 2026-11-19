@@ -269,7 +269,17 @@ export default function TruckSettlementModal({ open, trucks, onClose, onCreated 
                                                 <td className="px-2 py-2">{l.origin}</td>
                                                 <td className="px-2 py-2">{l.destination}</td>
                                                 <td className="px-2 py-2 text-right">${l.rate.toFixed(2)}</td>
-                                                <td className="px-2 py-2 text-right">{l.miles.toFixed(2)}</td>
+                                                <td className="px-2 py-2 text-right">
+                                                    {/* Miles can be corrected here (a load whose address wasn't found on the map
+                                                        comes in at 0 miles); the amount follows miles x rate (client 19 Nov) */}
+                                                    <input type="number" step="0.01" min="0" value={l.miles}
+                                                        title={l.miles > 0 ? 'Miles' : 'This load has no miles - type them in'}
+                                                        onChange={e => {
+                                                            const m = parseFloat(e.target.value) || 0;
+                                                            setLines(prev => prev.map(x => (x.order === l.order ? { ...x, miles: m, amount: r2(m * x.rate) } : x)));
+                                                        }}
+                                                        className={`w-24 px-2 py-1 text-right border rounded bg-[var(--bg-card)] ${l.miles > 0 ? 'border-theme' : 'border-yellow-500'}`} />
+                                                </td>
                                                 <td className="px-2 py-2 text-right">
                                                     <input type="number" step="0.01" min="0" value={l.amount}
                                                         onChange={e => setLines(prev => prev.map(x => (x.order === l.order ? { ...x, amount: parseFloat(e.target.value) || 0 } : x)))}
@@ -311,6 +321,11 @@ export default function TruckSettlementModal({ open, trucks, onClose, onCreated 
                                 </div>
                             </div>
 
+                            {selected.some(l => !(l.miles > 0)) && (
+                                <p className="text-xs text-yellow-500">
+                                    {selected.filter(l => !(l.miles > 0)).length} ticked load(s) have 0 miles. Type the miles in the Miles column - they are also saved on the load.
+                                </p>
+                            )}
                             <div className="flex flex-wrap justify-end gap-6 text-sm border-t border-theme pt-4">
                                 <span>Loads: <strong>{selected.length}</strong></span>
                                 <span>Total miles: <strong>{miles.toFixed(2)}</strong></span>

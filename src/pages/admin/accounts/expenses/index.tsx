@@ -637,7 +637,8 @@ const ExpensesPage = () => {
 
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append('userId', formData.userId);
+      // Only an older expense that already has an employee keeps it (no picker any more)
+      if (formData.userId) formDataToSend.append('userId', formData.userId);
       formDataToSend.append('categoryId', formData.categoryId);
       // Use typeId if available (dynamic type), otherwise use type (backward compatibility)
       if (formData.typeId) {
@@ -1366,10 +1367,12 @@ const ExpensesPage = () => {
                               </div>
                               <p className="text-secondary text-sm mb-1">{expense.description || 'No description'}</p>
                               <div className="flex items-center gap-4 text-xs text-secondary flex-wrap">
-                                <span className="flex items-center gap-1">
-                                  <User size={12} />
-                                  {getEmployeeName(expense.userId)}
-                                </span>
+                                {expense.userId && (
+                                  <span className="flex items-center gap-1">
+                                    <User size={12} />
+                                    {getEmployeeName(expense.userId)}
+                                  </span>
+                                )}
                                 <span className="flex items-center gap-1">
                                   <Calendar size={12} />
                                   {expense.date ? new Date(expense.date).toLocaleDateString() : 'No date'}
@@ -1445,25 +1448,7 @@ const ExpensesPage = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-primary mb-2">
-                        Employee
-                      </label>
-                      <select
-                        name="userId"
-                        value={formData.userId}
-                        onChange={handleInputChange}
-                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option className='form-option' value="">Select Employee</option>
-                        {employees.map(emp => (
-                          <option className='form-option' key={emp._id} value={emp._id}>
-                            {emp.name} - {emp.role || emp.position || 'Employee'}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
+                    {/* Employee picker removed (client 19 Nov) - company expenses aren't tied to an employee */}
                     <div>
                       <label className="block text-sm font-medium text-primary mb-2">
                         Expense Category *
@@ -1767,6 +1752,7 @@ const ExpensesPage = () => {
 
                 {/* Employee Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {viewingExpense.userId && (
                   <div className="bg-card p-4 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                       <User size={18} className="text-secondary" />
@@ -1779,6 +1765,7 @@ const ExpensesPage = () => {
                       <p className="text-sm text-secondary mt-1">{getEmployeeRole(viewingExpense.userId)}</p>
                     )}
                   </div>
+                  )}
 
                   <div className="bg-card p-4 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">

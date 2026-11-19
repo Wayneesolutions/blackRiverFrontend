@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { X, ChevronDown, ChevronUp, Search, ArrowLeft, ArrowRight, GripVertical, Edit, Trash2 } from "lucide-react";
+import { X, ChevronDown, ChevronUp, Search, ArrowLeft, ArrowRight, GripVertical, Trash2, Eye, Download } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
-import { listCustomer, createOrder, updateOrder, getAuditTrail } from "../../../../../axios/api/distapcher";
+import { listCustomer, createOrder, updateOrder, getAuditTrail, getOrderAttachmentSignedUrl } from "../../../../../axios/api/distapcher";
 import { listTrucks } from "../../../../../axios/api/truckTracking";
 import { listTrailers } from "../../../../../axios/api/trailerTracking";
 import { getAllDrivers, getDriverOnboardingStatus, getDrugTests } from "../../../../../axios/api/driver";
@@ -430,18 +430,24 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         listCarriers().then(res => { if (res?.success) setCarriers(res.data || []); });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [assignmentType]);
-    const addCarrierByName = async (name: string) => {
+    const [showNewCarrierForm, setShowNewCarrierForm] = useState(false);
+    const [newCarrierForm, setNewCarrierForm] = useState({ name: '', phone: '', email: '', address: '' });
+    const addCarrierByName = async (name: string, extra: { phone?: string; email?: string; address?: string } = {}) => {
         const clean = name.trim();
-        if (!clean) return;
+        if (!clean) return false;
         setAddingCarrier(true);
         try {
-            const res = await createCarrier({ name: clean });
+            const res = await createCarrier({ name: clean, phone: extra.phone || '', email: extra.email || '', address: extra.address || '' });
             if (res?.success && res.data) {
                 setCarriers(prev => (prev.some(c => c._id === res.data._id) ? prev : [...prev, res.data].sort((a, b) => (a.name || '').localeCompare(b.name || ''))));
                 setSelectedCarrier(res.data);
                 setCarrierSearch(res.data.name);
                 setCarrierDropdownOpen(false);
+                addNotification('success', res.message === 'Carrier already exists' ? `${res.data.name} is already a carrier - selected it` : `Carrier ${res.data.name} added`);
+                return true;
             }
+            addNotification('error', res?.message || 'Could not add the carrier');
+            return false;
         } finally {
             setAddingCarrier(false);
         }
@@ -487,6 +493,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         locked: boolean;
     }>>([]);
     const [totalMiles, setTotalMiles] = useState(0);
+    // Miles typed in by dispatch on the Assignment step (sent to the backend only when changed)
+    const [milesEdited, setMilesEdited] = useState(false);
     // const [emptyMiles, setEmptyMiles] = useState(0);
     // const [milesDate, setMilesDate] = useState("");
     // const [emptyMilesCheck, setEmptyMilesCheck] = useState(false);
@@ -536,7 +544,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     }>>([]);
     const [auditTrailLoading, setAuditTrailLoading] = useState(false);
     const [attachments, setAttachments] = useState<Array<{
-        id: number;
+        id: number | string;
         name: string;
         file: File | null;
         url?: string;
@@ -545,6 +553,49 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         shareWithDriver: boolean;
     }>>([]);
     const [isDragging, setIsDragging] = useState(false);
+    const [attachmentBusy, setAttachmentBusy] = useState<string | null>(null);
+    // Open (inline - print from the browser's viewer) or download an attachment. A file
+    // added in this session opens from memory; a saved one gets a signed link from the backend.
+    const openAttachment = async (
+        attachment: { id: number | string; name: string; file: File | null; url?: string },
+        disposition: 'inline' | 'attachment'
+    ) => {
+        if (attachment.file) {
+            const blobUrl = URL.createObjectURL(attachment.file);
+            if (disposition === 'attachment') {
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = attachment.name || 'document';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } else {
+                window.open(blobUrl, '_blank');
+            }
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+            return;
+        }
+        const orderId = order?._id || order?.id;
+        // Open the tab now, while we still have the click, so the popup blocker allows it
+        const win = disposition === 'inline' ? window.open('', '_blank') : null;
+        setAttachmentBusy(`${attachment.id}:${disposition}`);
+        try {
+            let url = '';
+            if (orderId && attachment.id !== undefined && attachment.id !== null && attachment.id !== '') {
+                const res = await getOrderAttachmentSignedUrl(String(orderId), String(attachment.id), disposition);
+                url = res?.data?.signedUrl || res?.data?.url || res?.signedUrl || res?.url || '';
+            }
+            if (!url) url = attachment.url || '';
+            if (!url) throw new Error('Document link not available - save the order first');
+            if (win) win.location.href = url;
+            else window.location.assign(url);
+        } catch (err) {
+            if (win) win.close();
+            addNotification('error', (err as Error)?.message || 'Could not open the document');
+        } finally {
+            setAttachmentBusy(null);
+        }
+    };
 
     const [podFile, setPodFile] = useState<File | null>(null);
     const [stampedManifestFile, setStampedManifestFile] = useState<File | null>(null);
@@ -849,7 +900,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setDimensionB(order.dimensions?.width?.toString() || '');
             setDimensionH(order.dimensions?.height?.toString() || '');
             setDimensionUnit(order.dimensions?.unit || 'cm');
-            setDistance(order.distance?.toString() || '');
+            // order.distance is stored in km; this form works in miles
+            setDistance(Number(order.distance) > 0 ? (Number(order.distance) * 0.621371).toFixed(2) : '');
+            setMilesEdited(false);
 
             // Additional info
             if (order.additionalInfo) {
@@ -1110,7 +1163,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             // Load attachments array
             if (order.attachments && Array.isArray(order.attachments)) {
                 setAttachments(order.attachments.map((att: any) => ({
-                    id: att.id || Date.now() + Math.random(),
+                    // Keep the server's id: Open/Print and Download ask the backend for a link by it
+                    id: att.id || att._id || Date.now() + Math.random(),
                     name: att.name || '',
                     file: null, // Files are loaded from URLs
                     url: att.url || '',
@@ -2190,6 +2244,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     unit: dimensionUnit || 'cm'
                 },
                 distance: distance ? parseFloat(distance) : 0,
+                // Miles dispatch corrected on the Assignment step (backend saves them on the load)
+                distanceMiles: milesEdited ? (parseFloat(distance) || 0) : undefined,
                 additionalInfo: additionalInfo,
                 status: 'QUOTED',
                 accountingStatus: 'pending',
@@ -2467,6 +2523,49 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         }
     };
 
+
+    // Driver pay preview for the Assignment step. Mirrors payroll: the load's miles x the
+    // primary driver's profile rate (team rate when there's a co-driver - each driver is paid
+    // it, so the team costs both rates combined; empty rates for empty loads).
+    const payEstimate = useMemo(() => {
+        const num = (v: any) => Number(v) || 0;
+        const d: any = selectedPayDriver || selectedDriver;
+        const det = d?.details || {};
+        const soloRate = num(det.salaryPerMile || det.mileRate || d?.salaryPerMile || d?.mileRate);
+        const isTeam = assignmentType === "DRIVER" && !!selectedCoDriver;
+        let profileRate = isTeam ? (num(det.mileRateTeam || d?.mileRateTeam) || soloRate) : soloRate;
+        if (empty) {
+            profileRate = isTeam
+                ? (num(det.emptyMileRateTeam) || num(det.emptyMileRate) || profileRate)
+                : (num(det.emptyMileRate) || profileRate);
+        }
+        const rateFromForm = !(profileRate > 0);
+        const perDriverRate = rateFromForm ? num(payRate) : profileRate;
+        const miles = num(distance);
+        const combinedRate = isTeam ? perDriverRate * 2 : perDriverRate;
+        let base = 0;
+        if (payRateUnit === "/MILE") base = miles * combinedRate;
+        else if (payRateUnit === "/HR") base = num(payRate) * num(payHours);
+        else if (payRateUnit === "/%") base = num(rate) * num(payRate) / 100;
+        else base = num(payRate);
+        const additions = payItems.reduce((sum, i) => sum + num(i.amount), 0);
+        const deductions = deductionItems.reduce((sum, i) => sum + num(i.amount), 0);
+        const round = (n: number) => Math.round(n * 100) / 100;
+        return {
+            isTeam,
+            miles,
+            rateFromForm,
+            combinedRate: round(combinedRate),
+            teamLines: isTeam ? [
+                { name: d?.name || 'Driver', rate: perDriverRate },
+                { name: selectedCoDriver?.name || 'Co-driver', rate: perDriverRate },
+            ] : [],
+            base: round(base),
+            additions: round(additions),
+            deductions: round(deductions),
+            total: round(base + additions - deductions),
+        };
+    }, [selectedPayDriver, selectedDriver, selectedCoDriver, assignmentType, empty, payRate, payRateUnit, payHours, distance, rate, payItems, deductionItems]);
 
     // Calculate distance between shipper and receiver addresses
     const [calculatingDistance, setCalculatingDistance] = useState(false);
@@ -2853,13 +2952,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 let previousLocation = origin;
                 destinations.forEach((dest, index) => {
                     if (dest.address) {
-                        // For now, use a placeholder distance calculation
-                        // In production, you'd use a mapping service API
-                        const estimatedMiles = 100 * (index + 1); // Placeholder
+                        // Real miles only: the load's distance for a single drop. This used to
+                        // be a placeholder (100 mi, 200 mi, ...) that nothing else used.
                         segments.push({
                             from: previousLocation.split(',')[0] || previousLocation,
                             to: dest.address.split(',')[0] || dest.address,
-                            miles: estimatedMiles,
+                            miles: destinations.length === 1 && index === 0 ? (parseFloat(distance) || 0) : 0,
                             locked: false
                         });
                         previousLocation = dest.address;
@@ -2869,11 +2967,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
             setRouteSegments(segments);
 
-            // Calculate total miles
-            const total = segments.reduce((sum, seg) => sum + seg.miles, 0);
-            setTotalMiles(total);
+            // Total miles = the load's miles (what payroll and settlements pay on)
+            setTotalMiles(parseFloat(distance) || 0);
         }
-    }, [currentStep, shipperAddress, pickupLocationAddress, receiverAddress, deliveryLocationAddress, receiverStops, shipperCity, shipperProvince, receiverName]);
+    }, [currentStep, shipperAddress, pickupLocationAddress, receiverAddress, deliveryLocationAddress, receiverStops, shipperCity, shipperProvince, receiverName, distance]);
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -5568,8 +5665,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                            <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
+                                                            <div className="mt-1 flex items-center gap-3 text-xs text-secondary">
                                                                 <button
+                                                                    type="button"
                                                                     onClick={() => {
                                                                         setSelectedCarrier(null);
                                                                         setCarrierSearch('');
@@ -5578,7 +5676,74 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 >
                                                                     Clear
                                                                 </button>
+                                                                {/* Adding a carrier was only offered inside the search list after typing a
+                                                                    name nobody had used yet, so dispatch couldn't find it (client 19 Nov) */}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setShowNewCarrierForm(v => !v)}
+                                                                    className="text-[var(--accent-blue)] hover:underline"
+                                                                >
+                                                                    + Add new carrier
+                                                                </button>
                                                             </div>
+                                                            {showNewCarrierForm && (
+                                                                <div className="mt-2 p-3 border border-theme rounded space-y-2">
+                                                                    <div className="text-xs font-medium text-primary">New carrier</div>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={newCarrierForm.name}
+                                                                        onChange={(e) => setNewCarrierForm({ ...newCarrierForm, name: e.target.value })}
+                                                                        placeholder="Carrier name *"
+                                                                        className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                                    />
+                                                                    <div className="grid grid-cols-2 gap-2">
+                                                                        <input
+                                                                            type="text"
+                                                                            value={newCarrierForm.phone}
+                                                                            onChange={(e) => setNewCarrierForm({ ...newCarrierForm, phone: e.target.value })}
+                                                                            placeholder="Phone"
+                                                                            className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                                        />
+                                                                        <input
+                                                                            type="email"
+                                                                            value={newCarrierForm.email}
+                                                                            onChange={(e) => setNewCarrierForm({ ...newCarrierForm, email: e.target.value })}
+                                                                            placeholder="Email"
+                                                                            className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                                        />
+                                                                    </div>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={newCarrierForm.address}
+                                                                        onChange={(e) => setNewCarrierForm({ ...newCarrierForm, address: e.target.value })}
+                                                                        placeholder="Address"
+                                                                        className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                                    />
+                                                                    <div className="flex justify-end gap-2">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => setShowNewCarrierForm(false)}
+                                                                            className="px-3 py-1.5 text-xs border border-theme rounded"
+                                                                        >
+                                                                            Cancel
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            disabled={addingCarrier || !newCarrierForm.name.trim()}
+                                                                            onClick={async () => {
+                                                                                const ok = await addCarrierByName(newCarrierForm.name, newCarrierForm);
+                                                                                if (ok) {
+                                                                                    setShowNewCarrierForm(false);
+                                                                                    setNewCarrierForm({ name: '', phone: '', email: '', address: '' });
+                                                                                }
+                                                                            }}
+                                                                            className="px-3 py-1.5 text-xs rounded bg-gradient-to-r from-[#00D1FF] to-[#0066FF] text-white disabled:opacity-60"
+                                                                        >
+                                                                            {addingCarrier ? 'Saving…' : 'Save carrier'}
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                             <div className="mt-3 grid grid-cols-2 gap-2">
                                                                 <div>
                                                                     <label className="block text-xs font-medium text-primary mb-1">Carrier rate (we pay)</label>
@@ -5604,6 +5769,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     </select>
                                                                 </div>
                                                             </div>
+                                                            {!(parseFloat(carrierRate) > 0) && (
+                                                                <p className="mt-2 text-xs text-[#F59E0B]">
+                                                                    No carrier rate yet. The bill still goes to Accounts Payable, at $0, until a rate is entered here or on the bill.
+                                                                </p>
+                                                            )}
                                                             <p className="mt-2 text-xs text-secondary">
                                                                 The customer is still invoiced at the order rate. The carrier rate goes to Accounts &gt; Accounts Payable as a bill.
                                                                 {rate && parseFloat(carrierRate) > 0 ? ` Margin: ${(parseFloat(rate) - parseFloat(carrierRate)).toFixed(2)} ${rateCurrency}.` : ''}
@@ -6638,17 +6808,63 @@ focus:outline-none focus:ring-2 focus:ring-[#00D1FF]"
                                                 )}
 
                                                 {payType === "TOTAL" && (
+                                                    // Was hard-coded to "0.00 mi x rate = $0.00". Now: the load's miles x the
+                                                    // driver's profile rate (what payroll pays), and for a team load both
+                                                    // drivers' rates added together (client 19 Nov).
                                                     <div className=" border border-theme rounded p-3 text-sm">
                                                         <div className="flex items-center justify-between mb-2">
-                                                            <span className="text-secondary">Base Pay ({payRateUnit})</span>
-                                                            <span className="font-medium">$0.00</span>
+                                                            <span className="text-secondary">
+                                                                Base Pay ({payRateUnit}){payEstimate.isTeam ? ' - TEAM' : ''}{empty ? ' - EMPTY' : ''}
+                                                            </span>
+                                                            <span className="font-medium">${payEstimate.base.toFixed(2)}</span>
                                                         </div>
-                                                        <div className="text-xs text-secondary mb-2">
-                                                            0.00 mi x ${payRate}
-                                                        </div>
+                                                        {payRateUnit === "/MILE" ? (
+                                                            payEstimate.isTeam ? (
+                                                                <div className="text-xs text-secondary mb-2 space-y-0.5">
+                                                                    {payEstimate.teamLines.map((l, i) => (
+                                                                        <div key={i} className="flex justify-between gap-2">
+                                                                            <span>{l.name}</span>
+                                                                            <span>{payEstimate.miles.toFixed(2)} mi x ${l.rate.toFixed(2)}</span>
+                                                                        </div>
+                                                                    ))}
+                                                                    <div className="flex justify-between font-medium text-primary">
+                                                                        <span>Team combined rate</span>
+                                                                        <span>${payEstimate.combinedRate.toFixed(2)}/mi</span>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="text-xs text-secondary mb-2">
+                                                                    {payEstimate.miles.toFixed(2)} mi x ${payEstimate.combinedRate.toFixed(2)}
+                                                                </div>
+                                                            )
+                                                        ) : (
+                                                            <div className="text-xs text-secondary mb-2">Rate ${(parseFloat(payRate) || 0).toFixed(2)} {payRateUnit}</div>
+                                                        )}
+                                                        {payEstimate.rateFromForm && payRateUnit === "/MILE" && (
+                                                            <div className="text-xs text-[#F59E0B] mb-2">
+                                                                No mile rate on the driver's profile - using the rate from BASE.
+                                                            </div>
+                                                        )}
+                                                        {payEstimate.miles <= 0 && payRateUnit === "/MILE" && (
+                                                            <div className="text-xs text-[#F59E0B] mb-2">
+                                                                This load has 0 miles. Enter the miles under Miles.
+                                                            </div>
+                                                        )}
+                                                        {payEstimate.additions > 0 && (
+                                                            <div className="flex items-center justify-between text-xs mb-1">
+                                                                <span className="text-secondary">Additions</span>
+                                                                <span>+${payEstimate.additions.toFixed(2)}</span>
+                                                            </div>
+                                                        )}
+                                                        {payEstimate.deductions > 0 && (
+                                                            <div className="flex items-center justify-between text-xs mb-1">
+                                                                <span className="text-secondary">Deductions</span>
+                                                                <span>-${payEstimate.deductions.toFixed(2)}</span>
+                                                            </div>
+                                                        )}
                                                         <div className="border-t border-theme pt-2 flex items-center justify-between">
                                                             <span className="font-semibold">TOTAL</span>
-                                                            <span className="font-semibold">$0.00</span>
+                                                            <span className="font-semibold">${payEstimate.total.toFixed(2)}</span>
                                                         </div>
                                                     </div>
                                                 )}
@@ -6801,7 +7017,7 @@ focus:outline-none focus:ring-2 focus:ring-[#00D1FF]"
                                                                 <div className="font-medium text-primary">
                                                                     {segment.from} → {segment.to}
                                                                 </div>
-                                                                <div className="text-secondary mt-1">{segment.miles.toFixed(2)} miles</div>
+                                                                <div className="text-secondary mt-1">{segment.miles > 0 ? `${segment.miles.toFixed(2)} miles` : '-'}</div>
                                                             </div>
                                                             <div className="flex items-center gap-2 mt-2 justify-end">
                                                                 <button className="text-secondary hover:text-secondary">
@@ -6822,12 +7038,40 @@ focus:outline-none focus:ring-2 focus:ring-[#00D1FF]"
                                                     )}
                                                 </div>
 
-                                                {/* Total Miles */}
-                                                <div className="pt-2">
-                                                    <div className="flex justify-between items-center text-sm font-semibold text-primary">
+                                                {/* Total Miles - editable, so a load whose address wasn't found on the
+                                                    map (0 miles) can be corrected (client 19 Nov) */}
+                                                <div className="pt-2 space-y-1">
+                                                    <div className="flex justify-between items-center gap-2 text-sm font-semibold text-primary">
                                                         <span>Total Miles</span>
-                                                        <span>{totalMiles.toFixed(2)}</span>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            step="0.01"
+                                                            value={distance}
+                                                            onChange={(e) => {
+                                                                setDistance(e.target.value);
+                                                                setMilesEdited(true);
+                                                            }}
+                                                            placeholder="0.00"
+                                                            className="w-28 p-1.5 border border-theme rounded text-right text-sm focus:outline-none focus:ring-2"
+                                                        />
                                                     </div>
+                                                    <div className="flex justify-end">
+                                                        <button
+                                                            type="button"
+                                                            disabled={calculatingDistance}
+                                                            onClick={async () => {
+                                                                const miles = await calculateDistance();
+                                                                if (miles) setMilesEdited(true);
+                                                            }}
+                                                            className="text-xs text-[var(--accent-blue)] hover:underline disabled:opacity-60"
+                                                        >
+                                                            {calculatingDistance ? 'Calculating…' : 'Calculate from addresses'}
+                                                        </button>
+                                                    </div>
+                                                    {milesEdited && (
+                                                        <div className="text-xs text-secondary">Saved on the load when you save the order.</div>
+                                                    )}
                                                 </div>
 
                                             </div>
@@ -7003,15 +7247,34 @@ focus:outline-none focus:ring-2 focus:ring-[#00D1FF]"
                                                     <div key={attachment.id} className="flex items-center gap-3 p-3 bg-card border border-theme rounded">
                                                         <GripVertical className="w-4 h-4 text-secondary cursor-move" />
                                                         <button
-                                                            onClick={() => {
-                                                                if (attachment.file) {
-                                                                    const url = URL.createObjectURL(attachment.file);
-                                                                    window.open(url, '_blank');
-                                                                }
-                                                            }}
+                                                            type="button"
+                                                            onClick={() => openAttachment(attachment, 'inline')}
                                                             className="flex-1 text-sm text-[#00D1FF] hover:text-blue-800 hover:underline text-left"
+                                                            title="Open / Print"
                                                         >
                                                             {attachment.name}
+                                                        </button>
+                                                        {/* Dispatch reviews BOL/POD here: open (print from the viewer) or download.
+                                                            Saved attachments did nothing when clicked (client 19 Nov). */}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => openAttachment(attachment, 'inline')}
+                                                            disabled={attachmentBusy === `${attachment.id}:inline`}
+                                                            className="px-2 py-1 text-xs text-[#00D1FF] border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] flex items-center gap-1 disabled:opacity-60"
+                                                            title="Open the document - print it from the viewer"
+                                                        >
+                                                            <Eye className="w-3 h-3" />
+                                                            {attachmentBusy === `${attachment.id}:inline` ? 'Opening…' : 'Open / Print'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => openAttachment(attachment, 'attachment')}
+                                                            disabled={attachmentBusy === `${attachment.id}:attachment`}
+                                                            className="px-2 py-1 text-xs text-[#00D1FF] border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] flex items-center gap-1 disabled:opacity-60"
+                                                            title="Download"
+                                                        >
+                                                            <Download className="w-3 h-3" />
+                                                            {attachmentBusy === `${attachment.id}:attachment` ? 'Preparing…' : 'Download'}
                                                         </button>
                                                         <label className="flex items-center gap-1 text-xs text-primary">
                                                             <input
@@ -7041,14 +7304,6 @@ focus:outline-none focus:ring-2 focus:ring-[#00D1FF]"
                                                             />
                                                             Share w/ Driver
                                                         </label>
-                                                        <button
-                                                            onClick={() => {
-                                                                // Edit functionality
-                                                            }}
-                                                            className="p-1 text-[#00D1FF] hover:text-blue-800"
-                                                        >
-                                                            <Edit className="w-4 h-4" />
-                                                        </button>
                                                         <button
                                                             onClick={() => {
                                                                 setAttachments(attachments.filter(a => a.id !== attachment.id));

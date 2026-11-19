@@ -11,7 +11,7 @@ interface Error {
 
 
 
-export const listFuelReport = async (params?: { page?: number; limit?: number; search?: string; status?: string; sortBy?: string; sortOrder?: string }) => {
+export const listFuelReport = async (params?: { page?: number; limit?: number; search?: string; status?: string; sortBy?: string; sortOrder?: string; includeTrip?: boolean }) => {
     try {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -20,6 +20,7 @@ export const listFuelReport = async (params?: { page?: number; limit?: number; s
     if (params?.status) queryParams.append('status', params.status);
     if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+    if (params?.includeTrip === false) queryParams.append('includeTrip', 'false');
     
     const url = `dispatcher/fuel-report${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     const res: AxiosResponse = await apiClient.get(url);
