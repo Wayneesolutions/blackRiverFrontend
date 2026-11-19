@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Edit, Trash2, Download, Filter, DollarSign, TrendingDown, TrendingUp, MapPin, FileText, Users, X, AlertCircle, CheckCircle, Truck, Printer } from 'lucide-react';
 import TruckSettlementModal from '../../../../components/accounts/TruckSettlementModal';
 import { outputPayStatement, settlementToStatement } from '../../../../utils/payStatementPdf';
@@ -96,6 +97,15 @@ interface Notification {
 }
 
 export default function SettlementSystem() {
+  const navigate = useNavigate();
+  // Open a load from a settlement (its documents on the Trips page of the module we're in)
+  const openLoad = (orderId: string) => {
+    const path = window.location.pathname;
+    const base = path.startsWith('/accounts') ? '/accounts/trips'
+      : path.startsWith('/admin/accounts') ? '/admin/accounts/trips'
+        : '/admin/dispatch/trips';
+    navigate(`${base}?docsOrderId=${encodeURIComponent(orderId)}`);
+  };
   const [activeTab, setActiveTab] = useState('driver-settlements');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
@@ -1673,6 +1683,49 @@ export default function SettlementSystem() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Loads in this settlement - each one opens the load (client 19 Nov) */}
+                    {Array.isArray(selectedItem.lineItems) && selectedItem.lineItems.length > 0 && (
+                      <div className="bg-card rounded-lg p-4 border border-theme">
+                        <h4 className="text-sm font-bold text-headings mb-3 uppercase tracking-wide">Loads ({selectedItem.lineItems.length})</h4>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="text-xs text-secondary uppercase">
+                              <tr className="border-b border-theme">
+                                <th className="px-2 py-2 text-left">Load #</th>
+                                <th className="px-2 py-2 text-left">Type</th>
+                                <th className="px-2 py-2 text-left">Driver(s)</th>
+                                <th className="px-2 py-2 text-left">From</th>
+                                <th className="px-2 py-2 text-left">To</th>
+                                <th className="px-2 py-2 text-right">Miles</th>
+                                <th className="px-2 py-2 text-right">Amount</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {(selectedItem.lineItems as any[]).map((l, i) => {
+                                const orderId = typeof l.order === 'object' && l.order ? l.order._id : l.order;
+                                return (
+                                  <tr
+                                    key={`${orderId || 'line'}-${i}`}
+                                    onClick={() => orderId && openLoad(String(orderId))}
+                                    className={`border-b border-theme/50 ${orderId ? 'cursor-pointer hover:bg-[rgba(0,209,255,0.06)]' : ''}`}
+                                    title={orderId ? 'Open this load' : ''}
+                                  >
+                                    <td className="px-2 py-2 font-medium text-[#00D1FF]">{l.loadNumber || (l.order?.orderNumber) || '—'}</td>
+                                    <td className="px-2 py-2">{l.tripType || '—'}</td>
+                                    <td className="px-2 py-2">{l.driverNames || '—'}</td>
+                                    <td className="px-2 py-2">{l.origin || '—'}</td>
+                                    <td className="px-2 py-2">{l.destination || '—'}</td>
+                                    <td className="px-2 py-2 text-right">{Number(l.miles || 0).toFixed(2)}</td>
+                                    <td className="px-2 py-2 text-right">${Number(l.amount || 0).toFixed(2)}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
                   </>
                 )}
 

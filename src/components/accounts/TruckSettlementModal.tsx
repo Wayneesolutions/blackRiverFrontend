@@ -114,6 +114,9 @@ export default function TruckSettlementModal({ open, trucks, onClose, onCreated 
         }
     };
 
+    const toggleLine = (order: string) =>
+        setLines(prev => prev.map(x => (String(x.order) === String(order) && !x.alreadySettledIn ? { ...x, selected: !x.selected } : x)));
+
     const applyRate = (value: string) => {
         setRatePerMile(value);
         const rate = parseFloat(value);
@@ -231,12 +234,17 @@ export default function TruckSettlementModal({ open, trucks, onClose, onCreated 
                                 </div>
                             </div>
 
+                            {lines.length > 0 && lines.every(l => l.alreadySettledIn) && (
+                                <div className="flex items-center gap-2 text-sm text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-3 py-2">
+                                    <AlertCircle size={16} /> Every load of this truck in this period is already in a settlement ({Array.from(new Set(lines.map(l => l.alreadySettledIn))).join(', ')}). Set that settlement to Cancelled (Edit → Status) to settle these loads again.
+                                </div>
+                            )}
                             <div className="border border-theme rounded-lg overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead className="text-xs text-secondary uppercase">
                                         <tr className="border-b border-theme">
                                             <th className="px-2 py-2 text-left">
-                                                <input type="checkbox" checked={lines.length > 0 && lines.every(l => l.selected || l.alreadySettledIn)}
+                                                <input type="checkbox" className="w-4 h-4 cursor-pointer accent-[var(--accent-green)]" checked={lines.length > 0 && lines.every(l => l.selected || l.alreadySettledIn)}
                                                     onChange={e => setLines(prev => prev.map(l => ({ ...l, selected: l.alreadySettledIn ? false : e.target.checked })))} />
                                             </th>
                                             <th className="px-2 py-2 text-left">Load #</th>
@@ -254,10 +262,20 @@ export default function TruckSettlementModal({ open, trucks, onClose, onCreated 
                                         {lines.length === 0 ? (
                                             <tr><td colSpan={10} className="px-3 py-6 text-center text-secondary">No delivered loads for this truck in the period.</td></tr>
                                         ) : lines.map(l => (
-                                            <tr key={l.order} className={`border-b border-theme/50 ${l.selected ? 'bg-[var(--accent-green)]/5' : ''}`}>
+                                            <tr key={l.order}
+                                                // The whole row ticks / unticks the load (the small checkbox alone was
+                                                // hard to hit - client 19 Nov: "not able to click on any load")
+                                                onClick={(e) => {
+                                                    if (l.alreadySettledIn) return;
+                                                    if ((e.target as HTMLElement).closest('input')) return; // miles / amount boxes
+                                                    toggleLine(l.order);
+                                                }}
+                                                title={l.alreadySettledIn ? `Already paid in ${l.alreadySettledIn}. Set that settlement to Cancelled to settle this load again.` : 'Click to tick / untick this load'}
+                                                className={`border-b border-theme/50 ${l.alreadySettledIn ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-[rgba(0,209,255,0.06)]'} ${l.selected ? 'bg-[var(--accent-green)]/10' : ''}`}>
                                                 <td className="px-2 py-2">
                                                     <input type="checkbox" disabled={!!l.alreadySettledIn} checked={!!l.selected}
-                                                        onChange={() => setLines(prev => prev.map(x => (x.order === l.order ? { ...x, selected: !x.selected } : x)))} />
+                                                        className="w-4 h-4 cursor-pointer accent-[var(--accent-green)]"
+                                                        onChange={() => toggleLine(l.order)} />
                                                 </td>
                                                 <td className="px-2 py-2 font-medium">
                                                     {l.loadNumber || '—'}

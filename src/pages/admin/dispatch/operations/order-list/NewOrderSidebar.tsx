@@ -7,6 +7,7 @@ import { listTrailers } from "../../../../../axios/api/trailerTracking";
 import { getAllDrivers, getDriverOnboardingStatus, getDrugTests } from "../../../../../axios/api/driver";
 import { getAllEmployees } from "../../../../../axios/api/employee";
 import { listCarriers, createCarrier } from "../../../../../axios/api/account.payables";
+import { getAllCustomers as listDirectory } from "../../../../../axios/api/customer";
 import { getUserInfo } from "../../../../../utils/auth";
 import AddressSearch from "../../../../../components/common/AddressSearch";
 import { useAutoSaveDraft } from "../../../../../customHooks/useAutoSaveDraft";
@@ -280,7 +281,24 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [commercialValue, setCommercialValue] = useState("");
     const [countryOfOrigin, setCountryOfOrigin] = useState("");
 
-    // Custom Brokers List (Mock for now as per "Pre-saved brokers")
+    // Saved customs brokers (Customer page, category "Customs Broker"): pick one and its
+    // phone / email are filled in; typing a new name still works
+    const [customsBrokers, setCustomsBrokers] = useState<any[]>([]);
+    useEffect(() => {
+        listDirectory(1, 1000, undefined, undefined, 'Customs Broker').then(res => {
+            if (res?.success && Array.isArray(res.data)) setCustomsBrokers(res.data);
+        });
+    }, []);
+    const pickCustomsBroker = (name: string) => {
+        setBrokerName(name);
+        const b = customsBrokers.find(x => String(x.name || '').trim().toLowerCase() === name.trim().toLowerCase());
+        if (b) {
+            const phone = b.customerDetails?.phonePrimary || b.phone || '';
+            const email = b.customerDetails?.emailPrimary || b.email || '';
+            if (phone) setBrokerPhone(phone);
+            if (email) setBrokerEmail(email);
+        }
+    };
 
 
     // Multi-step form state
@@ -3344,11 +3362,15 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             <div className="flex gap-1">
                                                 <input
                                                     type="text"
+                                                    list="saved-customs-brokers"
                                                     value={brokerName}
-                                                    onChange={(e) => setBrokerName(e.target.value)}
+                                                    onChange={(e) => pickCustomsBroker(e.target.value)}
                                                     className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
-                                                    placeholder="Enter customs broker"
+                                                    placeholder={customsBrokers.length ? 'Pick a saved customs broker or type a name' : 'Enter customs broker'}
                                                 />
+                                                <datalist id="saved-customs-brokers">
+                                                    {customsBrokers.map(b => <option key={b._id} value={b.name} />)}
+                                                </datalist>
                                                 <button className="p-2 border border-theme rounded hover:bg-[rgba(255,255,255,0.03)]">
                                                     <Search className="w-4 h-4 text-secondary" />
                                                 </button>

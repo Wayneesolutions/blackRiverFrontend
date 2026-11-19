@@ -426,14 +426,33 @@ const OrderList = () => {
   }, [orders, showChat, chatOrderId]);
 
   // Handle document notification click - open documents modal
-  const handleDocumentNotificationClick = useCallback((orderId: string) => {
-    const order = orders.find(o => o.id === orderId);
-    if (order) {
-      console.log('📄 Opening documents modal for order:', orderId);
-      setSelectedOrderForDocuments(order);
+  const handleDocumentNotificationClick = useCallback(async (orderId: string) => {
+    // Full order (with its attachments), also when the load isn't on the page shown
+    const response = await getOrderById(orderId);
+    if (response?.success && response.data) {
+      setSelectedOrderForDocuments(response.data as any);
       setShowDocumentsModal(true);
+    } else {
+      addNotification('error', response?.message || 'Could not open the documents of this load');
     }
-  }, [orders]);
+  }, [addNotification]);
+
+  // ?docsOrderId=<id> (from the "Documents Uploaded" notification): open that load's documents.
+  // The order is fetched by id, so it opens even when it isn't on the page of the list shown.
+  useEffect(() => {
+    const docsOrderId = new URLSearchParams(location.search).get('docsOrderId');
+    if (!docsOrderId) return;
+    navigate(location.pathname, { replace: true });
+    getOrderById(docsOrderId).then((response) => {
+      if (response?.success && response.data) {
+        setSelectedOrderForDocuments(response.data as any);
+        setShowDocumentsModal(true);
+      } else {
+        addNotification('error', response?.message || 'Could not open the documents of this load');
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
 
   // Handle orderId query parameter to open chat
   useEffect(() => {
