@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { X, Plus, FileText, Upload, Sparkles } from 'lucide-react';
 import type { CSSProperties, FC } from "react";
 import { createFuelReport } from '../../../../../axios/api/dispatcher.places';
-import { getFuelTypes, createFuelType, getUnits, createUnit, getFuelVendors, createFuelVendor, extractFuelReceipt } from '../../../../../axios/api/dispatcher.fuelreport';
+import { getFuelTypes, createFuelType, getUnits, createUnit, getFuelVendors, createFuelVendor, extractFuelReceipt, uploadFuelReportAttachments } from '../../../../../axios/api/dispatcher.fuelreport';
 import { FLEET_COLORS } from '../../../fleetMaintenance/colorUtils';
 import AddressSearch from '../../../../../components/common/AddressSearch';
 import { todayLocalISO } from '../../../../../utils/fuelDate';
@@ -94,7 +94,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
     const [addingVendor, setAddingVendor] = useState(false);
 
     // Documents: attach files to the report (static - store names only)
-    const [attachedDocuments, setAttachedDocuments] = useState<{ id: string; name: string }[]>([]);
+    const [attachedDocuments, setAttachedDocuments] = useState<{ id: string; name: string; file: File }[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
     // Extract from document: upload receipt → AI extracts data (static mock)
     const [extractFile, setExtractFile] = useState<File | null>(null);
@@ -372,6 +372,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
         const newDocs = Array.from(files).map((f, i) => ({
             id: `doc-${Date.now()}-${i}`,
             name: f.name,
+            file: f,
         }));
         setAttachedDocuments(prev => [...prev, ...newDocs]);
         e.target.value = '';
@@ -388,7 +389,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
             return;
         }
 
-        if (!formData.fullAddress && !formData.state) {
+        if (!formData.fullAddress && !formData.state && !formData.city) {
             alert('Please select a location');
             return;
         }
@@ -428,6 +429,19 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
             const response = await createFuelReport(payload);
             if (!response?.success) {
                 throw new Error(response?.message || 'Failed to create fuel report');
+            }
+            // Save the receipt read by AI and the attached documents on the report
+            // (before, only their names were shown and nothing was uploaded)
+            const files = [
+                ...(extractFile ? [extractFile] : []),
+                ...attachedDocuments.map(d => d.file).filter(Boolean),
+            ];
+            const reportId = response?.data?._id;
+            if (files.length && reportId) {
+                const up = await uploadFuelReportAttachments(reportId, files);
+                if (!up?.success) {
+                    alert(`The fuel report was saved, but the files could not be uploaded: ${up?.message || 'upload failed'}. Open the report and attach them again.`);
+                }
             }
             setLoadingSubmit(false);
             onClose(true);
@@ -794,7 +808,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                     />
                                 </div>
 
-                                {/* Attach documents to this report (static) */}
+                                {/* Attach documents to this report (uploaded after the report is saved) */}
                                 <div className="bg-card border border-theme rounded-lg p-4 space-y-2">
                                     <div className="flex items-center gap-2 text-sm font-medium text-primary">
                                         <FileText className="w-4 h-4 text-secondary" />
@@ -804,7 +818,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                     <input
                                         ref={fileInputRef}
                                         type="file"
-                                        accept=".pdf,image/*,.csv"
+                                        accept=".pdf,image/*,.xlsx,.xls,.doc,.docx"
                                         multiple
                                         onChange={handleAttachDocument}
                                         className="hidden"

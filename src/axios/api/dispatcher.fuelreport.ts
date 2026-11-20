@@ -190,3 +190,34 @@ export const confirmFuelCardImport = async (rows: any[]) => {
     return (error as Error).response?.data;
   }
 }
+// Receipt / documents for a saved fuel report (stored on the report, opened via signed links)
+export const uploadFuelReportAttachments = async (id: string, files: File[]) => {
+  try {
+    const formData = new FormData();
+    files.forEach(f => formData.append('files', f));
+    const res: AxiosResponse = await apiClient.post(`dispatcher/fuel-report/${id}/attachments`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data || { success: false, message: 'Upload failed' };
+  }
+};
+
+export const getFuelReportAttachments = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/fuel-report/${id}/attachments`);
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data || { success: false, message: 'Could not load attachments' };
+  }
+};
+
+export const deleteFuelReportAttachment = async (id: string, attachmentId: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`dispatcher/fuel-report/${id}/attachments/${attachmentId}`);
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data || { success: false, message: 'Could not remove the file' };
+  }
+};

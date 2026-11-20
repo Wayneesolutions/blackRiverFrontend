@@ -7,10 +7,30 @@ import ImportButton from '../../../../components/common/ImportButton';
 import AddressSearch from '../../../../components/common/AddressSearch';
 import { COUNTRIES, sortByDialCodeMatch, type Country } from '../../../../utils/countries';
 
+// Categories on the Customer page (client 19 Nov: "customs brokers, receivers, shippers,
+// customers, brokers, vendors, others" - carriers too). The value is what the backend stores;
+// old "Shipper-Receiver" records keep working.
+const CUSTOMER_CATEGORIES: { value: string; label: string; plural: string }[] = [
+  { value: 'Customer', label: 'Customer', plural: 'Customers' },
+  { value: 'Shipper', label: 'Shipper', plural: 'Shippers' },
+  { value: 'Receiver', label: 'Receiver', plural: 'Receivers' },
+  { value: 'Shipper-Receiver', label: 'Shipper & Receiver', plural: 'Shipper & Receivers' },
+  { value: 'Broker', label: 'Broker', plural: 'Brokers' },
+  { value: 'Customs Broker', label: 'Customs Broker', plural: 'Customs Brokers' },
+  { value: 'Carrier', label: 'Carrier', plural: 'Carriers' },
+  { value: 'Vendor', label: 'Vendor', plural: 'Vendors' },
+  { value: 'Other', label: 'Other', plural: 'Others' },
+];
+const categoryLabel = (v?: string) => CUSTOMER_CATEGORIES.find(c => c.value === v)?.label || v || 'Customer';
+// Customers and brokers are billed (credit limit, invoice net, factoring);
+// shippers / receivers get the pickup / drop-off settings
+const isBilledCategory = (v: string) => v === 'Customer' || v === 'Broker';
+const isLocationCategory = (v: string) => v === 'Shipper' || v === 'Receiver' || v === 'Shipper-Receiver';
+
 interface Customer {
   _id?: string;
   name: string;
-  type: 'Customer' | 'Shipper-Receiver';
+  type: string;
   address: string;
   city: string;
   lastLoadDate?: string;
@@ -83,7 +103,7 @@ const CustomersPage = () => {
   // Modal state
   const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [customerType, setCustomerType] = useState<'CUSTOMER' | 'SHIPPER AND RECEIVER'>('CUSTOMER');
+  const [customerType, setCustomerType] = useState<string>('Customer');
   const [showBatchBilling, setShowBatchBilling] = useState(false);
   const [billingType, setBillingType] = useState<'DEFAULT / LOAD' | 'BATCH WEEKLY' | 'BATCH MONTHLY'>('DEFAULT / LOAD');
 
@@ -227,7 +247,7 @@ const CustomersPage = () => {
         const mappedCustomers = response.data.map((cust: any) => ({
           _id: cust._id,
           name: cust.name || '',
-          type: (cust.customerDetails?.customerType || 'Customer') as 'Customer' | 'Shipper-Receiver',
+          type: cust.customerDetails?.customerType || 'Customer',
           address: cust.customerDetails?.address || cust.location?.address || '',
           city: cust.city || '',
           status: cust.status || 'active',
@@ -411,7 +431,7 @@ const CustomersPage = () => {
       const customerData = {
         customer: formData.customer,
         customerId: formData.customerId,
-        customerType: customerType === 'CUSTOMER' ? 'Customer' : 'Shipper-Receiver',
+        customerType: customerType,
         emailPrimary: formData.emailAddress,
         emailSecondary: formData.secondaryEmail,
         trackingEmail: formData.trackingEmail,
@@ -468,7 +488,7 @@ const CustomersPage = () => {
         const customer = response.data.find((c: any) => c._id === customerId);
         if (customer) {
           setEditingId(customerId);
-          setCustomerType(customer.customerDetails?.customerType === 'Shipper-Receiver' ? 'SHIPPER AND RECEIVER' : 'CUSTOMER');
+          setCustomerType(customer.customerDetails?.customerType || 'Customer');
           setBillingType(customer.customerDetails?.billingType || 'DEFAULT / LOAD');
           setFormData({
             customer: customer.name || '',
@@ -548,7 +568,8 @@ const CustomersPage = () => {
       defaultDropType: ''
     });
     setEditingId(null);
-    setCustomerType('CUSTOMER');
+    // New entry starts in the category being viewed
+    setCustomerType(typeFilter !== 'All' ? typeFilter : 'Customer');
     setBillingType('DEFAULT / LOAD');
     setShowBatchBilling(false);
   };
@@ -673,6 +694,22 @@ const CustomersPage = () => {
 
         {/* Search and Filter Section */}
         <div className="mb-6 space-y-4 print-hide">
+          {/* Category tabs - same filter as the Type dropdown */}
+          <div className="flex flex-wrap gap-2">
+            {[{ value: 'All', plural: 'All' }, ...CUSTOMER_CATEGORIES.filter(c => c.value !== 'Shipper-Receiver')].map(c => (
+              <button
+                key={c.value}
+                type="button"
+                onClick={() => setTypeFilter(c.value)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium border border-theme transition-colors ${typeFilter === c.value
+                  ? 'bg-[var(--accent-navyblue)] !text-white'
+                  : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.05)]'
+                  }`}
+              >
+                {c.plural}
+              </button>
+            ))}
+          </div>
           {/* First Row - General Search and Customer ID Search */}
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2 flex-1 min-w-[300px]">
@@ -723,8 +760,9 @@ const CustomersPage = () => {
                 className="px-3 py-2 bg-card text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-green)]/30 focus:border-transparent"
               >
                 <option value="All">All</option>
-                <option value="Customer">Customer</option>
-                <option value="Shipper-Receiver">Shipper-Receiver</option>
+                {CUSTOMER_CATEGORIES.map(c => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
               </select>
             </div>
 
@@ -833,7 +871,7 @@ const CustomersPage = () => {
                       }}
                     >
                       <td className="px-4 py-3 text-sm text-primary">{customer.name}</td>
-                      <td className="px-4 py-3 text-sm text-primary">{customer.type}</td>
+                      <td className="px-4 py-3 text-sm text-primary">{categoryLabel(customer.type)}</td>
                       <td className="px-4 py-3 text-sm text-primary">{customer.address}</td>
                       <td className="px-4 py-3 text-sm text-primary">{customer.city}</td>
                       <td className="px-4 py-3 text-sm text-primary">{customer.lastLoadDate || '-'}</td>
@@ -896,8 +934,8 @@ const CustomersPage = () => {
               <div className="flex items-center justify-between p-6 border-b border-theme bg-card">
                 <h2 className="text-2xl font-bold text-primary">
                   {editingId
-                    ? (customerType === 'CUSTOMER' ? 'Edit Customer' : 'Edit Shipper Receiver')
-                    : (customerType === 'CUSTOMER' ? 'New Customer' : 'New Shipper Receiver')
+                    ? `Edit ${categoryLabel(customerType)}`
+                    : `New ${categoryLabel(customerType)}`
                   }
                 </h2>
                 <button
@@ -924,31 +962,27 @@ const CustomersPage = () => {
                     <div>
                       <h3 className="text-lg font-semibold text-primary mb-4">Basic Information</h3>
 
-                      {/* Customer Type Toggle */}
+                      {/* Category */}
                       <div className="mb-4">
-                        <label className="block text-sm font-medium text-primary mb-2">Customer Type</label>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setCustomerType('CUSTOMER')}
-                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${customerType === 'CUSTOMER'
-                              ? 'bg-[var(--accent-navyblue)] !text-white shadow-sm'
-                              : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.05)]'
-                              }`}
-                          >
-                            CUSTOMER
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setCustomerType('SHIPPER AND RECEIVER')}
-                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${customerType === 'SHIPPER AND RECEIVER'
-                              ? 'bg-[var(--accent-navyblue)] !text-white shadow-sm'
-                              : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.05)]'
-                              }`}
-                          >
-                            SHIPPER AND RECEIVER
-                          </button>
+                        <label className="block text-sm font-medium text-primary mb-2">Category</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {CUSTOMER_CATEGORIES.map(c => (
+                            <button
+                              key={c.value}
+                              type="button"
+                              onClick={() => setCustomerType(c.value)}
+                              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors border border-theme ${customerType === c.value
+                                ? 'bg-[var(--accent-navyblue)] !text-white shadow-sm'
+                                : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.05)]'
+                                }`}
+                            >
+                              {c.label}
+                            </button>
+                          ))}
                         </div>
+                        {customerType === 'Carrier' && (
+                          <p className="mt-2 text-xs text-secondary">Carriers saved here also show in the order form when a load is sold to a carrier.</p>
+                        )}
                         <button
                           onClick={() => setShowBatchBilling(!showBatchBilling)}
                           className="mt-2 text-sm text-[var(--accent-green)] hover:underline"
@@ -1427,7 +1461,7 @@ const CustomersPage = () => {
                     </div>
 
                     {/* Finance Section - Only for CUSTOMER type */}
-                    {customerType === 'CUSTOMER' && (
+                    {isBilledCategory(customerType) && (
                       <div>
                         <h3 className="text-lg font-semibold text-primary mb-4">Finance</h3>
 
@@ -1468,10 +1502,10 @@ const CustomersPage = () => {
                     {/* Additional Settings Section */}
                     <div>
                       <h3 className="text-lg font-semibold text-primary mb-4">
-                        {customerType === 'CUSTOMER' ? 'Additional Settings' : 'Additional Settings'}
+                        Additional Settings
                       </h3>
 
-                      {customerType === 'CUSTOMER' && (
+                      {isBilledCategory(customerType) && (
                         <div className="mb-4">
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -1497,7 +1531,7 @@ const CustomersPage = () => {
                         </label>
                       </div>
 
-                      {customerType === 'SHIPPER AND RECEIVER' && (
+                      {isLocationCategory(customerType) && (
                         <>
                           <div className="mb-4">
                             <label className="block text-sm font-medium text-primary mb-1">

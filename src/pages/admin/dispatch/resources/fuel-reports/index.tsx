@@ -6,6 +6,7 @@ import type { MessageInstance } from "antd/es/message/interface";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import NewFuelReportSidebar from "./NewFuelReportSidebar";
 import FuelCardImportModal from "./FuelCardImportModal";
+import FuelReportAttachments from "./FuelReportAttachments";
 import {
   listFuelReport,
   deleteFuelReport,
@@ -2064,6 +2065,7 @@ const FuelReportsContent = ({ messageApi }: { messageApi: MessageInstance }) => 
                     </select>
                   </div>
                 </div>
+                {editingReport?._id && <FuelReportAttachments reportId={editingReport._id} />}
               </div>
             </div>
 

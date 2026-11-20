@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import { Upload, X, CheckCircle, AlertCircle, XCircle, ChevronDown, ChevronUp, Loader2, FileText, Save } from 'lucide-react';
 import type { MessageInstance } from 'antd/es/message/interface';
 import { parseFuelCardPdf, confirmFuelCardImport } from '../../../../../axios/api/dispatcher.fuelreport';
@@ -80,10 +80,10 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits, m
 
   const handleFile = (f: File) => {
     const n = f.name.toLowerCase();
-    if (!n.endsWith('.pdf') && !n.endsWith('.xlsx')) {
-      messageApi.error(n.endsWith('.xls') || n.endsWith('.csv')
-        ? 'Please upload the report as .xlsx (Excel) or PDF'
-        : 'Please upload a PDF or Excel (.xlsx) file');
+    if (!n.endsWith('.pdf') && !n.endsWith('.xlsx') && !n.endsWith('.xls')) {
+      messageApi.error(n.endsWith('.csv')
+        ? 'CSV files go through "Import CSV / Excel". Upload the fuel card report as Excel or PDF here.'
+        : 'Please upload a PDF or Excel (.xlsx / .xls) file');
       return;
     }
     setFile(f);
@@ -124,17 +124,31 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits, m
     }
   };
 
-  const updateRow = useCallback((idx: number, patch: Partial<DraftRow>) => {
-    setRows(prev => prev.map(r => r._rowIndex === idx ? { ...r, ...patch } : r));
-  }, []);
-
+  // Picking a truck for one row also fills every other row with the same card unit that has
+  // no truck yet, so a report for one card doesn't need the truck chosen row by row
+  const cardUnitKey = (r?: DraftRow) => String(r?.vehicleRaw || r?.cardDescription || '').trim().toLowerCase();
   const assignVehicle = (idx: number, vehicleId: string) => {
     const unit = fleetUnits.find(u => u.id === vehicleId);
-    updateRow(idx, {
+    const patch = {
       vehicleId_db: vehicleId || null,
       vehicleUnitNo: unit?.unitNo || null,
-      matchStatus: vehicleId ? 'matched' : 'unmatched',
+      matchStatus: (vehicleId ? 'matched' : 'unmatched') as DraftRow['matchStatus'],
+    };
+    setRows(prev => {
+      const key = cardUnitKey(prev.find(r => r._rowIndex === idx));
+      return prev.map(r => (r._rowIndex === idx || (vehicleId && key && !r.vehicleId_db && cardUnitKey(r) === key))
+        ? { ...r, ...patch } : r);
     });
+  };
+
+  const assignVehicleToUnassigned = (vehicleId: string) => {
+    if (!vehicleId) return;
+    const unit = fleetUnits.find(u => u.id === vehicleId);
+    const n = rows.filter(r => !r.skip && !r.vehicleId_db).length;
+    setRows(prev => prev.map(r => (r.skip || r.vehicleId_db)
+      ? r
+      : { ...r, vehicleId_db: vehicleId, vehicleUnitNo: unit?.unitNo || null, matchStatus: 'matched' as const }));
+    messageApi.success(`Truck ${unit?.unitNo || ''} set on ${n} row(s)`);
   };
 
   const toggleSkip = (idx: number) => {
@@ -233,7 +247,7 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits, m
                 <p className="text-xs text-secondary mt-1">Pilot Flying J transaction report (Excel or PDF), or EFS / Comdata report (PDF). Every transaction is read from the file; already imported ones are skipped.</p>
               </div>
             )}
-            <input ref={fileInputRef} type="file" accept=".pdf,.xlsx" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+            <input ref={fileInputRef} type="file" accept=".pdf,.xlsx,.xls" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
           </div>
 
           <div className="flex gap-3 mt-5">
@@ -343,6 +357,19 @@ export default function FuelCardImportModal({ onClose, onImported, fleetUnits, m
 
           <div className="flex-1" />
 
+          {activeRows.some(r => !r.vehicleId_db) && (
+            <select
+              value=""
+              onChange={e => assignVehicleToUnassigned(e.target.value)}
+              className="text-xs px-2 py-1.5 rounded-lg border border-theme bg-[var(--bg-card)] text-primary"
+              title="Set one truck on every row that has no truck yet"
+            >
+              <option value="">Set truck on all unassigned rows…</option>
+              {fleetUnits.map(u => (
+                <option key={u.id} value={u.id}>{u.unitNo}</option>
+              ))}
+            </select>
+          )}
           <button onClick={skipAllUnmatched} className="text-xs px-3 py-1.5 rounded-lg border border-theme text-secondary hover:text-primary transition-colors">
             Skip All Unmatched
           </button>
