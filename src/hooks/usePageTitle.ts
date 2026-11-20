@@ -32,6 +32,8 @@ const SEGMENT_TITLES: Record<string, string> = {
     'scheduling': 'Trip Scheduling',
     'fleets': 'Fleets',
     'contacts': 'Customer Contacts',
+    'carriers': 'Carriers',
+    'customs-brokers': 'Customs Brokers',
     'utilization': 'Truck & Trailer Utilization',
     'revenue-per-mile': 'Revenue Per Mile',
     'deliveries': 'Deliveries',

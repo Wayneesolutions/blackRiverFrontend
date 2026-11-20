@@ -86,13 +86,16 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
   );
 };
 
-const CustomersPage = () => {
+// lockedCategory: the same page opened as its own list (client 20 Nov: "separate kerna c custom
+// broker list, carrier list") - Carriers / Customs Brokers get their own menu item and page.
+const CustomersPage = ({ lockedCategory }: { lockedCategory?: string } = {}) => {
+  const lockedMeta = lockedCategory ? CUSTOMER_CATEGORIES.find(c => c.value === lockedCategory) : undefined;
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [customerIdSearch, setCustomerIdSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [typeFilter, setTypeFilter] = useState('All');
+  const [typeFilter, setTypeFilter] = useState(lockedCategory || 'All');
   const [sortBy, setSortBy] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Customer | null; direction: 'asc' | 'desc' }>({
@@ -639,7 +642,7 @@ const CustomersPage = () => {
         {/* Header Section */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-primary">Customers</h1>
+            <h1 className="text-3xl font-bold text-primary">{lockedMeta?.plural || 'Customers'}</h1>
             <div className="flex items-center gap-3 print-hide">
               <span className="text-2xl font-bold text-primary">({filteredCustomers.length})</span>
               <button
@@ -694,8 +697,8 @@ const CustomersPage = () => {
 
         {/* Search and Filter Section */}
         <div className="mb-6 space-y-4 print-hide">
-          {/* Category tabs - same filter as the Type dropdown */}
-          <div className="flex flex-wrap gap-2">
+          {/* Category tabs - same filter as the Type dropdown (hidden on a single-category list) */}
+          {!lockedCategory && <div className="flex flex-wrap gap-2">
             {[{ value: 'All', plural: 'All' }, ...CUSTOMER_CATEGORIES.filter(c => c.value !== 'Shipper-Receiver')].map(c => (
               <button
                 key={c.value}
@@ -709,7 +712,7 @@ const CustomersPage = () => {
                 {c.plural}
               </button>
             ))}
-          </div>
+          </div>}
           {/* First Row - General Search and Customer ID Search */}
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2 flex-1 min-w-[300px]">
@@ -752,7 +755,7 @@ const CustomersPage = () => {
               </select>
             </div>
 
-            <div className="flex items-center gap-2">
+            {!lockedCategory && <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-primary">Type:</label>
               <select
                 value={typeFilter}
@@ -764,7 +767,7 @@ const CustomersPage = () => {
                   <option key={c.value} value={c.value}>{c.label}</option>
                 ))}
               </select>
-            </div>
+            </div>}
 
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-primary">Sort By:</label>
