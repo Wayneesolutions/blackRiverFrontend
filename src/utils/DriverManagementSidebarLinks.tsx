@@ -9,7 +9,7 @@ import { FaUserTie } from "react-icons/fa";      // Employees
 import { FaTruck } from "react-icons/fa";        // Drivers
 import { FaIdCard } from "react-icons/fa";       // Driver Portfolio
 import { FaFolderOpen } from "react-icons/fa";   // Company Documents
-import { FaUsers } from "react-icons/fa";        // Customers
+import { FaUsers, FaTruckLoading, FaPassport } from "react-icons/fa"; // Customers, Carriers, Customs Brokers
 import { FaSatelliteDish } from "react-icons/fa"; // GPS Dashboard
 
 import { FaGraduationCap } from "react-icons/fa"; // Training & Test Management
@@ -44,6 +44,16 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     key: "/admin/Management/customers",
     icon: <FaUsers />,
     label: "Customers",
+  },
+  {
+    key: "/admin/Management/carriers",
+    icon: <FaTruckLoading />,
+    label: "Carriers",
+  },
+  {
+    key: "/admin/Management/customs-brokers",
+    icon: <FaPassport />,
+    label: "Customs Brokers",
   },
   {
     key: "/admin/Management/company-documents",

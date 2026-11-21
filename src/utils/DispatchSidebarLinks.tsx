@@ -16,6 +16,8 @@ import {
   FaComments,
   FaGraduationCap,
   FaSatelliteDish,
+  FaTruckLoading,
+  FaPassport,
 } from "react-icons/fa";
 
 type DispatchSidebarLinks = {
@@ -62,6 +64,16 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
     key: "/admin/dispatch/contacts",
     icon: <MdContacts />,
     label: "Customer",
+  },
+  {
+    key: "/admin/dispatch/carriers",
+    icon: <FaTruckLoading />,
+    label: "Carriers",
+  },
+  {
+    key: "/admin/dispatch/customs-brokers",
+    icon: <FaPassport />,
+    label: "Customs Brokers",
   },
 
   // Utilization & Analytics

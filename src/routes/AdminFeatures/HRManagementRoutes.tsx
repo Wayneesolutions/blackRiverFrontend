@@ -38,7 +38,9 @@ function DriverManagementRoutes() {
 
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/employeelist" element={<EmployeeList />} />
-                    <Route path="/customers" element={<Customers />} />
+                    <Route path="/customers" element={<Customers key="all" />} />
+                    <Route path="/carriers" element={<Customers key="carriers" lockedCategory="Carrier" />} />
+                    <Route path="/customs-brokers" element={<Customers key="customs-brokers" lockedCategory="Customs Broker" />} />
                     <Route path="/documents" element={<Documents />} />
                     <Route path="/company-documents" element={<CompanyDocuments />} />
                     <Route path="/vehicle-documents" element={<VehicleDocuments />} />

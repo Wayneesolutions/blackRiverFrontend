@@ -99,7 +99,9 @@ function AdminRoute() {
           <Route path="truck-profile" element={<ErrorBoundary><TruckProfile /></ErrorBoundary>} />
 
           <Route path="employees" element={<ErrorBoundary><Employees /></ErrorBoundary>} />
-          <Route path="customers" element={<ErrorBoundary><Customers /></ErrorBoundary>} />
+          <Route path="customers" element={<ErrorBoundary><Customers key="all" /></ErrorBoundary>} />
+          <Route path="carriers" element={<ErrorBoundary><Customers key="carriers" lockedCategory="Carrier" /></ErrorBoundary>} />
+          <Route path="customs-brokers" element={<ErrorBoundary><Customers key="customs-brokers" lockedCategory="Customs Broker" /></ErrorBoundary>} />
           <Route path="company" element={<ErrorBoundary><CompanyManage /></ErrorBoundary>} />
           <Route path="drivers" element={<ErrorBoundary><Driver /></ErrorBoundary>} />
           <Route path="integrations" element={<ErrorBoundary><Integrations /></ErrorBoundary>} />
